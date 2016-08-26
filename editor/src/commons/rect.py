@@ -1,0 +1,26 @@
+class Rect(object):
+    def __init__(self, left, top, width, height, corner_radius=0):
+        self.left = left
+        self.top = top
+        self.width = width
+        self.height = height
+        self.corner_radius = corner_radius
+
+    def copy(self):
+        return Rect(left=self.left, top=self.top, width=self.width, height=self.height)
+
+    def expand_include(self, other):
+        if other is None: return
+        x1, y1 = self.left, self.top
+        x2, y2 = self.left+self.width, self.top+self.height
+        x3, y3 = other.left, other.top
+        x4, y4 = other.left+other.width, other.top+other.height
+        self.left = min(x1, x2, x3, x4)
+        self.top = min(y1, y2, y3, y4)
+        self.width = max(x1, x2, x3, x4)-self.left
+        self.height = max(y1, y2, y3, y4)-self.top
+
+    def __repr__(self):
+        return "Rect(left={0}, top={1}, width={2}, height={3})".format(
+                self.left, self.top, self.width, self.height)
+

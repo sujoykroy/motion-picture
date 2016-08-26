@@ -1,0 +1,7 @@
+.pane-separator{
+    border-radius: 2px;
+    border-width:1px;
+    border-color: #000000;
+    background-color:#cccccc;
+    border-style: solid;
+}

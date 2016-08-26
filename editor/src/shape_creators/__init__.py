@@ -1,0 +1,3 @@
+from rectangle_shape_creator import RectangleShapeCreator
+from oval_shape_creator import OvalShapeCreator
+from curve_shape_creator import CurveShapeCreator
