@@ -14,6 +14,17 @@ RESIZING_BOTTOM = "RESIZING_BOTTOM"
 RESIZING_LEFT = "RESIZING_LEFT"
 ANCHOR = "ANCHOR"
 
+class ControlEditBox(OvalEditBox):
+    def __init__(self, percent_point, curve_index, bezier_point_index, control_index):
+        if control_index == 0:
+            fill_color = Color(1,1,0,1)
+        else:
+            fill_color = Color(1,0,0,1)
+        OvalEditBox.__init__(self, percent_point, radius=10, fill_color=fill_color, is_percent=True)
+        self.curve_index = curve_index
+        self.bezier_point_index = bezier_point_index
+        self.control_index = control_index
+
 class ShapeEditor(object):
     def __init__(self, shape):
         self.shape = shape
@@ -43,7 +54,8 @@ class ShapeEditor(object):
         control_1_fill_color = Color(1,1,0,1)
         control_2_fill_color = Color(1,0,0,1)
         if isinstance(shape, CurveShape):
-            for curve in self.shape.curves:
+            for curve_index in range(len(self.shape.curves)):
+                curve = self.shape.curves[curve_index]
                 last_dest_eb = None
                 origin_eb = self.new_edit_box(OvalEditBox(curve.origin), INNER)
                 if not curve.closed:
@@ -54,10 +66,10 @@ class ShapeEditor(object):
                 for bpi in range(len(curve.bezier_points)):
                     bezier_point = curve.bezier_points[bpi]
                     dest_eb = self.new_edit_box(OvalEditBox(bezier_point.dest), INNER)
-                    control_1_eb = self.new_edit_box(OvalEditBox(bezier_point.control_1,
-                                                            fill_color = control_1_fill_color), INNER)
-                    control_2_eb = self.new_edit_box(OvalEditBox(bezier_point.control_2,
-                                                            fill_color = control_2_fill_color), INNER)
+                    control_1_eb = self.new_edit_box(ControlEditBox(
+                        bezier_point.control_1, curve_index, bpi, 0), INNER)
+                    control_2_eb = self.new_edit_box(ControlEditBox(
+                        bezier_point.control_2, curve_index, bpi, 1), INNER)
                     if last_dest_eb:
                         last_dest_eb.add_linked_edit_box(control_1_eb)
                     dest_eb.add_linked_edit_box(control_2_eb)
@@ -107,6 +119,7 @@ class ShapeEditor(object):
         return line
 
     def get_edit_box_at(self, point):
+        point = point.copy()
         point = self.shape.transform_point(point)
         for edit_box in reversed(self.all_edit_box_list):
             if edit_box.is_within(point):
@@ -115,6 +128,19 @@ class ShapeEditor(object):
 
     def select_item_at(self, point):
         self.selected_edit_box = self.get_edit_box_at(point)
+        if self.selected_edit_box is None and isinstance(self.shape, CurveShape):
+            point = self.shape.transform_point(point)
+            found = self.shape.find_point_location(point)
+            if found:
+                curve_index, bezier_point_index, t = found
+                control_index = 1 if t>.5 else 0
+                for edit_box in self.curve_point_edit_boxes:
+                    if not isinstance(edit_box, ControlEditBox): continue
+                    if edit_box.curve_index == curve_index and \
+                       edit_box.bezier_point_index == bezier_point_index and \
+                       edit_box.control_index == control_index:
+                       self.selected_edit_box = edit_box
+                       return
 
     def draw(self, ctx):
         padding = 10+self.shape.get_border_width()*.5

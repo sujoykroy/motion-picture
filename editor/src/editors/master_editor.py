@@ -24,7 +24,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.connect("key-release-event", self.on_drawing_area_key_release)
 
         style_provider = Gtk.CssProvider()
-        print Settings.MAIN_CSS_FILE
         style_provider.load_from_path(Settings.MAIN_CSS_FILE)
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(),
@@ -333,6 +332,9 @@ class MasterEditor(Gtk.ApplicationWindow):
                 elif self.shape_manager.has_designable_multi_shape_selected():
                     multi_shape = self.shape_manager.get_selected_shape()
                     self.load_multi_shape(multi_shape)
+                elif self.shape_manager.has_curve_shape_selected():
+                    doc_point, shape_point = self.get_doc_and_multi_shape_point(self.mouse_point)
+                    self.shape_manager.insert_point_in_curve_at(shape_point)
                 elif self.shape_manager.has_no_shape_selected():
                     if len(self.multi_shape_stack)>1:
                         del self.multi_shape_stack[-1]

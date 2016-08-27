@@ -240,3 +240,21 @@ class CurveShape(Shape):
             if sx is not None and sy is not None:
                 curve.scale(sx, sy)
 
+    def find_point_location(self, point):
+        point = point.copy()
+        point.scale(1./self.width, 1./self.height)
+        for curve_index in range(len(self.curves)):
+            curve = self.curves[curve_index]
+            found = curve.get_closest_control_point(point)
+            if found:
+                bezier_point_index, t = found
+                return (curve_index, bezier_point_index, t)
+        return None
+
+    def insert_point_at(self, point):
+        found = self.find_point_location(point)
+        if not found: return False
+        curve_index, bezier_point_index, t = found
+        curve = self.curves[curve_index]
+        curve.insert_point_at(bezier_point_index, t)
+        return True

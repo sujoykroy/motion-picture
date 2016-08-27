@@ -40,7 +40,7 @@ class Document(object):
 
         doc = root.find("doc")
         width = doc.attrib.get("width", self.width)
-        height = doc.attrib.get("width", self.height)
+        height = doc.attrib.get("height", self.height)
 
         self.width = float(width)
         self.height = float(height)

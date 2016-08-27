@@ -1,5 +1,6 @@
-import MotionPicture, sys
+import MotionPicture, sys, os
 
 app = MotionPicture.Application()
-exit_status = app.run(sys.argv)
+filename = os.path.join(os.path.dirname(__file__), "sample.xml")
+exit_status = app.run([sys.argv[0], filename])
 sys.exit(exit_status)

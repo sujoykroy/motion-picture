@@ -1,6 +1,7 @@
 from bezier_point import BezierPoint
 from point import Point
 from xml.etree.ElementTree import Element as XmlElement
+import numpy, math
 
 class Curve(object):
     TAG_NAME = "curve"
@@ -89,6 +90,97 @@ class Curve(object):
                 bezier_point.dest.x, bezier_point.dest.y)
         if len(self.bezier_points) > 1 and self.closed:
             ctx.close_path()
+
+
+    @staticmethod
+    def get_reals(roots):
+        mod_roots = []
+        for root in roots:
+            if isinstance(root, numpy.complex128):
+                root = root.real
+            if root>=1. or root<=0: continue
+            mod_roots.append(root)
+        return mod_roots
+
+    def get_closest_control_point(self, point):
+        last_dest = self.origin
+        for bezier_point_index in range(len(self.bezier_points)):
+            bezier_point = self.bezier_points[bezier_point_index]
+
+            p0 = last_dest
+            p1 = bezier_point.control_1
+            p2 = bezier_point.control_2
+            p3 = bezier_point.dest
+            last_dest = p3
+
+            x_coeff = [(-p0.x+3*p1.x-3*p2.x+p3.x), (3*p0.x-6*p1.x+3*p2.x),
+                       (-3*p0.x+3*p1.x), p0.x-point.x]
+            y_coeff = [(-p0.y+3*p1.y-3*p2.y+p3.y), (3*p0.y-6*p1.y+3*p2.y),
+                       (-3*p0.y+3*p1.y), p0.y-point.y]
+
+            x_roots = numpy.roots(x_coeff)
+            y_roots = numpy.roots(y_coeff)
+
+            mod_x_roots = self.get_reals(x_roots)
+            mod_y_roots = self.get_reals(y_roots)
+
+            x_roots = mod_x_roots
+            y_roots = mod_y_roots
+            for x_root in x_roots:
+                for y_root in y_roots:
+                    if abs(x_root-y_root)/x_root<.1:
+                        return bezier_point_index, x_root
+                        break
+        return None
+
+    def insert_point_at(self, bezier_point_index, t):
+        if bezier_point_index>=len(self.bezier_points): return
+        bezier_point = self.bezier_points[bezier_point_index]
+        if bezier_point_index == 0:
+            p0 = self.origin
+        else:
+            p0 = self.bezier_points[bezier_point_index-1].dest
+        p1 = bezier_point.control_1
+        p2 = bezier_point.control_2
+        p3 = bezier_point.dest
+
+        tm1 = 1-t
+
+        p0p1_x = tm1*p0.x + t*p1.x
+        p0p1_y = tm1*p0.y + t*p1.y
+
+        p1p2_x = tm1*p1.x + t*p2.x
+        p1p2_y = tm1*p1.y + t*p2.y
+
+        p2p3_x = tm1*p2.x + t*p3.x
+        p2p3_y = tm1*p2.y + t*p3.y
+
+        p0p1_p1p2_x = tm1*p0p1_x + t*p1p2_x
+        p0p1_p1p2_y = tm1*p0p1_y + t*p1p2_y
+
+        p1p2_p2p3_x = tm1*p1p2_x + t*p2p3_x
+        p1p2_p2p3_y = tm1*p1p2_y + t*p2p3_y
+
+        tx = tm1*p0p1_p1p2_x + t*p1p2_p2p3_x
+        ty = tm1*p0p1_p1p2_y + t*p1p2_p2p3_y
+
+        post_bzp = BezierPoint(
+            control_1 = Point(p1p2_p2p3_x, p1p2_p2p3_y),
+            control_2 = Point(p2p3_x, p2p3_y),
+            dest=bezier_point.dest.copy()
+        )
+
+        bezier_point.control_1.x = p0p1_x
+        bezier_point.control_1.y = p0p1_y
+        bezier_point.control_2.x = p0p1_p1p2_x
+        bezier_point.control_2.y = p0p1_p1p2_y
+        bezier_point.dest.x = tx
+        bezier_point.dest.y = ty
+
+        if bezier_point_index == len(self.bezier_points)-1:
+            self.bezier_points.append(post_bzp)
+        else:
+            self.bezier_points.insert(bezier_point_index+1, post_bzp)
 
 class StraightCurve(Curve):
     def __init__(self, points):

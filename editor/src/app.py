@@ -66,9 +66,23 @@ class ApplicationWindow(MasterEditor):
 
 class Application(Gtk.Application):
     def __init__(self):
-        Gtk.Application.__init__(self, application_id="bk2suz.motion_picture")
+        Gtk.Application.__init__(self,
+                application_id="bk2suz.motion_picture",
+                flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+
+        self.open_filename = None
+
         self.connect("startup", self.on_startup)
         self.connect("activate", self.on_activate)
+        self.connect("command-line", self.on_command_line)
+
+    def on_command_line(self, app, command_line):
+        argv = command_line.get_arguments()
+        print argv
+        if len(argv) > 1:
+            self.open_filename = argv[1]
+        self.activate()
+        return 0
 
     def on_startup(self, app):
         app_name = os.path.basename(__file__)
@@ -123,10 +137,10 @@ class Application(Gtk.Application):
         self.add_window(win)
         win.show_all()
         win.init_interface()
-        #win.open_document(os.path.join(THIS_FOLDER, "sample.xml"))
         return win
 
     def on_activate(self, app):
-        self.new_app_window()
-
+        win = self.new_app_window()
+        if self.open_filename:
+            win.open_document(self.open_filename)
 

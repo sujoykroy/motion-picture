@@ -76,6 +76,10 @@ class ShapeManager(object):
     def has_no_shape_selected(self):
         return self.shape_editor is None
 
+    def has_curve_shape_selected(self):
+        if self.shape_editor is None: return False
+        return isinstance(self.shape_editor.shape, CurveShape)
+
     def place_shape_at_zero_position(self, shape):
         shape.move_to(self.multi_shape.translation.x, self.multi_shape.translation.y)
 
@@ -363,3 +367,10 @@ class ShapeManager(object):
             shape = self.shape_editor.shape
             self.delete_shape_editor()
             self.remove_shape(shape)
+
+    def insert_point_in_curve_at(self, point):
+        if not self.has_curve_shape_selected(): return
+        curve_shape = self.shape_editor.shape
+        point = curve_shape.transform_point(point)
+        if curve_shape.insert_point_at(point):
+            self.shape_editor = ShapeEditor(curve_shape)

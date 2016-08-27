@@ -1,5 +1,6 @@
 from xml.etree.ElementTree import Element as XmlElement
 from rect import Rect
+from point import Point
 
 class BezierPoint(object):
     TAG_NAME = "bp"
