@@ -64,6 +64,14 @@ class ApplicationWindow(MasterEditor):
     def create_new_shape(self, action, parameter):
         self.set_shape_creation_mode(parameter.get_string())
 
+    def insert_break_in_shape(self, action, parameter):
+        if self.shape_manager.insert_break():
+            self.redraw()
+
+    def join_points_of_shape(self, action, parameter):
+        if self.shape_manager.join_points():
+            self.redraw()
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,
@@ -78,7 +86,6 @@ class Application(Gtk.Application):
 
     def on_command_line(self, app, command_line):
         argv = command_line.get_arguments()
-        print argv
         if len(argv) > 1:
             self.open_filename = argv[1]
         self.activate()
@@ -133,6 +140,8 @@ class Application(Gtk.Application):
         new_action(win, self.menubar.actions.save_document)
         new_action(win, self.menubar.actions.save_as_document)
         new_action(win, self.menubar.actions.create_new_shape, GLib.VariantType.new("s"))
+        new_action(win, self.menubar.actions.insert_break_in_shape)
+        new_action(win, self.menubar.actions.join_points_of_shape)
 
         self.add_window(win)
         win.show_all()

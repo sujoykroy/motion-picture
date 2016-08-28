@@ -155,6 +155,9 @@ class MenuBar(object):
         self.action(export_menu, "PNG Image", "export_to_png_image")
 
         edit_menu = self.top_menu.submenu("Edit")
+        edit_shape_menu = edit_menu.submenu("Curve Shape")
+        self.action(edit_shape_menu, "Insert Break", "win.insert_break_in_shape")
+        self.action(edit_shape_menu, "Join Points", "win.join_points_of_shape")
 
         shapes_menu = self.top_menu.submenu("Shapes")
 

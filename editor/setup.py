@@ -13,5 +13,6 @@ setup(
                 'MotionPicture.time_line_boxes',
                 'MotionPicture.time_lines',
                 'MotionPicture.shapes'],
-    package_data = {'MotionPicture': ['settings/main_style.css', 'settings/menu_accel_icon.txt']}
+    package_data = {'MotionPicture': [
+                'settings/main_style.css', 'settings/menu_accel_icon.txt', 'icons/*.*']}
 )

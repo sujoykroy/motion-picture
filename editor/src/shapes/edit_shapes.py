@@ -46,6 +46,20 @@ class OvalEditBox(OvalShape, EditBox):
         OvalShape.__init__(self, Point(w/2,h/2), Color(0,0,0,1), 1, fill_color, w, h, 360)
         EditBox.__init__(self, percent_point, is_percent=is_percent)
 
+    def draw_path(self, ctx, for_fill=False, draw_frac=.5):
+        ctx.new_path()
+        ctx.save()
+        ctx.translate(self.width*.5, self.height*.5)
+        ctx.scale(self.width*draw_frac, self.height*draw_frac)
+
+        if self.sweep_angle != 360:
+            ctx.move_to(0,0)
+        else:
+            ctx.move_to(.5,0)
+        ctx.arc(0,0,.5,0,self.sweep_angle*RAD_PER_DEG)
+        ctx.close_path()
+        ctx.restore()
+
 class AnchorEditBox(OvalShape, EditBox):
     def __init__(self, shape):
         w = h = 10.

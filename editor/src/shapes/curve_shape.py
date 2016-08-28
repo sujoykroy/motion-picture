@@ -258,3 +258,72 @@ class CurveShape(Shape):
         curve = self.curves[curve_index]
         curve.insert_point_at(bezier_point_index, t)
         return True
+
+    def insert_break_at(self, curve_index, bezier_point_index):
+        if curve_index>=len(self.curves): return False
+        prev_curve = self.curves[curve_index]
+        if bezier_point_index>= len(prev_curve.bezier_points): return False
+        if bezier_point_index == len(prev_curve.bezier_points)-1:
+            if prev_curve.closed:
+                #Just open up the closed curve
+                prev_curve.closed = False
+                return True
+            else:
+                return False
+        bezier_point = prev_curve.bezier_points[bezier_point_index]
+        new_curve = Curve(origin=bezier_point.dest.copy(),
+                          bezier_points=prev_curve.bezier_points[bezier_point_index+1:])
+        del prev_curve.bezier_points[bezier_point_index+1:]
+        prev_curve.closed = False
+
+        self.curves.insert(curve_index+1, new_curve)
+        return True
+
+    def join_points(self, curve_index_1, is_start_1, curve_index_2, is_start_2):
+        if curve_index_1>=len(self.curves): return False
+        if curve_index_1>=len(self.curves): return False
+
+        curve_1 = self.curves[curve_index_1]
+        curve_2 = self.curves[curve_index_2]
+
+        if curve_index_1 == curve_index_2:
+            if is_start_1 != is_start_2:
+                curve_1.closed = True
+                curve_1.origin.x =  (curve_1.origin.x+curve_1.bezier_points[-1].dest.x)*.5
+                curve_1.origin.y =  (curve_1.origin.y+curve_1.bezier_points[-1].dest.y)*.5
+                curve_1.bezier_points[-1].dest.copy_from(curve_1.origin)
+                return True
+            return False
+        if curve_1.closed: return False
+        if curve_2.closed: return False
+
+        dist_lapse = .01
+        if is_start_1 == is_start_2:#reverse curve_2
+            rev_curve = Curve(origin=curve_2.bezier_points[-1].dest.copy())
+            for bpi in range(len(curve_2.bezier_points)-1, -1, -1):
+                if bpi == 0:
+                    dest = curve_2.origin
+                else:
+                    dest = curve_2.bezier_points[bpi-1].dest
+                rev_curve.add_bezier_point(BezierPoint(
+                    control_1 = curve_2.bezier_points[bpi].control_2,
+                    control_2 = curve_2.bezier_points[bpi].control_1,
+                    dest=dest
+                ))
+            curve_2.origin.copy_from(rev_curve.origin)
+            for bpi in range(len(rev_curve.bezier_points)):
+                curve_2.bezier_points[bpi].control_1.copy_from(rev_curve.bezier_points[bpi].control_1)
+                curve_2.bezier_points[bpi].control_2.copy_from(rev_curve.bezier_points[bpi].control_2)
+                curve_2.bezier_points[bpi].dest.copy_from(rev_curve.bezier_points[bpi].dest)
+
+        if is_start_1:#swap curves
+            curve_1, curve_2 = curve_2, curve_1
+            curve_index_1, curve_index_2 = curve_index_2, curve_index_1
+
+        #curve_2 get attached at the end of curve_2
+        curve_1.bezier_points[-1].dest.x = (curve_1.bezier_points[-1].dest.x +  curve_2.origin.x)*.5
+        curve_1.bezier_points[-1].dest.y = (curve_1.bezier_points[-1].dest.y +  curve_2.origin.y)*.5
+
+        curve_1.bezier_points.extend(curve_2.bezier_points)
+        del self.curves[curve_index_2]
+        return True

@@ -62,7 +62,9 @@ class ShapeManager(object):
         return None
 
     def get_selected_edit_box(self):
-        if self.shape_editor: return self.shape_editor.selected_edit_box
+        if self.shape_editor:
+            if self.shape_editor.selected_edit_boxes:
+                return self.shape_editor.selected_edit_boxes[0]
         return None
 
     def has_shape_creator(self):
@@ -262,10 +264,10 @@ class ShapeManager(object):
             return
 
         if self.shape_editor is not None:
-            self.shape_editor.select_item_at(point)
+            self.shape_editor.select_item_at(point, multi_select)
 
         if self.shape_editor is None or \
-                (self.shape_editor is not None and self.shape_editor.selected_edit_box is None):
+                (self.shape_editor is not None and not self.shape_editor.has_selected_box()):
             shape = self.get_shape_at(point, multi_select)
             if shape is None:
                 self.delete_shape_editor()
@@ -374,3 +376,17 @@ class ShapeManager(object):
         point = curve_shape.transform_point(point)
         if curve_shape.insert_point_at(point):
             self.shape_editor = ShapeEditor(curve_shape)
+
+    def insert_break(self):
+        if not self.shape_editor: return False
+        if self.shape_editor.insert_break():
+            self.shape_editor = ShapeEditor(self.shape_editor.shape)
+            return True
+        return False
+
+    def join_points(self):
+        if not self.shape_editor: return False
+        if self.shape_editor.join_points():
+            self.shape_editor = ShapeEditor(self.shape_editor.shape)
+            return True
+        return False
