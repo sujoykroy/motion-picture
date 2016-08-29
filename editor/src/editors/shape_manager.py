@@ -390,3 +390,13 @@ class ShapeManager(object):
             self.shape_editor = ShapeEditor(self.shape_editor.shape)
             return True
         return False
+
+    def duplicate_shape(self):
+        if not self.shape_editor: return False
+        new_shape = self.shape_editor.shape.copy()
+        self.add_shape(new_shape)
+        self.shape_editor.shape.copy_into(new_shape)
+        self.multi_shape.readjust_sizes()
+
+        self.shape_editor = ShapeEditor(new_shape)
+        return True

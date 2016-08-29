@@ -173,7 +173,7 @@ class ShapeEditor(object):
                     if edit_box.curve_index == curve_index and \
                        edit_box.bezier_point_index == bezier_point_index and \
                        edit_box.control_index == control_index:
-                       selected_edit_boxes = edit_box
+                       selected_edit_box = edit_box
                        break
 
         if selected_edit_box:

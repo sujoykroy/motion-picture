@@ -1,10 +1,13 @@
 from gi.repository import Gtk, GLib, Gio
-import sys, os
+from gi.repository import Gdk, GdkPixbuf
+from gi.repository.GdkPixbuf import Pixbuf
+import sys, os, cairo
 
 from editors import MasterEditor
 from gui_utils import *
 from document import Document
 import settings as Settings
+from commons.draw_utils import draw_text
 
 THIS_FOLDER = os.path.dirname(__file__)
 
@@ -13,6 +16,24 @@ def new_action(parent, action_name, param_type=None):
         action = Gio.SimpleAction.new(action_name, parameter_type=param_type)
         action.connect("activate", getattr(parent, action_name))
         parent.add_action(action)
+
+def text_icon_pixbuf(text):
+    padding = 0
+    width = 30
+    height = 20+2*padding
+    pixbuf = Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width, height)
+
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, pixbuf.get_width(), pixbuf.get_height())
+    ctx = cairo.Context(surface)
+    Gdk.cairo_set_source_pixbuf(ctx, pixbuf, 0, 0)
+
+    draw_text(ctx, text, x=0, y=0, width=width, height=height, fit_width=True,
+              back_color="d5d568", padding=padding)
+
+    surface= ctx.get_target()
+    pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
+
+    return pixbuf
 
 class ApplicationWindow(MasterEditor):
     def __init__(self, parent, menubar):
@@ -29,10 +50,14 @@ class ApplicationWindow(MasterEditor):
             icon = its[2].strip()
 
             menu_item = menubar.get_item(path)
+            label_name = its[3].strip() if len(its)>3 else menu_item.name
+
             filename = os.path.join(Settings.ICONS_FOLDER, icon + ".xml")
             doc = Document(filename=filename)
             pixbuf = doc.get_pixbuf(width=20, height=20)
-            tool_button = Gtk.ToolButton.new(Gtk.Image.new_from_pixbuf(pixbuf), menu_item.name)
+            #tool_button = Gtk.ToolButton.new(Gtk.Image.new_from_pixbuf(pixbuf), menu_item.name)
+            tool_button = Gtk.ToolButton.new(Gtk.Label(label_name), menu_item.name)
+            #tool_button = Gtk.ToolButton.new(Gtk.Image.new_from_pixbuf(text_icon_pixbuf(label_name)), menu_item.name)
             tool_button.connect("clicked", self.tool_button_clicked, menu_item)
             self.toolbar.insert(tool_button, -1)
         self.toolbar.show()
@@ -70,6 +95,10 @@ class ApplicationWindow(MasterEditor):
 
     def join_points_of_shape(self, action, parameter):
         if self.shape_manager.join_points():
+            self.redraw()
+
+    def duplicate_shape(self, action, parameter):
+        if self.shape_manager.duplicate_shape():
             self.redraw()
 
 class Application(Gtk.Application):
@@ -142,6 +171,7 @@ class Application(Gtk.Application):
         new_action(win, self.menubar.actions.create_new_shape, GLib.VariantType.new("s"))
         new_action(win, self.menubar.actions.insert_break_in_shape)
         new_action(win, self.menubar.actions.join_points_of_shape)
+        new_action(win, self.menubar.actions.duplicate_shape)
 
         self.add_window(win)
         win.show_all()

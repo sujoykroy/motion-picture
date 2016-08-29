@@ -1,4 +1,5 @@
-File/New, <Control>n , new_document
-File/Save, <Control>s
+File/New, <Control>n,
+File/Save, <Control>s,
 File/Save As, <Shift><Control>s
-Edit/Curve Shape/Join Points, , join_points
+Edit/Curve Shape/Join Points, ,
+Shapes/Duplicate, ,

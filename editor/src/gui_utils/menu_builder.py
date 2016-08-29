@@ -162,9 +162,8 @@ class MenuBar(object):
         shapes_menu = self.top_menu.submenu("Shapes")
 
         shape_edit_section = shapes_menu.section()
-        self.action(shape_edit_section, "Copy", "app.copy_shape")
-        self.action(shape_edit_section, "Paste", "app.paste_shape")
-        self.action(shape_edit_section, "Delete", "app.delete_shape")
+        self.action(shape_edit_section, "Duplicate", "win.duplicate_shape")
+        self.action(shape_edit_section, "Delete", "win.delete_shape")
 
         shape_create_section = shapes_menu.section()
         self.action(shape_create_section, "Rectangle", "win.create_new_shape", "rect")
