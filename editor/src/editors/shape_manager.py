@@ -5,6 +5,7 @@ from ..commons.draw_utils import *
 
 from ..shapes import *
 from ..shape_creators import *
+from guides import *
 
 MULTI_SELECTION_SHAPE = "MULTI_SELECTION_SHAPE"
 
@@ -42,20 +43,29 @@ class ScrollableArea(object):
         self.offset_y = 0
 
 class ShapeManager(object):
-    def __init__(self, multi_shape, document_width, document_height):
+    def __init__(self, multi_shape, doc):
+        self.doc = doc
         self.multi_shape = multi_shape
         self.document_area_box = RectangleShape(
-                anchor_at=Point(document_width*.5, document_height*.5),
+                anchor_at=Point(doc.width*.5, doc.height*.5),
                 border_color = "cccccc",
                 border_width = 1,
                 fill_color= "ffffff",
-                width = document_width, height = document_height, corner_radius=2)
+                width = doc.width, height = doc.height, corner_radius=2)
         self.document_area_box_selected = False
         self.init_document_area_box = None
         self.scrollable_area = ScrollableArea()
         self.shape_editor = None
         self.shape_creator = None
         self.shapes = ShapeList(multi_shape.shapes)
+
+        self.guides = doc.guides
+        for guide in self.guides:
+            guide.parent_shape = self.document_area_box
+        self.selected_guide = None
+
+        self.out_width = doc.width
+        self.out_height = doc.height
 
     def get_selected_shape(self):
         if self.shape_editor: return self.shape_editor.shape
@@ -81,6 +91,10 @@ class ShapeManager(object):
     def has_curve_shape_selected(self):
         if self.shape_editor is None: return False
         return isinstance(self.shape_editor.shape, CurveShape)
+
+    def has_multi_selection(self):
+        if self.shape_editor is None: return False
+        return isinstance(self.shape_editor.shape, MultiSelectionShape)
 
     def place_shape_at_zero_position(self, shape):
         shape.move_to(self.multi_shape.translation.x, self.multi_shape.translation.y)
@@ -135,14 +149,20 @@ class ShapeManager(object):
             #self.multi_shape.draw_border(ctx)
             draw_stroke(ctx, 1, "33333333")
             ctx.restore()
-        ctx.restore()
+        #ctx.restore()
 
-        ctx.save()
-        self.document_area_box.pre_draw(ctx)
+        #ctx.save()
+        #self.document_area_box.pre_draw(ctx)
         self.document_area_box.draw_path(ctx)
         #self.document_area_box.draw_anchor(ctx)
         self.document_area_box.draw_border(ctx)
         ctx.restore()
+
+        for guide in self.guides:
+            ctx.save()
+            guide.draw(ctx, self.out_width, self.out_height)
+            ctx.restore()
+        #ctx.restore()
 
     def zoom(self, scale, point, out_width, out_height):
         scale = 1. + scale*.1
@@ -181,6 +201,8 @@ class ShapeManager(object):
         return x_pos, y_pos
 
     def resize_scollable_area(self, out_width, out_height):
+        self.out_width = out_width
+        self.out_height = out_height
         rect = self.document_area_box.get_abs_outline(0)
         extra_y = 0
         if rect.top+rect.height>out_height:
@@ -224,6 +246,8 @@ class ShapeManager(object):
                 self.scrollable_area.offset_x = rect.left
 
     def fit_area_in_size(self, out_width, out_height):
+        self.out_width = out_width
+        self.out_height = out_height
         self.document_area_box.top = (out_height-self.document_area_box.height)*.5
         self.scroll(.5, "vert", out_width, out_height)
         self.scroll(.5, "horiz", out_width, out_height)
@@ -263,6 +287,12 @@ class ShapeManager(object):
             self.shape_creator.begin_movement(point)
             return
 
+        for guide in self.guides:
+            if guide.is_within(doc_point):
+                self.selected_guide = guide
+                self.selected_guide.save_position()
+                return
+
         if self.shape_editor is not None:
             self.shape_editor.select_item_at(point, multi_select)
 
@@ -301,6 +331,16 @@ class ShapeManager(object):
                     self.delete_shape_editor()
                     self.shape_editor = ShapeEditor(shape)
 
+        if self.shape_editor is None:
+            if doc_point.x<0 or doc_point.x>self.document_area_box.width:
+                if 0<=doc_point.y<=self.document_area_box.height:
+                    self.selected_guide = VerticalGuide(doc_point.x, self.document_area_box)
+                    self.guides.append(self.selected_guide)
+            elif doc_point.y<0 or doc_point.y>self.document_area_box.height:
+                if 0<=doc_point.x<=self.document_area_box.width:
+                    self.selected_guide = HorizontalGuide(doc_point.y, self.document_area_box)
+                    self.guides.append(self.selected_guide)
+
     def move_active_item(self, doc_start_point, doc_end_point, shape_start_point, shape_end_point):
         if self.document_area_box_selected:
             dpoint = doc_end_point.diff(doc_start_point)
@@ -312,6 +352,10 @@ class ShapeManager(object):
         if self.shape_creator is not None:
             self.shape_creator.do_movement(shape_start_point, shape_end_point)
 
+        elif self.selected_guide is not None:
+            dpoint = doc_end_point.diff(doc_start_point)
+            self.selected_guide.move(dpoint)
+
         elif self.shape_editor is not None:
             self.shape_editor.move_active_item(shape_start_point, shape_end_point)
 
@@ -321,8 +365,20 @@ class ShapeManager(object):
         if self.shape_creator is not None:
             if self.shape_creator.end_movement():
                 self.multi_shape.readjust_sizes()
-                self.multi_shape.readjust_sizes()
                 self.shape_creator = None
+
+        elif self.selected_guide is not None:
+            self.selected_guide.save_position()
+            remove_guide = False
+            if isinstance(self.selected_guide, VerticalGuide):
+                if self.selected_guide.x<0 or self.selected_guide.x>self.document_area_box.width:
+                    remove_guide = True
+            if isinstance(self.selected_guide, HorizontalGuide):
+                if self.selected_guide.y<0 or self.selected_guide.y>self.document_area_box.height:
+                    remove_guide = True
+            if remove_guide:
+                self.guides.remove(self.selected_guide)
+            self.selected_guide = None
 
         elif self.shape_editor is not None:
             self.multi_shape.readjust_sizes()
@@ -393,10 +449,32 @@ class ShapeManager(object):
 
     def duplicate_shape(self):
         if not self.shape_editor: return False
-        new_shape = self.shape_editor.shape.copy()
+        exist_shape = self.shape_editor.shape
+        if isinstance(exist_shape, MultiShape):
+            new_shape = exist_shape.copy(copy_shapes=True)
+        else:
+            new_shape = exist_shape.copy()
         self.add_shape(new_shape)
         self.shape_editor.shape.copy_into(new_shape)
         self.multi_shape.readjust_sizes()
 
         self.shape_editor = ShapeEditor(new_shape)
         return True
+
+    def align_shapes(self, x_dir, y_dir):
+        if not self.has_multi_selection(): return False
+        multi_selection_shape = self.shape_editor.shape
+        xy = None
+        for shape in multi_selection_shape.shapes:
+            if xy is None:
+                xy = shape.get_stage_xy()
+            else:
+                if x_dir and not y_dir:
+                    shape.set_stage_x(xy.x)
+                elif not x_dir and y_dir:
+                    shape.set_stage_y(xy.y)
+                elif x_dir and y_dir:
+                    shape.set_stage_xy(xy)
+
+        multi_selection_shape.readjust_sizes()
+        self.multi_shape.readjust_sizes()

@@ -10,7 +10,7 @@ import cairo
 import settings as Settings
 from commons import *
 from shapes import *
-#from commons.draw_utils import *
+from editors.guides import Guide
 
 class Document(object):
     def __init__(self, filename=None):
@@ -18,6 +18,7 @@ class Document(object):
         self.width = 400.
         self.height = 300.
         self.main_multi_shape = None
+        self.guides = []
         if self.filename:
             self.load_from_xml_file()
         if not self.main_multi_shape:
@@ -50,6 +51,11 @@ class Document(object):
         if shape_type == MultiShape.TYPE_NAME:
             self.main_multi_shape = MultiShape.create_from_xml_element(shape_element)
 
+        for guide_element in root.findall(Guide.TAG_NAME):
+            guide = Guide.create_from_xml_element(guide_element)
+            if guide:
+                self.guides.append(guide)
+
     def save(self, filename=None):
         root = XmlElement("root")
 
@@ -62,6 +68,9 @@ class Document(object):
         doc.attrib["width"] = "{0}".format(self.width)
         doc.attrib["height"] = "{0}".format(self.height)
         root.append(doc)
+
+        for guide in self.guides:
+            root.append(guide.get_xml_element())
 
         tree = XmlTree(root)
         root.append(self.main_multi_shape.get_xml_element())

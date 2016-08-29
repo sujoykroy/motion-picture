@@ -202,7 +202,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def load_multi_shape(self, multi_shape):
         self.multi_shape_stack.append(multi_shape)
-        self.shape_manager = ShapeManager(multi_shape, self.doc.width, self.doc.height)
+        self.shape_manager = ShapeManager(multi_shape, self.doc)
         w, h = self.get_drawing_area_size()
         self.shape_manager.document_area_box.move_to(w*.5, h*.5)
         self.shape_manager.resize_scollable_area(w, h)

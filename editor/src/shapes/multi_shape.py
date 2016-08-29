@@ -117,7 +117,9 @@ class MultiShape(Shape):
         newob.child_scale_y = self.child_scale_y
         if copy_shapes:
             for shape in self.shapes:
-                newob.shapes.add(shape.copy(copy_name=True))
+                child_shape = shape.copy(copy_name=True)
+                child_shape.parent_shape = newob
+                newob.shapes.add(child_shape)
         return newob
 
     def save_pose(self, pose_name):

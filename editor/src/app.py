@@ -101,6 +101,20 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.duplicate_shape():
             self.redraw()
 
+    def align_shapes(self, action, parameter):
+        direction = parameter.get_string()
+        if direction == "x":
+            x_dir = True
+            y_dir = False
+        elif direction == "y":
+            x_dir = False
+            y_dir = True
+        elif direction == "xy":
+            x_dir = True
+            y_dir = True
+        self.shape_manager.align_shapes(x_dir=x_dir, y_dir=y_dir)
+        self.redraw()
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,
@@ -172,6 +186,7 @@ class Application(Gtk.Application):
         new_action(win, self.menubar.actions.insert_break_in_shape)
         new_action(win, self.menubar.actions.join_points_of_shape)
         new_action(win, self.menubar.actions.duplicate_shape)
+        new_action(win, self.menubar.actions.align_shapes, GLib.VariantType.new("s"))
 
         self.add_window(win)
         win.show_all()

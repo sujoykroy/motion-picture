@@ -163,6 +163,10 @@ class MenuBar(object):
 
         shape_edit_section = shapes_menu.section()
         self.action(shape_edit_section, "Duplicate", "win.duplicate_shape")
+        align_menu = shape_edit_section.submenu("Align")
+        self.action(align_menu, "X", "win.align_shapes", "x")
+        self.action(align_menu, "Y", "win.align_shapes", "y")
+        self.action(align_menu, "XY", "win.align_shapes", "xy")
         self.action(shape_edit_section, "Delete", "win.delete_shape")
 
         shape_create_section = shapes_menu.section()

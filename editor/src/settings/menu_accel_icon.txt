@@ -3,3 +3,6 @@ File/Save, <Control>s,
 File/Save As, <Shift><Control>s
 Edit/Curve Shape/Join Points, ,
 Shapes/Duplicate, ,
+Shapes/Align/X, ,
+Shapes/Align/Y, ,
+Shapes/Align/XY, ,

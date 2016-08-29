@@ -91,7 +91,7 @@ def draw_text(ctx, text,
 
     if align:
         if align.find("bottom-center")>=0:
-            y -= -t+h*.5*scale_x+padding
+            y -= t+h*scale_y+2*padding
         elif align.find("bottom")>=0:
             y -= -t+h*scale_x+padding
         if align.find("right")>=0:
