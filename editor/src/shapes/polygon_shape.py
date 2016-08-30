@@ -218,7 +218,7 @@ class PolygonShape(Shape):
                 point_index, t = found
                 return (polygon_index, point_index, t)
         return None
-x`
+
     def insert_point_at(self, point):
         found = self.find_point_location(point)
         if not found: return False

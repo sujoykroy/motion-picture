@@ -13,16 +13,16 @@ from shapes import *
 from editors.guides import Guide
 
 class Document(object):
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, width=400., height=300.):
         self.filename = filename
-        self.width = 400.
-        self.height = 300.
+        self.width = width
+        self.height = height
         self.main_multi_shape = None
         self.guides = []
         if self.filename:
             self.load_from_xml_file()
         if not self.main_multi_shape:
-            self.main_multi_shape = MultiShape(width=400, height=300, border_color="000000")
+            self.main_multi_shape = MultiShape(width=width, height=height, border_color="000000")
             self.main_multi_shape._name = "MainShape"
 
     def get_main_multi_shape(self):
@@ -86,7 +86,7 @@ class Document(object):
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, pixbuf.get_width(), pixbuf.get_height())
         ctx = cairo.Context(surface)
         Gdk.cairo_set_source_pixbuf(ctx, pixbuf, 0, 0)
-
+        ctx.set_antialias(cairo.ANTIALIAS_DEFAULT)
 
         shape = self.main_multi_shape
         ctx.scale(width*1./self.width, height*1./self.height)

@@ -1,10 +1,17 @@
-File/New, <Control>n,
+File/New/Document, ,
+File/New/Icon, ,
+File/Open, ,
 File/Save, <Control>s,
 File/Save As, <Shift><Control>s
 Edit/Shape/Join Points, ,
 Edit/Shape/Insert Break, ,
+Shapes/Rectangle, ,
 Shapes/Duplicate, ,
 Shapes/Align/X, ,
 Shapes/Align/Y, ,
 Shapes/Align/XY, ,
-Shapes/Polygon, ,
+-
+Shapes/Rectangle, , rectangle
+Shapes/Oval, , oval
+Shapes/Curve, , curve
+Shapes/Polygon, , polygon

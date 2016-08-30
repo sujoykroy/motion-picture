@@ -17,32 +17,19 @@ def new_action(parent, action_name, param_type=None):
         action.connect("activate", getattr(parent, action_name))
         parent.add_action(action)
 
-def text_icon_pixbuf(text):
-    padding = 0
-    width = 30
-    height = 20+2*padding
-    pixbuf = Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width, height)
-
-    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, pixbuf.get_width(), pixbuf.get_height())
-    ctx = cairo.Context(surface)
-    Gdk.cairo_set_source_pixbuf(ctx, pixbuf, 0, 0)
-
-    draw_text(ctx, text, x=0, y=0, width=width, height=height, fit_width=True,
-              back_color="d5d568", padding=padding)
-
-    surface= ctx.get_target()
-    pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
-
-    return pixbuf
-
 class ApplicationWindow(MasterEditor):
     def __init__(self, parent, menubar):
         MasterEditor.__init__(self)
         self.parent = parent
 
         f = open(Settings.MENU_ACCEL_ICON_FILE, "r")
-
+        toolbar = None
         for line in f:
+            line = line.strip()
+            if line == "-" or toolbar is None:
+                toolbar = Gtk.Toolbar()
+                self.toolbar_container.pack_start(toolbar, expand=False, fill=False, padding=0)
+                continue
             its = line.split(",")
             if len(its)<3: continue
 
@@ -52,15 +39,16 @@ class ApplicationWindow(MasterEditor):
             menu_item = menubar.get_item(path)
             label_name = its[3].strip() if len(its)>3 else menu_item.name
 
-            filename = os.path.join(Settings.ICONS_FOLDER, icon + ".xml")
-            doc = Document(filename=filename)
-            pixbuf = doc.get_pixbuf(width=20, height=20)
-            #tool_button = Gtk.ToolButton.new(Gtk.Image.new_from_pixbuf(pixbuf), menu_item.name)
-            tool_button = Gtk.ToolButton.new(Gtk.Label(label_name), menu_item.name)
-            #tool_button = Gtk.ToolButton.new(Gtk.Image.new_from_pixbuf(text_icon_pixbuf(label_name)), menu_item.name)
+            if icon:
+                filename = os.path.join(Settings.ICONS_FOLDER, icon + ".xml")
+                doc = Document(filename=filename)
+                pixbuf = doc.get_pixbuf(width=20, height=20)
+                tool_button = Gtk.ToolButton.new(Gtk.Image.new_from_pixbuf(pixbuf), menu_item.name)
+            else:
+                tool_button = Gtk.ToolButton.new(Gtk.Label(label_name), menu_item.name)
             tool_button.connect("clicked", self.tool_button_clicked, menu_item)
-            self.toolbar.insert(tool_button, -1)
-        self.toolbar.show()
+            toolbar.insert(tool_button, -1)
+        self.toolbar_container.show_all()
 
     def tool_button_clicked(self, widget, menu_item):
         if menu_item.is_window_action():
@@ -77,6 +65,7 @@ class ApplicationWindow(MasterEditor):
             if filename:
                 self.doc.save(filename)
                 self.show_filename()
+                self.parent.recent_manager.add_item(filename)
         else:
             self.doc.save()
 
@@ -85,6 +74,7 @@ class ApplicationWindow(MasterEditor):
         if filename:
             self.doc.save(filename)
             self.show_filename()
+            self.parent.recent_manager.add_item(filename)
 
     def create_new_shape(self, action, parameter):
         self.set_shape_creation_mode(parameter.get_string())
@@ -146,14 +136,17 @@ class Application(Gtk.Application):
         self.menubar = MenuBar(recent_files)
         self.menubar.load_accelerators(Settings.MENU_ACCEL_ICON_FILE)
 
-        new_action(self, self.menubar.actions.create_new_document)
-        new_action(self, self.menubar.actions.open_document)
+        new_action(self, self.menubar.actions.create_new_document, GLib.VariantType.new("s"))
+        new_action(self, self.menubar.actions.open_document, GLib.VariantType.new("s"))
 
         builder = self.menubar.get_builder()
         self.set_menubar(builder.get_object("menubar"))
 
     def create_new_document(self, action, parameter):
-        self.new_app_window()
+        w, h = parameter.get_string().split("x")
+        win = self.new_app_window()
+        win.open_document(width=float(w), height=float(h))
+        win.redraw()
 
     def open_document(self, action, parameter):
         win = None

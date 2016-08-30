@@ -140,7 +140,9 @@ class MenuBar(object):
         file_menu = self.top_menu.submenu("File")
 
         file_edit_section = file_menu.section()
-        self.action(file_edit_section, "_New", "app.create_new_document")
+        new_menu = file_edit_section.submenu("New")
+        self.action(new_menu, "Icon", "app.create_new_document", "400x400")
+        self.action(new_menu, "Document", "app.create_new_document", "400x300")
         self.action(file_edit_section, "Open", "app.open_document", "")
 
         recent_menu = file_edit_section.submenu("Open Recent")
@@ -217,6 +219,7 @@ class MenuBar(object):
             line = line.strip()
             if not line: continue
             its  = line.split(",")
+            if len(its)<2: continue
             path = its[0].strip()
             accel = its[1].strip()
 

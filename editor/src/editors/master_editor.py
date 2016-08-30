@@ -56,8 +56,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.add_new_shape_button("curve", self.tool_box)
         self.add_new_action_button("group", self.combine_shapes, self.tool_box)
         self.add_new_action_button("delete shape", self.delete_shape, self.tool_box)
-        self.toolbar = Gtk.Toolbar()
-        self.root_box.pack_start(self.toolbar, expand=False, fill=False, padding=0)
+        self.toolbar_container = Gtk.VBox()
+        self.root_box.pack_start(self.toolbar_container, expand=False, fill=False, padding=0)
 
         sep = Gtk.Separator.new(Gtk.Orientation.HORIZONTAL)
         self.root_box.pack_start(sep, expand=False, fill=False, padding=0)
@@ -223,8 +223,8 @@ class MasterEditor(Gtk.ApplicationWindow):
     def load_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line_editor.set_multi_shape_time_line(multi_shape_time_line)
 
-    def open_document(self, filename):
-        self.doc = Document(filename)
+    def open_document(self, filename=None, width=400., height=300.):
+        self.doc = Document(filename, width=width, height=height)
         del self.multi_shape_stack[:]
         self.load_multi_shape(self.doc.get_main_multi_shape())
         self.show_filename()
@@ -344,15 +344,14 @@ class MasterEditor(Gtk.ApplicationWindow):
                 return
 
             doc_point, shape_point = self.get_doc_and_multi_shape_point(self.mouse_point)
-            self.shape_manager.select_item_at(doc_point, shape_point,
-                                    multi_select=self.keyboard_object.shift_key_pressed)
-
-            if self.shape_manager.get_selected_shape() is None:
-                if self.state_mode == MODE_NEW_SHAPE_CREATE and self.shape_manager.shape_creator is None:
+            if self.state_mode == MODE_NEW_SHAPE_CREATE and self.shape_manager.shape_creator is None:
                     self.shape_manager.start_creating_new_shape(
                                     self.next_new_shape_type, doc_point, shape_point)
                     self.state_mode = None
-            elif self.shape_manager.get_selected_edit_box() is not None:
+            else:
+                self.shape_manager.select_item_at(doc_point, shape_point,
+                                    multi_select=self.keyboard_object.shift_key_pressed)
+                if self.shape_manager.get_selected_edit_box() is not None:
                     return
 
             self.show_prop_of(self.shape_manager.get_selected_shape())
