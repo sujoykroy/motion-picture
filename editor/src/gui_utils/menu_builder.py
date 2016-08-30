@@ -155,7 +155,7 @@ class MenuBar(object):
         self.action(export_menu, "PNG Image", "export_to_png_image")
 
         edit_menu = self.top_menu.submenu("Edit")
-        edit_shape_menu = edit_menu.submenu("Curve Shape")
+        edit_shape_menu = edit_menu.submenu("Shape")
         self.action(edit_shape_menu, "Insert Break", "win.insert_break_in_shape")
         self.action(edit_shape_menu, "Join Points", "win.join_points_of_shape")
 
@@ -173,6 +173,7 @@ class MenuBar(object):
         self.action(shape_create_section, "Rectangle", "win.create_new_shape", "rect")
         self.action(shape_create_section, "Oval", "win.create_new_shape", "oval")
         self.action(shape_create_section, "Curve", "win.create_new_shape", "curve")
+        self.action(shape_create_section, "Polygon", "win.create_new_shape", "polygon")
 
         shape_grouping_section = shapes_menu.section()
         self.action(shape_grouping_section, "Join into Group", "win.create_group")

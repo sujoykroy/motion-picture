@@ -320,7 +320,7 @@ class CurveShape(Shape):
             curve_1, curve_2 = curve_2, curve_1
             curve_index_1, curve_index_2 = curve_index_2, curve_index_1
 
-        #curve_2 get attached at the end of curve_2
+        #curve_2 get attached at the end of curve_1
         curve_1.bezier_points[-1].dest.x = (curve_1.bezier_points[-1].dest.x +  curve_2.origin.x)*.5
         curve_1.bezier_points[-1].dest.y = (curve_1.bezier_points[-1].dest.y +  curve_2.origin.y)*.5
 

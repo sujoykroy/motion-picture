@@ -1,8 +1,10 @@
 File/New, <Control>n,
 File/Save, <Control>s,
 File/Save As, <Shift><Control>s
-Edit/Curve Shape/Join Points, ,
+Edit/Shape/Join Points, ,
+Edit/Shape/Insert Break, ,
 Shapes/Duplicate, ,
 Shapes/Align/X, ,
 Shapes/Align/Y, ,
 Shapes/Align/XY, ,
+Shapes/Polygon, ,

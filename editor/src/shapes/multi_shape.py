@@ -4,6 +4,7 @@ from shape_list import ShapeList
 from rectangle_shape import RectangleShape
 from oval_shape import OvalShape
 from curve_shape import CurveShape
+from polygon_shape import PolygonShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 
@@ -78,6 +79,8 @@ class MultiShape(Shape):
                 child_shape = OvalShape.create_from_xml_element(shape_element)
             elif shape_type == CurveShape.TYPE_NAME:
                 child_shape = CurveShape.create_from_xml_element(shape_element)
+            elif shape_type == PolygonShape.TYPE_NAME:
+                child_shape = PolygonShape.create_from_xml_element(shape_element)
             elif shape_type == MultiShape.TYPE_NAME:
                 child_shape = MultiShape.create_from_xml_element(shape_element)
             if child_shape is None: continue

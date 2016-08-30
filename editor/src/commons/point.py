@@ -1,14 +1,26 @@
 import math
+from xml.etree.ElementTree import Element as XmlElement
 
 RAD_PER_DEG = math.pi/180.
 
 class Point(object):
+    TAG_NAME = "point"
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
     def __repr__(self):
         return "Point(x={0}, y={1})".format(self.x, self.y)
+
+    def get_xml_element(self):
+        elm = XmlElement(self.TAG_NAME)
+        elm.attrib["p"] = self.to_text()
+        return elm
+
+    @staticmethod
+    def create_from_xml_element(elm):
+        return Point.from_text(elm.attrib.get("p", "0,0"))
 
     def translate(self, x, y):
         self.x += x

@@ -92,6 +92,12 @@ class ShapeManager(object):
         if self.shape_editor is None: return False
         return isinstance(self.shape_editor.shape, CurveShape)
 
+    def selected_shape_supports_point_insert(self):
+        if self.shape_editor is None: return False
+        if isinstance(self.shape_editor.shape, CurveShape): return True
+        if isinstance(self.shape_editor.shape, PolygonShape): return True
+        return False
+
     def has_multi_selection(self):
         if self.shape_editor is None: return False
         return isinstance(self.shape_editor.shape, MultiSelectionShape)
@@ -262,6 +268,8 @@ class ShapeManager(object):
             self.shape_creator = OvalShapeCreator(point)
         elif shape_type == "curve":
             self.shape_creator = CurveShapeCreator(point)
+        elif shape_type == "polygon":
+            self.shape_creator = PolygonShapeCreator(point)
 
         if self.shape_creator:
             self.shape_creator.set_relative_to(self.multi_shape)
@@ -426,12 +434,12 @@ class ShapeManager(object):
             self.delete_shape_editor()
             self.remove_shape(shape)
 
-    def insert_point_in_curve_at(self, point):
-        if not self.has_curve_shape_selected(): return
-        curve_shape = self.shape_editor.shape
-        point = curve_shape.transform_point(point)
-        if curve_shape.insert_point_at(point):
-            self.shape_editor = ShapeEditor(curve_shape)
+    def insert_point_in_shape_at(self, point):
+        if not self.selected_shape_supports_point_insert(): return False
+        shape = self.shape_editor.shape
+        point = shape.transform_point(point)
+        if shape.insert_point_at(point):
+            self.shape_editor = ShapeEditor(shape)
 
     def insert_break(self):
         if not self.shape_editor: return False

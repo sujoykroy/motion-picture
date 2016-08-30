@@ -1,0 +1,120 @@
+from point import Point
+from rect import Rect
+from xml.etree.ElementTree import Element as XmlElement
+import numpy, math
+
+class Polygon(object):
+    TAG_NAME = "polygon"
+
+    def __init__(self, points=None, closed=False):
+        self.points = []
+        if points is not None:
+            self.points.extend(points)
+        self.closed = closed
+
+    def get_xml_element(self):
+        elm = XmlElement(self.TAG_NAME)
+        elm.attrib["closed"] = "{0}".format(self.closed)
+        for point in self.points:
+            elm.append(point.get_xml_element())
+        return elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        closed = (elm.attrib["closed"] == "True")
+        polygon = cls(closed=closed)
+        for point_element in elm.findall(Point.TAG_NAME):
+            polygon.points.append(Point.create_from_xml_element(point_element))
+        return polygon
+
+    def copy(self):
+        newob = Polygon(closed=self.closed)
+        for point in self.points:
+            newob.add_point(point.copy())
+        return newob
+
+    def add_point(self, point):
+        self.points.append(point)
+
+    def remove_point(self, point):
+        self.points.remove(point)
+
+    def set_closed(self, closed):
+        self.closed = closed
+
+    def get_outline(self):
+        outline = None
+        for i in range(len(self.points)):
+            if i<1: continue
+            rect = Rect(left=self.points[i-1].x, top=self.points[i-1].y,
+                        width=self.points[i].x-self.points[i-1].x,
+                        height=self.points[i].y-self.points[i-1].y)
+            if outline is None:
+                outline = rect
+            else:
+                outline.expand_include(rect)
+        return outline
+
+    def translate(self, dx, dy):
+        for point in self.points:
+            point.translate(dx, dy)
+
+    def scale(self, sx ,sy):
+        for point in self.points:
+            point.scale(sx, sy)
+
+    def draw_path(self, ctx):
+        ctx.new_path()
+        for pi in range(len(self.points)):
+            point = self.points[pi]
+            if pi == 0:
+                ctx.move_to(point.x, point.y)
+            else:
+                ctx.line_to(point.x, point.y)
+        if self.closed:
+            ctx.close_path()
+
+    @staticmethod
+    def get_reals(roots):
+        mod_roots = []
+        for root in roots:
+            if root>=1. or root<=0: continue
+            mod_roots.append(root)
+        return mod_roots
+
+    def get_closest_point(self, point):
+        for point_index in range(len(self.points)-1):
+            p0 = self.points[point_index]
+            p1 = self.points[point_index+1]
+
+            x_coeff = [p1.x-p0.x, p0.x-point.x]
+            y_coeff = [p1.y-p0.y, p0.y-point.y]
+
+            x_roots = numpy.roots(x_coeff)
+            y_roots = numpy.roots(y_coeff)
+
+            mod_x_roots = self.get_reals(x_roots)
+            mod_y_roots = self.get_reals(y_roots)
+
+            if not x_roots and mod_y_roots:#horizontal
+                return point_index, mod_y_roots[0]
+            if not y_roots and mod_x_roots:#vertical
+                return point_index, mod_x_roots[0]
+
+            for x_root in mod_x_roots:
+                for y_root in mod_y_roots:
+                    if abs(x_root-y_root)/x_root<.1:
+                        return point_index, x_root
+                        break
+        return None
+
+    def insert_point_at(self, point_index, t):
+        if point_index>=len(self.points)-1: return False
+
+        p0 = self.points[point_index]
+        p1 = self.points[point_index+1]
+
+        tx = p0.x + (p1.x-p0.x)*t
+        ty = p0.y + (p1.y-p0.y)*t
+
+        self.points.insert(point_index+1, Point(tx, ty))

@@ -41,6 +41,13 @@ class OriginEditBox(OvalEditBox):
         self.curve_index = curve_index
         self.is_start = True
 
+class PolygonPointEditBox(OvalEditBox):
+    def __init__(self, percent_point, polygon_index, point_index):
+        OvalEditBox.__init__(self, percent_point)
+        self.polygon_index = polygon_index
+        self.point_index = point_index
+        self.is_start = (point_index == 0)
+
 class ShapeEditor(object):
     def __init__(self, shape):
         self.shape = shape
@@ -53,15 +60,20 @@ class ShapeEditor(object):
         self.outer_edit_boxes = []
         self.inner_edit_boxes = []
         self.rotation_edit_boxes = []
-        self.curve_point_edit_boxes = []
-        self.curve_point_lines = []
-        self.curve_dest_edit_boxes = []
-        self.curve_joinable_edit_boxes = []
 
-        self.new_edit_box(OvalEditBox(Point(0.0, 0.0)), OUTER, ROTATION_TOP_LEFT, self.rotation_edit_boxes)
-        self.new_edit_box(OvalEditBox(Point(1.0, 0.0)), OUTER, ROTATION_TOP_RIGHT, self.rotation_edit_boxes)
-        self.new_edit_box(OvalEditBox(Point(1.0, 1.0)), OUTER, ROTATION_BOTTOM_RIGHT, self.rotation_edit_boxes)
-        self.new_edit_box(OvalEditBox(Point(0.0, 1.0)), OUTER, ROTATION_LEFT_BOTTOM, self.rotation_edit_boxes)
+        self.moveable_point_edit_boxes = []
+        self.curve_point_lines = []
+        self.breakable_point_edit_boxes = []
+        self.joinable_point_edit_boxes = []
+
+        self.new_edit_box(OvalEditBox(
+                    Point(0.0, 0.0)), OUTER, ROTATION_TOP_LEFT, self.rotation_edit_boxes)
+        self.new_edit_box(OvalEditBox(
+                    Point(1.0, 0.0)), OUTER, ROTATION_TOP_RIGHT, self.rotation_edit_boxes)
+        self.new_edit_box(OvalEditBox(
+                    Point(1.0, 1.0)), OUTER, ROTATION_BOTTOM_RIGHT, self.rotation_edit_boxes)
+        self.new_edit_box(OvalEditBox(
+                    Point(0.0, 1.0)), OUTER, ROTATION_LEFT_BOTTOM, self.rotation_edit_boxes)
 
         self.new_edit_box(RectEditBox(Point(0.5, 0.0), 0), OUTER, RESIZING_TOP)
         self.new_edit_box(RectEditBox(Point(1.0, 0.5), 90), OUTER, RESIZING_RIGHT)
@@ -79,8 +91,8 @@ class ShapeEditor(object):
                 origin_eb = self.new_edit_box(OriginEditBox(curve.origin, curve_index), INNER)
                 if not curve.closed:
                     last_dest_eb = origin_eb
-                    self.curve_point_edit_boxes.append(origin_eb)
-                    self.curve_joinable_edit_boxes.append(origin_eb)
+                    self.moveable_point_edit_boxes.append(origin_eb)
+                    self.joinable_point_edit_boxes.append(origin_eb)
 
                 first_control_1_eb = None
                 for bpi in range(len(curve.bezier_points)):
@@ -95,10 +107,10 @@ class ShapeEditor(object):
                         last_dest_eb.add_linked_edit_box(control_1_eb)
                     dest_eb.add_linked_edit_box(control_2_eb)
 
-                    self.curve_point_edit_boxes.append(dest_eb)
-                    self.curve_point_edit_boxes.append(control_1_eb)
-                    self.curve_point_edit_boxes.append(control_2_eb)
-                    self.curve_dest_edit_boxes.append(dest_eb)
+                    self.moveable_point_edit_boxes.append(dest_eb)
+                    self.moveable_point_edit_boxes.append(control_1_eb)
+                    self.moveable_point_edit_boxes.append(control_2_eb)
+                    self.breakable_point_edit_boxes.append(dest_eb)
 
                     if bpi == 0:
                         if curve.closed:
@@ -116,15 +128,29 @@ class ShapeEditor(object):
                         first_control_1_eb = control_1_eb
 
                     if bpi<len(curve.bezier_points)-1 or curve.closed:
-                        self.curve_dest_edit_boxes.append(dest_eb)
+                        self.breakable_point_edit_boxes.append(dest_eb)
                     if bpi == len(curve.bezier_points)-1 and not curve.closed:
-                        self.curve_joinable_edit_boxes.append(dest_eb)
+                        self.joinable_point_edit_boxes.append(dest_eb)
 
                 if curve.closed and last_dest_eb and first_control_1_eb:
                     last_dest_eb.add_linked_edit_box(first_control_1_eb)
                     last_dest_eb.add_linked_edit_box(origin_eb)
                     self.all_edit_box_list.remove(first_control_1_eb)
                     self.all_edit_box_list.append(first_control_1_eb)
+
+        elif isinstance(shape, PolygonShape):
+            polygon_shape = shape
+            for polygon_index in range(len(polygon_shape.polygons)):
+                polygon = polygon_shape.polygons[polygon_index]
+                for point_index in range(len(polygon.points)):
+                    point = polygon.points[point_index]
+                    point_eb = self.new_edit_box(PolygonPointEditBox(
+                        point, polygon_index, point_index), INNER)
+                    self.moveable_point_edit_boxes.append(point_eb)
+                    if polygon.closed or point_index>0 or point_index<len(polygon.points)-1:
+                        self.breakable_point_edit_boxes.append(point_eb)
+                    if not polygon.closed and (point_index == 0 or point_index==len(polygon.points)-1):
+                        self.joinable_point_edit_boxes.append(point_eb)
 
     def has_selected_box(self):
         return len(self.selected_edit_boxes)>0
@@ -168,7 +194,7 @@ class ShapeEditor(object):
             if found:
                 curve_index, bezier_point_index, t = found
                 control_index = 1 if t>.5 else 0
-                for edit_box in self.curve_point_edit_boxes:
+                for edit_box in self.moveable_point_edit_boxes:
                     if not isinstance(edit_box, ControlEditBox): continue
                     if edit_box.curve_index == curve_index and \
                        edit_box.bezier_point_index == bezier_point_index and \
@@ -177,7 +203,9 @@ class ShapeEditor(object):
                        break
 
         if selected_edit_box:
-            if multi_select and isinstance(self.shape, CurveShape):
+            if multi_select and \
+                (isinstance(self.shape, CurveShape) or isinstance(self.shape, PolygonShape)):
+
                 if selected_edit_box in self.selected_edit_boxes:
                     self.selected_edit_boxes.remove(selected_edit_box)
                     if len(self.selected_edit_boxes) == 1:
@@ -248,6 +276,7 @@ class ShapeEditor(object):
             diff_point = end_point.diff(start_point)
             init_abs_anchor_at = self.init_shape.get_abs_anchor_at()
             self.shape.move_to(init_abs_anchor_at.x+diff_point.x, init_abs_anchor_at.y+diff_point.y)
+
         elif self.selected_edit_boxes:
             rel_start_point = self.shape.transform_point(start_point)
             rel_end_point = self.shape.transform_point(end_point)
@@ -282,36 +311,52 @@ class ShapeEditor(object):
                     dangle = rel_anch_end_point.get_angle() - rel_anch_start_point.get_angle()
                     self.shape.set_angle(self.init_shape.angle+dangle)
 
-                elif edit_box in self.curve_point_edit_boxes:
+                elif edit_box in self.moveable_point_edit_boxes:
                     percent_point = Point(rel_dpoint.x/self.shape.width, rel_dpoint.y/self.shape.height)
                     edit_box.move_offset(percent_point.x, percent_point.y)
             self.named_edit_boxes[ANCHOR].set_point(self.shape.anchor_at)
 
     def end_movement(self):
         self.edit_box_can_move = (len(self.selected_edit_boxes)>0)
-        if isinstance(self.shape, CurveShape):
+        if isinstance(self.shape, CurveShape) or isinstance(self.shape, PolygonShape):
             self.shape.fit_size_to_include_all()
         self.init_shape = self.shape.copy()
         for edit_box in self.all_edit_box_list:
             edit_box.update()
 
     def insert_break(self):
-        if not isinstance(self.shape, CurveShape): return False
+        if not (isinstance(self.shape, CurveShape) or \
+                isinstance(self.shape, PolygonShape)): return False
         if len(self.selected_edit_boxes) != 1: return False
-        if self.selected_edit_boxes[0] not in self.curve_dest_edit_boxes: return False
-        return self.shape.insert_break_at(
-            self.selected_edit_boxes[0].curve_index,
-            self.selected_edit_boxes[0].bezier_point_index
-        )
+        if self.selected_edit_boxes[0] not in self.breakable_point_edit_boxes: return False
+        if isinstance(self.shape, CurveShape):
+            return self.shape.insert_break_at(
+                self.selected_edit_boxes[0].curve_index,
+                self.selected_edit_boxes[0].bezier_point_index
+            )
+        elif isinstance(self.shape, PolygonShape):
+            return self.shape.insert_break_at(
+                self.selected_edit_boxes[0].polygon_index,
+                self.selected_edit_boxes[0].point_index
+            )
 
     def join_points(self):
-        if not isinstance(self.shape, CurveShape): return False
+        if not (isinstance(self.shape, CurveShape) or \
+                isinstance(self.shape, PolygonShape)): return False
         if len(self.selected_edit_boxes) != 2: return False
-        if self.selected_edit_boxes[0] not in self.curve_joinable_edit_boxes: return False
-        if self.selected_edit_boxes[1] not in self.curve_joinable_edit_boxes: return False
-        return self.shape.join_points(
-            self.selected_edit_boxes[0].curve_index,
-            self.selected_edit_boxes[0].is_start,
-            self.selected_edit_boxes[1].curve_index,
-            self.selected_edit_boxes[1].is_start
-        )
+        if self.selected_edit_boxes[0] not in self.joinable_point_edit_boxes: return False
+        if self.selected_edit_boxes[1] not in self.joinable_point_edit_boxes: return False
+        if isinstance(self.shape, CurveShape):
+            return self.shape.join_points(
+                self.selected_edit_boxes[0].curve_index,
+                self.selected_edit_boxes[0].is_start,
+                self.selected_edit_boxes[1].curve_index,
+                self.selected_edit_boxes[1].is_start
+            )
+        elif isinstance(self.shape, PolygonShape):
+            return self.shape.join_points(
+                self.selected_edit_boxes[0].polygon_index,
+                self.selected_edit_boxes[0].is_start,
+                self.selected_edit_boxes[1].polygon_index,
+                self.selected_edit_boxes[1].is_start
+            )

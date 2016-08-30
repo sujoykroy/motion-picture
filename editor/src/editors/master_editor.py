@@ -146,9 +146,9 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.time_slice_prop_box = TimeSlicePropBox(self.time_line_editor.update)
         self.right_prop_box.pack_start(self.time_slice_prop_box, expand=False, fill=False, padding=0)
 
-        self.curve_shape_prop_box = CurveShapePropBox(self.redraw, self.insert_time_slice)
-        self.curve_shape_prop_box.parent_window = self
-        self.right_prop_box.pack_start(self.curve_shape_prop_box, expand=False, fill=False, padding=0)
+        self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
+        self.shape_form_prop_box.parent_window = self
+        self.right_prop_box.pack_start(self.shape_form_prop_box, expand=False, fill=False, padding=0)
 
         #self.show_all()
         #self.maximize()
@@ -271,7 +271,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.rectangle_shape_prop_box.hide()
         self.oval_shape_prop_box.hide()
         self.multi_shape_prop_box.hide()
-        self.curve_shape_prop_box.hide()
+        self.shape_form_prop_box.hide()
 
         if shape != None:
             self.common_shape_prop_box.show()
@@ -285,9 +285,9 @@ class MasterEditor(Gtk.ApplicationWindow):
             elif isinstance(shape, MultiShape):
                 self.multi_shape_prop_box.show()
                 self.multi_shape_prop_box.set_prop_object(shape)
-            elif isinstance(shape, CurveShape):
-                self.curve_shape_prop_box.show()
-                self.curve_shape_prop_box.set_curve_shape(shape)
+            elif isinstance(shape, CurveShape) or isinstance(shape, PolygonShape):
+                self.shape_form_prop_box.show()
+                self.shape_form_prop_box.set_curve_shape(shape)
 
     def update_drawing_area_scrollbars(self):
         w, h = self.get_drawing_area_size()
@@ -332,9 +332,9 @@ class MasterEditor(Gtk.ApplicationWindow):
                 elif self.shape_manager.has_designable_multi_shape_selected():
                     multi_shape = self.shape_manager.get_selected_shape()
                     self.load_multi_shape(multi_shape)
-                elif self.shape_manager.has_curve_shape_selected():
+                elif self.shape_manager.selected_shape_supports_point_insert():
                     doc_point, shape_point = self.get_doc_and_multi_shape_point(self.mouse_point)
-                    self.shape_manager.insert_point_in_curve_at(shape_point)
+                    self.shape_manager.insert_point_in_shape_at(shape_point)
                 elif self.shape_manager.has_no_shape_selected():
                     if len(self.multi_shape_stack)>1:
                         del self.multi_shape_stack[-1]

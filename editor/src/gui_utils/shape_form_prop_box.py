@@ -2,7 +2,7 @@ from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
 from text_input_dialog import TextInputDialog
 
-class CurveShapePropBox(Gtk.VBox):
+class ShapeFormPropBox(Gtk.VBox):
     def __init__(self, draw_callback, insert_time_slice_callback):
         Gtk.VBox.__init__(self)
         self.draw_callback = draw_callback
