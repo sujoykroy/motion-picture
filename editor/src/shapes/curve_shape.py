@@ -327,3 +327,23 @@ class CurveShape(Shape):
         curve_1.bezier_points.extend(curve_2.bezier_points)
         del self.curves[curve_index_2]
         return True
+
+    def delete_point_at(self, curve_index, bezier_point_index):
+        if curve_index>=len(self.curves): return False
+        curve = self.curves[curve_index]
+        if bezier_point_index>=len(curve.bezier_points): return False
+        if len(curve.bezier_points)<2: return False
+        if bezier_point_index == -1:
+            curve.origin.copy_from(curve.bezier_points[0].dest)
+            del curve.bezier_points[0]
+            if curve.closed:
+                curve.bezier_points[-1].dest.copy_from(curve.origin)
+        elif bezier_point_index == len(curve.bezier_points)-1:
+            del curve.bezier_points[-1]
+            if curve.closed:
+                curve.bezier_points[-1].dest.copy_from(curve.origin)
+        else:
+            del curve.bezier_points[bezier_point_index]
+        if len(curve.bezier_points)<2:
+            curve.closed = False
+        return True

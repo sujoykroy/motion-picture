@@ -87,6 +87,10 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.join_points():
             self.redraw()
 
+    def delete_point_of_shape(self, action, parameter):
+        if self.shape_manager.delete_point():
+            self.redraw()
+
     def duplicate_shape(self, action, parameter):
         if self.shape_manager.duplicate_shape():
             self.redraw()
@@ -178,6 +182,7 @@ class Application(Gtk.Application):
         new_action(win, self.menubar.actions.create_new_shape, GLib.VariantType.new("s"))
         new_action(win, self.menubar.actions.insert_break_in_shape)
         new_action(win, self.menubar.actions.join_points_of_shape)
+        new_action(win, self.menubar.actions.delete_point_of_shape)
         new_action(win, self.menubar.actions.duplicate_shape)
         new_action(win, self.menubar.actions.align_shapes, GLib.VariantType.new("s"))
 

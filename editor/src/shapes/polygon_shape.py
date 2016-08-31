@@ -213,7 +213,7 @@ class PolygonShape(Shape):
         point.scale(1./self.width, 1./self.height)
         for polygon_index in range(len(self.polygons)):
             polygon = self.polygons[polygon_index]
-            found = polygon.get_closest_point(point)
+            found = polygon.get_closest_point(point, self.width, self.height)
             if found:
                 point_index, t = found
                 return (polygon_index, point_index, t)
@@ -249,7 +249,6 @@ class PolygonShape(Shape):
         self.polygons.insert(polygon_index+1, new_polygon)
         return True
 
-
     def join_points(self, polygon_index_1, is_start_1, polygon_index_2, is_start_2):
         if polygon_index_1>=len(self.polygons): return False
         if polygon_index_1>=len(self.polygons): return False
@@ -260,9 +259,10 @@ class PolygonShape(Shape):
         if polygon_index_1 == polygon_index_2:
             if is_start_1 != is_start_2:
                 polygon_1.closed = True
-                polygon_1.points[0].x = (polygon_1.points[0].x+polygon_1.points[-1].x)*.5
-                polygon_1.points[0].y = (polygon_1.points[0].y+polygon_1.points[-1].y)*.5
-                del polygon_1.points[-1]
+                if abs(polygon_1.points[0].distance(polygon_1.points[-1])*self.width)<10:
+                    polygon_1.points[0].x = (polygon_1.points[0].x+polygon_1.points[-1].x)*.5
+                    polygon_1.points[0].y = (polygon_1.points[0].y+polygon_1.points[-1].y)*.5
+                    del polygon_1.points[-1]
                 return True
             return False
         if polygon_1.closed: return False
@@ -284,4 +284,16 @@ class PolygonShape(Shape):
 
         polygon_1.points.extend(polygon_2.points)
         del self.polygons[polygon_index_2]
+        return True
+
+    def delete_point_at(self, polygon_index, point_index):
+        if polygon_index>=len(self.polygons): return False
+        polygon = self.polygons[polygon_index]
+        if point_index>=len(polygon.points): return False
+        if len(polygon.points)<3: return False
+        del polygon.points[point_index]
+        if len(polygon.points)<3:
+            polygon.closed=False
+
+        self.fit_size_to_include_all()
         return True

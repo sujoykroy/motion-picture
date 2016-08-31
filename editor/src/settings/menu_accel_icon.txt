@@ -5,6 +5,7 @@ File/Save, <Control>s,
 File/Save As, <Shift><Control>s
 Edit/Shape/Join Points, ,
 Edit/Shape/Insert Break, ,
+Edit/Shape/Delete Point, ,
 Shapes/Rectangle, ,
 Shapes/Duplicate, ,
 Shapes/Align/X, ,

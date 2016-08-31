@@ -455,6 +455,14 @@ class ShapeManager(object):
             return True
         return False
 
+    def delete_point(self):
+        if not self.shape_editor: return False
+        if self.shape_editor.delete_point():
+            self.shape_editor = ShapeEditor(self.shape_editor.shape)
+            self.multi_shape.readjust_sizes()
+            return True
+        return False
+
     def duplicate_shape(self):
         if not self.shape_editor: return False
         exist_shape = self.shape_editor.shape

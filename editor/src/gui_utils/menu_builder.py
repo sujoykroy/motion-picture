@@ -160,6 +160,7 @@ class MenuBar(object):
         edit_shape_menu = edit_menu.submenu("Shape")
         self.action(edit_shape_menu, "Insert Break", "win.insert_break_in_shape")
         self.action(edit_shape_menu, "Join Points", "win.join_points_of_shape")
+        self.action(edit_shape_menu, "Delete Point", "win.delete_point_of_shape")
 
         shapes_menu = self.top_menu.submenu("Shapes")
 

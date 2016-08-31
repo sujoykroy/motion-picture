@@ -39,6 +39,7 @@ class OriginEditBox(OvalEditBox):
     def __init__(self, percent_point, curve_index):
         OvalEditBox.__init__(self, percent_point)
         self.curve_index = curve_index
+        self.bezier_point_index = -1
         self.is_start = True
 
 class PolygonPointEditBox(OvalEditBox):
@@ -65,6 +66,7 @@ class ShapeEditor(object):
         self.curve_point_lines = []
         self.breakable_point_edit_boxes = []
         self.joinable_point_edit_boxes = []
+        self.deletable_point_edit_boxes = []
 
         self.new_edit_box(OvalEditBox(
                     Point(0.0, 0.0)), OUTER, ROTATION_TOP_LEFT, self.rotation_edit_boxes)
@@ -89,6 +91,7 @@ class ShapeEditor(object):
                 curve = self.shape.curves[curve_index]
                 last_dest_eb = None
                 origin_eb = self.new_edit_box(OriginEditBox(curve.origin, curve_index), INNER)
+                self.deletable_point_edit_boxes.append(origin_eb)
                 if not curve.closed:
                     last_dest_eb = origin_eb
                     self.moveable_point_edit_boxes.append(origin_eb)
@@ -106,6 +109,8 @@ class ShapeEditor(object):
                     if last_dest_eb:
                         last_dest_eb.add_linked_edit_box(control_1_eb)
                     dest_eb.add_linked_edit_box(control_2_eb)
+
+                    self.deletable_point_edit_boxes.append(dest_eb)
 
                     self.moveable_point_edit_boxes.append(dest_eb)
                     self.moveable_point_edit_boxes.append(control_1_eb)
@@ -151,6 +156,7 @@ class ShapeEditor(object):
                         self.breakable_point_edit_boxes.append(point_eb)
                     if not polygon.closed and (point_index == 0 or point_index==len(polygon.points)-1):
                         self.joinable_point_edit_boxes.append(point_eb)
+                    self.deletable_point_edit_boxes.append(point_eb)
 
     def has_selected_box(self):
         return len(self.selected_edit_boxes)>0
@@ -359,4 +365,20 @@ class ShapeEditor(object):
                 self.selected_edit_boxes[0].is_start,
                 self.selected_edit_boxes[1].polygon_index,
                 self.selected_edit_boxes[1].is_start
+            )
+
+    def delete_point(self):
+        if not (isinstance(self.shape, CurveShape) or \
+                isinstance(self.shape, PolygonShape)): return False
+        if len(self.selected_edit_boxes) != 1: return False
+        if self.selected_edit_boxes[0] not in self.deletable_point_edit_boxes: return False
+        if isinstance(self.shape, CurveShape):
+            return self.shape.delete_point_at(
+                self.selected_edit_boxes[0].curve_index,
+                self.selected_edit_boxes[0].bezier_point_index
+            )
+        elif isinstance(self.shape, PolygonShape):
+            return self.shape.delete_point_at(
+                self.selected_edit_boxes[0].polygon_index,
+                self.selected_edit_boxes[0].point_index
             )

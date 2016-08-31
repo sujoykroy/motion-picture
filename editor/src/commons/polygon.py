@@ -46,9 +46,13 @@ class Polygon(object):
         outline = None
         for i in range(len(self.points)):
             if i<1: continue
-            rect = Rect(left=self.points[i-1].x, top=self.points[i-1].y,
-                        width=self.points[i].x-self.points[i-1].x,
-                        height=self.points[i].y-self.points[i-1].y)
+            x1 = self.points[i-1].x
+            x2 = self.points[i].x
+
+            y1 = self.points[i-1].y
+            y2 = self.points[i].y
+
+            rect = Rect(left=min(x1, x2), top=min(y1, y2), width=abs(x2-x1), height=abs(y2-y1))
             if outline is None:
                 outline = rect
             else:
@@ -82,13 +86,21 @@ class Polygon(object):
             mod_roots.append(root)
         return mod_roots
 
-    def get_closest_point(self, point):
-        for point_index in range(len(self.points)-1):
+    def get_closest_point(self, point, width, height):
+        points_count = len(self.points)
+        if not self.closed:
+            points_count -= 1
+        for point_index in range(points_count):
             p0 = self.points[point_index]
-            p1 = self.points[point_index+1]
+            p1 = self.points[(point_index+1)%len(self.points)]
 
-            x_coeff = [p1.x-p0.x, p0.x-point.x]
-            y_coeff = [p1.y-p0.y, p0.y-point.y]
+            x_coeff = [(p1.x-p0.x)*width, (p0.x-point.x)*width]
+            y_coeff = [(p1.y-p0.y)*height, (p0.y-point.y)*height]
+
+            for i in range(len(x_coeff)):
+                if abs(x_coeff[i])<1: x_coeff[i] = 0
+            for i in range(len(y_coeff)):
+                if abs(y_coeff[i])<1: y_coeff[i] = 0
 
             x_roots = numpy.roots(x_coeff)
             y_roots = numpy.roots(y_coeff)
@@ -109,12 +121,14 @@ class Polygon(object):
         return None
 
     def insert_point_at(self, point_index, t):
-        if point_index>=len(self.points)-1: return False
+        if point_index>=len(self.points): return False
+        if not self.closed and point_index>=len(self.points)-1: return False
 
         p0 = self.points[point_index]
-        p1 = self.points[point_index+1]
+        p1 = self.points[(point_index+1)%len(self.points)]
 
         tx = p0.x + (p1.x-p0.x)*t
         ty = p0.y + (p1.y-p0.y)*t
 
         self.points.insert(point_index+1, Point(tx, ty))
+        return True
