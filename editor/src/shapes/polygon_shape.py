@@ -297,3 +297,14 @@ class PolygonShape(Shape):
 
         self.fit_size_to_include_all()
         return True
+
+    def extend_point(self, polygon_index, is_start):
+        if polygon_index>=len(self.polygons): return False
+        polygon = self.polygons[polygon_index]
+        if polygon.closed: return False
+
+        if is_start:
+            polygon.points.insert(0, polygon.points[0].copy())
+        else:
+            polygon.points.append(polygon.points[-1].copy())
+        return True

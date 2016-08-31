@@ -77,7 +77,15 @@ class ApplicationWindow(MasterEditor):
             self.parent.recent_manager.add_item(filename)
 
     def create_new_shape(self, action, parameter):
-        self.set_shape_creation_mode(parameter.get_string())
+        shape_type = parameter.get_string()
+        if shape_type == "image":
+            filename = FileOp.choose_file(self, purpose="open", file_types=[["Image", "image/*"]])
+            if not filename:
+                return
+            if self.shape_manager.create_image_shape(filename):
+                self.redraw()
+        else:
+            self.set_shape_creation_mode(shape_type)
 
     def insert_break_in_shape(self, action, parameter):
         if self.shape_manager.insert_break():
@@ -89,6 +97,10 @@ class ApplicationWindow(MasterEditor):
 
     def delete_point_of_shape(self, action, parameter):
         if self.shape_manager.delete_point():
+            self.redraw()
+
+    def extend_point_of_shape(self, action, parameter):
+        if self.shape_manager.extend_point():
             self.redraw()
 
     def duplicate_shape(self, action, parameter):
@@ -183,6 +195,7 @@ class Application(Gtk.Application):
         new_action(win, self.menubar.actions.insert_break_in_shape)
         new_action(win, self.menubar.actions.join_points_of_shape)
         new_action(win, self.menubar.actions.delete_point_of_shape)
+        new_action(win, self.menubar.actions.extend_point_of_shape)
         new_action(win, self.menubar.actions.duplicate_shape)
         new_action(win, self.menubar.actions.align_shapes, GLib.VariantType.new("s"))
 

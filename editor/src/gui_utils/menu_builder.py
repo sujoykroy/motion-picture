@@ -161,6 +161,7 @@ class MenuBar(object):
         self.action(edit_shape_menu, "Insert Break", "win.insert_break_in_shape")
         self.action(edit_shape_menu, "Join Points", "win.join_points_of_shape")
         self.action(edit_shape_menu, "Delete Point", "win.delete_point_of_shape")
+        self.action(edit_shape_menu, "Extend Point", "win.extend_point_of_shape")
 
         shapes_menu = self.top_menu.submenu("Shapes")
 
@@ -177,6 +178,7 @@ class MenuBar(object):
         self.action(shape_create_section, "Oval", "win.create_new_shape", "oval")
         self.action(shape_create_section, "Curve", "win.create_new_shape", "curve")
         self.action(shape_create_section, "Polygon", "win.create_new_shape", "polygon")
+        self.action(shape_create_section, "Image", "win.create_new_shape", "image")
 
         shape_grouping_section = shapes_menu.section()
         self.action(shape_grouping_section, "Join into Group", "win.create_group")

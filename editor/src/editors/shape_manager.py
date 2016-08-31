@@ -1,3 +1,5 @@
+from gi.repository import GdkPixbuf
+
 from shape_editor import ShapeEditor
 
 from ..commons import *
@@ -276,6 +278,26 @@ class ShapeManager(object):
             self.add_shape(self.shape_creator.get_shape())
             self.shape_creator.begin_movement(point)
 
+    def create_image_shape(self, filename):
+        image_pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename)
+        if not image_pixbuf: return False
+        w = float(image_pixbuf.get_width())
+        h = float(image_pixbuf.get_height())
+        scale = min(self.doc.width/w, self.doc.height/h)
+        if scale < 1:
+            w *= scale
+            h *= scale
+        shape = ImageShape(anchor_at=Point(w*.5, h*.5),
+                   border_color="000000",
+                   border_width=1, fill_color="cccccc",
+                   width=w, height=h, corner_radius=2)
+        shape.set_image_path(filename)
+        self.place_shape_at_zero_position(shape)
+        self.add_shape(shape)
+        shape.set_stage_xy(Point(0, 0))
+        self.multi_shape.readjust_sizes()
+        return True
+
     def delete_shape_editor(self):
         if self.shape_editor is None: return
         if isinstance(self.shape_editor.shape, MultiSelectionShape) :
@@ -368,6 +390,7 @@ class ShapeManager(object):
             self.shape_editor.move_active_item(shape_start_point, shape_end_point)
 
     def end_movement(self):
+        self.allow_mouse_move = False
         self.document_area_box_selected = False
 
         if self.shape_creator is not None:
@@ -458,6 +481,14 @@ class ShapeManager(object):
     def delete_point(self):
         if not self.shape_editor: return False
         if self.shape_editor.delete_point():
+            self.shape_editor = ShapeEditor(self.shape_editor.shape)
+            self.multi_shape.readjust_sizes()
+            return True
+        return False
+
+    def extend_point(self):
+        if not self.shape_editor: return False
+        if self.shape_editor.extend_point():
             self.shape_editor = ShapeEditor(self.shape_editor.shape)
             self.multi_shape.readjust_sizes()
             return True

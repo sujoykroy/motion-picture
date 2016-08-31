@@ -27,6 +27,7 @@ class ControlEditBox(OvalEditBox):
         self.curve_index = curve_index
         self.bezier_point_index = bezier_point_index
         self.control_index = control_index
+        self.is_start = False
 
 class DestEditBox(OvalEditBox):
     def __init__(self, percent_point, curve_index, bezier_point_index):
@@ -135,6 +136,8 @@ class ShapeEditor(object):
                     if bpi<len(curve.bezier_points)-1 or curve.closed:
                         self.breakable_point_edit_boxes.append(dest_eb)
                     if bpi == len(curve.bezier_points)-1 and not curve.closed:
+                        self.joinable_point_edit_boxes.append(control_1_eb)
+                        self.joinable_point_edit_boxes.append(control_2_eb)
                         self.joinable_point_edit_boxes.append(dest_eb)
 
                 if curve.closed and last_dest_eb and first_control_1_eb:
@@ -382,3 +385,12 @@ class ShapeEditor(object):
                 self.selected_edit_boxes[0].polygon_index,
                 self.selected_edit_boxes[0].point_index
             )
+
+    def extend_point(self):
+        if not isinstance(self.shape, PolygonShape): return None
+        if len(self.selected_edit_boxes) != 1: return None
+        if self.selected_edit_boxes[0] not in self.joinable_point_edit_boxes: return None
+        return self.shape.extend_point(
+            self.selected_edit_boxes[0].polygon_index,
+            self.selected_edit_boxes[0].is_start,
+        )

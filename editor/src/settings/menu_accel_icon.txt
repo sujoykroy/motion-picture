@@ -6,6 +6,7 @@ File/Save As, <Shift><Control>s
 Edit/Shape/Join Points, ,
 Edit/Shape/Insert Break, ,
 Edit/Shape/Delete Point, ,
+Edit/Shape/Extend Point, ,
 Shapes/Rectangle, ,
 Shapes/Duplicate, ,
 Shapes/Align/X, ,
@@ -16,3 +17,4 @@ Shapes/Rectangle, , rectangle
 Shapes/Oval, , oval
 Shapes/Curve, , curve
 Shapes/Polygon, , polygon
+Shapes/Image, , image

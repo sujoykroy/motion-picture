@@ -5,6 +5,7 @@ from rectangle_shape import RectangleShape
 from oval_shape import OvalShape
 from curve_shape import CurveShape
 from polygon_shape import PolygonShape
+from image_shape import ImageShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 
@@ -312,6 +313,13 @@ class MultiShape(Shape):
                 shape.draw_path(ctx)
                 ctx.restore()
                 shape.draw_fill(ctx)
+
+                if isinstance(shape, ImageShape):
+                    ctx.save()
+                    shape.pre_draw(ctx)
+                    shape.draw_path(ctx)
+                    shape.draw_image(ctx)
+                    ctx.restore()
 
                 ctx.save()
                 shape.pre_draw(ctx)

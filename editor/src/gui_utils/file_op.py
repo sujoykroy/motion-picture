@@ -2,7 +2,7 @@ from gi.repository import Gtk
 
 class FileOp(object):
     @staticmethod
-    def choose_file(parent, purpose ,file_types=[["Motion Picture", "text/xml"]]):
+    def choose_file(parent, purpose, file_types=[["Motion Picture", "text/xml"]]):
         if purpose == "save":
             title = "Save"
             action = Gtk.FileChooserAction.SAVE
