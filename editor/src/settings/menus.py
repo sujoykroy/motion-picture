@@ -51,8 +51,12 @@ m.add(path="Shapes/Group/Create",
 m.add(path="Shapes/Group/Break",
       action_name="win.break_shape_group")
 
+m.add(path="Shapes/Convert To/Polygon",
+      action_name="win.convert_shape_to", action_param="polygon")
+m.add(path="Shapes/Convert To/Curve",
+      action_name="win.convert_shape_to", action_param="curve")
 
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Points"],
-    ["Shapes/<New>", "Shapes/Align", "Shapes/Group"]
+    ["Shapes/<New>", "Shapes/Align", "Shapes/Group", "Shapes/Convert To"]
 ]

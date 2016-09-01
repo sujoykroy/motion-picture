@@ -123,7 +123,7 @@ class Shape(object):
         if name:
             self._name = name
 
-    def copy_into(self, newob, copy_name=False):
+    def copy_into(self, newob, copy_name=False, all_fields=False):
         newob.translation = self.translation.copy()
         newob.angle = self.angle
         newob.scale_x = self.scale_x
@@ -131,6 +131,25 @@ class Shape(object):
         if copy_name:
             newob.name = self._name
         newob.parent_shape = self.parent_shape
+        if all_fields:
+            newob.anchor_at.copy_from(self.anchor_at)
+            if self.border_color:
+                if not newob.border_color:
+                    newob.border_color = self.border_color.copy()
+                else:
+                    newob.border_color.copy_from(self.border_color)
+            else:
+                newob.border_color = None
+            newob.border_width = self.border_width
+            if self.fill_color:
+                if not newob.fill_color:
+                    newob.fill_color = self.fill_color.copy()
+                else:
+                    newob.fill_color.copy_from(self.fill_color)
+            else:
+                newob.fill_color = None
+            newob.width = self.width
+            newob.height = self.height
 
     def __hash__(self):
         return hash(self.id_num)

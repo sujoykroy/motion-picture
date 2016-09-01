@@ -130,6 +130,10 @@ class ApplicationWindow(MasterEditor):
         self.shape_manager.align_shapes(x_dir=x_dir, y_dir=y_dir)
         self.redraw()
 
+    def convert_shape_to(self, action, parameter):
+        if self.shape_manager.convert_shape_to(parameter.get_string()):
+            self.redraw()
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,

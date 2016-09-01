@@ -347,3 +347,19 @@ class CurveShape(Shape):
         if len(curve.bezier_points)<2:
             curve.closed = False
         return True
+
+
+    @staticmethod
+    def create_from_oval_shape(oval_shape):
+        curve_shape = CurveShape(Point(0,0), None, None, None, None, None)
+        k = .5522847498*.5#magic number
+        bezier_points = [
+            BezierPoint(control_1=Point(.5+k, 0), control_2=Point(1., .5-k), dest=Point(1., .5)),
+            BezierPoint(control_1=Point(1., .5+k), control_2=Point(.5+k, 1.), dest=Point(.5, 1.)),
+            BezierPoint(control_1=Point(.5-k, 1.), control_2=Point(0, .5+k), dest=Point(0., .5)),
+            BezierPoint(control_1=Point(0., .5-k), control_2=Point(0.5-k, 0.), dest=Point(.5, 0.))
+        ]
+        curve_shape.curves.append(Curve(origin=Point(.5, 0.), bezier_points=bezier_points, closed=True))
+        oval_shape.copy_into(curve_shape, all_fields=True, copy_name=True)
+        curve_shape.fit_size_to_include_all()
+        return curve_shape

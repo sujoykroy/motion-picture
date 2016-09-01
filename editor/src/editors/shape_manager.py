@@ -525,3 +525,21 @@ class ShapeManager(object):
 
         multi_selection_shape.readjust_sizes()
         self.multi_shape.readjust_sizes()
+
+    def convert_shape_to(self, shape_type):
+        if not self.shape_editor: return False
+        new_shape = None
+        if shape_type == "polygon":
+            if isinstance(self.shape_editor.shape, RectangleShape):
+                new_shape = PolygonShape.create_from_rectangle_shape(self.shape_editor.shape)
+        elif shape_type == "curve":
+            if isinstance(self.shape_editor.shape, OvalShape):
+                new_shape = CurveShape.create_from_oval_shape(self.shape_editor.shape)
+        if new_shape:
+            self.add_shape(new_shape)
+            self.shape_editor.shape.copy_into(new_shape)
+            self.remove_shape(self.shape_editor.shape)
+            self.multi_shape.readjust_sizes()
+            self.shape_editor = ShapeEditor(new_shape)
+            return True
+        return False

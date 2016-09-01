@@ -108,15 +108,15 @@ class Polygon(object):
             mod_x_roots = self.get_reals(x_roots)
             mod_y_roots = self.get_reals(y_roots)
 
-            if not x_roots and mod_y_roots:#horizontal
+            if not x_roots and mod_y_roots and x_coeff[0]==0 and abs(x_coeff[1])<5:#horizontal
                 return point_index, mod_y_roots[0]
-            if not y_roots and mod_x_roots:#vertical
+            if not y_roots and mod_x_roots and y_coeff[0]==0 and abs(y_coeff[1])<5:#vertical
                 return point_index, mod_x_roots[0]
 
             for x_root in mod_x_roots:
                 for y_root in mod_y_roots:
-                    if abs(x_root-y_root)/x_root<.1:
-                        return point_index, x_root
+                    if abs(x_root-y_root)<5:
+                        return point_indxex, x_root
                         break
         return None
 
