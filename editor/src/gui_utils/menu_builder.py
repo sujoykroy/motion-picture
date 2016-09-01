@@ -4,10 +4,16 @@ import os
 def create_attribute_xml(name, value):
     return "<attribute name=\"{0}\">{1}</attribute>".format(name, value)
 
+class Object(object):
+    pass
+
 class TopMenu(object):
     def __init__(self, id):
         self.id = id
         self.items = []
+        self.actions = Object()
+        self.tool_rows = []
+        self.menu_items = dict()
 
     def get_xml_lines(self):
         lines = []
@@ -24,9 +30,30 @@ class TopMenu(object):
 
     def get_item(self, name):
         for submenu in self.items:
-            item = submenu.get_item(name)
-            if item: return item
+            if submenu.name == name: return submenu
         return None
+
+    def add(self, path, icon=None, accel=None, action_name=None, action_param=None):
+        last_item = self
+        menu_names = path.split("/")
+        for i in range(len(menu_names)):
+            menu_name = menu_names[i]
+            item = last_item.get_item(menu_name)
+            if item is None:
+                if i == 0:
+                    item = last_item.submenu(menu_name)
+                elif menu_name[0] == "<" and menu_name[-1] == ">":
+                    item = last_item.section(menu_name)
+                elif i == len(menu_names)-1 and action_name:
+                    item = last_item.item(MenuItem(
+                        label=menu_name, accel=accel, icon=icon,
+                        action=action_name, target=action_param))
+                    fname = action_name.split(".")[-1]
+                    setattr(self.actions, fname, fname)
+                    self.menu_items[path] = item
+                else:
+                    item = last_item.submenu(menu_name)
+            last_item = item
 
 class Submenu(object):
     def __init__(self, label):
@@ -43,8 +70,8 @@ class Submenu(object):
         lines.append("</submenu>")
         return lines
 
-    def section(self):
-        section = MenuSection()
+    def section(self, name):
+        section = MenuSection(name)
         self.items.append(section)
         return section
 
@@ -53,21 +80,19 @@ class Submenu(object):
         self.items.append(submenu)
         return submenu
 
-    def item(self, label, action, target=None):
-        item = MenuItem(label, action, target)
+    def item(self, item):
         self.items.append(item)
         return item
 
     def get_item(self, name):
-        if self.name == name: return self
         for item in self.items:
-            ft = item.get_item(name)
-            if ft: return ft
+            if item.name == name: return item
         return None
 
 class MenuSection(object):
-    def __init__(self):
+    def __init__(self, name):
         self.items = []
+        self.name = name
 
     def get_xml_lines(self):
         lines = []
@@ -82,27 +107,23 @@ class MenuSection(object):
         self.items.append(submenu)
         return submenu
 
-    def item(self, label, action, target=None):
-        item = MenuItem(label, action, target)
+    def item(self, item):
         self.items.append(item)
         return item
 
     def get_item(self, name):
         for item in self.items:
-            ft = item.get_item(name)
-            if ft: return ft
+            if item.name == name: return item
         return None
 
 class MenuItem(object):
-    def __init__(self, label, action, target):
+    def __init__(self, label, action, target=None, accel=None, icon=None):
         self.name = label.replace("_", "")
         self.label = label
         self.action = action
         self.target = target
-        self.accel = None
-
-    def get_item(self, name):
-        if self.name == name: return self
+        self.accel = accel
+        self.icon = icon
 
     def get_xml_lines(self):
         lines = []
@@ -112,12 +133,10 @@ class MenuItem(object):
         if self.target:
             lines.append(create_attribute_xml("target", self.target))
         if self.accel:
-            lines.append(create_attribute_xml("accel", self.accel.replace("<", "&lt;").replace(">", "&gt;")))
+            lines.append(create_attribute_xml("accel",
+                self.accel.replace("<", "&lt;").replace(">", "&gt;")))
         lines.append("</item>")
         return lines
-
-    def set_accel(self, accel):
-        self.accel = accel
 
     def get_action_name_only(self):
         return self.action.split(".")[-1]
@@ -129,68 +148,28 @@ class MenuItem(object):
     def is_window_action(self):
         return self.action.split(".")[0] == "win"
 
-class Object(object):
-    pass
+    def get_tooltip_text(self):
+        text = self.name
+        if self.accel:
+            text += " \n" + self.accel
+        return text
+
+    def get_action_type(self):
+        if type(self.target) is str:
+            return GLib.VariantType.new("s")
+        return None
 
 class MenuBar(object):
-    def __init__(self, recent_files):
-        self.top_menu = TopMenu("menubar")
+    def __init__(self, recent_files, top_menu):
+        self.top_menu = top_menu
+        self.actions = self.top_menu.actions
+        self.tool_rows = top_menu.tool_rows
+        self.menu_items = top_menu.menu_items
 
-        self.actions = Object()
-        file_menu = self.top_menu.submenu("File")
-
-        file_edit_section = file_menu.section()
-        new_menu = file_edit_section.submenu("New")
-        self.action(new_menu, "Icon", "app.create_new_document", "400x400")
-        self.action(new_menu, "Document", "app.create_new_document", "400x300")
-        self.action(file_edit_section, "Open", "app.open_document", "")
-
-        recent_menu = file_edit_section.submenu("Open Recent")
+        recent_menu = self.get_item("File/Open Recent")
         for filepath in recent_files:
             name = os.path.basename(filepath)
             self.action(recent_menu, name, "app.open_document", filepath)
-
-        self.action(file_edit_section, "Save", "win.save_document")
-        self.action(file_edit_section, "Save As", "win.save_as_document")
-
-        export_menu = file_menu.submenu("Export to")
-        self.action(export_menu, "PNG Image", "export_to_png_image")
-
-        edit_menu = self.top_menu.submenu("Edit")
-        edit_shape_menu = edit_menu.submenu("Shape")
-        self.action(edit_shape_menu, "Insert Break", "win.insert_break_in_shape")
-        self.action(edit_shape_menu, "Join Points", "win.join_points_of_shape")
-        self.action(edit_shape_menu, "Delete Point", "win.delete_point_of_shape")
-        self.action(edit_shape_menu, "Extend Point", "win.extend_point_of_shape")
-
-        shapes_menu = self.top_menu.submenu("Shapes")
-
-        shape_edit_section = shapes_menu.section()
-        self.action(shape_edit_section, "Duplicate", "win.duplicate_shape")
-        align_menu = shape_edit_section.submenu("Align")
-        self.action(align_menu, "X", "win.align_shapes", "x")
-        self.action(align_menu, "Y", "win.align_shapes", "y")
-        self.action(align_menu, "XY", "win.align_shapes", "xy")
-        self.action(shape_edit_section, "Delete", "win.delete_shape")
-
-        shape_create_section = shapes_menu.section()
-        self.action(shape_create_section, "Rectangle", "win.create_new_shape", "rect")
-        self.action(shape_create_section, "Oval", "win.create_new_shape", "oval")
-        self.action(shape_create_section, "Curve", "win.create_new_shape", "curve")
-        self.action(shape_create_section, "Polygon", "win.create_new_shape", "polygon")
-        self.action(shape_create_section, "Image", "win.create_new_shape", "image")
-
-        shape_grouping_section = shapes_menu.section()
-        self.action(shape_grouping_section, "Join into Group", "win.create_group")
-        self.action(shape_grouping_section, "Break Group", "win.break_group")
-
-        help_menu = self.top_menu.submenu("Help")
-        self.action(help_menu, "About", "app.about")
-
-    def action(self, section, label, action, target=None):
-        fname = action.split(".")[-1]
-        setattr(self.actions, fname, fname)
-        return section.item(label, action, target)
 
     def get_builder(self):
         builder = Gtk.Builder()
@@ -200,6 +179,8 @@ class MenuBar(object):
         lines.extend(self.top_menu.get_xml_lines())
         lines.append("</interface>")
         xml_string = "\n".join(lines)
+        f = open("/home/sujoy/Temporary/output.xml", "w")
+        f.write(xml_string)
         builder.add_from_string(xml_string)
         return builder
 
@@ -216,16 +197,3 @@ class MenuBar(object):
         else:
             return None
 
-    def load_accelerators(self, filename):
-        f = open(filename, "r")
-        for line in f:
-            line = line.strip()
-            if not line: continue
-            its  = line.split(",")
-            if len(its)<2: continue
-            path = its[0].strip()
-            accel = its[1].strip()
-
-            matched_item = self.get_item(path)
-            if matched_item:
-                matched_item.set_accel(accel)

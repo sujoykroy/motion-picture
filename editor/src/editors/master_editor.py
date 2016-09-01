@@ -49,13 +49,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.root_box = Gtk.VBox()
         self.add(self.root_box)
 
-        self.tool_box = Gtk.HBox()
-        self.root_box.pack_start(self.tool_box, expand=False, fill=False, padding=0)
-        self.add_new_shape_button("rect", self.tool_box)
-        self.add_new_shape_button("oval", self.tool_box)
-        self.add_new_shape_button("curve", self.tool_box)
-        self.add_new_action_button("group", self.combine_shapes, self.tool_box)
-        self.add_new_action_button("delete shape", self.delete_shape, self.tool_box)
         self.toolbar_container = Gtk.VBox()
         self.root_box.pack_start(self.toolbar_container, expand=False, fill=False, padding=0)
 
@@ -183,11 +176,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         parent_box.pack_start(button, expand = False, fill= False, padding = 5)
         button.connect("clicked", click_callback)
 
-    def add_new_shape_button(self, shape_type, parent_box):
-        button = Gtk.Button("New " + shape_type)
-        parent_box.pack_start(button, expand = False, fill= False, padding = 5)
-        button.connect("clicked", self.on_new_shape_button_clicked, shape_type)
-
     def get_drawing_area_size(self):
         w = self.drawing_area.get_allocated_width()
         h = self.drawing_area.get_allocated_height()
@@ -254,15 +242,6 @@ class MasterEditor(Gtk.ApplicationWindow):
     def show_time_slice_props(self, time_slice_box):
         self.time_slice_prop_box.set_time_slice_box(time_slice_box)
 
-    def combine_shapes(self, widget):
-        self.shape_manager.combine_shapes()
-        self.redraw()
-
-    def delete_shape(self, widget):
-        self.shape_manager.delete_selected_shape()
-        self.time_line_editor.update()
-        self.redraw()
-
     def set_shape_name(self, shape, name):
         return self.shape_manager.rename_shape(shape, name)
 
@@ -303,10 +282,6 @@ class MasterEditor(Gtk.ApplicationWindow):
     def redraw(self):
         self.drawing_area.queue_draw()
         return self.playing
-
-    def on_new_shape_button_clicked(self, widget, shape_type):
-        self.next_new_shape_type = shape_type
-        self.state_mode = MODE_NEW_SHAPE_CREATE
 
     def on_drawing_area_key_press(self, widget, event):
         if event.keyval == SHIFT_KEY_CODE:

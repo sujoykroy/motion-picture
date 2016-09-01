@@ -5,6 +5,7 @@ import sys, os, cairo
 
 from editors import MasterEditor
 from gui_utils import *
+from gui_utils.menu_builder import MenuItem
 from document import Document
 import settings as Settings
 from commons.draw_utils import draw_text
@@ -22,32 +23,31 @@ class ApplicationWindow(MasterEditor):
         MasterEditor.__init__(self)
         self.parent = parent
 
-        f = open(Settings.MENU_ACCEL_ICON_FILE, "r")
-        toolbar = None
-        for line in f:
-            line = line.strip()
-            if line == "-" or toolbar is None:
-                toolbar = Gtk.Toolbar()
-                self.toolbar_container.pack_start(toolbar, expand=False, fill=False, padding=0)
-                continue
-            its = line.split(",")
-            if len(its)<3: continue
+        for tool_row in menubar.tool_rows:
+            toolbar = Gtk.Toolbar()
+            self.toolbar_container.pack_start(toolbar, expand=False, fill=False, padding=0)
 
-            path = its[0].strip()
-            icon = its[2].strip()
+            for tool_segment in tool_row:
+                toolbar.insert(Gtk.SeparatorToolItem(), -1)
+                if type(tool_segment) is str:
+                    tool_segment = menubar.get_item(tool_segment)
+                    tool_segment = tool_segment.items
+                for menu_item in tool_segment:
+                    if menu_item is str:
+                        menu_item = menubar.get_item(tool_item)
+                    if not isinstance(menu_item, MenuItem): continue
+                    if menu_item.icon:
+                        filename = os.path.join(Settings.ICONS_FOLDER, menu_item.icon + ".xml")
+                        doc = Document(filename=filename)
+                        pixbuf = doc.get_pixbuf(width=20, height=20)
+                        tool_widget = Gtk.Image.new_from_pixbuf(pixbuf)
+                    else:
+                        tool_widget = Gtk.Label(menu_item.name)
+                    tool_button = Gtk.ToolButton.new(tool_widget, menu_item.label)
+                    tool_button.set_tooltip_text(menu_item.get_tooltip_text())
 
-            menu_item = menubar.get_item(path)
-            label_name = its[3].strip() if len(its)>3 else menu_item.name
-
-            if icon:
-                filename = os.path.join(Settings.ICONS_FOLDER, icon + ".xml")
-                doc = Document(filename=filename)
-                pixbuf = doc.get_pixbuf(width=20, height=20)
-                tool_button = Gtk.ToolButton.new(Gtk.Image.new_from_pixbuf(pixbuf), menu_item.name)
-            else:
-                tool_button = Gtk.ToolButton.new(Gtk.Label(label_name), menu_item.name)
-            tool_button.connect("clicked", self.tool_button_clicked, menu_item)
-            toolbar.insert(tool_button, -1)
+                    tool_button.connect("clicked", self.tool_button_clicked, menu_item)
+                    toolbar.insert(tool_button, -1)
         self.toolbar_container.show_all()
 
     def tool_button_clicked(self, widget, menu_item):
@@ -107,6 +107,15 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.duplicate_shape():
             self.redraw()
 
+    def delete_shape(self, action, parameter):
+        self.shape_manager.delete_selected_shape()
+        self.time_line_editor.update()
+        self.redraw()
+
+    def create_shape_group(self, action, parameter):
+        self.shape_manager.combine_shapes()
+        self.redraw()
+
     def align_shapes(self, action, parameter):
         direction = parameter.get_string()
         if direction == "x":
@@ -149,11 +158,13 @@ class Application(Gtk.Application):
             filepath = recent_info.get_uri()
             recent_files.append(filepath)
 
-        self.menubar = MenuBar(recent_files)
-        self.menubar.load_accelerators(Settings.MENU_ACCEL_ICON_FILE)
+        self.menubar = MenuBar(recent_files, Settings.menus.TopMenuItem)
 
-        new_action(self, self.menubar.actions.create_new_document, GLib.VariantType.new("s"))
-        new_action(self, self.menubar.actions.open_document, GLib.VariantType.new("s"))
+        for menu_item in self.menubar.menu_items.values():
+            if menu_item.is_window_action(): continue
+            action_name = menu_item.get_action_name_only()
+            if hasattr(self, action_name):
+                new_action(self, action_name, menu_item.get_action_type())
 
         builder = self.menubar.get_builder()
         self.set_menubar(builder.get_object("menubar"))
@@ -189,15 +200,11 @@ class Application(Gtk.Application):
     def new_app_window(self):
         win = ApplicationWindow(self, self.menubar)
 
-        new_action(win, self.menubar.actions.save_document)
-        new_action(win, self.menubar.actions.save_as_document)
-        new_action(win, self.menubar.actions.create_new_shape, GLib.VariantType.new("s"))
-        new_action(win, self.menubar.actions.insert_break_in_shape)
-        new_action(win, self.menubar.actions.join_points_of_shape)
-        new_action(win, self.menubar.actions.delete_point_of_shape)
-        new_action(win, self.menubar.actions.extend_point_of_shape)
-        new_action(win, self.menubar.actions.duplicate_shape)
-        new_action(win, self.menubar.actions.align_shapes, GLib.VariantType.new("s"))
+        for menu_item in self.menubar.menu_items.values():
+            if not menu_item.is_window_action(): continue
+            action_name = menu_item.get_action_name_only()
+            if hasattr(win, action_name):
+                new_action(win, action_name, menu_item.get_action_type())
 
         self.add_window(win)
         win.show_all()
