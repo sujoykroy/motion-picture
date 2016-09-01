@@ -138,36 +138,15 @@ class Application(Gtk.Application):
 
         self.open_filename = None
 
-        self.connect("startup", self.on_startup)
         self.connect("activate", self.on_activate)
         self.connect("command-line", self.on_command_line)
 
     def on_command_line(self, app, command_line):
-        argv = command_line.get_arguments()
-        if len(argv) > 1:
-            self.open_filename = argv[1]
+        self.argv = command_line.get_arguments()
+        if len(self.argv) > 1:
+            self.open_filename = self.argv[1]
         self.activate()
         return 0
-
-    def on_startup(self, app):
-        app_name = os.path.basename(__file__)
-        self.recent_manager = Gtk.RecentManager.get_default()
-        recent_files = []
-        for recent_info in self.recent_manager.get_items():
-            if not recent_info.has_application(app_name): continue
-            filepath = recent_info.get_uri()
-            recent_files.append(filepath)
-
-        self.menubar = MenuBar(recent_files, Settings.menus.TopMenuItem)
-
-        for menu_item in self.menubar.menu_items.values():
-            if menu_item.is_window_action(): continue
-            action_name = menu_item.get_action_name_only()
-            if hasattr(self, action_name):
-                new_action(self, action_name, menu_item.get_action_type())
-
-        builder = self.menubar.get_builder()
-        self.set_menubar(builder.get_object("menubar"))
 
     def create_new_document(self, action, parameter):
         w, h = parameter.get_string().split("x")
@@ -212,6 +191,25 @@ class Application(Gtk.Application):
         return win
 
     def on_activate(self, app):
+        self.recent_manager = Gtk.RecentManager.get_default()
+        self.app_name = os.path.basename(self.argv[0])
+        recent_files = []
+        for recent_info in self.recent_manager.get_items():
+            if not recent_info.has_application(self.app_name): continue
+            if recent_info.get_mime_type() != "application/xml": continue
+            filepath = recent_info.get_uri()
+            recent_files.append(filepath)
+        self.menubar = MenuBar(recent_files, Settings.menus.TopMenuItem)
+
+        for menu_item in self.menubar.menu_items.values():
+            if menu_item.is_window_action(): continue
+            action_name = menu_item.get_action_name_only()
+            if hasattr(self, action_name):
+                new_action(self, action_name, menu_item.get_action_type())
+
+        builder = self.menubar.get_builder()
+        self.set_menubar(builder.get_object("menubar"))
+
         win = self.new_app_window()
         if self.open_filename:
             win.open_document(self.open_filename)

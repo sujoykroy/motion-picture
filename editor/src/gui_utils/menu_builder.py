@@ -166,10 +166,10 @@ class MenuBar(object):
         self.tool_rows = top_menu.tool_rows
         self.menu_items = top_menu.menu_items
 
-        recent_menu = self.get_item("File/Open Recent")
         for filepath in recent_files:
-            name = os.path.basename(filepath)
-            self.action(recent_menu, name, "app.open_document", filepath)
+            filename = os.path.basename(filepath)
+            path = "File/<Open>/Open Recent/" + filename
+            self.top_menu.add(path=path, action_name="app.open_document", action_param=filepath)
 
     def get_builder(self):
         builder = Gtk.Builder()

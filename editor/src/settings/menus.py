@@ -7,7 +7,7 @@ m.add(path="File/New/Document",
       action_name="app.create_new_document", action_param="400x300")
 
 m.add(path="File/<Open>/Open",
-      action_name="app.open_document")
+      action_name="app.open_document", action_param="")
 m.add(path="File/<Open>/Open Recent")
 m.add(path="File/<Open>/Save", accel="<Control>s",
       action_name="win.save_document")
