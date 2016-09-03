@@ -1,12 +1,14 @@
 from manager import TheTaskManager
 from ..shapes import get_hierarchy_names
 from ..commons import OrderedDict
+from ..commons.misc import copy_list
 
 class ShapeStateTask(object):
     NON_COMMUTATIVE_PROP_NAMES = ["anchor_at",
             "scale_x", "scale_y", "child_scale_x", "child_scale_y",
             "width", "height", "angle", "translation"]
-    COMMUTATIVE_PROP_NAMES = ["border_color", "border_width", "fill_color"]
+    COMMUTATIVE_PROP_NAMES = ["border_color", "border_width", "fill_color",
+                              "curves", "polygons"]
 
     def __init__(self, doc, shape):
         self.prev_shape_state = self.get_shape_state(doc, shape)
@@ -20,6 +22,7 @@ class ShapeStateTask(object):
         self.set_shape_state(doc, self.prev_shape_state)
 
     def redo(self, doc):
+        if not self.post_shape_state: return
         self.set_shape_state(doc, self.post_shape_state)
 
     @classmethod
@@ -63,6 +66,9 @@ class ShapeStateTask(object):
                 if not hasattr(last_shape, prop_name): continue
                 prop_value = props[prop_name]
                 shape_prop = getattr(last_shape, prop_name)
+                if type(prop_value) is list:
+                    prop_value = copy_list(prop_value)
+
                 if hasattr(shape_prop, "copy_from"):
                     shape_prop.copy_from(prop_value)
                 else:
@@ -73,6 +79,8 @@ class ShapeStateTask(object):
         for prop_name in prop_names:
             if not hasattr(shape, prop_name): continue
             prop_value = getattr(shape, prop_name)
-            if hasattr(prop_value, "copy"):
+            if type(prop_value) is list:
+                prop_value = copy_list(prop_value)
+            elif hasattr(prop_value, "copy"):
                 prop_value = prop_value.copy()
             props[prop_name] = prop_value

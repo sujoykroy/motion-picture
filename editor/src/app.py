@@ -10,7 +10,8 @@ from document import Document
 import settings as Settings
 from commons.draw_utils import draw_text
 from tasks import *
-from shapes import MultiShape
+from shapes import MultiShape, CurveShape
+from shape_creators import CurveShapeCreator
 
 THIS_FOLDER = os.path.dirname(__file__)
 
@@ -146,6 +147,13 @@ class ApplicationWindow(MasterEditor):
         if isinstance(task, ShapeStateTask):
             self.shape_manager.delete_shape_editor()
             getattr(task, urnam)(self.doc)
+            if self.shape_manager.shape_creator:
+                shape = self.shape_manager.shape_creator.shape
+                if isinstance(shape, CurveShape):
+                    self.shape_manager.shape_creator = CurveShapeCreator(
+                            shape, -1, -1)
+                else:
+                    self.shape_manager.shape_creator = None
             self.redraw()
 
 class Application(Gtk.Application):

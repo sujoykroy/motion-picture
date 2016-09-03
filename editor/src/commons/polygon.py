@@ -116,7 +116,7 @@ class Polygon(object):
             for x_root in mod_x_roots:
                 for y_root in mod_y_roots:
                     if abs(x_root-y_root)<5:
-                        return point_indxex, x_root
+                        return point_index, x_root
                         break
         return None
 

@@ -243,7 +243,7 @@ class ShapeManager(object):
         elif shape_type == "oval":
             self.shape_creator = OvalShapeCreator(point)
         elif shape_type == "curve":
-            self.shape_creator = CurveShapeCreator(point)
+            self.shape_creator = CurveShapeCreator.create_blank(point)
         elif shape_type == "polygon":
             self.shape_creator = PolygonShapeCreator(point)
 
@@ -354,6 +354,8 @@ class ShapeManager(object):
             return
 
         if self.shape_creator is not None:
+            if self.current_task is None:
+                self.current_task = ShapeStateTask(self.doc, self.shape_creator.shape)
             self.shape_creator.do_movement(shape_start_point, shape_end_point)
 
         elif self.selected_guide is not None:
@@ -370,6 +372,9 @@ class ShapeManager(object):
         self.document_area_box_selected = False
 
         if self.shape_creator is not None:
+            if self.current_task:
+                self.current_task.save(self.doc, self.shape_creator.shape)
+                self.current_task = None
             if self.shape_creator.end_movement():
                 self.multi_shape.readjust_sizes()
                 self.shape_creator = None

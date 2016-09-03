@@ -22,3 +22,10 @@ def format_time(value):
     else:
         return "{0:02.2f}s".format(value)
 
+def copy_list(arr):
+    copied_list = []
+    for val in arr:
+        if hasattr(val, "copy"):
+            val = val.copy()
+        copied_list.append(val)
+    return copied_list

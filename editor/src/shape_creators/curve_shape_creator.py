@@ -2,18 +2,29 @@ from ..commons import *
 from ..shapes import CurveShape, OvalEditBox, EditLine
 
 class CurveShapeCreator(object):
-    def __init__(self, point):
-        self.shape = CurveShape(Point(0, 0), Color(0,0,0,1), 1, Color(1,1,1,0), 1, 1)
-        self.curve = Curve(origin=point.copy())
-        self.shape.add_curve(self.curve)
-        self.bezier_point = None
-        self.shape.move_to(point.x, point.y)
+    @classmethod
+    def create_blank(cls, point):
+        shape = CurveShape(Point(0, 0), Color(0,0,0,1), 1, Color(1,1,1,0), 1, 1)
+        curve = Curve(origin=point.copy())
+        shape.add_curve(curve)
+        return cls(shape, -1, -1)
+
+    def __init__(self, shape, curve_index, bezier_point_index):
+        self.shape = shape
+        self.curve = shape.curves[curve_index]
+        if (-1<bezier_point_index<len(self.curve.bezier_points)) or \
+           (bezier_point_index == -1 and len(self.curve.bezier_points)>0):
+            self.bezier_point = self.curve.bezier_points[bezier_point_index]
+            self.move_dest = True
+        else:
+            self.bezier_point = None
+            self.move_dest = False
 
         self.edit_boxes = []
         ctc = Color(1,1,0,1)
-        self.edit_boxes.append(OvalEditBox(point.copy(), radius=5, is_percent = True, fill_color=ctc))
-        self.edit_boxes.append(OvalEditBox(point.copy(), radius=5, is_percent = True, fill_color=ctc))
-        self.edit_boxes.append(OvalEditBox(point.copy(), radius=5, is_percent = True))
+        self.edit_boxes.append(OvalEditBox(Point(0, 0), radius=5, is_percent = True, fill_color=ctc))
+        self.edit_boxes.append(OvalEditBox(Point(0, 0), radius=5, is_percent = True, fill_color=ctc))
+        self.edit_boxes.append(OvalEditBox(Point(0, 0), radius=5, is_percent = True))
 
         self.edit_lines = []
         self.edit_lines.append(EditLine(Point(0, 0), Point(0, 0)))
