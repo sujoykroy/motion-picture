@@ -121,7 +121,7 @@ class Shape(object):
 
         name = elm.attrib.get("name", None)
         if name:
-            self._name = name
+            self._name = name.replace(".", "")
 
     def copy_into(self, newob, copy_name=False, all_fields=False):
         newob.translation = self.translation.copy()
@@ -416,7 +416,7 @@ class Shape(object):
     @staticmethod
     def new_name():
         Shape.NAME_SEED += 1
-        return "{0}_{1}".format(time.time(), Shape.NAME_SEED)
+        return "{0}_{1}".format(time.time(), Shape.NAME_SEED).replace(".", "")
 
     @staticmethod
     def rounded_rectangle(ctx, x, y, w, h, r=20):

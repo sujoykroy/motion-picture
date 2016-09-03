@@ -8,34 +8,7 @@ from ..commons.draw_utils import *
 from ..shapes import *
 from ..shape_creators import *
 from guides import *
-
-MULTI_SELECTION_SHAPE = "MULTI_SELECTION_SHAPE"
-
-class MultiSelectionShape(MultiShape):
-    def __init__(self):
-        MultiShape.__init__(self)
-        self._name = MULTI_SELECTION_SHAPE
-        self.parent_list = dict()
-
-    def add_shape(self, shape):
-        self.parent_list[shape] = shape.parent_shape
-        MultiShape.add_shape(self, shape)
-
-    def remove_shape(self, shape):
-        MultiShape.remove_shape(self, shape)
-        shape.parent_shape = self.parent_list[shape]
-        del self.parent_list[shape]
-        return shape
-
-    def draw(self, ctx):
-        for shape in self.shapes:
-            outer_rect = shape.get_outline(5)
-            ctx.save()
-            shape.pre_draw(ctx)
-            Shape.rounded_rectangle(ctx, outer_rect.left, outer_rect.top,
-                    outer_rect.width, outer_rect.height, 0)
-            ctx.restore()
-            Shape.draw_selection_border(ctx)
+from ..tasks import *
 
 class ScrollableArea(object):
     def __init__(self):
@@ -60,6 +33,7 @@ class ShapeManager(object):
         self.shape_editor = None
         self.shape_creator = None
         self.shapes = ShapeList(multi_shape.shapes)
+        self.current_task = None
 
         self.guides = doc.guides
         for guide in self.guides:
@@ -387,6 +361,8 @@ class ShapeManager(object):
             self.selected_guide.move(dpoint)
 
         elif self.shape_editor is not None:
+            if self.current_task is None:
+                self.current_task = ShapeStateTask(self.doc, self.shape_editor.shape)
             self.shape_editor.move_active_item(shape_start_point, shape_end_point)
 
     def end_movement(self):
@@ -414,6 +390,9 @@ class ShapeManager(object):
         elif self.shape_editor is not None:
             self.multi_shape.readjust_sizes()
             self.shape_editor.end_movement()
+            if self.current_task:
+                self.current_task.save(self.doc, self.shape_editor.shape)
+                self.current_task = None
 
     def complete_shape_creation(self):
         if self.shape_creator is not None:

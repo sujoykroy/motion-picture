@@ -14,6 +14,10 @@ m.add(path="File/<Open>/Save", accel="<Control>s",
 m.add(path="File/<Open>/Save As", accel="<Shift><Control>s",
       action_name="win.save_as_document")
 
+m.add(path="Edit/<UndoRedo>/Undo", accel="<Control>z",
+      action_name="win.undo_redo", action_param="undo")
+m.add(path="Edit/<UndoRedo>/Redo", accel="<Control>Y",
+      action_name="win.undo_redo", action_param="redo")
 m.add(path="Edit/Shape/Duplicate",
       action_name="win.duplicate_shape")
 m.add(path="Edit/Shape/Delete",

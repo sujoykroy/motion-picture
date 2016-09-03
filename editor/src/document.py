@@ -96,3 +96,21 @@ class Document(object):
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
 
         return pixbuf
+
+    def get_hierarchy_names(self, name_string):
+        found = False
+        names = name_string.split("->")
+        shape = None
+        for i in range(len(names)):
+            name = names[i]
+            if shape is None:
+                if name != self.main_multi_shape.get_name():
+                    break
+                shape = self.main_multi_shape
+            elif isinstance(shape, MultiShape):
+                shape = shape.shapes.get_item_by_name(name)
+                if shape is None:
+                    break
+            if i == len(names)-1:
+                found = True
+        return shape

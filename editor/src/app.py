@@ -9,6 +9,8 @@ from gui_utils.menu_builder import MenuItem
 from document import Document
 import settings as Settings
 from commons.draw_utils import draw_text
+from tasks import *
+from shapes import MultiShape
 
 THIS_FOLDER = os.path.dirname(__file__)
 
@@ -132,6 +134,18 @@ class ApplicationWindow(MasterEditor):
 
     def convert_shape_to(self, action, parameter):
         if self.shape_manager.convert_shape_to(parameter.get_string()):
+            self.redraw()
+
+    def undo_redo(self, action, paramter):
+        urnam = paramter.get_string()
+        if urnam == "undo":
+            task = TheTaskManager.get_undo_task()
+        else:
+            task = TheTaskManager.get_redo_task()
+        if not task: return
+        if isinstance(task, ShapeStateTask):
+            self.shape_manager.delete_shape_editor()
+            getattr(task, urnam)(self.doc)
             self.redraw()
 
 class Application(Gtk.Application):

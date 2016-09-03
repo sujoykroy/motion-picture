@@ -10,6 +10,7 @@ setup(
                 'MotionPicture.settings',
                 'MotionPicture.shape_creators',
                 'MotionPicture.shapes',
+                'MotionPicture.tasks',
                 'MotionPicture.time_line_boxes',
                 'MotionPicture.time_lines',
                 'MotionPicture.shapes'],
