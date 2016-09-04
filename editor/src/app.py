@@ -140,14 +140,16 @@ class ApplicationWindow(MasterEditor):
     def undo_redo(self, action, paramter):
         urnam = paramter.get_string()
         if urnam == "undo":
-            task = TheTaskManager.get_undo_task()
+            task = self.doc.reundo.get_undo_task()
         else:
-            task = TheTaskManager.get_redo_task()
+            task = self.doc.reundo.get_redo_task()
         if not task: return
+        self.shape_manager.delete_shape_editor()
         if isinstance(task, ShapeStateTask):
-            self.shape_manager.delete_shape_editor()
             getattr(task, urnam)(self.doc)
-            if self.shape_manager.shape_creator:
+            if isinstance(task, ShapeDeleteTask) or isinstance(task, ShapeAddTask):
+                self.shape_manager.reload_shapes()
+            elif self.shape_manager.shape_creator:
                 shape = self.shape_manager.shape_creator.shape
                 if isinstance(shape, CurveShape):
                     self.shape_manager.shape_creator = CurveShapeCreator(

@@ -17,3 +17,18 @@ def get_hierarchy_names(shape):
         if isinstance(prev_shape, MultiSelectionShape): continue
         names.insert(0, prev_shape.get_name())
     return names
+
+def get_shape_at_hierarchy(multi_shape, names):
+    shape = None
+    for i in range(len(names)):
+        name = names[i]
+        if i == 0:
+             if multi_shape.get_name() == name:
+                shape = multi_shape
+             else:
+                break
+        else:
+            shape = shape.shapes.get_item_by_name(name)
+            if not shape:
+                break
+    return shape

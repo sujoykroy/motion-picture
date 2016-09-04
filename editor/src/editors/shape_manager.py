@@ -43,6 +43,11 @@ class ShapeManager(object):
         self.out_width = doc.width
         self.out_height = doc.height
 
+    def reload_shapes(self):
+        self.delete_shape_editor()
+        self.shape_creator = None
+        self.shapes = ShapeList(self.multi_shape.shapes)
+
     def get_selected_shape(self):
         if self.shape_editor: return self.shape_editor.shape
         return None
@@ -249,7 +254,9 @@ class ShapeManager(object):
 
         if self.shape_creator:
             self.shape_creator.set_relative_to(self.multi_shape)
+            self.current_task = ShapeAddTask(self.doc, self.multi_shape)
             self.add_shape(self.shape_creator.get_shape())
+            #task.save(self.doc, self.shape_creator.shape)
             self.shape_creator.begin_movement(point)
 
     def create_image_shape(self, filename):
@@ -438,15 +445,21 @@ class ShapeManager(object):
         if not self.shape_editor: return
         if not isinstance(self.shape_editor.shape, MultiSelectionShape):
             shape = self.shape_editor.shape
+            task = ShapeDeleteTask(self.doc, shape)
             self.delete_shape_editor()
             self.remove_shape(shape)
+            task.save(self.doc, self.multi_shape)
 
     def insert_point_in_shape_at(self, point):
         if not self.selected_shape_supports_point_insert(): return False
         shape = self.shape_editor.shape
         point = shape.transform_point(point)
+        task = ShapeStateTask(self.doc, shape)
         if shape.insert_point_at(point):
+            task.save(self.doc, shape)
             self.shape_editor = ShapeEditor(shape)
+        else:
+            task.remove()
 
     def insert_break(self):
         if not self.shape_editor: return False

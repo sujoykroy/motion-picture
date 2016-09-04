@@ -1,5 +1,4 @@
-from manager import TheTaskManager
-from ..shapes import get_hierarchy_names
+from ..shapes import get_hierarchy_names, get_shape_at_hierarchy
 from ..commons import OrderedDict
 from ..commons.misc import copy_list
 
@@ -10,10 +9,10 @@ class ShapeStateTask(object):
     COMMUTATIVE_PROP_NAMES = ["border_color", "border_width", "fill_color",
                               "curves", "polygons"]
 
-    def __init__(self, doc, shape):
-        self.prev_shape_state = self.get_shape_state(doc, shape)
+    def __init__(self, doc, shape, exclude_commutative=False):
+        self.prev_shape_state = self.get_shape_state(doc, shape, exclude_commutative=exclude_commutative)
         self.post_shape_state = None
-        TheTaskManager.add_task(self)
+        doc.reundo.add_task(self)
 
     def save(self, doc, shape):
         self.post_shape_state = self.get_shape_state(doc, shape)
@@ -25,8 +24,11 @@ class ShapeStateTask(object):
         if not self.post_shape_state: return
         self.set_shape_state(doc, self.post_shape_state)
 
+    def remove(self, doc):
+        doc.reundo.remove_task(self)
+
     @classmethod
-    def get_shape_state(cls, doc, shape):
+    def get_shape_state(cls, doc, shape, exclude_commutative=False):
         shape_names = get_hierarchy_names(shape)
         shapes_props = OrderedDict()
         last_shape = None
@@ -45,7 +47,7 @@ class ShapeStateTask(object):
             props = dict()
             cls.save_props(props, last_shape, cls.NON_COMMUTATIVE_PROP_NAMES)
             shapes_props.add(shape_name, props)
-        if last_shape is not None:
+        if last_shape is not None and not exclude_commutative:
             cls.save_props(shapes_props[shape.get_name()], shape, cls.COMMUTATIVE_PROP_NAMES)
         return shapes_props
 
@@ -84,3 +86,49 @@ class ShapeStateTask(object):
             elif hasattr(prop_value, "copy"):
                 prop_value = prop_value.copy()
             props[prop_name] = prop_value
+
+class ShapeDeleteTask(ShapeStateTask):
+    def __init__(self, doc, shape):
+        ShapeStateTask.__init__(self, doc, shape)
+        self.hierarchy_names = get_hierarchy_names(shape)
+        self.shape = shape
+
+    def save(self, doc, parent_shape):
+        self.post_shape_state = self.get_shape_state(doc, parent_shape, exclude_commutative=True)
+
+    def undo(self, doc):
+        parent_shape = get_shape_at_hierarchy(doc.main_multi_shape, self.hierarchy_names[0:-1])
+        if not parent_shape: return
+        parent_shape.add_shape(self.shape)
+        self.set_shape_state(doc, self.prev_shape_state)
+
+    def redo(self, doc):
+        if not self.post_shape_state: return
+        parent_shape = get_shape_at_hierarchy(doc.main_multi_shape, self.hierarchy_names[0:-1])
+        if not parent_shape: return
+        parent_shape.remove_shape(self.shape)
+        self.set_shape_state(doc, self.post_shape_state)
+
+class ShapeAddTask(ShapeStateTask):
+    def __init__(self, doc, parent_shape):
+        ShapeStateTask.__init__(self, doc, parent_shape, exclude_commutative=True)
+        self.shape = None
+        self.hierarchy_names = None
+
+    def save(self, doc, shape):
+        self.post_shape_state = self.get_shape_state(doc, shape)
+        self.shape = shape
+        self.hierarchy_names = get_hierarchy_names(shape)
+
+    def undo(self, doc):
+        parent_shape = get_shape_at_hierarchy(doc.main_multi_shape, self.hierarchy_names[0:-1])
+        if not parent_shape: return
+        parent_shape.remove_shape(self.shape)
+        self.set_shape_state(doc, self.prev_shape_state)
+
+    def redo(self, doc):
+        if not self.post_shape_state: return
+        parent_shape = get_shape_at_hierarchy(doc.main_multi_shape, self.hierarchy_names[0:-1])
+        if not parent_shape: return
+        parent_shape.add_shape(self.shape)
+        self.set_shape_state(doc, self.post_shape_state)

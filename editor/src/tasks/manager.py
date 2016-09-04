@@ -8,6 +8,12 @@ class TaskManager(object):
         self.tasks.append(task)
         self.index = len(self.tasks)
 
+    def remove_task(self, task):
+        index = self.tasks.index(task)
+        self.tasks.remove(task)
+        if self.index>index:
+            self.index -= 1
+
     def get_undo_task(self):
         if self.index<1: return None
         self.index -= 1
@@ -20,4 +26,3 @@ class TaskManager(object):
         self.index += 1
         return task
 
-TheTaskManager = TaskManager()
