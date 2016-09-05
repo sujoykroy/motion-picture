@@ -1,6 +1,7 @@
 from ..commons import *
 from ..commons.draw_utils import draw_fill
 from ..shapes import *
+from ..settings import EditingChoice
 
 OUTER = "OUTER"
 INNER = "INNER"
@@ -248,6 +249,8 @@ class ShapeEditor(object):
         for edit_box in self.inner_edit_boxes:
             edit_box.reposition(inner_rect)
 
+        if isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>5:
+            return
         for line in self.curve_point_lines:
             ctx.save()
             self.shape.pre_draw(ctx)
@@ -282,10 +285,10 @@ class ShapeEditor(object):
 
     def move_active_item(self, start_point, end_point):
         if self.edit_box_can_move is False:
-            diff_point = end_point.diff(start_point)
-            init_abs_anchor_at = self.init_shape.get_abs_anchor_at()
-            self.shape.move_to(init_abs_anchor_at.x+diff_point.x, init_abs_anchor_at.y+diff_point.y)
-
+            if not EditingChoice.LOCK_MOVEMENT:
+                diff_point = end_point.diff(start_point)
+                init_abs_anchor_at = self.init_shape.get_abs_anchor_at()
+                self.shape.move_to(init_abs_anchor_at.x+diff_point.x, init_abs_anchor_at.y+diff_point.y)
         elif self.selected_edit_boxes:
             rel_start_point = self.shape.transform_point(start_point)
             rel_end_point = self.shape.transform_point(end_point)
@@ -322,6 +325,19 @@ class ShapeEditor(object):
 
                 elif edit_box in self.moveable_point_edit_boxes:
                     percent_point = Point(rel_dpoint.x/self.shape.width, rel_dpoint.y/self.shape.height)
+                    if isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>6:
+                        span = 5
+                        for i in range(-span, span, 1):
+                            frac = (span-abs(i))*1./span
+                            pp = percent_point.copy()
+                            pp.x *= frac
+                            pp.y *= frac
+                            point_index = edit_box.point_index + i
+                            for edb in self.moveable_point_edit_boxes:
+                                if edb.polygon_index != edit_box.polygon_index: continue
+                                if edb.point_index != point_index: continue
+                                edb.move_offset(pp.x, pp.y)
+                                break
                     edit_box.move_offset(percent_point.x, percent_point.y)
             self.named_edit_boxes[ANCHOR].set_point(self.shape.anchor_at)
 

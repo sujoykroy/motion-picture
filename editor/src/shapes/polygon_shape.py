@@ -180,6 +180,14 @@ class PolygonShape(Shape):
         for path in paths:
             ctx.append_path(path)
 
+    def draw_border(self, ctx):
+        if self.border_color is None: return
+        ctx.set_line_cap(cairo.LINE_CAP_ROUND)
+        ctx.set_source_rgba(*self.border_color.get_array())
+        ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+        ctx.set_line_width(self.border_width)
+        ctx.stroke()
+
     def fit_size_to_include_all(self):
         outline = None
         for polygon in self.polygons:

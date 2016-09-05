@@ -8,6 +8,7 @@ from gui_utils import *
 from gui_utils.menu_builder import MenuItem
 from document import Document
 import settings as Settings
+from settings import EditingChoice
 from commons.draw_utils import draw_text
 from tasks import *
 from shapes import MultiShape, CurveShape
@@ -15,17 +16,41 @@ from shape_creators import CurveShapeCreator
 
 THIS_FOLDER = os.path.dirname(__file__)
 
-def new_action(parent, action_name, param_type=None):
+def new_action(parent, menu_item):
+    action_name = menu_item.get_action_name_only()
+    if parent.lookup_action(action_name): return
     if hasattr(parent, action_name):
-        action = Gio.SimpleAction.new(action_name, parameter_type=param_type)
-        action.connect("activate", getattr(parent, action_name))
+        parameter_type = menu_item.get_action_type()
+        state = menu_item.get_state()
+        if state is None:
+            action = Gio.SimpleAction.new(action_name, parameter_type=parameter_type)
+            action.connect("activate", getattr(parent, action_name))
+        else:
+            action = Gio.SimpleAction.new_stateful(action_name,
+                                    parameter_type=parameter_type, state=state)
+            action.connect("change_state", getattr(parent, action_name))
+            action.tool_buttons = []
+            action.menu_item = menu_item
         parent.add_action(action)
 
+def change_action_tool_buttons(action):
+    if not hasattr(action, "tool_buttons"): return
+    for tool_button in action.tool_buttons:
+        if not isinstance(tool_button, Gtk.ToggleToolButton): continue
+        action_state = action.get_state()
+        menu_item = action.menu_item
+        if menu_item.is_boolean_stateful():
+            is_active = action_state.get_boolean()
+        elif menu_item.is_string_stateful():
+            is_active = (tool_button.action_state_value == action_state.get_string())
+        tool_button.props.active = is_active
+
 class ApplicationWindow(MasterEditor):
-    def __init__(self, parent, menubar):
+    def __init__(self, parent):
         MasterEditor.__init__(self)
         self.parent = parent
 
+    def build_toolbar(self, menubar):
         for tool_row in menubar.tool_rows:
             toolbar = Gtk.Toolbar()
             self.toolbar_container.pack_start(toolbar, expand=False, fill=False, padding=0)
@@ -46,7 +71,28 @@ class ApplicationWindow(MasterEditor):
                         tool_widget = Gtk.Image.new_from_pixbuf(pixbuf)
                     else:
                         tool_widget = Gtk.Label(menu_item.name)
-                    tool_button = Gtk.ToolButton.new(tool_widget, menu_item.label)
+
+                    add_tool_button_into_actions = False
+                    if menu_item.get_state() is not None:
+                        tool_button = Gtk.ToggleToolButton.new()
+                        tool_button.set_icon_widget(tool_widget)
+                        tool_button.set_label(menu_item.label)
+                        tool_button.action_state_value = menu_item.state
+                        tool_button.action_variant_state_value = menu_item.get_state()
+                        if menu_item.is_window_action():
+                            obj = self
+                        else:
+                            obj = self.parent
+                        action = obj.lookup_action(menu_item.get_action_name_only())
+                        if action and hasattr(action, "tool_buttons"):
+                            action.tool_buttons.append(tool_button)
+                        if menu_item.is_boolean_stateful():
+                            action_state_value = menu_item.get_state()
+                        elif menu_item.is_string_stateful():
+                            action_state_value = False
+                        tool_button.props.active = action_state_value
+                    else:
+                        tool_button = Gtk.ToolButton.new(tool_widget, menu_item.label)
                     tool_button.set_tooltip_text(menu_item.get_tooltip_text())
 
                     tool_button.connect("clicked", self.tool_button_clicked, menu_item)
@@ -60,7 +106,13 @@ class ApplicationWindow(MasterEditor):
             obj = self.parent
         action = obj.lookup_action(menu_item.get_action_name_only())
         if action:
-            action.activate(menu_item.get_target_value())
+            if menu_item.state is None:
+                action.activate(menu_item.get_target_value())
+            else:
+                if menu_item.is_boolean_stateful():
+                    action.change_state(GLib.Variant.new_boolean(widget.get_active()))
+                elif widget.get_active():
+                    action.change_state(widget.action_variant_state_value)
 
     def save_document(self, action, parameter):
         if not self.doc.filename:
@@ -80,6 +132,8 @@ class ApplicationWindow(MasterEditor):
             self.parent.recent_manager.add_item(filename)
 
     def create_new_shape(self, action, parameter):
+        action.set_state(parameter)
+        change_action_tool_buttons(action)
         shape_type = parameter.get_string()
         if shape_type == "image":
             filename = FileOp.choose_file(self, purpose="open", file_types=[["Image", "image/*"]])
@@ -89,6 +143,8 @@ class ApplicationWindow(MasterEditor):
                 self.redraw()
         else:
             self.set_shape_creation_mode(shape_type)
+        #action.set_state(GLib.Variant.new_string(""))
+        #change_action_tool_buttons(action)
 
     def insert_break_in_shape(self, action, parameter):
         if self.shape_manager.insert_break():
@@ -137,8 +193,8 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.convert_shape_to(parameter.get_string()):
             self.redraw()
 
-    def undo_redo(self, action, paramter):
-        urnam = paramter.get_string()
+    def undo_redo(self, action, parameter):
+        urnam = parameter.get_string()
         if urnam == "undo":
             task = self.doc.reundo.get_undo_task()
         else:
@@ -157,6 +213,11 @@ class ApplicationWindow(MasterEditor):
                 else:
                     self.shape_manager.shape_creator = None
             self.redraw()
+
+    def lock_shape_movement(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.LOCK_MOVEMENT = parameter.get_boolean()
+        change_action_tool_buttons(action)
 
 class Application(Gtk.Application):
     def __init__(self):
@@ -205,14 +266,13 @@ class Application(Gtk.Application):
             win.destroy()
 
     def new_app_window(self):
-        win = ApplicationWindow(self, self.menubar)
+        win = ApplicationWindow(self)
 
         for menu_item in self.menubar.menu_items.values():
             if not menu_item.is_window_action(): continue
-            action_name = menu_item.get_action_name_only()
-            if hasattr(win, action_name):
-                new_action(win, action_name, menu_item.get_action_type())
+            new_action(win, menu_item)
 
+        win.build_toolbar(self.menubar)
         self.add_window(win)
         win.show_all()
         win.init_interface()
@@ -231,9 +291,7 @@ class Application(Gtk.Application):
 
         for menu_item in self.menubar.menu_items.values():
             if menu_item.is_window_action(): continue
-            action_name = menu_item.get_action_name_only()
-            if hasattr(self, action_name):
-                new_action(self, action_name, menu_item.get_action_type())
+            new_action(self, menu_item)
 
         builder = self.menubar.get_builder()
         self.set_menubar(builder.get_object("menubar"))

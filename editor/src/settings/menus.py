@@ -33,15 +33,17 @@ m.add(path="Edit/Points/Extend",
       action_name="win.extend_point_of_shape")
 
 m.add(path="Shapes/<New>/Rectangle", icon="rectangle",
-      action_name="win.create_new_shape", action_param="rect")
+      action_name="win.create_new_shape", action_state="rect")
 m.add(path="Shapes/<New>/Oval", icon="oval",
-      action_name="win.create_new_shape", action_param="oval")
+      action_name="win.create_new_shape", action_state="oval")
 m.add(path="Shapes/<New>/Curve", icon="curve",
-      action_name="win.create_new_shape", action_param="curve")
+      action_name="win.create_new_shape", action_state="curve")
 m.add(path="Shapes/<New>/Polygon", icon="polygon",
-      action_name="win.create_new_shape", action_param="polygon")
+      action_name="win.create_new_shape", action_state="polygon")
 m.add(path="Shapes/<New>/Image", icon="image",
-      action_name="win.create_new_shape", action_param="image")
+      action_name="win.create_new_shape", action_state="image")
+#m.add(path="Shapes/<New>/Freehand", icon="image",
+#      action_name="win.create_new_shape", action_state="freehand")
 
 m.add(path="Shapes/Align/X",
       action_name="win.align_shapes", action_param="x")
@@ -60,7 +62,11 @@ m.add(path="Shapes/Convert To/Polygon",
 m.add(path="Shapes/Convert To/Curve",
       action_name="win.convert_shape_to", action_param="curve")
 
+m.add(path="Edit/Preferences/Lock Movement",
+      action_name="win.lock_shape_movement", action_state=False)
+
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Points"],
-    ["Shapes/<New>", "Shapes/Align", "Shapes/Group", "Shapes/Convert To"]
+    ["Shapes/<New>", "Shapes/Align", "Shapes/Group", "Shapes/Convert To"],
+    ["Edit/Preferences"]
 ]

@@ -33,7 +33,8 @@ class TopMenu(object):
             if submenu.name == name: return submenu
         return None
 
-    def add(self, path, icon=None, accel=None, action_name=None, action_param=None):
+    def add(self, path, icon=None, accel=None,
+                        action_name=None, action_param=None, action_state=None):
         last_item = self
         menu_names = path.split("/")
         for i in range(len(menu_names)):
@@ -47,7 +48,8 @@ class TopMenu(object):
                 elif i == len(menu_names)-1 and action_name:
                     item = last_item.item(MenuItem(
                         label=menu_name, accel=accel, icon=icon,
-                        action=action_name, target=action_param))
+                        action=action_name, target=action_param,
+                        state=action_state))
                     fname = action_name.split(".")[-1]
                     setattr(self.actions, fname, fname)
                     self.menu_items[path] = item
@@ -117,13 +119,14 @@ class MenuSection(object):
         return None
 
 class MenuItem(object):
-    def __init__(self, label, action, target=None, accel=None, icon=None):
+    def __init__(self, label, action, target=None, accel=None, icon=None, state=None):
         self.name = label.replace("_", "")
         self.label = label
         self.action = action
         self.target = target
         self.accel = accel
         self.icon = icon
+        self.state = state
 
     def get_xml_lines(self):
         lines = []
@@ -155,9 +158,26 @@ class MenuItem(object):
         return text
 
     def get_action_type(self):
-        if type(self.target) is str:
+        if type(self.target) is str or type(self.state) is str:
             return GLib.VariantType.new("s")
+        elif type(self.target) is bool or type(self.state) is bool:
+            return GLib.VariantType.new("b")
         return None
+
+    def get_state(self):
+        if type(self.state) is str:
+            return GLib.Variant.new_string(self.state)
+        elif type(self.state) is bool:
+            return GLib.Variant.new_boolean(self.state)
+        return None
+
+    def is_boolean_stateful(self):
+        if self.state is None: return False
+        return type(self.state) is bool
+
+    def is_string_stateful(self):
+        if self.state is None: return False
+        return type(self.state) is str
 
 class MenuBar(object):
     def __init__(self, recent_files, top_menu):

@@ -251,6 +251,8 @@ class ShapeManager(object):
             self.shape_creator = CurveShapeCreator.create_blank(point)
         elif shape_type == "polygon":
             self.shape_creator = PolygonShapeCreator(point)
+        elif shape_type == "freehand":
+            self.shape_creator = FreehandShapeCreator(point)
 
         if self.shape_creator:
             self.shape_creator.set_relative_to(self.multi_shape)
@@ -459,7 +461,7 @@ class ShapeManager(object):
             task.save(self.doc, shape)
             self.shape_editor = ShapeEditor(shape)
         else:
-            task.remove()
+            task.remove(self.doc)
 
     def insert_break(self):
         if not self.shape_editor: return False
