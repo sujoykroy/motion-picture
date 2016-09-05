@@ -325,3 +325,13 @@ class PolygonShape(Shape):
         rect_shape.copy_into(polygon_shape, all_fields=True, copy_name=True)
         polygon_shape.fit_size_to_include_all()
         return polygon_shape
+
+    def flip(self, direction):
+        Shape.flip(self, direction)
+        for polygon in self.polygons:
+            for point in polygon.points:
+                if direction == "x":
+                    point.x = 1.-point.x
+                elif direction == "y":
+                    point.y = 1.-point.y
+        self.fit_size_to_include_all()

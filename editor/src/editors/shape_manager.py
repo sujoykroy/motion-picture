@@ -1,4 +1,5 @@
 from gi.repository import GdkPixbuf
+import os
 
 from shape_editor import ShapeEditor
 
@@ -9,6 +10,9 @@ from ..shapes import *
 from ..shape_creators import *
 from guides import *
 from ..tasks import *
+from .. import settings
+from ..settings import EditingChoice
+from ..document import Document
 
 class ScrollableArea(object):
     def __init__(self):
@@ -65,6 +69,12 @@ class ShapeManager(object):
         if self.shape_editor is None: return False
         if isinstance(self.shape_editor.shape, MultiSelectionShape): return False
         return isinstance(self.shape_editor.shape, MultiShape)
+
+
+    def is_flippable_shape_selected(self):
+        if self.shape_editor is None: return False
+        if isinstance(self.shape_editor.shape, MultiSelectionShape): return False
+        return True
 
     def has_no_shape_selected(self):
         return self.shape_editor is None
@@ -241,7 +251,6 @@ class ShapeManager(object):
 
     def start_creating_new_shape(self, shape_type, doc_point, shape_point):
         point = shape_point
-
         self.delete_shape_editor()
         if shape_type == "rect":
             self.shape_creator = RectangleShapeCreator(point)
@@ -253,6 +262,11 @@ class ShapeManager(object):
             self.shape_creator = PolygonShapeCreator(point)
         elif shape_type == "freehand":
             self.shape_creator = FreehandShapeCreator(point)
+        else:
+            filename = os.path.join(settings.PREDRAWN_SHAPE_FOLDER, shape_type)
+            if os.path.exists(filename):
+                document = Document(filename=filename)
+                self.shape_creator = PredrawnShapeCreator(point, document)
 
         if self.shape_creator:
             self.shape_creator.set_relative_to(self.multi_shape)
@@ -300,11 +314,12 @@ class ShapeManager(object):
             self.shape_creator.begin_movement(point)
             return
 
-        for guide in self.guides:
-            if guide.is_within(doc_point):
-                self.selected_guide = guide
-                self.selected_guide.save_position()
-                return
+        if not EditingChoice.LOCK_GUIDES:
+            for guide in self.guides:
+                if guide.is_within(doc_point):
+                    self.selected_guide = guide
+                    self.selected_guide.save_position()
+                    return
 
         if self.shape_editor is not None:
             self.shape_editor.select_item_at(point, multi_select)

@@ -1,4 +1,6 @@
 from multi_shape import MultiShape
+from ..commons.draw_utils import draw_rounded_rectangle
+from shape import Shape
 
 MULTI_SELECTION_SHAPE = "MULTI_SELECTION_SHAPE"
 
@@ -23,7 +25,7 @@ class MultiSelectionShape(MultiShape):
             outer_rect = shape.get_outline(5)
             ctx.save()
             shape.pre_draw(ctx)
-            Shape.rounded_rectangle(ctx, outer_rect.left, outer_rect.top,
+            draw_rounded_rectangle(ctx, outer_rect.left, outer_rect.top,
                     outer_rect.width, outer_rect.height, 0)
             ctx.restore()
             Shape.draw_selection_border(ctx)

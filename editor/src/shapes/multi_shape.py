@@ -335,3 +335,21 @@ class MultiShape(Shape):
     def move_anchor_at_center(self):
         self.anchor_at.x = self.width*.5
         self.anchor_at.y = self.height*.5
+
+    def scale_border_width(self, mult):
+        for shape in self.shapes:
+            if isinstance(shape, MultiShape):
+                shape.scale_border_width(mult)
+            else:
+                shape.border_width *= mult
+
+    def flip(self, direction):
+        for shape in self.shapes:
+            shape.flip(direction)
+            abs_anchor_at = shape.get_abs_anchor_at()
+            if direction == "x":
+                shape.move_to(self.width-abs_anchor_at.x, abs_anchor_at.y)
+            elif direction == "y":
+                shape.move_to(abs_anchor_at.x, self.height-abs_anchor_at.y)
+        Shape.flip(self, direction)
+        self.readjust_sizes()

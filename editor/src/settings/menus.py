@@ -22,6 +22,10 @@ m.add(path="Edit/Shape/Duplicate",
       action_name="win.duplicate_shape")
 m.add(path="Edit/Shape/Delete",
       action_name="win.delete_shape")
+m.add(path="Edit/Shape/Flip/Flip X",
+      action_name="win.flip_shape", action_param="x")
+m.add(path="Edit/Shape/Flip/Flip Y",
+      action_name="win.flip_shape", action_param="y")
 
 m.add(path="Edit/Points/Join",
       action_name="win.join_points_of_shape")
@@ -45,6 +49,7 @@ m.add(path="Shapes/<New>/Image", icon="image",
 #m.add(path="Shapes/<New>/Freehand", icon="image",
 #      action_name="win.create_new_shape", action_state="freehand")
 
+
 m.add(path="Shapes/Align/X",
       action_name="win.align_shapes", action_param="x")
 m.add(path="Shapes/Align/Y",
@@ -64,9 +69,12 @@ m.add(path="Shapes/Convert To/Curve",
 
 m.add(path="Edit/Preferences/Lock Movement",
       action_name="win.lock_shape_movement", action_state=False)
+m.add(path="Edit/Preferences/Lock Guides",
+      action_name="win.lock_guides", action_state=False)
 
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Points"],
     ["Shapes/<New>", "Shapes/Align", "Shapes/Group", "Shapes/Convert To"],
-    ["Edit/Preferences"]
+    ["Edit/Shape/Flip"],
+    ["Edit/Preferences", "Shapes/Pre-Drawn"]
 ]

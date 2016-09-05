@@ -60,4 +60,3 @@ class OvalShape(Shape):
     def set_sweep_angle(self, value):
         self.sweep_angle = value
 
-

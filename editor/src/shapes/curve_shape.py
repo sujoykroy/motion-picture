@@ -363,3 +363,21 @@ class CurveShape(Shape):
         oval_shape.copy_into(curve_shape, all_fields=True, copy_name=True)
         curve_shape.fit_size_to_include_all()
         return curve_shape
+
+    def flip(self, direction):
+        Shape.flip(self, direction)
+        for curve in self.curves:
+            if direction == "x":
+                curve.origin.x = 1.-curve.origin.x
+            elif direction == "y":
+                curve.origin.y = 1.-curve.origin.y
+            for bezier_point in curve.bezier_points:
+                if direction == "x":
+                    bezier_point.control_1.x = 1.-bezier_point.control_1.x
+                    bezier_point.control_2.x = 1.-bezier_point.control_2.x
+                    bezier_point.dest.x = 1.-bezier_point.dest.x
+                elif direction == "y":
+                    bezier_point.control_1.y = 1.-bezier_point.control_1.y
+                    bezier_point.control_2.y = 1.-bezier_point.control_2.y
+                    bezier_point.dest.y = 1.-bezier_point.dest.y
+        self.fit_size_to_include_all()

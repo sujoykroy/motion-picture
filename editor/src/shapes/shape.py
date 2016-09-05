@@ -412,6 +412,12 @@ class Shape(object):
         return point.x>=-margin and point.x<=self.width+margin and \
                point.y>=-margin and point.y<=self.height+margin
 
+    def flip(self, direction):
+        if direction == "x":
+            self.anchor_at.x = self.width - self.anchor_at.x
+        elif direction == "y":
+            self.anchor_at.y = self.height - self.anchor_at.y
+
     NAME_SEED = 0
     @staticmethod
     def new_name():

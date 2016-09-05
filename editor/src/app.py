@@ -67,6 +67,7 @@ class ApplicationWindow(MasterEditor):
                     if menu_item.icon:
                         filename = os.path.join(Settings.ICONS_FOLDER, menu_item.icon + ".xml")
                         doc = Document(filename=filename)
+                        #doc.main_multi_shape.scale_border_width(10)
                         pixbuf = doc.get_pixbuf(width=20, height=20)
                         tool_widget = Gtk.Image.new_from_pixbuf(pixbuf)
                     else:
@@ -166,6 +167,11 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.duplicate_shape():
             self.redraw()
 
+    def flip_shape(self, action, parameter):
+        if not self.shape_manager.is_flippable_shape_selected(): return
+        self.shape_manager.shape_editor.shape.flip(parameter.get_string())
+        self.redraw()
+
     def delete_shape(self, action, parameter):
         self.shape_manager.delete_selected_shape()
         self.time_line_editor.update()
@@ -217,6 +223,11 @@ class ApplicationWindow(MasterEditor):
     def lock_shape_movement(self, action, parameter):
         action.set_state(parameter)
         EditingChoice.LOCK_MOVEMENT = parameter.get_boolean()
+        change_action_tool_buttons(action)
+
+    def lock_guides(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.LOCK_GUIDES = parameter.get_boolean()
         change_action_tool_buttons(action)
 
 class Application(Gtk.Application):
@@ -287,7 +298,8 @@ class Application(Gtk.Application):
             if recent_info.get_mime_type() != "application/xml": continue
             filepath = recent_info.get_uri()
             recent_files.append(filepath)
-        self.menubar = MenuBar(recent_files, Settings.menus.TopMenuItem)
+        self.menubar = MenuBar(recent_files, Settings.menus.TopMenuItem,
+                               Settings.PREDRAWN_SHAPE_FOLDER)
 
         for menu_item in self.menubar.menu_items.values():
             if menu_item.is_window_action(): continue

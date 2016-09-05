@@ -15,5 +15,6 @@ setup(
                 'MotionPicture.time_lines',
                 'MotionPicture.shapes'],
     package_data = {'MotionPicture': [
-                'settings/main_style.css', 'settings/menu_accel_icon.txt', 'icons/*.*']}
+                'settings/main_style.css', 'settings/menu_accel_icon.txt',
+                'icons/*.xml', 'icons/predrawns/*.xml']}
 )
