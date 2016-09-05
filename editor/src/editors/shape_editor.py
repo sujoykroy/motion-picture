@@ -249,7 +249,7 @@ class ShapeEditor(object):
         for edit_box in self.inner_edit_boxes:
             edit_box.reposition(inner_rect)
 
-        if isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>5:
+        if False and isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>5:
             return
         for line in self.curve_point_lines:
             ctx.save()
@@ -325,7 +325,8 @@ class ShapeEditor(object):
 
                 elif edit_box in self.moveable_point_edit_boxes:
                     percent_point = Point(rel_dpoint.x/self.shape.width, rel_dpoint.y/self.shape.height)
-                    if isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>6:
+                    if False and \
+                        isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>6:
                         span = 5
                         for i in range(-span, span, 1):
                             frac = (span-abs(i))*1./span

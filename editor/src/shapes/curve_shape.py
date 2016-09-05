@@ -245,7 +245,7 @@ class CurveShape(Shape):
         point.scale(1./self.width, 1./self.height)
         for curve_index in range(len(self.curves)):
             curve = self.curves[curve_index]
-            found = curve.get_closest_control_point(point)
+            found = curve.get_closest_control_point(point, self.width, self.height)
             if found:
                 bezier_point_index, t = found
                 return (curve_index, bezier_point_index, t)
@@ -365,19 +365,20 @@ class CurveShape(Shape):
         return curve_shape
 
     def flip(self, direction):
-        Shape.flip(self, direction)
+        percent_anchor_at = self.anchor_at.copy()
+        percent_anchor_at.scale(1./self.width, 1./self.height)
         for curve in self.curves:
             if direction == "x":
-                curve.origin.x = 1.-curve.origin.x
+                curve.origin.x = 2*percent_anchor_at.x-curve.origin.x
             elif direction == "y":
-                curve.origin.y = 1.-curve.origin.y
+                curve.origin.y = 2*percent_anchor_at.y-curve.origin.y
             for bezier_point in curve.bezier_points:
                 if direction == "x":
-                    bezier_point.control_1.x = 1.-bezier_point.control_1.x
-                    bezier_point.control_2.x = 1.-bezier_point.control_2.x
-                    bezier_point.dest.x = 1.-bezier_point.dest.x
+                    bezier_point.control_1.x = 2*percent_anchor_at.x-bezier_point.control_1.x
+                    bezier_point.control_2.x = 2*percent_anchor_at.x-bezier_point.control_2.x
+                    bezier_point.dest.x = 2*percent_anchor_at.x-bezier_point.dest.x
                 elif direction == "y":
-                    bezier_point.control_1.y = 1.-bezier_point.control_1.y
-                    bezier_point.control_2.y = 1.-bezier_point.control_2.y
-                    bezier_point.dest.y = 1.-bezier_point.dest.y
+                    bezier_point.control_1.y = 2*percent_anchor_at.y-bezier_point.control_1.y
+                    bezier_point.control_2.y = 2*percent_anchor_at.y-bezier_point.control_2.y
+                    bezier_point.dest.y = 2*percent_anchor_at.y-bezier_point.dest.y
         self.fit_size_to_include_all()

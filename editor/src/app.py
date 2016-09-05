@@ -230,6 +230,10 @@ class ApplicationWindow(MasterEditor):
         EditingChoice.LOCK_GUIDES = parameter.get_boolean()
         change_action_tool_buttons(action)
 
+    def change_shape_depth(self, action, parameter):
+        if self.shape_manager.change_shape_depth(int(parameter.get_string())):
+            self.redraw()
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,

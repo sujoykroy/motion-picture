@@ -557,3 +557,10 @@ class ShapeManager(object):
             self.shape_editor = ShapeEditor(new_shape)
             return True
         return False
+
+    def change_shape_depth(self, depth_offset):
+        if not self.shape_editor: return False
+        if isinstance(self.shape_editor.shape, MultiSelectionShape): return False
+        self.multi_shape.shapes.change_index(self.shape_editor.shape.get_name(), depth_offset)
+        self.shapes.change_index(self.shape_editor.shape.get_name(), depth_offset)
+        return True

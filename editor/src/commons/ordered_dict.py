@@ -45,3 +45,10 @@ class OrderedDict(object):
 
     def get_last_item(self):
         return self.items[self.keys[-1]]
+
+    def change_index(self, key, index_offset):
+        index = self.keys.index(key)
+        if index+index_offset<0 or index+index_offset>=len(self.keys): return False
+        self.keys[index], self.keys[index+index_offset] = \
+                    self.keys[index+index_offset], self.keys[index]
+        return True

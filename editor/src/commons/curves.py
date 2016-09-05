@@ -102,7 +102,7 @@ class Curve(object):
             mod_roots.append(root)
         return mod_roots
 
-    def get_closest_control_point(self, point):
+    def get_closest_control_point(self, point, width, height):
         last_dest = self.origin
         for bezier_point_index in range(len(self.bezier_points)):
             bezier_point = self.bezier_points[bezier_point_index]
@@ -118,6 +118,13 @@ class Curve(object):
             y_coeff = [(-p0.y+3*p1.y-3*p2.y+p3.y), (3*p0.y-6*p1.y+3*p2.y),
                        (-3*p0.y+3*p1.y), p0.y-point.y]
 
+            for i in range(len(x_coeff)):
+                x_coeff[i] *= width
+                if abs(x_coeff[i])<1: x_coeff[i] = 0
+            for i in range(len(y_coeff)):
+                y_coeff[i] *= height
+                if abs(y_coeff[i])<1: y_coeff[i] = 0
+
             x_roots = numpy.roots(x_coeff)
             y_roots = numpy.roots(y_coeff)
 
@@ -126,9 +133,15 @@ class Curve(object):
 
             x_roots = mod_x_roots
             y_roots = mod_y_roots
+
+            if not x_roots and mod_y_roots and x_coeff[0]==0 and abs(x_coeff[1])<5:#horizontal
+                return bezier_point_index, mod_y_roots[0]
+            if not y_roots and mod_x_roots and y_coeff[0]==0 and abs(y_coeff[1])<5:#vertical
+                return bezier_point_index, mod_x_roots[0]
+
             for x_root in x_roots:
                 for y_root in y_roots:
-                    if abs(x_root-y_root)/x_root<.1:
+                    if abs(x_root-y_root)<5:
                         return bezier_point_index, x_root
                         break
         return None

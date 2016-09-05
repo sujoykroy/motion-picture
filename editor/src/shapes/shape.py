@@ -413,10 +413,7 @@ class Shape(object):
                point.y>=-margin and point.y<=self.height+margin
 
     def flip(self, direction):
-        if direction == "x":
-            self.anchor_at.x = self.width - self.anchor_at.x
-        elif direction == "y":
-            self.anchor_at.y = self.height - self.anchor_at.y
+        pass
 
     NAME_SEED = 0
     @staticmethod

@@ -26,6 +26,10 @@ m.add(path="Edit/Shape/Flip/Flip X",
       action_name="win.flip_shape", action_param="x")
 m.add(path="Edit/Shape/Flip/Flip Y",
       action_name="win.flip_shape", action_param="y")
+m.add(path="Edit/<Layer>/Layer Up",
+      action_name="win.change_shape_depth", action_param="1")
+m.add(path="Edit/<Layer>/Layer Down",
+      action_name="win.change_shape_depth", action_param="-1")
 
 m.add(path="Edit/Points/Join",
       action_name="win.join_points_of_shape")
@@ -67,7 +71,7 @@ m.add(path="Shapes/Convert To/Polygon",
 m.add(path="Shapes/Convert To/Curve",
       action_name="win.convert_shape_to", action_param="curve")
 
-m.add(path="Edit/Preferences/Lock Movement",
+m.add(path="Edit/Preferences/Lock Movement", icon="lock_movement",
       action_name="win.lock_shape_movement", action_state=False)
 m.add(path="Edit/Preferences/Lock Guides",
       action_name="win.lock_guides", action_state=False)
@@ -75,6 +79,6 @@ m.add(path="Edit/Preferences/Lock Guides",
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Points"],
     ["Shapes/<New>", "Shapes/Align", "Shapes/Group", "Shapes/Convert To"],
-    ["Edit/Shape/Flip"],
+    ["Edit/Shape/Flip", "Edit/<Layer>"],
     ["Edit/Preferences", "Shapes/Pre-Drawn"]
 ]

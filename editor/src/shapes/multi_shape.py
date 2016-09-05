@@ -348,8 +348,8 @@ class MultiShape(Shape):
             shape.flip(direction)
             abs_anchor_at = shape.get_abs_anchor_at()
             if direction == "x":
-                shape.move_to(self.width-abs_anchor_at.x, abs_anchor_at.y)
+                abs_anchor_at.x = 2*self.anchor_at.x - abs_anchor_at.x
             elif direction == "y":
-                shape.move_to(abs_anchor_at.x, self.height-abs_anchor_at.y)
-        Shape.flip(self, direction)
+                abs_anchor_at.y = 2*self.anchor_at.y - abs_anchor_at.y
+            shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.readjust_sizes()

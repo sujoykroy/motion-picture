@@ -64,3 +64,10 @@ class ShapeList(object):
     def get_item_by_name(self, name):
         if name not in self.names: return None
         return self.items[name]
+
+    def change_index(self, name, index_offset):
+        index = self.names.index(name)
+        if index+index_offset<0 or index+index_offset>=len(self.names): return False
+        self.names[index], self.names[index+index_offset] = \
+                    self.names[index+index_offset], self.names[index]
+        return True
