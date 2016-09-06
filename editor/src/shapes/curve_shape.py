@@ -382,3 +382,23 @@ class CurveShape(Shape):
                     bezier_point.control_2.y = 2*percent_anchor_at.y-bezier_point.control_2.y
                     bezier_point.dest.y = 2*percent_anchor_at.y-bezier_point.dest.y
         self.fit_size_to_include_all()
+
+    def _transform_point_from_shape(self, shape, point):
+        point.scale(shape.width, shape.height)
+        point = shape.reverse_transform_point(point)
+        point = self.transform_point(point)
+        point.scale(1./self.width, 1./self.height)
+        return point
+
+    def include_inside(self, shape):
+        if not isinstance(shape, CurveShape): return False
+        for curve in shape.curves:
+            curve = curve.copy()
+            curve.origin = self._transform_point_from_shape(shape, curve.origin)
+            for i in range(len(curve.bezier_points)):
+                bp = curve.bezier_points[i]
+                bp.control_1 = self._transform_point_from_shape(shape, bp.control_1)
+                bp.control_2 = self._transform_point_from_shape(shape, bp.control_2)
+                bp.dest = self._transform_point_from_shape(shape, bp.dest)
+            self.curves.append(curve)
+        return True

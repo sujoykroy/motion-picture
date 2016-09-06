@@ -370,6 +370,14 @@ class ShapeManager(object):
                     self.guides.append(self.selected_guide)
 
     def move_active_item(self, doc_start_point, doc_end_point, shape_start_point, shape_end_point):
+        if EditingChoice.LOCK_XY_MOVEMENT:
+            if EditingChoice.LOCK_XY_MOVEMENT == "y":
+                doc_end_point.x = doc_start_point.x
+                shape_start_point.x = shape_end_point.x
+            elif EditingChoice.LOCK_XY_MOVEMENT == "x":
+                doc_end_point.y = doc_start_point.y
+                shape_start_point.y = shape_end_point.y
+
         if self.document_area_box_selected:
             dpoint = doc_end_point.diff(doc_start_point)
             abs_anchor_at = self.init_document_area_box.get_abs_anchor_at()
@@ -559,8 +567,30 @@ class ShapeManager(object):
         return False
 
     def change_shape_depth(self, depth_offset):
-        if not self.shape_editor: return False
         if isinstance(self.shape_editor.shape, MultiSelectionShape): return False
         self.multi_shape.shapes.change_index(self.shape_editor.shape.get_name(), depth_offset)
         self.shapes.change_index(self.shape_editor.shape.get_name(), depth_offset)
         return True
+
+    def merge_shapes(self):
+        if not self.shape_editor: return False
+        if not isinstance(self.shape_editor.shape, MultiSelectionShape): return False
+        mega_shape = None
+        merged_shapes = []
+        for shape in self.shape_editor.shape.shapes:
+            if not isinstance(shape, PolygonShape) and not isinstance(shape, CurveShape): continue
+            if mega_shape is None:
+                mega_shape = shape
+                continue
+            elif not isinstance(shape, type(mega_shape)):
+                continue
+            if mega_shape.include_inside(shape):
+                merged_shapes.append(shape)
+        if merged_shapes:
+            self.delete_shape_editor()
+            for shape in merged_shapes:
+                self.remove_shape(shape)
+            mega_shape.fit_size_to_include_all()
+            self.shape_editor = ShapeEditor(mega_shape)
+            return True
+        return False

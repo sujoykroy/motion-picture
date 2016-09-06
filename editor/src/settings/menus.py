@@ -65,14 +65,20 @@ m.add(path="Shapes/Group/Create",
       action_name="win.create_shape_group")
 m.add(path="Shapes/Group/Break",
       action_name="win.break_shape_group")
+m.add(path="Shapes/Group/Merge",
+      action_name="win.merge_shapes")
 
 m.add(path="Shapes/Convert To/Polygon",
       action_name="win.convert_shape_to", action_param="polygon")
 m.add(path="Shapes/Convert To/Curve",
       action_name="win.convert_shape_to", action_param="curve")
 
-m.add(path="Edit/Preferences/Lock Movement", icon="lock_movement",
+m.add(path="Edit/Preferences/Lock Movement/Shape", icon="lock_movement",
       action_name="win.lock_shape_movement", action_state=False)
+m.add(path="Edit/Preferences/Lock Movement/X", icon=None,
+      action_name="win.lock_xy_movement", action_state="x")
+m.add(path="Edit/Preferences/Lock Movement/Y", icon=None,
+      action_name="win.lock_xy_movement", action_state="y")
 m.add(path="Edit/Preferences/Lock Guides",
       action_name="win.lock_guides", action_state=False)
 
@@ -80,5 +86,5 @@ m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Points"],
     ["Shapes/<New>", "Shapes/Align", "Shapes/Group", "Shapes/Convert To"],
     ["Edit/Shape/Flip", "Edit/<Layer>"],
-    ["Edit/Preferences", "Shapes/Pre-Drawn"]
+    ["Edit/Preferences/Lock Movement", "Shapes/Pre-Drawn"]
 ]

@@ -335,3 +335,17 @@ class PolygonShape(Shape):
                 elif direction == "y":
                     point.y = 1.-point.y
         self.fit_size_to_include_all()
+
+    def include_inside(self, shape):
+        if not isinstance(shape, PolygonShape): return False
+        for polygon in shape.polygons:
+            polygon = polygon.copy()
+            for i in range(len(polygon.points)):
+                point = polygon.points[i]
+                point.scale(shape.width, shape.height)
+                point = shape.reverse_transform_point(point)
+                point = self.transform_point(point)
+                point.scale(1./self.width, 1./self.height)
+                polygon.points[i] = point
+            self.polygons.append(polygon)
+        return True

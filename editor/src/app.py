@@ -112,8 +112,11 @@ class ApplicationWindow(MasterEditor):
             else:
                 if menu_item.is_boolean_stateful():
                     action.change_state(GLib.Variant.new_boolean(widget.get_active()))
-                elif widget.get_active():
-                    action.change_state(widget.action_variant_state_value)
+                else:
+                    if widget.get_active():
+                        action.change_state(widget.action_variant_state_value)
+                    else:
+                        action.change_state(GLib.Variant.new_string(""))
 
     def save_document(self, action, parameter):
         if not self.doc.filename:
@@ -181,6 +184,10 @@ class ApplicationWindow(MasterEditor):
         self.shape_manager.combine_shapes()
         self.redraw()
 
+    def merge_shapes(self, action, parameter):
+        if self.shape_manager.merge_shapes():
+            self.redraw()
+
     def align_shapes(self, action, parameter):
         direction = parameter.get_string()
         if direction == "x":
@@ -222,7 +229,12 @@ class ApplicationWindow(MasterEditor):
 
     def lock_shape_movement(self, action, parameter):
         action.set_state(parameter)
-        EditingChoice.LOCK_MOVEMENT = parameter.get_boolean()
+        EditingChoice.LOCK_SHAPE_MOVEMENT = parameter.get_boolean()
+        change_action_tool_buttons(action)
+
+    def lock_xy_movement(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.LOCK_XY_MOVEMENT = parameter.get_string()
         change_action_tool_buttons(action)
 
     def lock_guides(self, action, parameter):
