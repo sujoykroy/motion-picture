@@ -620,12 +620,15 @@ class ShapeManager(object):
     def convert_shape_to(self, shape_type):
         if not self.shape_editor: return False
         new_shape = None
+        old_shape = self.shape_editor.shape
         if shape_type == "polygon":
-            if isinstance(self.shape_editor.shape, RectangleShape):
-                new_shape = PolygonShape.create_from_rectangle_shape(self.shape_editor.shape)
+            if isinstance(old_shape, RectangleShape) and old_shape.corner_radius == 0:
+                new_shape = PolygonShape.create_from_rectangle_shape(old_shape)
         elif shape_type == "curve":
-            if isinstance(self.shape_editor.shape, OvalShape):
-                new_shape = CurveShape.create_from_oval_shape(self.shape_editor.shape)
+            if isinstance(old_shape, RectangleShape) and old_shape.corner_radius > 0:
+                new_shape = CurveShape.create_from_rectangle_shape(old_shape)
+            elif isinstance(old_shape, OvalShape):
+                new_shape = CurveShape.create_from_oval_shape(old_shape)
         if new_shape:
             self.add_shape(new_shape)
             self.shape_editor.shape.copy_into(new_shape)

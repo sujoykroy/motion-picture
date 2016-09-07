@@ -1,6 +1,6 @@
 from colors import Color, GradientColor
 from rect import Rect
-import pango, pangocairo, cairo
+import pango, pangocairo, cairo, math
 
 def draw_stroke(ctx, line_width, color=Color(0,0,0,1)):
     ctx.save()
@@ -36,15 +36,17 @@ def draw_rounded_rectangle(ctx, x, y, w, h, r=20):
     if r == 0:
         ctx.rectangle(x, y, w, h)
     else:
+        ctx.new_path()
         ctx.move_to(x+r,y)                      # Move to A
         ctx.line_to(x+w-r,y)                    # Straight line to B
-        ctx.curve_to(x+w,y,x+w,y,x+w,y+r)       # Curve to C, Control points are both at Q
+        ctx.arc(x+w-r,y+r, r, 3*math.pi/2, 4*math.pi/2)       # Curve to C, Control points are both at Q
         ctx.line_to(x+w,y+h-r)                  # Move to D
-        ctx.curve_to(x+w,y+h,x+w,y+h,x+w-r,y+h) # Curve to E
+        ctx.arc(x+w-r,y+h-r, r, 0*math.pi/2, 1*math.pi/2) # Curve to E
         ctx.line_to(x+r,y+h)                    # Line to F
-        ctx.curve_to(x,y+h,x,y+h,x,y+h-r)       # Curve to G
+        ctx.arc(x+r,y+h-r, r, 1*math.pi/2, 2*math.pi/2)# Curve to G
         ctx.line_to(x,y+r)                      # Line to H
-        ctx.curve_to(x,y,x,y,x+r,y)             # Curve to A
+        ctx.arc(x+r,y+r, r, 2*math.pi/2, 3*math.pi/2)# Curve to A
+        ctx.close_path()
 
 def draw_straight_line(ctx, x1, y1, x2, y2):
     ctx.new_path()

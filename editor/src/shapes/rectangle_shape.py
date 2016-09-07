@@ -35,7 +35,7 @@ class RectangleShape(Shape):
         return newob
 
     def draw_path(self, ctx, for_fill=False):
-        Shape.rounded_rectangle(ctx, 0, 0, self.width, self.height, self.corner_radius)
+        draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, self.corner_radius)
 
     def get_outline(self, padding):
         return Rect(-padding, -padding, self.width+2*padding, self.height+2*padding, self.corner_radius+padding)

@@ -348,8 +348,52 @@ class CurveShape(Shape):
             curve.closed = False
         return True
 
-
     @staticmethod
+    def create_from_rectangle_shape(rectangle_shape):
+        if rectangle_shape.corner_radius==0: return None
+        curve_shape = CurveShape(Point(0,0), None, None, None, None, None)
+        crsx = rectangle_shape.corner_radius/rectangle_shape.width
+        crsy = rectangle_shape.corner_radius/rectangle_shape.height
+        print crsx, crsy
+        k = .5522847498*.5#magic number
+        #crsx = crsy = .5
+        curved_points = [
+            BezierPoint(control_1=Point(.5+k, 0), control_2=Point(1., .5-k), dest=Point(1., .5)),
+            BezierPoint(control_1=Point(1., .5+k), control_2=Point(.5+k, 1.), dest=Point(.5, 1.)),
+            BezierPoint(control_1=Point(.5-k, 1.), control_2=Point(0, .5+k), dest=Point(0., .5)),
+            BezierPoint(control_1=Point(0., .5-k), control_2=Point(0.5-k, 0.), dest=Point(.5, 0.))
+        ]
+        curved_points[0].scale(2*crsx, 2*crsy).translate(1.-2*crsx, 0)
+        curved_points[1].scale(2*crsx, 2*crsy).translate(1.-2*crsx, 1-2*crsy)
+        curved_points[2].scale(2*crsx, 2*crsy).translate(0, 1-2*crsy)
+        curved_points[3].scale(2*crsx, 2*crsy).translate(0, 0)
+
+        p1 = Point(1., 1-crsy)
+        p2 = Point(crsx, 1.)
+        p3 = Point(0., crsy)
+        p4 = Point(1.-crsx, 0)
+
+        final_points= [
+            curved_points[0],
+            BezierPoint(control_1=p1.copy(), control_2=p1.copy(), dest=p1.copy()),
+            curved_points[1],
+            BezierPoint(control_1=p2.copy(), control_2=p2.copy(), dest=p2.copy()),
+            curved_points[2],
+            BezierPoint(control_1=p3.copy(), control_2=p3.copy(), dest=p3.copy()),
+            curved_points[3],
+            BezierPoint(control_1=p4.copy(), control_2=p4.copy(), dest=p4.copy()),
+        ]
+        final_points[1].align_straigh_with(final_points[0].dest)
+        final_points[3].align_straigh_with(final_points[2].dest)
+        final_points[5].align_straigh_with(final_points[4].dest)
+        final_points[7].align_straigh_with(final_points[6].dest)
+        curve_shape.curves.append(Curve(
+                origin=Point(1.-crsx, 0),
+                bezier_points=final_points, closed=True))
+        rectangle_shape.copy_into(curve_shape, all_fields=True, copy_name=True)
+        curve_shape.fit_size_to_include_all()
+        return curve_shape
+
     def create_from_oval_shape(oval_shape):
         curve_shape = CurveShape(Point(0,0), None, None, None, None, None)
         k = .5522847498*.5#magic number

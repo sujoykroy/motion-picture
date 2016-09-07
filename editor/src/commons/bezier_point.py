@@ -48,8 +48,17 @@ class BezierPoint(object):
         self.control_1.translate(dx ,dy)
         self.control_2.translate(dx ,dy)
         self.dest.translate(dx ,dy)
+        return self
 
     def scale(self, sx, sy):
         self.control_1.scale(sx ,sy)
         self.control_2.scale(sx ,sy)
         self.dest.scale(sx ,sy)
+        return self
+
+    def align_straigh_with(self, point):
+        f = .25
+        self.control_1.x = point.x + (self.dest.x-point.x)*f
+        self.control_1.y = point.y + (self.dest.y-point.y)*f
+        self.control_2.x = point.x + (self.dest.x-point.x)*(1-f)
+        self.control_2.y = point.y + (self.dest.y-point.y)*(1-f)
