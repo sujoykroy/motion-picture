@@ -33,6 +33,12 @@ class Polygon(object):
             newob.add_point(point.copy())
         return newob
 
+    def reverse_copy(self):
+        newob = Polygon(closed=self.closed)
+        for point in reversed(self.points):
+            newob.add_point(point.copy())
+        return newob
+
     def add_point(self, point):
         self.points.append(point)
 

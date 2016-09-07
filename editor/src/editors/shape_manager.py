@@ -31,6 +31,10 @@ class ShapeManager(object):
                 border_width = 1,
                 fill_color= "ffffff",
                 width = doc.width, height = doc.height, corner_radius=2)
+        self.selection_box = RectangleShape(Point(0, 0), border_color="00000066", border_width=2,
+                                            fill_color=None, width=1., height=1., corner_radius=0.)
+        self.selection_box.parent_shape = self.multi_shape
+        self.selection_box.visible = False
         self.document_area_box_selected = False
         self.init_document_area_box = None
         self.scrollable_area = ScrollableArea()
@@ -69,7 +73,6 @@ class ShapeManager(object):
         if self.shape_editor is None: return False
         if isinstance(self.shape_editor.shape, MultiSelectionShape): return False
         return isinstance(self.shape_editor.shape, MultiShape)
-
 
     def is_flippable_shape_selected(self):
         if self.shape_editor is None: return False
@@ -146,13 +149,17 @@ class ShapeManager(object):
             #self.multi_shape.draw_border(ctx)
             draw_stroke(ctx, 1, "33333333")
             ctx.restore()
-        #ctx.restore()
 
-        #ctx.save()
-        #self.document_area_box.pre_draw(ctx)
         self.document_area_box.draw_path(ctx)
         #self.document_area_box.draw_anchor(ctx)
         self.document_area_box.draw_border(ctx)
+        if self.selection_box.visible:
+            ctx.save()
+            #self.multi_shape.pre_draw(ctx)
+            self.selection_box.pre_draw(ctx)
+            self.selection_box.draw_path(ctx)
+            ctx.restore()
+            self.selection_box.draw_border(ctx)
         ctx.restore()
 
         for guide in self.guides:
@@ -160,6 +167,7 @@ class ShapeManager(object):
             guide.draw(ctx, self.out_width, self.out_height)
             ctx.restore()
         #ctx.restore()
+
 
     def zoom(self, scale, point, out_width, out_height):
         scale = 1. + scale*.1
@@ -306,12 +314,19 @@ class ShapeManager(object):
         self.document_area_box_selected = True
         self.init_document_area_box = self.document_area_box.copy()
 
-    def select_item_at(self, doc_point, shape_point, multi_select=False):
+    def select_item_at(self, doc_point, shape_point, multi_select=False, box_select=False):
         if self.document_area_box_selected: return
 
         point = shape_point
         if self.shape_creator is not None:
             self.shape_creator.begin_movement(point)
+            return
+
+        if box_select:
+            self.selection_box.visible = True
+            self.selection_box.set_width(1.)
+            self.selection_box.set_height(1.)
+            self.selection_box.move_to(shape_point.x, shape_point.y)
             return
 
         if not EditingChoice.LOCK_GUIDES:
@@ -370,6 +385,21 @@ class ShapeManager(object):
                     self.guides.append(self.selected_guide)
 
     def move_active_item(self, doc_start_point, doc_end_point, shape_start_point, shape_end_point):
+        if self.selection_box.visible:
+            drel_point = shape_end_point.diff(shape_start_point)
+            if drel_point.x<0:
+                move_x = shape_end_point.x
+            else:
+                move_x = shape_start_point.x
+            if drel_point.y<0:
+                move_y = shape_end_point.y
+            else:
+                move_y = shape_start_point.y
+            self.selection_box.set_width(abs(drel_point.x))
+            self.selection_box.set_height(abs(drel_point.y))
+            self.selection_box.move_to(move_x, move_y)
+            return
+
         if EditingChoice.LOCK_XY_MOVEMENT:
             if EditingChoice.LOCK_XY_MOVEMENT == "y":
                 doc_end_point.x = doc_start_point.x
@@ -424,12 +454,35 @@ class ShapeManager(object):
                 self.guides.remove(self.selected_guide)
             self.selected_guide = None
 
-        elif self.shape_editor is not None:
-            self.multi_shape.readjust_sizes()
-            self.shape_editor.end_movement()
-            if self.current_task:
-                self.current_task.save(self.doc, self.shape_editor.shape)
-                self.current_task = None
+        else:
+            if self.selection_box.visible:
+                selection_rect = self.selection_box.get_abs_outline(0)
+                self.selection_box.visible = False
+
+                if self.shape_editor is None or \
+                    not self.shape_editor.select_items_inside_rect(selection_rect):
+                    selected_shapes = []
+                    for shape in self.shapes:
+                        if isinstance(shape, MultiSelectionShape): continue
+                        if shape.is_inside_rect(selection_rect):
+                            selected_shapes.append(shape)
+                    if selected_shapes:
+                        self.delete_shape_editor()
+                        if len(selected_shapes)>1:
+                            multi_selection_shape = MultiSelectionShape()
+                            for shape in selected_shapes:
+                                multi_selection_shape.add_shape(shape)
+                            selected_shape = multi_selection_shape
+                            self.add_shape(multi_selection_shape)
+                        else:
+                            selected_shape = selected_shapes[0]
+                        self.shape_editor = ShapeEditor(selected_shape)
+            elif self.shape_editor is not None:
+                self.multi_shape.readjust_sizes()
+                self.shape_editor.end_movement()
+                if self.current_task:
+                    self.current_task.save(self.doc, self.shape_editor.shape)
+                    self.current_task = None
 
     def complete_shape_creation(self):
         if self.shape_creator is not None:
@@ -479,7 +532,7 @@ class ShapeManager(object):
         if not self.selected_shape_supports_point_insert(): return False
         shape = self.shape_editor.shape
         point = shape.transform_point(point)
-        task = ShapeStateTask(self.doc, shape)
+        task = ShapeStateTask(self.doc, self.shape_editor.shape)
         if shape.insert_point_at(point):
             task.save(self.doc, shape)
             self.shape_editor = ShapeEditor(shape)
@@ -488,32 +541,48 @@ class ShapeManager(object):
 
     def insert_break(self):
         if not self.shape_editor: return False
+        task = ShapeStateTask(self.doc, self.shape_editor.shape)
         if self.shape_editor.insert_break():
+            task.save(self.doc, self.shape_editor.shape)
             self.shape_editor = ShapeEditor(self.shape_editor.shape)
             return True
+        else:
+            task.remove(self.doc)
         return False
 
     def join_points(self):
         if not self.shape_editor: return False
+        task = ShapeStateTask(self.doc, self.shape_editor.shape)
         if self.shape_editor.join_points():
+            task.save(self.doc, self.shape_editor.shape)
             self.shape_editor = ShapeEditor(self.shape_editor.shape)
             return True
+        else:
+            task.remove(self.doc)
         return False
 
     def delete_point(self):
         if not self.shape_editor: return False
+        task = ShapeStateTask(self.doc, self.shape_editor.shape)
         if self.shape_editor.delete_point():
+            task.save(self.doc, self.shape_editor.shape)
             self.shape_editor = ShapeEditor(self.shape_editor.shape)
             self.multi_shape.readjust_sizes()
             return True
+        else:
+            task.remove(self.doc)
         return False
 
     def extend_point(self):
         if not self.shape_editor: return False
+        task = ShapeStateTask(self.doc, self.shape_editor.shape)
         if self.shape_editor.extend_point():
+            task.save(self.doc, self.shape_editor.shape)
             self.shape_editor = ShapeEditor(self.shape_editor.shape)
             self.multi_shape.readjust_sizes()
             return True
+        else:
+            task.remove(self.doc)
         return False
 
     def duplicate_shape(self):

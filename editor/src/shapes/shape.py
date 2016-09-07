@@ -207,7 +207,10 @@ class Shape(object):
         return self.border_color
 
     def set_fill_color(self, color):
-        self.fill_color.copy_from(color)
+        if color is None:
+            self.fill_color = None
+        else:
+            self.fill_color.copy_from(color)
 
     def get_fill_color(self):
         return self.fill_color
@@ -411,6 +414,19 @@ class Shape(object):
         point = self.transform_point(point)
         return point.x>=-margin and point.x<=self.width+margin and \
                point.y>=-margin and point.y<=self.height+margin
+
+    def is_inside_rect(self, rect):
+        abso = self.get_abs_outline(0)
+        points = []
+        points.append(Point(abso.left, abso.top))
+        points.append(Point(abso.left+abso.width, abso.top))
+        points.append(Point(abso.left+abso.width, abso.top+abso.height))
+        points.append(Point(abso.left, abso.top+abso.height))
+        for point in points:
+            if not (rect.left<=point.x and point.x<=rect.left+rect.width and \
+                    rect.top<=point.y and point.y<=rect.top+rect.height):
+                return False
+        return True
 
     def flip(self, direction):
         pass

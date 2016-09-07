@@ -302,6 +302,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         if event.button == 1:#Left mouse
             if event.type == Gdk.EventType._2BUTTON_PRESS:#double button click
+                double_click_handled = True
                 if self.shape_manager.has_shape_creator():
                     self.shape_manager.complete_shape_creation()
                 elif self.shape_manager.has_designable_multi_shape_selected():
@@ -316,7 +317,12 @@ class MasterEditor(Gtk.ApplicationWindow):
                         multi_shape = self.multi_shape_stack[-1]
                         del self.multi_shape_stack[-1]
                         self.load_multi_shape(multi_shape)
-                return
+                    else:
+                        double_click_handled = False
+                else:
+                    double_click_handled = False
+                if double_click_handled:
+                    return
 
             doc_point, shape_point = self.get_doc_and_multi_shape_point(self.mouse_point)
             if self.state_mode == MODE_NEW_SHAPE_CREATE and self.shape_manager.shape_creator is None:
@@ -325,7 +331,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                     self.state_mode = None
             else:
                 self.shape_manager.select_item_at(doc_point, shape_point,
-                                    multi_select=self.keyboard_object.shift_key_pressed)
+                        multi_select=self.keyboard_object.shift_key_pressed,
+                        box_select=self.keyboard_object.control_key_pressed)
                 if self.shape_manager.get_selected_edit_box() is not None:
                     return
 

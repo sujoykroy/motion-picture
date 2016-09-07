@@ -259,7 +259,7 @@ class PolygonShape(Shape):
 
     def join_points(self, polygon_index_1, is_start_1, polygon_index_2, is_start_2):
         if polygon_index_1>=len(self.polygons): return False
-        if polygon_index_1>=len(self.polygons): return False
+        if polygon_index_2>=len(self.polygons): return False
 
         polygon_1 = self.polygons[polygon_index_1]
         polygon_2 = self.polygons[polygon_index_2]
@@ -278,17 +278,19 @@ class PolygonShape(Shape):
 
         dist_lapse = .01
         if is_start_1 == is_start_2:#reverse polygon_2
-            rev_polygon = Polygon(points=list(reversed(polygon_2.points)))
+            rev_polygon = polygon_2.reverse_copy()
             for pi in range(len(rev_polygon.points)):
-                polygon_2.points[pi].copy_from(rev_polygon.points[pi])
+               polygon_2.points[pi].copy_from(rev_polygon.points[pi])
 
         if is_start_1:#swap polygons
             polygon_1, polygon_2 = polygon_2, polygon_1
             polygon_index_1, polygon_index_2 = polygon_index_2, polygon_index_1
 
         #polygon_2 get attached at the end of polygon_1
-        polygon_1.points[-1].x = (polygon_1.points[-1].x +  polygon_2.points[0].x)*.5
-        polygon_1.points[-1].y = (polygon_1.points[-1].y +  polygon_2.points[0].y)*.5
+        if abs(polygon_1.points[-1].distance(polygon_2.points[0])*self.width)<10:
+            polygon_1.points[-1].x = (polygon_1.points[-1].x +  polygon_2.points[0].x)*.5
+            polygon_1.points[-1].y = (polygon_1.points[-1].y +  polygon_2.points[0].y)*.5
+            del polygon_2.points[0]
 
         polygon_1.points.extend(polygon_2.points)
         del self.polygons[polygon_index_2]
@@ -298,11 +300,12 @@ class PolygonShape(Shape):
         if polygon_index>=len(self.polygons): return False
         polygon = self.polygons[polygon_index]
         if point_index>=len(polygon.points): return False
-        if len(polygon.points)<3: return False
+        if len(self.polygons) == 1 and len(polygon.points)<=2: return False
         del polygon.points[point_index]
         if len(polygon.points)<3:
             polygon.closed=False
-
+        if len(polygon.points)==1:
+            del self.polygons[polygon_index]
         self.fit_size_to_include_all()
         return True
 
@@ -319,6 +322,7 @@ class PolygonShape(Shape):
 
     @staticmethod
     def create_from_rectangle_shape(rect_shape):
+        if rect_shape.corner_radisu>0: return None
         polygon_shape = PolygonShape(Point(0,0), None, None, None, None, None)
         polygon_shape.polygons.append(Polygon(
             points=[Point(0,0), Point(1, 0), Point(1, 1), Point(0, 1)], closed=True))

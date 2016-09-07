@@ -192,6 +192,20 @@ class ShapeEditor(object):
                 return edit_box
         return None
 
+    def select_items_inside_rect(self, rect):
+        if not (isinstance(self.shape, CurveShape) or \
+                isinstance(self.shape, PolygonShape)): return False
+        del self.selected_edit_boxes[:]
+        for edit_box in self.moveable_point_edit_boxes:
+            point = edit_box.point.copy()
+            if edit_box.is_percent:
+                point.scale(self.shape.width, self.shape.height)
+            point = self.shape.reverse_transform_point(point)
+            if rect.left<=point.x and point.x<=rect.left+rect.width and \
+               rect.top<=point.y and point.y<=rect.top+rect.height:
+                self.selected_edit_boxes.append(edit_box)
+        return len(self.selected_edit_boxes)>0
+
     def select_item_at(self, point, multi_select):
         if not multi_select and len(self.selected_edit_boxes)>1:
             return
@@ -390,18 +404,41 @@ class ShapeEditor(object):
     def delete_point(self):
         if not (isinstance(self.shape, CurveShape) or \
                 isinstance(self.shape, PolygonShape)): return False
-        if len(self.selected_edit_boxes) != 1: return False
-        if self.selected_edit_boxes[0] not in self.deletable_point_edit_boxes: return False
+        if len(self.selected_edit_boxes) == 0: return False
+
         if isinstance(self.shape, CurveShape):
-            return self.shape.delete_point_at(
-                self.selected_edit_boxes[0].curve_index,
-                self.selected_edit_boxes[0].bezier_point_index
-            )
+            items = dict()
+            for edit_box in self.selected_edit_boxes:
+                if edit_box not in self.deletable_point_edit_boxes:
+                    continue
+                if edit_box.curve_index not in items:
+                    items[edit_box.curve_index] = dict()
+                items[edit_box.curve_index][edit_box.bezier_point_index]=edit_box.bezier_point_index
+            delete_count = 0
+            for curve_index in reversed(sorted(items.keys())):
+                for bezier_point_index in reversed(sorted(items[curve_index].keys())):
+                    if self.shape.delete_point_at(curve_index, bezier_point_index):
+                        delete_count += 1
+            return delete_count>0
+
         elif isinstance(self.shape, PolygonShape):
-            return self.shape.delete_point_at(
-                self.selected_edit_boxes[0].polygon_index,
-                self.selected_edit_boxes[0].point_index
-            )
+            items = dict()
+            for edit_box in self.selected_edit_boxes:
+                if edit_box not in self.deletable_point_edit_boxes:
+                    continue
+                if edit_box.polygon_index not in items:
+                    items[edit_box.polygon_index] = dict()
+                items[edit_box.polygon_index][edit_box.point_index]=edit_box.point_index
+            delete_count = 0
+            polygon_count = len(self.shape.polygons)
+            for polygon_index in reversed(sorted(items.keys())):
+                for point_index in reversed(sorted(items[polygon_index].keys())):
+                    if self.shape.delete_point_at(polygon_index, point_index):
+                        delete_count += 1
+                        if polygon_count != len(self.shape.polygons):
+                            polygon_count = len(self.shape.polygons)
+                            break
+            return delete_count>0
 
     def extend_point(self):
         if not isinstance(self.shape, PolygonShape): return None
