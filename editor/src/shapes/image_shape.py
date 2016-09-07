@@ -14,7 +14,6 @@ class ImageShape(RectangleShape):
 
 
     def set_image_path(self, image_path):
-        print  image_path
         self.image_path = image_path
         self.image_pixbuf = Pixbuf.new_from_file(image_path)
 

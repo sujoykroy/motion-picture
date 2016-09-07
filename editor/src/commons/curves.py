@@ -120,10 +120,10 @@ class Curve(object):
 
             for i in range(len(x_coeff)):
                 x_coeff[i] *= width
-                if abs(x_coeff[i])<1: x_coeff[i] = 0
+                if abs(x_coeff[i])<5: x_coeff[i] = 0
             for i in range(len(y_coeff)):
                 y_coeff[i] *= height
-                if abs(y_coeff[i])<1: y_coeff[i] = 0
+                if abs(y_coeff[i])<5: y_coeff[i] = 0
 
             x_roots = numpy.roots(x_coeff)
             y_roots = numpy.roots(y_coeff)
@@ -134,14 +134,16 @@ class Curve(object):
             x_roots = mod_x_roots
             y_roots = mod_y_roots
 
-            if not x_roots and mod_y_roots and x_coeff[0]==0 and abs(x_coeff[1])<5:#horizontal
+            if not x_roots and mod_y_roots and any((cf==0 for cf in x_coeff)) \
+                           and abs(x_coeff[-1])<5:#horizontal
                 return bezier_point_index, mod_y_roots[0]
-            if not y_roots and mod_x_roots and y_coeff[0]==0 and abs(y_coeff[1])<5:#vertical
+            if not y_roots and mod_x_roots and any((cf==0 for cf in y_coeff)) \
+                           and abs(y_coeff[-1])<5:#vertical
                 return bezier_point_index, mod_x_roots[0]
 
             for x_root in x_roots:
                 for y_root in y_roots:
-                    if abs(x_root-y_root)<5:
+                    if abs((x_root-y_root)/x_root)<.1:
                         return bezier_point_index, x_root
                         break
         return None

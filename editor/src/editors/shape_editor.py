@@ -188,6 +188,8 @@ class ShapeEditor(object):
         point = point.copy()
         point = self.shape.transform_point(point)
         for edit_box in reversed(self.all_edit_box_list):
+            if isinstance(edit_box, ControlEditBox) and EditingChoice.HIDE_CONTROL_POINTS:
+                continue
             if edit_box.is_within(point):
                 return edit_box
         return None
@@ -197,6 +199,8 @@ class ShapeEditor(object):
                 isinstance(self.shape, PolygonShape)): return False
         del self.selected_edit_boxes[:]
         for edit_box in self.moveable_point_edit_boxes:
+            if isinstance(edit_box, ControlEditBox) and EditingChoice.HIDE_CONTROL_POINTS:
+                continue
             point = edit_box.point.copy()
             if edit_box.is_percent:
                 point.scale(self.shape.width, self.shape.height)
@@ -211,8 +215,8 @@ class ShapeEditor(object):
             return
 
         selected_edit_box = self.get_edit_box_at(point)
-        if selected_edit_box is None and len(self.selected_edit_boxes) == 0 and \
-                                         isinstance(self.shape, CurveShape):
+        if selected_edit_box is None and not EditingChoice.HIDE_CONTROL_POINTS and \
+            len(self.selected_edit_boxes) == 0 and isinstance(self.shape, CurveShape):
             point = self.shape.transform_point(point)
             found = self.shape.find_point_location(point)
             if found:
@@ -265,17 +269,21 @@ class ShapeEditor(object):
 
         if False and isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>5:
             return
-        for line in self.curve_point_lines:
-            ctx.save()
-            self.shape.pre_draw(ctx)
-            line.pre_draw(ctx)
-            ctx.scale(self.shape.width, self.shape.height)
-            line.draw_line(ctx)
-            ctx.restore()
-            line.draw_border(ctx)
+
+        if not EditingChoice.HIDE_CONTROL_POINTS:
+            for line in self.curve_point_lines:
+                ctx.save()
+                self.shape.pre_draw(ctx)
+                line.pre_draw(ctx)
+                ctx.scale(self.shape.width, self.shape.height)
+                line.draw_line(ctx)
+                ctx.restore()
+                line.draw_border(ctx)
 
         for edit_box in self.all_edit_box_list:
             draw_frac = 1. if edit_box in self.selected_edit_boxes else .5
+            if isinstance(edit_box, ControlEditBox) and EditingChoice.HIDE_CONTROL_POINTS:
+                continue
 
             ctx.save()
             self.shape.pre_draw(ctx)

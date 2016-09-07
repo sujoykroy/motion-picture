@@ -242,6 +242,12 @@ class ApplicationWindow(MasterEditor):
         EditingChoice.LOCK_GUIDES = parameter.get_boolean()
         change_action_tool_buttons(action)
 
+    def hide_control_points(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.HIDE_CONTROL_POINTS = parameter.get_boolean()
+        change_action_tool_buttons(action)
+        self.redraw()
+
     def change_shape_depth(self, action, parameter):
         if self.shape_manager.change_shape_depth(int(parameter.get_string())):
             self.redraw()

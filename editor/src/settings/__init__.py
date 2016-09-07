@@ -5,3 +5,4 @@ class EditingChoice:
     LOCK_SHAPE_MOVEMENT = False
     LOCK_XY_MOVEMENT = None
     LOCK_GUIDES = False
+    HIDE_CONTROL_POINTS = False

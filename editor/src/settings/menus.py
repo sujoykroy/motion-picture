@@ -81,10 +81,12 @@ m.add(path="Edit/Preferences/Lock Movement/Y", icon=None,
       action_name="win.lock_xy_movement", action_state="y")
 m.add(path="Edit/Preferences/Lock Guides",
       action_name="win.lock_guides", action_state=False)
+m.add(path="Edit/Preferences/Hide Control Points",
+      action_name="win.hide_control_points", action_state=False)
 
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Points"],
     ["Shapes/<New>", "Shapes/Align", "Shapes/Group", "Shapes/Convert To"],
     ["Edit/Shape/Flip", "Edit/<Layer>"],
-    ["Edit/Preferences/Lock Movement", "Shapes/Pre-Drawn"]
+    ["Edit/Preferences/Lock Movement", "Shapes/Pre-Drawn", "Edit/Preferences"]
 ]

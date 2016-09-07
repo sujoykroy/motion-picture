@@ -403,10 +403,10 @@ class ShapeManager(object):
         if EditingChoice.LOCK_XY_MOVEMENT:
             if EditingChoice.LOCK_XY_MOVEMENT == "y":
                 doc_end_point.x = doc_start_point.x
-                shape_start_point.x = shape_end_point.x
+                shape_end_point.x = shape_start_point.x
             elif EditingChoice.LOCK_XY_MOVEMENT == "x":
                 doc_end_point.y = doc_start_point.y
-                shape_start_point.y = shape_end_point.y
+                shape_end_point.y = shape_start_point.y
 
         if self.document_area_box_selected:
             dpoint = doc_end_point.diff(doc_start_point)

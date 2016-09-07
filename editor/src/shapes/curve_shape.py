@@ -354,7 +354,6 @@ class CurveShape(Shape):
         curve_shape = CurveShape(Point(0,0), None, None, None, None, None)
         crsx = rectangle_shape.corner_radius/rectangle_shape.width
         crsy = rectangle_shape.corner_radius/rectangle_shape.height
-        print crsx, crsy
         k = .5522847498*.5#magic number
         #crsx = crsy = .5
         curved_points = [
