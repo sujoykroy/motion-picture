@@ -5,20 +5,20 @@ class CurveShapeCreator(object):
     @classmethod
     def create_blank(cls, point):
         shape = CurveShape(Point(0, 0), Color(0,0,0,1), 1, Color(1,1,1,0), 1, 1)
-        curve = Curve(origin=point.copy())
-        shape.add_curve(curve)
         return cls(shape, -1, -1)
 
     def __init__(self, shape, curve_index, bezier_point_index):
         self.shape = shape
-        self.curve = shape.curves[curve_index]
-        if (-1<bezier_point_index<len(self.curve.bezier_points)) or \
-           (bezier_point_index == -1 and len(self.curve.bezier_points)>0):
-            self.bezier_point = self.curve.bezier_points[bezier_point_index]
-            self.move_dest = True
-        else:
-            self.bezier_point = None
-            self.move_dest = False
+        self.curve = None
+        self.bezier_point = None
+        self.move_dest = False
+
+        if shape.curves:
+            self.curve = shape.curves[curve_index]
+            if (-1<bezier_point_index<len(self.curve.bezier_points)) or \
+               (bezier_point_index == -1 and len(self.curve.bezier_points)>0):
+                self.bezier_point = self.curve.bezier_points[bezier_point_index]
+                self.move_dest = True
 
         self.edit_boxes = []
         ctc = Color(1,1,0,1)
@@ -34,6 +34,8 @@ class CurveShapeCreator(object):
         self.shape.move_to(multi_shape.translation.x, multi_shape.translation.y)
         for edit_box in self.edit_boxes:
             edit_box.parent_shape = multi_shape
+        for edit_line in self.edit_lines:
+            edit_line.parent_shape = multi_shape
         rect = self.shape.get_outline(0)
 
         for edit_box in self.edit_boxes:
@@ -44,35 +46,37 @@ class CurveShapeCreator(object):
         self.do_movement(point, point)
 
     def do_movement (self, start_point, end_point):
-        if self.bezier_point is None: return
-        #rel_end_point = self.shape.transform_point(end_point)
-        rel_end_point = end_point
-        scaled_rel_end_point = rel_end_point.copy()
-        scaled_rel_end_point.scale(self.shape.width, self.shape.height)
+        if self.curve is None:
+            self.curve = Curve(origin=self.shape.transform_point(end_point))
+            self.shape.add_curve(self.curve)
+            return
+        if self.bezier_point is None:
+            return
+        end_point = self.shape.transform_point(end_point)
 
         if self.move_dest:
             control_2_diff_point = self.bezier_point.control_2.diff(self.bezier_point.dest)
-            self.bezier_point.dest.copy_from(scaled_rel_end_point)
+            self.bezier_point.dest.copy_from(end_point)
             self.bezier_point.control_2.assign(
                     self.bezier_point.dest.x+control_2_diff_point.x,
                     self.bezier_point.dest.y+control_2_diff_point.y)
         else:
-            rel2_end_point = scaled_rel_end_point.diff(self.bezier_point.dest)
             self.bezier_point.control_2.assign(
-                self.bezier_point.dest.x-rel2_end_point.x,
-                self.bezier_point.dest.y-rel2_end_point.y)
+                2*self.bezier_point.dest.x-end_point.x,
+                2*self.bezier_point.dest.y-end_point.y
+            )
 
-        self.edit_boxes[0].set_point(self.bezier_point.control_2)
-        self.edit_boxes[1].set_point(scaled_rel_end_point)
-        self.edit_boxes[2].set_point(self.bezier_point.dest)
+        self.edit_boxes[0].set_point(self.shape.reverse_transform_point(self.bezier_point.control_2))
+        self.edit_boxes[1].set_point(self.shape.reverse_transform_point(end_point))
+        self.edit_boxes[2].set_point(self.shape.reverse_transform_point(self.bezier_point.dest))
 
         rect = self.shape.get_outline(0)
 
         for edit_box in self.edit_boxes:
             edit_box.reposition(rect)
 
-        self.edit_lines[0].set_points(self.edit_boxes[0].point, self.edit_boxes[2].point)
-        self.edit_lines[1].set_points(self.edit_boxes[1].point, self.edit_boxes[2].point)
+        self.edit_lines[0].set_points(self.bezier_point.control_2, self.bezier_point.dest)
+        self.edit_lines[1].set_points(end_point, self.bezier_point.dest)
 
     def get_shape(self):
         return self.shape

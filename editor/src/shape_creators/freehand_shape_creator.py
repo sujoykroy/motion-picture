@@ -28,13 +28,10 @@ class FreehandShapeCreator(object):
 
     def do_movement (self, start_point, end_point):
         if not self.can_move: return
-        rel_end_point = end_point
-        scaled_rel_end_point = rel_end_point.copy()
-        scaled_rel_end_point.scale(self.shape.width, self.shape.height)
-
-        if not self.polygon.points or scaled_rel_end_point.distance(self.polygon.points[-1])> 1:
-            self.polygon.add_point(scaled_rel_end_point.copy())
-            self.edit_boxes[0].set_point(scaled_rel_end_point)
+        trans_end_point = self.shape.transform_point(end_point)
+        if not self.polygon.points or trans_end_point.distance(self.polygon.points[-1])> 1:
+            self.polygon.add_point(trans_end_point.copy())
+            self.edit_boxes[0].set_point(end_point)
 
         rect = self.shape.get_outline(0)
         for edit_box in self.edit_boxes:

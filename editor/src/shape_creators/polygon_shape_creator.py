@@ -4,8 +4,7 @@ from ..shapes import PolygonShape, OvalEditBox
 class PolygonShapeCreator(object):
     def __init__(self, point):
         self.shape = PolygonShape(Point(0, 0), Color(0,0,0,1), 1, Color(1,1,1,0), 1, 1)
-        self.polygon = Polygon(points=[point.copy()])
-        self.shape.add_polygon(self.polygon)
+        self.polygon = None
         self.point = None
         self.shape.move_to(point.x, point.y)
 
@@ -26,17 +25,20 @@ class PolygonShapeCreator(object):
         self.do_movement(point, point)
 
     def do_movement (self, start_point, end_point):
-        if self.point is None: return
-        rel_end_point = end_point
-        scaled_rel_end_point = rel_end_point.copy()
-        scaled_rel_end_point.scale(self.shape.width, self.shape.height)
-
-        self.point.copy_from(scaled_rel_end_point)
-        self.edit_boxes[0].set_point(scaled_rel_end_point)
+        if self.polygon is None:
+            self.polygon = Polygon(points=[self.shape.transform_point(end_point)])
+            self.shape.add_polygon(self.polygon)
+            return
+        if self.point is None:
+            return
+        self.edit_boxes[0].set_point(end_point)
 
         rect = self.shape.get_outline(0)
         for edit_box in self.edit_boxes:
             edit_box.reposition(rect)
+
+        end_point = self.shape.transform_point(end_point)
+        self.point.copy_from(end_point)
 
     def get_shape(self):
         return self.shape

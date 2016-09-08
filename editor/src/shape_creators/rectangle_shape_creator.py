@@ -17,7 +17,17 @@ class RectangleShapeCreator(object):
         self.do_movement(point, point)
 
     def do_movement (self, start_point, end_point):
+        self.edit_boxes[0].set_point(start_point)
+        self.edit_boxes[1].set_point(end_point)
+
+        for edit_box in self.edit_boxes:
+            edit_box.reposition(None)
+
+        start_point = self.shape.transform_point(start_point)
+        end_point = self.shape.transform_point(end_point)
+
         diff_point = end_point.diff(start_point)
+
         self.shape.set_width(abs(diff_point.x))
         self.shape.set_height(abs(diff_point.y))
         self.shape.anchor_at.x = abs(diff_point.x)*.5
@@ -33,13 +43,8 @@ class RectangleShapeCreator(object):
         else:
             my = end_point.y+self.shape.anchor_at.y
 
-        self.shape.move_to(mx, my)
-
-        self.edit_boxes[0].set_point(start_point)
-        self.edit_boxes[1].set_point(end_point)
-
-        for edit_box in self.edit_boxes:
-            edit_box.reposition(None)
+        mxy = self.shape.reverse_transform_point(Point(mx, my))
+        self.shape.move_to(mxy.x, mxy.y)
 
     def get_shape(self):
         return self.shape
