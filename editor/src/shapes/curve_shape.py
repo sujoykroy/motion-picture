@@ -344,7 +344,7 @@ class CurveShape(Shape):
                 curve.bezier_points[-1].dest.copy_from(curve.origin)
         else:
             del curve.bezier_points[bezier_point_index]
-        if len(curve.bezier_points)<2:
+        if len(curve.bezier_points)<3:
             curve.closed = False
         return True
 

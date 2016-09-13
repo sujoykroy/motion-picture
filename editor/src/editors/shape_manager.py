@@ -31,6 +31,7 @@ class ShapeManager(object):
                 border_width = 1,
                 fill_color= "ffffff",
                 width = doc.width, height = doc.height, corner_radius=2)
+        doc.main_multi_shape.parent_shape = self.document_area_box
         self.selection_box = RectangleShape(Point(0, 0), border_color="00000066", border_width=2,
                                             fill_color=None, width=1., height=1., corner_radius=0.)
         self.selection_box.parent_shape = self.multi_shape
@@ -128,6 +129,7 @@ class ShapeManager(object):
         self.document_area_box.pre_draw(ctx)
         self.document_area_box.draw_path(ctx)
         self.document_area_box.draw_fill(ctx)
+        ctx.restore()
 
         ctx.save()
         self.multi_shape.draw(ctx)
@@ -150,9 +152,13 @@ class ShapeManager(object):
             draw_stroke(ctx, 1, "33333333")
             ctx.restore()
 
+        ctx.save()
+        self.document_area_box.pre_draw(ctx)
         self.document_area_box.draw_path(ctx)
         #self.document_area_box.draw_anchor(ctx)
         self.document_area_box.draw_border(ctx)
+        ctx.restore()
+
         if self.selection_box.visible:
             ctx.save()
             #self.multi_shape.pre_draw(ctx)
@@ -160,14 +166,12 @@ class ShapeManager(object):
             self.selection_box.draw_path(ctx)
             ctx.restore()
             self.selection_box.draw_border(ctx)
-        ctx.restore()
+        #ctx.restore()
 
         for guide in self.guides:
             ctx.save()
             guide.draw(ctx, self.out_width, self.out_height)
             ctx.restore()
-        #ctx.restore()
-
 
     def zoom(self, scale, point, out_width, out_height):
         scale = 1. + scale*.1
