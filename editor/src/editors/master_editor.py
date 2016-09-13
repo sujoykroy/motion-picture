@@ -335,7 +335,6 @@ class MasterEditor(Gtk.ApplicationWindow):
                         box_select=self.keyboard_object.control_key_pressed)
                 if self.shape_manager.get_selected_edit_box() is not None:
                     return
-
             self.show_prop_of(self.shape_manager.get_selected_shape())
         elif event.button == 2:
             self.shape_manager.select_document_area_box()

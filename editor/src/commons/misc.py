@@ -1,3 +1,5 @@
+import cairo
+
 class Keyboard(object):
     def __init__(self):
         self.shift_key_pressed = False
@@ -29,3 +31,37 @@ def copy_list(arr):
             val = val.copy()
         copied_list.append(val)
     return copied_list
+
+class Matrix(object):
+    @staticmethod
+    def new(xx=1., yx=0., xy=0., yy=1., x0=0., y0=0.):
+        return cairo.Matrix(xx=xx, yx=yx, yy=yy, x0=x0, y0=y0)
+
+    @staticmethod
+    def copy(matrix):
+        if matrix is None: return None
+        xx, yx, xy, yy, x0, y0 = matrix
+        return cairo.Matrix(xx, yx, xy, yy, x0, y0)
+
+    @staticmethod
+    def interpolate(matrix1, matrix2, frac):
+        values1 = [1, 0, 0, 1, 0, 0]
+        values2 = [1, 0, 0, 1, 0, 0]
+        values = [1, 0, 0, 1, 0, 0]
+        values1[0], values1[1], values1[2], values1[3], values1[4], values1[5] = matrix1
+        values2[0], values2[1], values2[2], values2[3], values2[4], values2[5] = matrix2
+        for i in range(6):
+            values[i] = values1[i] + (values2[i]-values1[i])*frac
+        return cairo.Matrix(*values)
+
+    @staticmethod
+    def to_text(matrix):
+        xx, yx, xy, yy, x0, y0 = matrix
+        return ",".join([xx, yx, xy, yy, x0, y0])
+
+    @staticmethod
+    def from_text(text):
+        values = text.split(",")
+        for i in range(len(values)):
+            values[i] = float(values[i])
+        return cairo.Matrix(*values)

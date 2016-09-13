@@ -18,6 +18,10 @@ class CommonShapePropBox(ShapePropBox):
                 dict(value=0, lower=-10000, upper=10000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("anchor_y",  PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-10000, upper=10000, step_increment=1, page_increment=1, page_size=1))
+        self.add_prop("post_scale_x",  PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=.001, upper=100, step_increment=.10, page_increment=.1, page_size=1))
+        self.add_prop("post_scale_y",  PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=.001, upper=100, step_increment=.01, page_increment=.1, page_size=1))
         self.add_prop("border_width",  PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=1, upper=1000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("border_color",  PROP_TYPE_COLOR, None)

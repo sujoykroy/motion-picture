@@ -220,14 +220,18 @@ class MultiShape(Shape):
         elif hasattr(self, prop_name):
             setattr(self, prop_name, value)
 
-    def add_shape(self, shape):
+    def add_shape(self, shape, transform=True):
         if self.shapes.contain(shape): return
-        shape_abs_anchor_at = shape.get_abs_anchor_at()
+        if transform:
+            shape_abs_anchor_at = shape.get_abs_anchor_at()
 
-        rel_shape_abs_anchor_at = self.transform_point(shape_abs_anchor_at)
-        shape.set_angle(shape.get_angle()-self.get_angle())
-        shape.move_to(rel_shape_abs_anchor_at.x, rel_shape_abs_anchor_at.y)
-        shape.parent_shape = self
+            rel_shape_abs_anchor_at = self.transform_point(shape_abs_anchor_at)
+            shape.move_to(rel_shape_abs_anchor_at.x, rel_shape_abs_anchor_at.y)
+            #if self.get_angle() == 0:
+            #    shape.set_angle(shape.get_angle()-self.get_angle())
+            #else:
+            #    shape.pre_angle -= self.get_angle()
+            shape.parent_shape = self
 
         self.shapes.add(shape)
         self.readjust_sizes()
@@ -258,20 +262,40 @@ class MultiShape(Shape):
         self.anchor_at.y += offset_y
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
+    def build_matrix(self):
+        matrix = cairo.Matrix()
+        matrix.rotate(self.angle*RAD_PER_DEG)
+        matrix.scale(self.post_scale_x, self.post_scale_y)
+        return matrix
 
     def remove_shape(self, shape):
+        abs_outline = shape.get_abs_outline(0)
+        shape_abs_anchor_at = shape.get_abs_anchor_at()
+        old_translation_point = shape.translation.copy()
+        new_translation_point = self.reverse_transform_point(old_translation_point)
+        angle = shape.get_angle()+self.get_angle()
+
+        point = self.reverse_transform_point(shape.get_abs_anchor_at())
         if self == shape.parent_shape:
             shape.parent_shape = None
 
-        abs_anchor_at = self.get_abs_anchor_at()
-        points = [shape.get_abs_anchor_at()]
-        for point in points:
-            point.translate(-self.anchor_at.x, -self.anchor_at.y)
-            point.rotate_coordinate(-self.angle)
-            point.translate(abs_anchor_at.x, abs_anchor_at.y)
-
-        shape.set_angle(shape.get_angle()+self.get_angle())
-        shape.move_to(points[0].x, points[0].y)
+        if shape.pre_matrix:
+            shape.prepend_pre_matrix(self.build_matrix())
+        else:
+            if self.get_angle()==0:
+                if abs(shape.get_angle())>0:
+                    shape.scale_x *= self.post_scale_x
+                    shape.scale_y *= self.post_scale_y
+                else:
+                    shape.set_width(shape.width*self.post_scale_x)
+                    shape.set_height(shape.height*self.post_scale_y)
+                    shape.anchor_at.scale(self.post_scale_x, self.post_scale_y)
+            else:
+                if self.post_scale_x != 1 or self.post_scale_y != 1:
+                    shape.prepend_pre_matrix(self.build_matrix())
+                else:
+                    shape.set_angle(angle)
+        shape.move_to(point.x, point.y)
 
         self.shapes.remove(shape)
         self.readjust_sizes()
@@ -286,15 +310,21 @@ class MultiShape(Shape):
     def rename_shape(self, shape, name):
         return self.shapes.rename(shape, name)
 
-    def set_width(self, width):
-        if width <= 0: return
-        self._scale_shapes(width*1.0/ self.width, 1.0)
-        self.width = width
+    def resize_width1(self, old_width, increment):
+        self.post_scale_x =(1+ float(increment)/old_width)
+        print increment, old_width
 
-    def set_height(self, height):
+    def resize_height1(self, old_height, increment):
+        self.post_scale_y =(1+ float(increment)/old_height)
+
+    def set_width1(self, width):
+        if width <= 0: return
+        self.post_scale_x += (width-self.width)/(self.width*self.post_scale_x)
+
+    def set_height1(self, height):
         if height <= 0: return
-        self._scale_shapes(1.0, height*1.0/self.height)
-        self.height = height
+        #self.post_scale_y += (height-self.height)/float(self.height)
+        #self.height = height
 
     def _scale_shapes(self, xmult, ymult):
         self.child_scale_x *= xmult

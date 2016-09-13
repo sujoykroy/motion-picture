@@ -1,4 +1,4 @@
-import math
+import math, cairo
 from xml.etree.ElementTree import Element as XmlElement
 
 RAD_PER_DEG = math.pi/180.
@@ -69,10 +69,17 @@ class Point(object):
     def to_text(self):
         return "{0},{1}".format(self.x, self.y)
 
-
     def set_inbetween(self, point1, point2, ratio):
         self.x = point1.x + (point2.x-point1.x)*ratio
         self.y = point1.y + (point2.y-point1.y)*ratio
+
+    def transform(self, matrix):
+        self.x, self.y = matrix.transform_point(self.x, self.y)
+
+    def reverse_transform(self, matrix):
+        matrix = cairo.Matrix()*matrix
+        matrix.invert()
+        self.x, self.y = matrix.transform_point(self.x, self.y)
 
     @classmethod
     def from_text(cls, text):

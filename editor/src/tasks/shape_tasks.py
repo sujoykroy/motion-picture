@@ -1,11 +1,12 @@
 from ..shapes import get_hierarchy_names, get_shape_at_hierarchy
 from ..commons import OrderedDict
-from ..commons.misc import copy_list
+from ..commons.misc import copy_list, Matrix
+import cairo
 
 class ShapeStateTask(object):
     NON_COMMUTATIVE_PROP_NAMES = ["anchor_at",
-            "scale_x", "scale_y", "child_scale_x", "child_scale_y",
-            "width", "height", "angle", "translation"]
+            "scale_x", "scale_y", "post_scale_x", "post_scale_y",
+            "width", "height", "angle", "pre_matrix", "translation"]
     COMMUTATIVE_PROP_NAMES = ["border_color", "border_width", "fill_color",
                               "curves", "polygons"]
 
@@ -70,7 +71,8 @@ class ShapeStateTask(object):
                 shape_prop = getattr(last_shape, prop_name)
                 if type(prop_value) is list:
                     prop_value = copy_list(prop_value)
-
+                elif isinstance(prop_value, cairo.Matrix):
+                    prop_value = Matrix.copy(prop_value)
                 if hasattr(shape_prop, "copy_from"):
                     shape_prop.copy_from(prop_value)
                 else:
@@ -83,6 +85,8 @@ class ShapeStateTask(object):
             prop_value = getattr(shape, prop_name)
             if type(prop_value) is list:
                 prop_value = copy_list(prop_value)
+            elif isinstance(prop_value, cairo.Matrix):
+                prop_value = Matrix.copy(prop_value)
             elif hasattr(prop_value, "copy"):
                 prop_value = prop_value.copy()
             props[prop_name] = prop_value

@@ -14,6 +14,14 @@ def draw_stroke(ctx, line_width, color=Color(0,0,0,1)):
     ctx.stroke()
     ctx.restore()
 
+def draw_selection_border(ctx):
+    ctx.save()
+    ctx.set_source_rgb(0,0,0)
+    ctx.set_line_width(1)
+    ctx.set_dash([5])
+    ctx.stroke()
+    ctx.restore()
+
 def draw_fill(ctx, color=Color(1, 1, 1,1)):
     ctx.save()
     if isinstance(color, Color):

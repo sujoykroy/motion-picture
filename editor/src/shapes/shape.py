@@ -1,5 +1,5 @@
 from ..commons import *
-import time
+import time, cairo
 from xml.etree.ElementTree import Element as XmlElement
 
 class Shape(object):
@@ -16,8 +16,11 @@ class Shape(object):
 
         self.scale_x = 1.
         self.scale_y = 1.
+        self.post_scale_x = 1.
+        self.post_scale_y = 1.
         self.translation = Point(0,0)
         self.angle = 0
+        self.pre_matrix = None
         self.id_num = Shape.ID_SEED
         self.parent_shape = None
         self._name = self.new_name()
@@ -26,7 +29,8 @@ class Shape(object):
     @classmethod
     def get_pose_prop_names(cls):
         prop_names = ["anchor_at", "border_color", "border_width", "fill_color",
-                      "width", "height", "scale_x", "scale_y", "translation", "angle"]
+                      "width", "height", "scale_x", "scale_y", "translation",
+                      "angle", "pre_matrix", "post_scale_x", "post_scale_y"]
         return prop_names
 
     def get_pose_prop_dict(self):
@@ -37,6 +41,8 @@ class Shape(object):
                 value = value.copy()
             elif isinstance(value, Color):
                 value = value.copy()
+            elif isinstance(value, cairo.Matrix):
+                value = Matrix.copy(value) if value else None
             prop_dict[prop_name] = value
         return prop_dict
 
@@ -45,13 +51,16 @@ class Shape(object):
             if prop_name in prop_dict:
                 value = prop_dict[prop_name]
                 if type(value) in (str, int, float):
-                    setattr(self, prop_name, prop_dict[prop_name])
+                    setattr(self, prop_name, value)
                 elif isinstance(value, Point):
                     self_point = getattr(self, prop_name)
                     self_point.copy_from(value)
                 elif isinstance(value, Color):
                     self_color = getattr(self, prop_name)
                     self_color.copy_from(value)
+                elif isinstance(value, cairo.Matrix):
+                    value = Matrix.copy(value) if value else None
+                    setattr(self, prop_name, value)
 
     def set_transition_pose_prop_from_dict(self, start_prop_dict, end_prop_dict, frac):
         for prop_name in self.get_pose_prop_names():
@@ -73,6 +82,11 @@ class Shape(object):
                 self_color.green = start_value.green + (end_value.green-start_value.green)*frac
                 self_color.blue = start_value.blue + (end_value.blue-start_value.blue)*frac
                 self_color.alpha = start_value.alpha + (end_value.alpha-start_value.alpha)*frac
+            elif isinstance(start_value, cairo.Matrix):
+                if start_value and end_value:
+                    setattr(self, prop_name, Matrix.interpolate(start_value, end_value, frac))
+                else:
+                    setattr(self, prop_name, None)
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -85,10 +99,14 @@ class Shape(object):
             elm.attrib["fill_color"] = self.fill_color.to_text()
         elm.attrib["width"] = "{0}".format(self.width)
         elm.attrib["height"] = "{0}".format(self.height)
-        elm.attrib["scale_y"] = "{0}".format(self.scale_y)
         elm.attrib["scale_x"] = "{0}".format(self.scale_x)
+        elm.attrib["scale_y"] = "{0}".format(self.scale_y)
         elm.attrib["translation"] = self.translation.to_text()
         elm.attrib["angle"] = "{0}".format(self.angle)
+        elm.attrib["post_scale_x"] = "{0}".format(self.post_scale_x)
+        elm.attrib["post_scale_y"] = "{0}".format(self.post_scale_y)
+        if self.pre_matrix:
+            elm.attrib["pre_matrix"] = Matrix.to_text(self.pre_matrix)
         return elm
 
     @classmethod
@@ -109,16 +127,19 @@ class Shape(object):
         return arr
 
     def assign_params_from_xml_element(self, elm):
-        scale_x_str = elm.attrib.get("scale_x", "1")
-        scale_y_str = elm.attrib.get("scale_y", "1")
-        translation_str = elm.attrib.get("translation", Point(0,0).to_text())
-        angle_str = elm.attrib.get("angle", "1")
+        self.scale_x = float(elm.attrib.get("scale_x", 1))
+        self.scale_y = float(elm.attrib.get("scale_y", 1))
 
-        self.scale_x = float(scale_x_str)
-        self.scale_y = float(scale_y_str)
-        self.translation.copy_from(Point.from_text(translation_str))
-        self.angle = float(angle_str)
+        translation_str = elm.attrib.get("translation", None)
+        if translation_str:
+            self.translation.copy_from(Point.from_text(translation_str))
 
+        self.angle = float(elm.attrib.get("angle", 0))
+        self.post_scale_x = float(elm.attrib.get("post_scale_x", 1))
+        self.post_scale_y = float(elm.attrib.get("post_scale_y", 1))
+        pre_matrix_str = elm.attrib.get("pre_marix", None)
+        if pre_matrix_str:
+            self.pre_matrix = Matrix.from_text(pre_matrix_str)
         name = elm.attrib.get("name", None)
         if name:
             self._name = name.replace(".", "")
@@ -126,8 +147,11 @@ class Shape(object):
     def copy_into(self, newob, copy_name=False, all_fields=False):
         newob.translation = self.translation.copy()
         newob.angle = self.angle
+        newob.pre_matrix = Matrix.copy(self.pre_matrix) if self.pre_matrix else None
         newob.scale_x = self.scale_x
         newob.scale_y = self.scale_y
+        newob.post_scale_x = self.post_scale_x
+        newob.post_scale_y = self.post_scale_y
         if copy_name:
             newob.name = self._name
         newob.parent_shape = self.parent_shape
@@ -177,19 +201,6 @@ class Shape(object):
         elif hasattr(self, prop_name):
             return getattr(self, prop_name)
         return None
-
-    def set_angle(self, angle):
-        rel_left_top_corner = Point(-self.anchor_at.x, -self.anchor_at.y)
-        rel_left_top_corner.rotate_coordinate(-angle)
-        rel_left_top_corner.scale(self.scale_x, self.scale_y)
-        if self.parent_shape: #must be multi shape
-            rel_left_top_corner.scale(
-                    self.parent_shape.child_scale_x, self.parent_shape.child_scale_y)
-        abs_anchor = self.get_abs_anchor_at()
-        rel_left_top_corner.translate(abs_anchor.x, abs_anchor.y)
-        self.angle = angle
-        self.translation.x = rel_left_top_corner.x
-        self.translation.y = rel_left_top_corner.y
 
     def get_angle(self):
         return self.angle
@@ -283,12 +294,37 @@ class Shape(object):
             xy.y += self.parent_shape.anchor_at.y
         self.move_to(xy.x, xy.y)
 
+    def prepend_pre_matrix(self, matrix):
+        if not self.pre_matrix:
+            self.pre_matrix = cairo.Matrix()
+        self.pre_matrix = self.pre_matrix*matrix
+
+    def resize_width(self, old_width, increment):
+        self.width = old_width + increment
+
+    def resize_height(self, old_height, increment):
+        self.height = old_height + increment
+
+    def set_angle(self, angle):
+        rel_left_top_corner = Point(-self.anchor_at.x, -self.anchor_at.y)
+        rel_left_top_corner.scale(self.post_scale_x, self.post_scale_y)
+        rel_left_top_corner.rotate_coordinate(-angle)
+        rel_left_top_corner.scale(self.scale_x, self.scale_y)
+        if self.pre_matrix:
+            rel_left_top_corner.transform(self.pre_matrix)
+        abs_anchor = self.get_abs_anchor_at()
+        rel_left_top_corner.translate(abs_anchor.x, abs_anchor.y)
+        self.angle = angle
+        self.translation.x = rel_left_top_corner.x
+        self.translation.y = rel_left_top_corner.y
+
     def get_abs_anchor_at(self):
         abs_anchor = self.anchor_at.copy()
+        abs_anchor.scale(self.post_scale_x, self.post_scale_y)
         abs_anchor.rotate_coordinate(-self.angle)
         abs_anchor.scale(self.scale_x, self.scale_y)
-        if self.parent_shape: #must be multi shape
-            abs_anchor.scale(self.parent_shape.child_scale_x, self.parent_shape.child_scale_y)
+        if self.pre_matrix:
+            abs_anchor.transform(self.pre_matrix)
         abs_anchor.translate(self.translation.x, self.translation.y)
         return abs_anchor
 
@@ -303,32 +339,53 @@ class Shape(object):
         point = Point(point.x, point.y)
         abs_anchor_at = self.get_abs_anchor_at()
         point.translate(-abs_anchor_at.x, -abs_anchor_at.y)
-        if self.parent_shape: #must be multi shape
-            point.scale(1./self.parent_shape.child_scale_x, 1./self.parent_shape.child_scale_y)
+        if self.pre_matrix:
+            point.reverse_transform(self.pre_matrix)
         point.scale(1./self.scale_x, 1./self.scale_y)
         point.rotate_coordinate(self.angle)
+        point.scale(1./self.post_scale_x, 1./self.post_scale_y)
         point.translate(self.anchor_at.x, self.anchor_at.y)
         return point
 
     def reverse_transform_point(self, point):
         point = Point(point.x, point.y)
         point.translate(-self.anchor_at.x, -self.anchor_at.y)
+        point.scale(self.post_scale_x, self.post_scale_y)
         point.rotate_coordinate(-self.angle)
         point.scale(self.scale_x, self.scale_y)
-        if self.parent_shape: #must be multi shape
-            point.scale(self.parent_shape.child_scale_x, self.parent_shape.child_scale_y)
+        if self.pre_matrix:
+            point.transform(self.pre_matrix)
         abs_anchor = self.get_abs_anchor_at()
         point.translate(abs_anchor.x, abs_anchor.y)
         return point
+
+    def abs_reverse_transform_point(self, point):
+        point = self.reverse_transform_point(point)
+        if self.parent_shape:
+            point = self.parent_shape.abs_reverse_transform_point(point)
+        return point
+
+    def abs_angle(self, angle):
+        points = [Point(0,0), Point(1, 0)]
+        points[1].rotate_coordinate(angle)
+        shape = self
+        while shape:
+            points[0] = shape.reverse_transform_point(points[0])
+            points[1] = shape.reverse_transform_point(points[1])
+            shape = shape.parent_shape
+        point = points[1].diff(points[0])
+        return math.atan2(point.y, point.x)/RAD_PER_DEG
 
     def pre_draw(self, ctx):
         if self.parent_shape:
             self.parent_shape.pre_draw(ctx)
         ctx.translate(self.translation.x, self.translation.y)
-        if self.parent_shape: #must be multi shape
-            ctx.scale(self.parent_shape.child_scale_x, self.parent_shape.child_scale_y)
+        if self.pre_matrix:
+            ctx.set_matrix(self.pre_matrix*ctx.get_matrix())
         ctx.scale(self.scale_x, self.scale_y)
         ctx.rotate(self.angle*RAD_PER_DEG)
+        ctx.scale(self.post_scale_x, self.post_scale_y)
+
 
     def draw_anchor(self, ctx):
         ctx.translate(self.anchor_at.x, self.anchor_at.y)
