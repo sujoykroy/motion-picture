@@ -34,7 +34,8 @@ class TopMenu(object):
         return None
 
     def add(self, path, icon=None, accel=None,
-                        action_name=None, action_param=None, action_state=None):
+                        action_name=None, action_param=None, action_state=None,
+                        icon_scale=1.):
         last_item = self
         menu_names = path.split("/")
         for i in range(len(menu_names)):
@@ -50,12 +51,14 @@ class TopMenu(object):
                         label=menu_name, accel=accel, icon=icon,
                         action=action_name, target=action_param,
                         state=action_state))
+                    item.icon_scale = icon_scale
                     fname = action_name.split(".")[-1]
                     setattr(self.actions, fname, fname)
                     self.menu_items[path] = item
                 else:
                     item = last_item.submenu(menu_name)
             last_item = item
+        return last_item
 
 class Submenu(object):
     def __init__(self, label):
@@ -127,6 +130,7 @@ class MenuItem(object):
         self.accel = accel
         self.icon = icon
         self.state = state
+        self.icon_scale = 1.
 
     def get_xml_lines(self):
         lines = []
@@ -196,8 +200,9 @@ class MenuBar(object):
             icon = os.path.join(os.path.basename(predrawn_folder), name)
             name = name.upper()[0] + name[1:]
             path = "Shapes/Pre-Drawn/" + name
-            self.top_menu.add(path=path, icon=icon,
+            menu_item = self.top_menu.add(path=path, icon=icon,
                 action_name="win.create_new_shape", action_state=filename)
+            menu_item.icon_scale = 2
 
     def get_builder(self):
         builder = Gtk.Builder()

@@ -67,6 +67,7 @@ class RectEditBox(RectangleShape, EditBox):
         ctx.restore()
 
     def is_within(self, point):
+        if not self.cpoint: return False
         point = point.copy()
         point.translate(-self.cpoint.x, -self.cpoint.y)
         point.rotate_coordinate(self.abs_angle(self.edit_box_angle))
@@ -88,7 +89,8 @@ class OvalEditBox(OvalShape, EditBox):
         ctx.close_path()
 
     def is_within(self, point):
-        return self.cpoint.distance(point)<=self.radius
+        if not self.cpoint: return False
+        return self.cpoint and self.cpoint.distance(point)<=self.radius
 
 class AnchorEditBox(OvalEditBox):
     def __init__(self, shape):

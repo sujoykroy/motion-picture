@@ -299,17 +299,7 @@ class CurveShape(Shape):
 
         dist_lapse = .01
         if is_start_1 == is_start_2:#reverse curve_2
-            rev_curve = Curve(origin=curve_2.bezier_points[-1].dest.copy())
-            for bpi in range(len(curve_2.bezier_points)-1, -1, -1):
-                if bpi == 0:
-                    dest = curve_2.origin
-                else:
-                    dest = curve_2.bezier_points[bpi-1].dest
-                rev_curve.add_bezier_point(BezierPoint(
-                    control_1 = curve_2.bezier_points[bpi].control_2,
-                    control_2 = curve_2.bezier_points[bpi].control_1,
-                    dest=dest
-                ))
+            rev_curve = curve_2.reverse_copy()
             curve_2.origin.copy_from(rev_curve.origin)
             for bpi in range(len(rev_curve.bezier_points)):
                 curve_2.bezier_points[bpi].control_1.copy_from(rev_curve.bezier_points[bpi].control_1)
@@ -332,7 +322,7 @@ class CurveShape(Shape):
         if curve_index>=len(self.curves): return False
         curve = self.curves[curve_index]
         if bezier_point_index>=len(curve.bezier_points): return False
-        if len(curve.bezier_points)<2: return False
+        #if len(curve.bezier_points)<2: return False
         if bezier_point_index == -1:
             curve.origin.copy_from(curve.bezier_points[0].dest)
             del curve.bezier_points[0]
@@ -340,12 +330,14 @@ class CurveShape(Shape):
                 curve.bezier_points[-1].dest.copy_from(curve.origin)
         elif bezier_point_index == len(curve.bezier_points)-1:
             del curve.bezier_points[-1]
-            if curve.closed:
+            if curve.closed and curve.bezier_points:
                 curve.bezier_points[-1].dest.copy_from(curve.origin)
         else:
             del curve.bezier_points[bezier_point_index]
         if len(curve.bezier_points)<3:
             curve.closed = False
+        if len(curve.bezier_points)<=1:
+            del self.curves[curve_index]
         return True
 
     @staticmethod

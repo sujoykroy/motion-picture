@@ -434,10 +434,14 @@ class ShapeEditor(object):
                     items[edit_box.curve_index] = dict()
                 items[edit_box.curve_index][edit_box.bezier_point_index]=edit_box.bezier_point_index
             delete_count = 0
+            curve_count = len(self.shape.curves)
             for curve_index in reversed(sorted(items.keys())):
                 for bezier_point_index in reversed(sorted(items[curve_index].keys())):
                     if self.shape.delete_point_at(curve_index, bezier_point_index):
                         delete_count += 1
+                    if curve_count != len(self.shape.curves):
+                        curve_count = len(self.shape.curves)
+                        break
             return delete_count>0
 
         elif isinstance(self.shape, PolygonShape):

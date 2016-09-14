@@ -67,7 +67,7 @@ class ApplicationWindow(MasterEditor):
                     if menu_item.icon:
                         filename = os.path.join(Settings.ICONS_FOLDER, menu_item.icon + ".xml")
                         doc = Document(filename=filename)
-                        #doc.main_multi_shape.scale_border_width(10)
+                        doc.main_multi_shape.scale_border_width(menu_item.icon_scale)
                         pixbuf = doc.get_pixbuf(width=20, height=20)
                         tool_widget = Gtk.Image.new_from_pixbuf(pixbuf)
                     else:

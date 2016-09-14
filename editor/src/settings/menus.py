@@ -74,8 +74,8 @@ m.add(path="Shapes/Convert To/Curve",
       action_name="win.convert_shape_to", action_param="curve")
 
 m.add(path="Edit/Preferences/Lock Movement/Shape", icon="lock_movement",
-      action_name="win.lock_shape_movement", action_state=False)
-m.add(path="Edit/Preferences/Lock Movement/X", icon=None,
+      action_name="win.lock_shape_movement", action_state=False, icon_scale = 1.5)
+m.add(path="Edit/Preferences/Lock Movement/X", icon="x_only_movement",
       action_name="win.lock_xy_movement", action_state="x")
 m.add(path="Edit/Preferences/Lock Movement/Y", icon=None,
       action_name="win.lock_xy_movement", action_state="y")

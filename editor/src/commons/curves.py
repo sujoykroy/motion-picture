@@ -36,6 +36,20 @@ class Curve(object):
             newob.add_bezier_point(bezier_point.copy())
         return newob
 
+    def reverse_copy(self):
+        newob = Curve(self.bezier_points[-1].dest.copy(), closed=self.closed)
+        for i in range(len(self.bezier_points)-1, -1, -1):
+            bzp = self.bezier_points[i]
+            if i == 0:
+                next_dest = self.origin
+            else:
+                next_dest = self.bezier_points[i-1].dest
+            newob.add_bezier_point(BezierPoint(
+                control_1=bzp.control_2.copy(),
+                control_2=bzp.control_1.copy(),
+                dest = next_dest.copy()))
+        return newob
+
     def add_bezier_point(self, bezier_point):
         self.bezier_points.append(bezier_point)
 
