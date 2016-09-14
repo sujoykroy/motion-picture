@@ -23,9 +23,6 @@ class RectangleShapeCreator(object):
         for edit_box in self.edit_boxes:
             edit_box.reposition(None)
 
-        start_point = self.shape.transform_point(start_point)
-        end_point = self.shape.transform_point(end_point)
-
         diff_point = end_point.diff(start_point)
 
         self.shape.set_width(abs(diff_point.x))
@@ -43,8 +40,7 @@ class RectangleShapeCreator(object):
         else:
             my = end_point.y+self.shape.anchor_at.y
 
-        mxy = self.shape.reverse_transform_point(Point(mx, my))
-        self.shape.move_to(mxy.x, mxy.y)
+        self.shape.move_to(mx, my)
 
     def get_shape(self):
         return self.shape
@@ -52,7 +48,7 @@ class RectangleShapeCreator(object):
     def draw(self, ctx):
         for edit_box in self.edit_boxes:
             ctx.save()
-            edit_box.draw(ctx)
+            edit_box.draw_edit_box(ctx)
             ctx.restore()
 
     def end_movement(self):

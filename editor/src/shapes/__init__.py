@@ -16,7 +16,7 @@ def get_hierarchy_names(shape):
         prev_shape = prev_shape.parent_shape
         if isinstance(prev_shape, MultiSelectionShape): continue
         names.insert(0, prev_shape.get_name())
-    return names
+    return names[1:]#top shape is document area box, exclude it
 
 def get_shape_at_hierarchy(multi_shape, names):
     shape = None

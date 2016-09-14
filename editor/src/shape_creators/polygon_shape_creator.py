@@ -37,7 +37,6 @@ class PolygonShapeCreator(object):
         for edit_box in self.edit_boxes:
             edit_box.reposition(rect)
 
-        end_point = self.shape.transform_point(end_point)
         self.point.copy_from(end_point)
 
     def get_shape(self):
@@ -45,7 +44,7 @@ class PolygonShapeCreator(object):
 
     def draw(self, ctx):
         for edit_box in self.edit_boxes:
-            edit_box.draw(ctx)
+            edit_box.draw_edit_box(ctx)
 
     def end_movement(self):
         if self.point is None:

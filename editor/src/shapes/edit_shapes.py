@@ -12,7 +12,7 @@ class EditBox(object):
         self.init_point = point.copy()
         self.linked_edit_boxes = []
         self.abs_point = point.copy()
-        self.cpoint = None
+        self.cpoint = point.copy()
         self.offset = offset
         self.edit_box_angle = angle
 
@@ -46,7 +46,7 @@ class EditBox(object):
         self.point.x = point.x
         self.point.y = point.y
 
-    def draw_edit_box(self, ctx, draw_frac):
+    def draw_edit_box(self, ctx, draw_frac=1.):
         self._draw_path_around(ctx, self.cpoint, draw_frac)
         self.draw_fill(ctx)
         self._draw_path_around(ctx, self.cpoint, draw_frac)
@@ -55,7 +55,7 @@ class EditBox(object):
 class RectEditBox(RectangleShape, EditBox):
     def __init__(self, percent_point, angle=0, is_percent=True, width=10, height=5, offset=None):
         RectangleShape.__init__(self, Point(width*.5,height*.5), Color(0,0,0,1), 1,
-                                      Color(1,1,0,1), width, height, 0)
+                                      Color(1,1,1,1), width, height, 0)
         EditBox.__init__(self, percent_point, is_percent=is_percent, offset=offset, angle=angle)
 
     def _draw_path_around(self, ctx, cpoint, draw_frac):

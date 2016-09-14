@@ -35,7 +35,7 @@ class TopMenu(object):
 
     def add(self, path, icon=None, accel=None,
                         action_name=None, action_param=None, action_state=None,
-                        icon_scale=1.):
+                        icon_scale=1., desc=None):
         last_item = self
         menu_names = path.split("/")
         for i in range(len(menu_names)):
@@ -52,6 +52,7 @@ class TopMenu(object):
                         action=action_name, target=action_param,
                         state=action_state))
                     item.icon_scale = icon_scale
+                    item.desc = desc
                     fname = action_name.split(".")[-1]
                     setattr(self.actions, fname, fname)
                     self.menu_items[path] = item
@@ -131,6 +132,7 @@ class MenuItem(object):
         self.icon = icon
         self.state = state
         self.icon_scale = 1.
+        self.desc = None
 
     def get_xml_lines(self):
         lines = []
@@ -156,7 +158,7 @@ class MenuItem(object):
         return self.action.split(".")[0] == "win"
 
     def get_tooltip_text(self):
-        text = self.name
+        text = self.desc if self.desc else self.name
         if self.accel:
             text += " \n" + self.accel
         return text

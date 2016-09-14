@@ -223,6 +223,7 @@ class ApplicationWindow(MasterEditor):
                 if isinstance(shape, CurveShape):
                     self.shape_manager.shape_creator = CurveShapeCreator(
                             shape, -1, -1)
+                    self.shape_manager.shape_creator.set_relative_to(self.shape_manager.multi_shape)
                 else:
                     self.shape_manager.shape_creator = None
             self.redraw()

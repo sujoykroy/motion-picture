@@ -10,6 +10,7 @@ from shape_manager import ShapeManager
 from time_line_editor import TimeLineEditor
 
 from .. import settings as Settings
+from ..settings import EditingChoice
 
 MODE_NEW_SHAPE_CREATE = "MODE_NEW_SHAPE_CREATE"
 SHIFT_KEY_CODE = 65505
@@ -351,8 +352,16 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.mouse_point.x = event.x
         self.mouse_point.y = event.y
         if self.drawing_area_mouse_pressed or self.shape_manager.shape_creator is not None:
-            doc_start_point, shape_start_point = self.get_doc_and_multi_shape_point(self.mouse_init_point)
-            doc_end_point, shape_end_point = self.get_doc_and_multi_shape_point(self.mouse_point)
+            mouse_start_point = self.mouse_init_point.copy()
+            mouse_end_point = self.mouse_point.copy()
+            if EditingChoice.LOCK_XY_MOVEMENT:
+                if EditingChoice.LOCK_XY_MOVEMENT == "y":
+                    mouse_end_point.x = mouse_start_point.x
+                elif EditingChoice.LOCK_XY_MOVEMENT == "x":
+                    mouse_end_point.y = mouse_start_point.y
+
+            doc_start_point, shape_start_point = self.get_doc_and_multi_shape_point(mouse_start_point)
+            doc_end_point, shape_end_point = self.get_doc_and_multi_shape_point(mouse_end_point)
             self.shape_manager.move_active_item(
                     doc_start_point, doc_end_point, shape_start_point, shape_end_point)
             self.drawing_area.queue_draw()

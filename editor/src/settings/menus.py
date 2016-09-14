@@ -22,22 +22,22 @@ m.add(path="Edit/Shape/Duplicate",
       action_name="win.duplicate_shape")
 m.add(path="Edit/Shape/Delete",
       action_name="win.delete_shape")
-m.add(path="Edit/Shape/Flip/Flip X",
+m.add(path="Edit/Shape/Flip/Flip X", icon="flip_x",
       action_name="win.flip_shape", action_param="x")
-m.add(path="Edit/Shape/Flip/Flip Y",
+m.add(path="Edit/Shape/Flip/Flip Y", icon="flip_y",
       action_name="win.flip_shape", action_param="y")
 m.add(path="Edit/<Layer>/Layer Up",
       action_name="win.change_shape_depth", action_param="1")
 m.add(path="Edit/<Layer>/Layer Down",
       action_name="win.change_shape_depth", action_param="-1")
 
-m.add(path="Edit/Points/Join",
+m.add(path="Edit/Points/Join", icon="join_points", desc="Join points together",
       action_name="win.join_points_of_shape")
-m.add(path="Edit/Points/Break",
-      action_name="win.insert_break_in_shape")
-m.add(path="Edit/Points/Delete",
-      action_name="win.delete_point_of_shape")
-m.add(path="Edit/Points/Extend",
+m.add(path="Edit/Points/Break", icon="break_point", desc="Break point into two points",
+      action_name="win.insert_break_in_shape", icon_scale = 1.5)
+m.add(path="Edit/Points/Delete", icon="delete_point", desc="Delete point",
+      action_name="win.delete_point_of_shape", icon_scale = 1.5)
+m.add(path="Edit/Points/Extend", icon="extend_point", desc="Extend point into new point",
       action_name="win.extend_point_of_shape")
 
 m.add(path="Shapes/<New>/Rectangle", icon="rectangle",
@@ -77,7 +77,7 @@ m.add(path="Edit/Preferences/Lock Movement/Shape", icon="lock_movement",
       action_name="win.lock_shape_movement", action_state=False, icon_scale = 1.5)
 m.add(path="Edit/Preferences/Lock Movement/X", icon="x_only_movement",
       action_name="win.lock_xy_movement", action_state="x")
-m.add(path="Edit/Preferences/Lock Movement/Y", icon=None,
+m.add(path="Edit/Preferences/Lock Movement/Y", icon="y_only_movement",
       action_name="win.lock_xy_movement", action_state="y")
 m.add(path="Edit/Preferences/Lock Guides",
       action_name="win.lock_guides", action_state=False)
@@ -85,8 +85,8 @@ m.add(path="Edit/Preferences/Hide Control Points",
       action_name="win.hide_control_points", action_state=False)
 
 m.tool_rows = [
-    ["File/<Open>", "File/New", "Edit/Shape", "Edit/Points"],
-    ["Shapes/<New>", "Shapes/Align", "Shapes/Group", "Shapes/Convert To"],
-    ["Edit/Shape/Flip", "Edit/<Layer>"],
-    ["Edit/Preferences/Lock Movement", "Shapes/Pre-Drawn", "Edit/Preferences"]
+    ["File/<Open>", "File/New", "Edit/Shape"],
+    ["Shapes/Align", "Shapes/Group", "Shapes/Convert To"],
+    ["Edit/Preferences/Lock Movement", "Edit/Shape/Flip", "Shapes/<New>", "Edit/Points"],
+    ["Edit/<Layer>", "Shapes/Pre-Drawn", "Edit/Preferences"]
 ]

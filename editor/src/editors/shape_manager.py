@@ -281,6 +281,7 @@ class ShapeManager(object):
                 self.shape_creator = PredrawnShapeCreator(point, document)
 
         if self.shape_creator:
+            self.place_shape_at_zero_position(self.shape_creator.shape)
             self.shape_creator.set_relative_to(self.multi_shape)
             self.current_task = ShapeAddTask(self.doc, self.multi_shape)
             self.add_shape(self.shape_creator.get_shape())

@@ -31,7 +31,7 @@ class CurveShapeCreator(object):
         self.edit_lines.append(EditLine(Point(0, 0), Point(0, 0)))
 
     def set_relative_to(self, multi_shape):
-        self.shape.move_to(multi_shape.translation.x, multi_shape.translation.y)
+        #self.shape.move_to(multi_shape.translation.x, multi_shape.translation.y)
         for edit_box in self.edit_boxes:
             edit_box.parent_shape = multi_shape
         for edit_line in self.edit_lines:
@@ -45,6 +45,11 @@ class CurveShapeCreator(object):
         self.move_dest = False
         self.do_movement(point, point)
 
+    def _reverse_transform_point(self, point):
+        point = point.copy()
+        point.scale(self.shape.width, self.shape.height)
+        return self.shape.reverse_transform_point(point)
+
     def do_movement (self, start_point, end_point):
         if self.curve is None:
             self.curve = Curve(origin=self.shape.transform_point(end_point))
@@ -53,6 +58,7 @@ class CurveShapeCreator(object):
         if self.bezier_point is None:
             return
         end_point = self.shape.transform_point(end_point)
+        end_point.scale(1./self.shape.width, 1./self.shape.height)
 
         if self.move_dest:
             control_2_diff_point = self.bezier_point.control_2.diff(self.bezier_point.dest)
@@ -66,9 +72,9 @@ class CurveShapeCreator(object):
                 2*self.bezier_point.dest.y-end_point.y
             )
 
-        self.edit_boxes[0].set_point(self.shape.reverse_transform_point(self.bezier_point.control_2))
-        self.edit_boxes[1].set_point(self.shape.reverse_transform_point(end_point))
-        self.edit_boxes[2].set_point(self.shape.reverse_transform_point(self.bezier_point.dest))
+        self.edit_boxes[0].set_point(self._reverse_transform_point(self.bezier_point.control_2))
+        self.edit_boxes[1].set_point(self._reverse_transform_point(end_point))
+        self.edit_boxes[2].set_point(self._reverse_transform_point(self.bezier_point.dest))
 
         rect = self.shape.get_outline(0)
 
@@ -90,7 +96,7 @@ class CurveShapeCreator(object):
             edit_line.draw_border(ctx)
 
         for edit_box in self.edit_boxes:
-            edit_box.draw(ctx)
+            edit_box.draw_edit_box(ctx)
 
     def end_movement(self):
         if self.bezier_point is None:
