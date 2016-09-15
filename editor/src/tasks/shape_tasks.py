@@ -1,40 +1,27 @@
-from ..shapes import get_hierarchy_names, get_shape_at_hierarchy
+from ..shapes import get_hierarchy_names, MultiSelectionShape
 from ..commons import OrderedDict
 from ..commons.misc import copy_list, Matrix
 import cairo
 
-class ShapeStateTask(object):
+class ShapeState(object):
     NON_COMMUTATIVE_PROP_NAMES = ["anchor_at",
             "scale_x", "scale_y", "post_scale_x", "post_scale_y",
             "width", "height", "angle", "pre_matrix", "translation"]
     COMMUTATIVE_PROP_NAMES = ["border_color", "border_width", "fill_color",
                               "curves", "polygons"]
 
-    def __init__(self, doc, shape, exclude_commutative=False):
-        self.prev_shape_state = self.get_shape_state(doc, shape, exclude_commutative=exclude_commutative)
-        self.post_shape_state = None
-        doc.reundo.add_task(self)
+    def __init__(self, doc, shape, is_leaf=True):
+        self.ancestral_shapes_props = OrderedDict()
+        self.leaf_shapes_props = OrderedDict()
 
-    def save(self, doc, shape):
-        self.post_shape_state = self.get_shape_state(doc, shape)
+        if is_leaf:
+            ancestral_names = get_hierarchy_names(shape.parent_shape)
+        else:
+            ancestral_names = get_hierarchy_names(shape)
 
-    def undo(self, doc):
-        self.set_shape_state(doc, self.prev_shape_state)
-
-    def redo(self, doc):
-        if not self.post_shape_state: return
-        self.set_shape_state(doc, self.post_shape_state)
-
-    def remove(self, doc):
-        doc.reundo.remove_task(self)
-
-    @classmethod
-    def get_shape_state(cls, doc, shape, exclude_commutative=False):
-        shape_names = get_hierarchy_names(shape)
-        shapes_props = OrderedDict()
         last_shape = None
-        for i in range(len(shape_names)):
-            shape_name = shape_names[i]
+        for i in range(len(ancestral_names)):
+            shape_name = ancestral_names[i]
             if i == 0:
                 last_shape = doc.main_multi_shape
                 if last_shape.get_name() != shape_name:
@@ -43,40 +30,79 @@ class ShapeStateTask(object):
             else:
                 last_shape = last_shape.shapes.get_item_by_name(shape_name)
                 if last_shape is None:
+                    if isinstance(last_shape, MultiShape):
+                        for child_shape in last_shape.shapes:
+                            if not isinstance(child_shape, MultiSelectionShape):
+                                continue
+                            last_shape = child_shape.shapes.get_item_by_name(shape_name)
+                            break
+                if last_shape is None:
                     break
-
             props = dict()
-            cls.save_props(props, last_shape, cls.NON_COMMUTATIVE_PROP_NAMES)
-            shapes_props.add(shape_name, props)
-        if last_shape is not None and not exclude_commutative:
-            cls.save_props(shapes_props[shape.get_name()], shape, cls.COMMUTATIVE_PROP_NAMES)
-        return shapes_props
+            self.save_props(props, last_shape, self.NON_COMMUTATIVE_PROP_NAMES)
+            self.ancestral_shapes_props.add(shape_name, props)
 
-    @classmethod
-    def set_shape_state(cls, doc, shapes_props):
-        for i in range(len(shapes_props.keys)):
-            shape_name = shapes_props.keys[i]
+        if is_leaf:
+            if isinstance(shape, MultiSelectionShape):
+                for leaf_shape in shape.shapes:
+                    props = dict()
+                    self.save_props(props, leaf_shape, self.NON_COMMUTATIVE_PROP_NAMES)
+                    self.save_props(props, leaf_shape, self.COMMUTATIVE_PROP_NAMES)
+                    self.leaf_shapes_props.add(leaf_shape.get_name(), props)
+            else:
+                props = dict()
+                self.save_props(props, shape, self.NON_COMMUTATIVE_PROP_NAMES)
+                self.save_props(props, shape, self.COMMUTATIVE_PROP_NAMES)
+                self.leaf_shapes_props.add(shape.get_name(), props)
+
+    def apply_shapes_state(self, doc):
+        for i in range(len(self.ancestral_shapes_props.keys)):
+            shape_name = self.ancestral_shapes_props.keys[i]
             if i == 0:
-                last_shape =  doc.main_multi_shape
+                last_shape = doc.main_multi_shape
                 if last_shape.get_name() != shape_name:
                     break
             else:
                 last_shape = last_shape.shapes.get_item_by_name(shape_name)
                 if last_shape is None:
                     break
-            props = shapes_props.get_item_at_index(i)
-            for prop_name in props.keys():
-                if not hasattr(last_shape, prop_name): continue
-                prop_value = props[prop_name]
-                shape_prop = getattr(last_shape, prop_name)
-                if type(prop_value) is list:
-                    prop_value = copy_list(prop_value)
-                elif isinstance(prop_value, cairo.Matrix):
-                    prop_value = Matrix.copy(prop_value)
-                if hasattr(shape_prop, "copy_from"):
-                    shape_prop.copy_from(prop_value)
-                else:
-                    setattr(last_shape, prop_name, prop_value)
+            props = self.ancestral_shapes_props.get_item_at_index(i)
+            self.apply_props(props, last_shape)
+
+        for shape_name in self.leaf_shapes_props.keys:
+            shape = last_shape.shapes.get_item_by_name(shape_name)
+            if not shape: continue
+            props = self.leaf_shapes_props[shape_name]
+            self.apply_props(props, shape)
+
+    def get_parent_shape(self, doc):
+        last_shape = None
+        for i in range(len(self.ancestral_shapes_props.keys)):
+            shape_name = self.ancestral_shapes_props.keys[i]
+            if i == 0:
+                last_shape = doc.main_multi_shape
+                if last_shape.get_name() != shape_name:
+                    break
+            else:
+                last_shape = last_shape.shapes.get_item_by_name(shape_name)
+                if last_shape is None:
+                    break
+        return last_shape
+
+    @staticmethod
+    def apply_props(props, shape):
+        for prop_name in props.keys():
+            if not hasattr(shape, prop_name): continue
+            prop_value = props[prop_name]
+            shape_prop = getattr(shape, prop_name)
+            if type(prop_value) is list:
+                prop_value = copy_list(prop_value)
+            elif isinstance(prop_value, cairo.Matrix):
+                prop_value = Matrix.copy(prop_value)
+            if hasattr(shape_prop, "copy_from"):
+                shape_prop.copy_from(prop_value)
+            else:
+                setattr(shape, prop_name, prop_value)
 
     @staticmethod
     def save_props(props, shape, prop_names):
@@ -91,48 +117,69 @@ class ShapeStateTask(object):
                 prop_value = prop_value.copy()
             props[prop_name] = prop_value
 
+class ShapeStateTask(object):
+    def __init__(self, doc, shape, is_leaf=True):
+        self.prev_shape_state = ShapeState(doc, shape, is_leaf)
+        self.post_shape_state = None
+        doc.reundo.add_task(self)
+
+    def save(self, doc, shape):
+        self.post_shape_state = ShapeState(doc, shape)
+
+    def undo(self, doc):
+        self.prev_shape_state.apply_shapes_state(doc)
+
+    def redo(self, doc):
+        if not self.post_shape_state: return
+        self.post_shape_state.apply_shapes_state(doc)
+
+    def remove(self, doc):
+        doc.reundo.remove_task(self)
+
 class ShapeDeleteTask(ShapeStateTask):
     def __init__(self, doc, shape):
         ShapeStateTask.__init__(self, doc, shape)
-        self.hierarchy_names = get_hierarchy_names(shape)
-        self.shape = shape
+        self.deleted_shapes = []
+        if isinstance(shape, MultiSelectionShape):
+            for selected_shape in shape.shapes:
+                self.deleted_shapes.append(selected_shape)
 
     def save(self, doc, parent_shape):
-        self.post_shape_state = self.get_shape_state(doc, parent_shape, exclude_commutative=True)
+        self.post_shape_state = ShapeState(doc, parent_shape, is_leaf=False)
 
     def undo(self, doc):
-        parent_shape = get_shape_at_hierarchy(doc.main_multi_shape, self.hierarchy_names[0:-1])
+        parent_shape = self.prev_shape_state.get_parent_shape(doc)
         if not parent_shape: return
-        parent_shape.add_shape(self.shape)
-        self.set_shape_state(doc, self.prev_shape_state)
+        for deleted_shape in self.deleted_shapes:
+            parent_shape.add_shape(deleted_shape)
+        self.prev_shape_state.apply_shapes_state(doc)
 
     def redo(self, doc):
         if not self.post_shape_state: return
-        parent_shape = get_shape_at_hierarchy(doc.main_multi_shape, self.hierarchy_names[0:-1])
+        parent_shape = self.post_shape_state.get_parent_shape(doc)
         if not parent_shape: return
-        parent_shape.remove_shape(self.shape)
-        self.set_shape_state(doc, self.post_shape_state)
+        for deleted_shape in self.deleted_shapes:
+            parent_shape.remove_shape(deleted_shape)
+        self.post_shape_state.apply_shapes_state(doc)
 
 class ShapeAddTask(ShapeStateTask):
     def __init__(self, doc, parent_shape):
-        ShapeStateTask.__init__(self, doc, parent_shape, exclude_commutative=True)
+        ShapeStateTask.__init__(self, doc, parent_shape, is_leaf=False)
         self.shape = None
-        self.hierarchy_names = None
 
     def save(self, doc, shape):
-        self.post_shape_state = self.get_shape_state(doc, shape)
+        self.post_shape_state = ShapeState(doc, shape)
         self.shape = shape
-        self.hierarchy_names = get_hierarchy_names(shape)
 
     def undo(self, doc):
-        parent_shape = get_shape_at_hierarchy(doc.main_multi_shape, self.hierarchy_names[0:-1])
+        parent_shape = self.prev_shape_state.get_parent_shape(doc)
         if not parent_shape: return
         parent_shape.remove_shape(self.shape)
-        self.set_shape_state(doc, self.prev_shape_state)
+        self.prev_shape_state.apply_shapes_state(doc)
 
     def redo(self, doc):
         if not self.post_shape_state: return
-        parent_shape = get_shape_at_hierarchy(doc.main_multi_shape, self.hierarchy_names[0:-1])
+        parent_shape = self.post_shape_state.get_parent_shape(doc)
         if not parent_shape: return
         parent_shape.add_shape(self.shape)
-        self.set_shape_state(doc, self.post_shape_state)
+        self.post_shape_state.apply_shapes_state(doc)
