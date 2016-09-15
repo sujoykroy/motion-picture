@@ -216,9 +216,7 @@ class ApplicationWindow(MasterEditor):
         self.shape_manager.delete_shape_editor()
         if isinstance(task, ShapeStateTask):
             getattr(task, urnam)(self.doc)
-            if isinstance(task, ShapeDeleteTask) or isinstance(task, ShapeAddTask):
-                self.shape_manager.reload_shapes()
-            elif self.shape_manager.shape_creator:
+            if self.shape_manager.shape_creator:
                 shape = self.shape_manager.shape_creator.shape
                 if isinstance(shape, CurveShape):
                     self.shape_manager.shape_creator = CurveShapeCreator(
@@ -226,6 +224,8 @@ class ApplicationWindow(MasterEditor):
                     self.shape_manager.shape_creator.set_relative_to(self.shape_manager.multi_shape)
                 else:
                     self.shape_manager.shape_creator = None
+            else:
+                self.shape_manager.reload_shapes()
             self.redraw()
 
     def lock_shape_movement(self, action, parameter):

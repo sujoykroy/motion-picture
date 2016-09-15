@@ -473,6 +473,7 @@ class TimeLineEditor(Gtk.VBox):
         self.redraw()
 
     def drawing_area_vetical_scroll_to(self, value):
+        if not self.drawing_area: return
         excess_height = self.multi_shape_time_line_box.height-self.drawing_area.get_allocated_height()
         self.multi_shape_time_line_box.top = -excess_height*value
 

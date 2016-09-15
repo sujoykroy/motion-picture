@@ -119,6 +119,8 @@ class ShapeManager(object):
         for shape in self.shapes.reversed_list():
             if isinstance(shape, MultiSelectionShape) and multi_select:
                 continue
+            if isinstance(shape.parent_shape, MultiSelectionShape) and multi_select:
+                continue
             p = point
             if shape.is_within(p):
                 return shape
@@ -366,7 +368,9 @@ class ShapeManager(object):
                     else:
                         multi_selection_shape = self.shape_editor.shape
 
+                    print shape
                     if multi_selection_shape.shapes.contain(shape):
+                        print "got"
                         multi_selection_shape.remove_shape(shape)
                         if len(multi_selection_shape.shapes)==1:
                             shapes = multi_selection_shape.remove_all_shapes()
@@ -501,7 +505,7 @@ class ShapeManager(object):
     def combine_shapes(self):
         if not self.shape_editor:
             return
-
+        task = ShapeCombineTask(self.doc, self.shape_editor.shape)
         new_shape = MultiShape()
         self.place_shape_at_zero_position(new_shape)
         if  isinstance(self.shape_editor.shape, MultiSelectionShape):
@@ -523,6 +527,7 @@ class ShapeManager(object):
         new_shape._name = Shape.new_name()
         self.add_shape(new_shape)
         self.shape_editor = ShapeEditor(new_shape)
+        task.save(self.doc, new_shape)
 
     def delete_selected_shape(self):
         if not self.shape_editor: return
@@ -607,6 +612,7 @@ class ShapeManager(object):
     def align_shapes(self, x_dir, y_dir):
         if not self.has_multi_selection(): return False
         multi_selection_shape = self.shape_editor.shape
+        task = ShapeStateTask(self.doc, multi_selection_shape)
         xy = None
         for shape in multi_selection_shape.shapes:
             if xy is None:
@@ -621,6 +627,7 @@ class ShapeManager(object):
 
         multi_selection_shape.readjust_sizes()
         self.multi_shape.readjust_sizes()
+        task.save(self.doc, multi_selection_shape)
 
     def convert_shape_to(self, shape_type):
         if not self.shape_editor: return False
@@ -635,11 +642,13 @@ class ShapeManager(object):
             elif isinstance(old_shape, OvalShape):
                 new_shape = CurveShape.create_from_oval_shape(old_shape)
         if new_shape:
+            task = ShapeConvertTask(self.doc, self.shape_editor.shape)
             self.add_shape(new_shape)
             self.shape_editor.shape.copy_into(new_shape)
             self.remove_shape(self.shape_editor.shape)
             self.multi_shape.readjust_sizes()
             self.shape_editor = ShapeEditor(new_shape)
+            task.save(self.doc, new_shape)
             return True
         return False
 
@@ -664,10 +673,12 @@ class ShapeManager(object):
             if mega_shape.include_inside(shape):
                 merged_shapes.append(shape)
         if merged_shapes:
+            task = ShapeMergeTask(self.doc, self.shape_editor.shape, merged_shapes)
             self.delete_shape_editor()
             for shape in merged_shapes:
                 self.remove_shape(shape)
             mega_shape.fit_size_to_include_all()
             self.shape_editor = ShapeEditor(mega_shape)
+            task.save(self.doc, mega_shape)
             return True
         return False

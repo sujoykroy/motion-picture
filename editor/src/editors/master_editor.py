@@ -212,7 +212,7 @@ class MasterEditor(Gtk.ApplicationWindow):
     def load_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line_editor.set_multi_shape_time_line(multi_shape_time_line)
 
-    def open_document(self, filename=None, width=400., height=300.):
+    def open_document(self, filename=None, width=400., height=400.):
         self.doc = Document(filename, width=width, height=height)
         del self.multi_shape_stack[:]
         self.load_multi_shape(self.doc.get_main_multi_shape())
