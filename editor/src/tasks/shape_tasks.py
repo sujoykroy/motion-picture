@@ -60,6 +60,7 @@ class ShapeState(object):
                 self.leaf_shapes_props.add(shape.get_name(), props)
 
     def apply_shapes_state(self, doc):
+        last_shape = None
         for i in range(len(self.ancestral_shapes_props.keys)):
             shape_name = self.ancestral_shapes_props.keys[i]
             if i == 0:
@@ -73,11 +74,20 @@ class ShapeState(object):
             props = self.ancestral_shapes_props.get_item_at_index(i)
             self.apply_props(props, last_shape)
 
-        for shape_name in self.leaf_shapes_props.keys:
-            shape = last_shape.shapes.get_item_by_name(shape_name)
-            if not shape: continue
-            props = self.leaf_shapes_props[shape_name]
-            self.apply_props(props, shape)
+        #when the topmost shape is the leaf shape
+        if not self.ancestral_shapes_props.keys and self.leaf_shapes_props.keys:
+            shape = doc.main_multi_shape
+            shape_name = self.leaf_shapes_props.keys[0]
+            if shape.get_name() == shape_name:
+                props = self.leaf_shapes_props[shape_name]
+                self.apply_props(props, shape)
+
+        if last_shape:
+            for shape_name in self.leaf_shapes_props.keys:
+                shape = last_shape.shapes.get_item_by_name(shape_name)
+                if not shape: continue
+                props = self.leaf_shapes_props[shape_name]
+                self.apply_props(props, shape)
 
     def get_parent_shape(self, doc):
         last_shape = None
@@ -92,6 +102,18 @@ class ShapeState(object):
                 if last_shape is None:
                     break
         return last_shape
+
+    def get_leaf_shapes(self, doc):
+        shapes = []
+        for shape_name in self.leaf_shapes_props.keys:
+            hierarchy = list(self.ancestral_shapes_props.keys) + [shape_name]
+            if len(hierarchy) == 1:
+                if doc.main_multi_shape.get_name() == shape_name:
+                    shapes.append(doc.main_multi_shape)
+                break
+            shape = get_shape_at_hierarchy(doc.main_multi_shape, hierarchy)
+            shapes.append(shape)
+        return shapes
 
     @classmethod
     def apply_props(cls, props, shape):
@@ -236,6 +258,39 @@ class ShapeCombineTask(ShapeStateTask):
             parent_shape.remove_shape(deleted_shape)
             deleted_shape.parent_shape = self.combined_shape
         parent_shape.add_shape(self.combined_shape)
+        self.post_shape_state.apply_shapes_state(doc)
+
+class MultiShapeBreakTask(ShapeStateTask):
+    def __init__(self, doc, shape):
+        ShapeStateTask.__init__(self, doc, shape)
+        self.freed_shapes = []
+        for child_shape in shape.shapes:
+            self.freed_shapes.append([child_shape, child_shape.get_name(), None])
+        self.orig_mega_shape = shape
+
+    def save(self, doc, shape):
+        self.post_shape_state = ShapeState(doc, shape)
+        for i in range(len(self.freed_shapes)):
+            self.freed_shapes[i][2] = self.freed_shapes[i][0].get_name()
+
+    def undo(self, doc):
+        parent_shape = self.prev_shape_state.get_parent_shape(doc)
+        if not parent_shape: return
+        parent_shape.add_shape(self.orig_mega_shape)
+        for freed_shape, old_name, new_name in self.freed_shapes:
+            parent_shape.remove_shape(freed_shape)
+            freed_shape.rename(old_name)
+            self.orig_mega_shape.add_shape(freed_shape)
+        self.prev_shape_state.apply_shapes_state(doc)
+
+    def redo(self, doc):
+        parent_shape = self.post_shape_state.get_leaf_shapes(doc)[0]
+        if not parent_shape: return
+        for freed_shape, old_name, new_name in self.freed_shapes:
+            self.orig_mega_shape.remove_shape(freed_shape)
+            freed_shape.rename(new_name)
+            parent_shape.add_shape(freed_shape)
+        parent_shape.remove_shape(self.orig_mega_shape)
         self.post_shape_state.apply_shapes_state(doc)
 
 class ShapeMergeTask(ShapeStateTask):

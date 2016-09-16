@@ -276,6 +276,7 @@ class Shape(object):
         return xy
 
     def set_stage_xy(self, point):
+        if not point: return
         xy = point.copy()
         if self.parent_shape:
             parent_anchor = self.parent_shape.anchor_at
@@ -487,6 +488,12 @@ class Shape(object):
 
     def flip(self, direction):
         pass
+
+    def recreate_name(self):
+        self._name = self.new_name()
+
+    def rename(self, new_name):
+        self._name = new_name
 
     NAME_SEED = 0
     @staticmethod

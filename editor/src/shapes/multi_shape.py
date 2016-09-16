@@ -215,7 +215,7 @@ class MultiShape(Shape):
             #    shape.set_angle(shape.get_angle()-self.get_angle())
             #else:
             #    shape.pre_angle -= self.get_angle()
-            shape.parent_shape = self
+        shape.parent_shape = self
 
         self.shapes.add(shape)
         if resize:

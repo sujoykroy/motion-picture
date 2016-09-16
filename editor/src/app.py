@@ -11,7 +11,7 @@ import settings as Settings
 from settings import EditingChoice
 from commons.draw_utils import draw_text
 from tasks import *
-from shapes import MultiShape, CurveShape
+from shapes import MultiShape, CurveShape, MultiSelectionShape
 from shape_creators import CurveShapeCreator
 
 THIS_FOLDER = os.path.dirname(__file__)
@@ -184,6 +184,10 @@ class ApplicationWindow(MasterEditor):
         self.shape_manager.combine_shapes()
         self.redraw()
 
+    def break_shape_group(self, action, parameter):
+        if self.shape_manager.break_selected_multi_shape():
+            self.redraw()
+
     def merge_shapes(self, action, parameter):
         if self.shape_manager.merge_shapes():
             self.redraw()
@@ -253,6 +257,18 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.change_shape_depth(int(parameter.get_string())):
             self.redraw()
 
+    def copy_shape_action(self, action, paramter):
+        shapes = self.shape_manager.copy_selected_shapes()
+        if shapes:
+            self.parent.copied_shapes = list(shapes)
+
+    def paste_shape_action(self, action, paramter):
+        shapes = self.parent.copied_shapes
+        if shapes:
+            for shape in shapes:
+                self.shape_manager.add_shape(shape.copy())
+            self.shape_manager.multi_shape.readjust_sizes()
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,
@@ -260,6 +276,7 @@ class Application(Gtk.Application):
                 flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
 
         self.open_filename = None
+        self.copied_shapes = []
 
         self.connect("activate", self.on_activate)
         self.connect("command-line", self.on_command_line)

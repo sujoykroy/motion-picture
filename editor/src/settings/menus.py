@@ -18,6 +18,10 @@ m.add(path="Edit/<UndoRedo>/Undo", accel="<Control>z",
       action_name="win.undo_redo", action_param="undo")
 m.add(path="Edit/<UndoRedo>/Redo", accel="<Control>Y",
       action_name="win.undo_redo", action_param="redo")
+m.add(path="Edit/Shape/Copy",
+      action_name="win.copy_shape_action")
+m.add(path="Edit/Shape/Paste",
+      action_name="win.paste_shape_action")
 m.add(path="Edit/Shape/Duplicate",
       action_name="win.duplicate_shape")
 m.add(path="Edit/Shape/Delete",
@@ -54,12 +58,12 @@ m.add(path="Shapes/<New>/Image", icon="image",
 #      action_name="win.create_new_shape", action_state="freehand")
 
 
-m.add(path="Shapes/Align/X",
-      action_name="win.align_shapes", action_param="x")
-m.add(path="Shapes/Align/Y",
-      action_name="win.align_shapes", action_param="y")
-m.add(path="Shapes/Align/XY",
-      action_name="win.align_shapes", action_param="xy")
+m.add(path="Shapes/Align/X", icon="x_align", desc="Align shapes along X-axis",
+      action_name="win.align_shapes", action_param="x", icon_scale = 1.2)
+m.add(path="Shapes/Align/Y", icon="y_align", desc="Align shapes along Y-axis",
+      action_name="win.align_shapes", action_param="y", icon_scale = 1.2)
+m.add(path="Shapes/Align/XY", icon="xy_align", desc="Align shapes along X-axis & Y-axis",
+      action_name="win.align_shapes", action_param="xy", icon_scale = 2)
 
 m.add(path="Shapes/Group/Create",
       action_name="win.create_shape_group")
@@ -68,16 +72,16 @@ m.add(path="Shapes/Group/Break",
 m.add(path="Shapes/Group/Merge",
       action_name="win.merge_shapes")
 
-m.add(path="Shapes/Convert To/Polygon",
+m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert into Polygon",
       action_name="win.convert_shape_to", action_param="polygon")
 m.add(path="Shapes/Convert To/Curve",
       action_name="win.convert_shape_to", action_param="curve")
 
-m.add(path="Edit/Preferences/Lock Movement/Shape", icon="lock_movement",
+m.add(path="Edit/Preferences/Lock Movement/Shape", icon="lock_movement", desc="Lock Shape movement",
       action_name="win.lock_shape_movement", action_state=False, icon_scale = 1.5)
-m.add(path="Edit/Preferences/Lock Movement/X", icon="x_only_movement",
+m.add(path="Edit/Preferences/Lock Movement/X", icon="x_only_movement", desc="Move along X-axis only",
       action_name="win.lock_xy_movement", action_state="x")
-m.add(path="Edit/Preferences/Lock Movement/Y", icon="y_only_movement",
+m.add(path="Edit/Preferences/Lock Movement/Y", icon="y_only_movement", desc="Move along Y-axis only",
       action_name="win.lock_xy_movement", action_state="y")
 m.add(path="Edit/Preferences/Lock Guides",
       action_name="win.lock_guides", action_state=False)
@@ -86,7 +90,8 @@ m.add(path="Edit/Preferences/Hide Control Points",
 
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape"],
-    ["Shapes/Align", "Shapes/Group", "Shapes/Convert To"],
-    ["Edit/Preferences/Lock Movement", "Edit/Shape/Flip", "Shapes/<New>", "Edit/Points"],
+    ["Shapes/Group", "Shapes/Convert To"],
+    ["Edit/Preferences/Lock Movement", "Edit/Shape/Flip", "Shapes/<New>", "Edit/Points",
+     "Shapes/Align", ],
     ["Edit/<Layer>", "Shapes/Pre-Drawn", "Edit/Preferences"]
 ]

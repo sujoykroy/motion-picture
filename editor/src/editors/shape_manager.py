@@ -100,6 +100,17 @@ class ShapeManager(object):
     def place_shape_at_zero_position(self, shape):
         shape.move_to(self.multi_shape.translation.x, self.multi_shape.translation.y)
 
+
+    def copy_selected_shapes(self):
+        if not self.shape_editor: return None
+        shapes = []
+        if isinstance(self.shape_editor.shape, MultiSelectionShape):
+            for shape in self.shape_editor.shape.shapes:
+                shapes.append(shape.copy())
+        else:
+            shapes.append(self.shape_editor.shape.copy())
+        return shapes
+
     def add_shape(self, shape):
         if not isinstance(shape, MultiSelectionShape):
             self.multi_shape.add_shape(shape)
@@ -680,3 +691,22 @@ class ShapeManager(object):
             task.save(self.doc, mega_shape)
             return True
         return False
+
+    def break_selected_multi_shape(self):
+        if not self.shape_editor: return False
+        shape = self.shape_editor.shape
+        if isinstance(shape, MultiSelectionShape): return False
+        if not isinstance(shape, MultiShape): return False
+        task = MultiShapeBreakTask(self.doc, shape)
+        freed_shapes = []
+        for child_shape_name in list(shape.shapes.names):
+            child_shape = shape.shapes[child_shape_name]
+            shape.remove_shape(child_shape)
+            child_shape.recreate_name()
+            self.multi_shape.add_shape(child_shape, transform=False, resize=False)
+            freed_shapes.append(child_shape)
+        self.remove_shape(shape)
+        self.multi_shape.readjust_sizes()
+        task.save(self.doc, self.multi_shape)
+        self.reload_shapes()
+        return True
