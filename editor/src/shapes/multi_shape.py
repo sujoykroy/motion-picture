@@ -23,23 +23,12 @@ class MultiShape(Shape):
         if anchor_at is None:
             anchor_at = Point(width*.5, height*.5)
         Shape.__init__(self,  anchor_at, border_color, border_width, fill_color, width, height)
-        self.child_scale_x = 1.
-        self.child_scale_y = 1.
         self.shapes = ShapeList()
         self.poses = dict()
         self.timelines = dict()
 
-    @classmethod
-    def get_pose_prop_names(cls):
-        prop_names = Shape.get_pose_prop_names()
-        prop_names.append("child_scale_x")
-        prop_names.append("child_scale_y")
-        return prop_names
-
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)
-        elm.attrib["child_scale_x"] = "{0}".format(self.child_scale_x)
-        elm.attrib["child_scale_y"] = "{0}".format(self.child_scale_y)
         for shape in self.shapes:
             elm.append(shape.get_xml_element())
 
@@ -67,9 +56,6 @@ class MultiShape(Shape):
         arr = Shape.get_params_array_from_xml_element(elm)
         shape = cls(*arr)
         shape.assign_params_from_xml_element(elm)
-
-        shape.child_scale_x = float(elm.attrib.get("child_scale_x", 1.))
-        shape.child_scale_y = float(elm.attrib.get("child_scale_y", 1.))
 
         for shape_element in elm.findall(Shape.TAG_NAME):
             shape_type = shape_element.attrib.get("type", None)
@@ -117,8 +103,6 @@ class MultiShape(Shape):
     def copy(self, copy_name=False, copy_shapes=True):
         newob = MultiShape(anchor_at=self.anchor_at.copy(), width=self.width, height=self.height)
         Shape.copy_into(self, newob, copy_name=copy_name)
-        newob.child_scale_x = self.child_scale_x
-        newob.child_scale_y = self.child_scale_y
         if copy_shapes:
             for shape in self.shapes:
                 child_shape = shape.copy(copy_name=True)
@@ -220,7 +204,7 @@ class MultiShape(Shape):
         elif hasattr(self, prop_name):
             setattr(self, prop_name, value)
 
-    def add_shape(self, shape, transform=True):
+    def add_shape(self, shape, transform=True, resize=True):
         if self.shapes.contain(shape): return
         if transform:
             shape_abs_anchor_at = shape.get_abs_anchor_at()
@@ -234,7 +218,8 @@ class MultiShape(Shape):
             shape.parent_shape = self
 
         self.shapes.add(shape)
-        self.readjust_sizes()
+        if resize:
+            self.readjust_sizes()
 
     def readjust_sizes(self):
         outline = None
@@ -268,7 +253,7 @@ class MultiShape(Shape):
         matrix.scale(self.post_scale_x, self.post_scale_y)
         return matrix
 
-    def remove_shape(self, shape):
+    def remove_shape(self, shape, resize=True):
         abs_outline = shape.get_abs_outline(0)
         shape_abs_anchor_at = shape.get_abs_anchor_at()
         old_translation_point = shape.translation.copy()
@@ -298,7 +283,8 @@ class MultiShape(Shape):
         shape.move_to(point.x, point.y)
 
         self.shapes.remove(shape)
-        self.readjust_sizes()
+        if resize:
+            self.readjust_sizes()
         return shape
 
     def remove_all_shapes(self):
@@ -309,29 +295,6 @@ class MultiShape(Shape):
 
     def rename_shape(self, shape, name):
         return self.shapes.rename(shape, name)
-
-    def resize_width1(self, old_width, increment):
-        self.post_scale_x =(1+ float(increment)/old_width)
-        print increment, old_width
-
-    def resize_height1(self, old_height, increment):
-        self.post_scale_y =(1+ float(increment)/old_height)
-
-    def set_width1(self, width):
-        if width <= 0: return
-        self.post_scale_x += (width-self.width)/(self.width*self.post_scale_x)
-
-    def set_height1(self, height):
-        if height <= 0: return
-        #self.post_scale_y += (height-self.height)/float(self.height)
-        #self.height = height
-
-    def _scale_shapes(self, xmult, ymult):
-        self.child_scale_x *= xmult
-        self.child_scale_y *= ymult
-        for shape in self.shapes:
-            shape.translation.x *= xmult
-            shape.translation.y *= ymult
 
     def draw(self, ctx):
         for shape in self.shapes:

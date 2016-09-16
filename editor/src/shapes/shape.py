@@ -153,7 +153,7 @@ class Shape(object):
         newob.post_scale_x = self.post_scale_x
         newob.post_scale_y = self.post_scale_y
         if copy_name:
-            newob.name = self._name
+            newob._name = self._name
         newob.parent_shape = self.parent_shape
         if all_fields:
             newob.anchor_at.copy_from(self.anchor_at)

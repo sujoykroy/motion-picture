@@ -44,7 +44,11 @@ class ShapeState(object):
 
         if is_leaf:
             if isinstance(shape, MultiSelectionShape):
-                for leaf_shape in shape.shapes:
+                shape = shape.copy(copy_name=True)
+                for leaf_shape_name in list(shape.shapes.names):
+                    leaf_shape = shape.shapes[leaf_shape_name]
+                    shape.remove_shape(leaf_shape, resize=False)
+
                     props = dict()
                     self.save_props(props, leaf_shape, self.NON_COMMUTATIVE_PROP_NAMES)
                     self.save_props(props, leaf_shape, self.COMMUTATIVE_PROP_NAMES)

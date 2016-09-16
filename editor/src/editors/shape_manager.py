@@ -368,9 +368,7 @@ class ShapeManager(object):
                     else:
                         multi_selection_shape = self.shape_editor.shape
 
-                    print shape
                     if multi_selection_shape.shapes.contain(shape):
-                        print "got"
                         multi_selection_shape.remove_shape(shape)
                         if len(multi_selection_shape.shapes)==1:
                             shapes = multi_selection_shape.remove_all_shapes()
