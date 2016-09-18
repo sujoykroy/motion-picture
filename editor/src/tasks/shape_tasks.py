@@ -6,9 +6,9 @@ import cairo
 class ShapeState(object):
     NON_COMMUTATIVE_PROP_NAMES = ["anchor_at",
             "scale_x", "scale_y", "post_scale_x", "post_scale_y",
-            "width", "height", "angle", "pre_matrix", "translation"]
+            "width", "height", "angle", "pre_matrix", "translation", "shapes"]
     COMMUTATIVE_PROP_NAMES = ["border_color", "border_width", "fill_color",
-                              "curves", "polygons", "shapes",]
+                              "curves", "polygons"]
 
     def __init__(self, doc, shape, is_leaf=True):
         self.ancestral_shapes_props = OrderedDict()

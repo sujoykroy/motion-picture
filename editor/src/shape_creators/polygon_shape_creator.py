@@ -69,7 +69,7 @@ class PolygonShapeCreator(object):
         if abs(dx)<spread and abs(dy)<spread:
             self.polygon.set_closed(True)
             self.polygon.points[-1].copy_from(self.polygon.points[0])
-
         self.shape.fit_size_to_include_all()
+
         self.shape.anchor_at.x = self.shape.width*.5
         self.shape.anchor_at.y = self.shape.height*.5

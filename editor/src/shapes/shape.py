@@ -220,7 +220,7 @@ class Shape(object):
     def set_fill_color(self, color):
         if color is None:
             self.fill_color = None
-        else:
+        elif self.fill_color:
             self.fill_color.copy_from(color)
 
     def get_fill_color(self):
@@ -492,8 +492,6 @@ class Shape(object):
     def recreate_name(self):
         self._name = self.new_name()
 
-    def rename(self, new_name):
-        self._name = new_name
 
     NAME_SEED = 0
     @staticmethod

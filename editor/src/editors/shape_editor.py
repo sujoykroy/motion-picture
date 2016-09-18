@@ -420,6 +420,15 @@ class ShapeEditor(object):
                 self.selected_edit_boxes[1].is_start
             )
 
+    def align_points(self, x_dir, y_dir):
+        for i in range(1, len(self.selected_edit_boxes), 1):
+            edit_box = self.selected_edit_boxes[i]
+            if x_dir:
+                edit_box.point.x = self.selected_edit_boxes[0].point.x
+            if y_dir:
+                edit_box.point.y = self.selected_edit_boxes[0].point.y
+            edit_box.update()
+
     def delete_point(self):
         if not (isinstance(self.shape, CurveShape) or \
                 isinstance(self.shape, PolygonShape)): return False

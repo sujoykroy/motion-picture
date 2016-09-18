@@ -196,6 +196,11 @@ class PolygonShape(Shape):
             else:
                 outline.expand_include(polygon.get_outline())
         if not outline: return
+        if outline.width==0.:
+            outline.width=1./self.width
+        if outline.height==0.:
+            outline.height=1./self.height
+
         abs_anchor_at = self.get_abs_anchor_at()
         self.anchor_at.translate(-self.width*outline.left, -self.height*outline.top)
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)

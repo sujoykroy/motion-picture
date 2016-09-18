@@ -1,26 +1,26 @@
 from ..gui_utils.menu_builder import *
 
 TopMenuItem = m = TopMenu("menubar")
-m.add(path="File/New/Icon",
+m.add(path="File/New/Icon", icon="file_new_icon", desc="Create New Icon",
       action_name="app.create_new_document", action_param="400x400")
-m.add(path="File/New/Document",
+m.add(path="File/New/Document", icon="file_new_document", desc="Create New Document",
       action_name="app.create_new_document", action_param="400x300")
 
-m.add(path="File/<Open>/Open",
-      action_name="app.open_document", action_param="")
+m.add(path="File/<Open>/Open", icon="file_open", desc="Open file",
+      action_name="app.open_document", action_param="", accel="<Control>o")
 m.add(path="File/<Open>/Open Recent")
-m.add(path="File/<Open>/Save", accel="<Control>s",
+m.add(path="File/<Open>/Save", accel="<Control>s", icon="file_save", desc="Save file",
       action_name="win.save_document")
-m.add(path="File/<Open>/Save As", accel="<Shift><Control>s",
-      action_name="win.save_as_document")
+m.add(path="File/<Open>/Save As", accel="<Shift><Control>s", icon="file_save_as",
+      action_name="win.save_as_document", desc="Save file as")
 
 m.add(path="Edit/<UndoRedo>/Undo", accel="<Control>z",
       action_name="win.undo_redo", action_param="undo")
 m.add(path="Edit/<UndoRedo>/Redo", accel="<Control>Y",
       action_name="win.undo_redo", action_param="redo")
-m.add(path="Edit/Shape/Copy",
+m.add(path="Edit/Shape/Copy", icon="copy_shape",
       action_name="win.copy_shape_action")
-m.add(path="Edit/Shape/Paste",
+m.add(path="Edit/Shape/Paste", icon="paste_shape",
       action_name="win.paste_shape_action")
 m.add(path="Edit/Shape/Duplicate",
       action_name="win.duplicate_shape")
@@ -48,10 +48,10 @@ m.add(path="Shapes/<New>/Rectangle", icon="rectangle",
       action_name="win.create_new_shape", action_state="rect")
 m.add(path="Shapes/<New>/Oval", icon="oval",
       action_name="win.create_new_shape", action_state="oval")
-m.add(path="Shapes/<New>/Curve", icon="curve",
-      action_name="win.create_new_shape", action_state="curve")
 m.add(path="Shapes/<New>/Polygon", icon="polygon",
       action_name="win.create_new_shape", action_state="polygon")
+m.add(path="Shapes/<New>/Curve", icon="curve",
+      action_name="win.create_new_shape", action_state="curve")
 m.add(path="Shapes/<New>/Image", icon="image",
       action_name="win.create_new_shape", action_state="image")
 #m.add(path="Shapes/<New>/Freehand", icon="image",
@@ -73,16 +73,16 @@ m.add(path="Shapes/Group/Merge",
       action_name="win.merge_shapes")
 
 m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert into Polygon",
-      action_name="win.convert_shape_to", action_param="polygon")
-m.add(path="Shapes/Convert To/Curve",
-      action_name="win.convert_shape_to", action_param="curve")
+      action_name="win.convert_shape_to", action_param="polygon", icon_scale=1.2)
+m.add(path="Shapes/Convert To/Curve", icon="convert_to_curve", desc="Convert into Curve",
+      action_name="win.convert_shape_to", action_param="curve", icon_scale=1.2)
 
 m.add(path="Edit/Preferences/Lock Movement/Shape", icon="lock_movement", desc="Lock Shape movement",
       action_name="win.lock_shape_movement", action_state=False, icon_scale = 1.5)
 m.add(path="Edit/Preferences/Lock Movement/X", icon="x_only_movement", desc="Move along X-axis only",
-      action_name="win.lock_xy_movement", action_state="x")
+      action_name="win.lock_xy_movement", action_state="x", accel="<Control>w")
 m.add(path="Edit/Preferences/Lock Movement/Y", icon="y_only_movement", desc="Move along Y-axis only",
-      action_name="win.lock_xy_movement", action_state="y")
+      action_name="win.lock_xy_movement", action_state="y", accel="<Control>e")
 m.add(path="Edit/Preferences/Lock Guides",
       action_name="win.lock_guides", action_state=False)
 m.add(path="Edit/Preferences/Hide Control Points",
@@ -90,8 +90,8 @@ m.add(path="Edit/Preferences/Hide Control Points",
 
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape"],
-    ["Shapes/Group", "Shapes/Convert To"],
+    ["Shapes/Group"],
     ["Edit/Preferences/Lock Movement", "Edit/Shape/Flip", "Shapes/<New>", "Edit/Points",
-     "Shapes/Align", ],
+     "Shapes/Align", "Shapes/Convert To"],
     ["Edit/<Layer>", "Shapes/Pre-Drawn", "Edit/Preferences"]
 ]

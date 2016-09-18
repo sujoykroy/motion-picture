@@ -325,13 +325,13 @@ class MasterEditor(Gtk.ApplicationWindow):
                 if double_click_handled:
                     return
 
-            doc_point, shape_point = self.get_doc_and_multi_shape_point(self.mouse_point)
             if self.state_mode == MODE_NEW_SHAPE_CREATE and self.shape_manager.shape_creator is None:
+                    doc_point, shape_point = self.get_doc_and_multi_shape_point(self.mouse_point)
                     self.shape_manager.start_creating_new_shape(
                                     self.next_new_shape_type, doc_point, shape_point)
                     self.state_mode = None
             else:
-                self.shape_manager.select_item_at(doc_point, shape_point,
+                self.shape_manager.select_item_at(self.mouse_point.copy(),
                         multi_select=self.keyboard_object.shift_key_pressed,
                         box_select=self.keyboard_object.control_key_pressed)
                 if self.shape_manager.get_selected_edit_box() is not None:
@@ -351,19 +351,9 @@ class MasterEditor(Gtk.ApplicationWindow):
     def on_drawing_area_mouse_move(self, widget, event):
         self.mouse_point.x = event.x
         self.mouse_point.y = event.y
-        if self.drawing_area_mouse_pressed or self.shape_manager.shape_creator is not None:
-            mouse_start_point = self.mouse_init_point.copy()
-            mouse_end_point = self.mouse_point.copy()
-            if EditingChoice.LOCK_XY_MOVEMENT:
-                if EditingChoice.LOCK_XY_MOVEMENT == "y":
-                    mouse_end_point.x = mouse_start_point.x
-                elif EditingChoice.LOCK_XY_MOVEMENT == "x":
-                    mouse_end_point.y = mouse_start_point.y
 
-            doc_start_point, shape_start_point = self.get_doc_and_multi_shape_point(mouse_start_point)
-            doc_end_point, shape_end_point = self.get_doc_and_multi_shape_point(mouse_end_point)
-            self.shape_manager.move_active_item(
-                    doc_start_point, doc_end_point, shape_start_point, shape_end_point)
+        if self.drawing_area_mouse_pressed or self.shape_manager.shape_creator is not None:
+            self.shape_manager.move_active_item(self.mouse_init_point.copy(), self.mouse_point.copy())
             self.drawing_area.queue_draw()
 
     def on_drawing_area_scroll(self, scrollbar, scroll_dir):

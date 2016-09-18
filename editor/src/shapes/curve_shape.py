@@ -385,6 +385,7 @@ class CurveShape(Shape):
         curve_shape.fit_size_to_include_all()
         return curve_shape
 
+    @staticmethod
     def create_from_oval_shape(oval_shape):
         curve_shape = CurveShape(Point(0,0), None, None, None, None, None)
         k = .5522847498*.5#magic number
@@ -396,6 +397,32 @@ class CurveShape(Shape):
         ]
         curve_shape.curves.append(Curve(origin=Point(.5, 0.), bezier_points=bezier_points, closed=True))
         oval_shape.copy_into(curve_shape, all_fields=True, copy_name=True)
+        curve_shape.fit_size_to_include_all()
+        return curve_shape
+
+    @staticmethod
+    def create_from_polygon_shape(polygon_shape):
+        curve_shape = CurveShape(Point(0,0), None, None, None, None, None)
+        for polygon in polygon_shape.polygons:
+            curve = None
+            for i in range(len(polygon.points)):
+                point = polygon.points[i]
+                if i == 0:
+                    curve = Curve(origin=point.copy())
+                else:
+                    bzp = BezierPoint(
+                        control_1 = point.copy(), control_2 = point.copy(), dest = point.copy())
+                    curve.add_bezier_point(bzp)
+                    bzp.align_straigh_with(polygon.points[i-1])
+            curve.closed = polygon.closed
+            if polygon.closed:
+                point = polygon.points[0]
+                bzp = BezierPoint(
+                        control_1 = point.copy(), control_2 = point.copy(), dest = point.copy())
+                curve.add_bezier_point(bzp)
+                bzp.align_straigh_with(polygon.points[-1])
+            curve_shape.curves.append(curve)
+        polygon_shape.copy_into(curve_shape, all_fields=True, copy_name=True)
         curve_shape.fit_size_to_include_all()
         return curve_shape
 

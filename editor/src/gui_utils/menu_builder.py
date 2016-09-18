@@ -131,6 +131,8 @@ class MenuItem(object):
         self.accel = accel
         self.icon = icon
         self.state = state
+        if self.target is None:
+            self.target = self.state
         self.icon_scale = 1.
         self.desc = None
 
@@ -139,7 +141,7 @@ class MenuItem(object):
         lines.append("<item>")
         lines.append(create_attribute_xml("label", self.label))
         lines.append(create_attribute_xml("action", self.action))
-        if self.target:
+        if self.target is not None:
             lines.append(create_attribute_xml("target", self.target))
         if self.accel:
             lines.append(create_attribute_xml("accel",

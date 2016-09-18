@@ -37,6 +37,7 @@ class ShapeList(object):
             del self.items[shape._name]
             self.items[new_name] = shape
             shape._name = new_name
+            return True
         elif  self.items[new_name] == shape:
             return True
         return False

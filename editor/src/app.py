@@ -28,7 +28,8 @@ def new_action(parent, menu_item):
         else:
             action = Gio.SimpleAction.new_stateful(action_name,
                                     parameter_type=parameter_type, state=state)
-            action.connect("change_state", getattr(parent, action_name))
+            action.connect("activate", getattr(parent, action_name))
+            #action.connect("change_state", getattr(parent, action_name))
             action.tool_buttons = []
             action.menu_item = menu_item
         parent.add_action(action)
@@ -38,12 +39,13 @@ def change_action_tool_buttons(action):
     for tool_button in action.tool_buttons:
         if not isinstance(tool_button, Gtk.ToggleToolButton): continue
         action_state = action.get_state()
-        menu_item = action.menu_item
+        menu_item = tool_button.menu_item
         if menu_item.is_boolean_stateful():
             is_active = action_state.get_boolean()
         elif menu_item.is_string_stateful():
             is_active = (tool_button.action_state_value == action_state.get_string())
-        tool_button.props.active = is_active
+        if tool_button.props.active != is_active:
+            tool_button.props.active = is_active
 
 class ApplicationWindow(MasterEditor):
     def __init__(self, parent):
@@ -94,6 +96,7 @@ class ApplicationWindow(MasterEditor):
                         tool_button.props.active = action_state_value
                     else:
                         tool_button = Gtk.ToolButton.new(tool_widget, menu_item.label)
+                    tool_button.menu_item = menu_item
                     tool_button.set_tooltip_text(menu_item.get_tooltip_text())
 
                     tool_button.connect("clicked", self.tool_button_clicked, menu_item)
@@ -114,9 +117,10 @@ class ApplicationWindow(MasterEditor):
                     action.change_state(GLib.Variant.new_boolean(widget.get_active()))
                 else:
                     if widget.get_active():
-                        action.change_state(widget.action_variant_state_value)
-                    else:
-                        action.change_state(GLib.Variant.new_string(""))
+                        if not action.get_state().equal(widget.action_variant_state_value):
+                            action.activate(widget.action_variant_state_value)
+                    elif action.get_state().equal(widget.action_variant_state_value):
+                        action.activate(GLib.Variant.new_string(""))
 
     def save_document(self, action, parameter):
         if not self.doc.filename:
@@ -238,6 +242,8 @@ class ApplicationWindow(MasterEditor):
         change_action_tool_buttons(action)
 
     def lock_xy_movement(self, action, parameter):
+        if EditingChoice.LOCK_XY_MOVEMENT == parameter.get_string():
+            parameter = GLib.Variant.new_string("")
         action.set_state(parameter)
         EditingChoice.LOCK_XY_MOVEMENT = parameter.get_string()
         change_action_tool_buttons(action)
@@ -322,6 +328,8 @@ class Application(Gtk.Application):
         for menu_item in self.menubar.menu_items.values():
             if not menu_item.is_window_action(): continue
             new_action(win, menu_item)
+
+        win.lookup_action("create_new_shape").set_state(GLib.Variant.new_string(""))
 
         win.build_toolbar(self.menubar)
         self.add_window(win)
