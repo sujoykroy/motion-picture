@@ -91,6 +91,5 @@ m.add(path="Edit/Preferences/Hide Control Points", icon="hide_control_points",
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement", "Edit/Preferences" ],
     ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>", "Edit/Points",
-     "Shapes/Align", "Shapes/Convert To"],
-    ["Shapes/Pre-Drawn"]
+     "Shapes/Align", "Shapes/Convert To", "Shapes/Pre-Drawn"],
 ]

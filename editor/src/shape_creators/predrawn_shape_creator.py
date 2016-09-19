@@ -1,10 +1,13 @@
 from ..commons import *
-from ..shapes import RectEditBox
+from ..shapes import RectEditBox, MultiShape
 from rectangle_shape_creator import RectangleShapeCreator
 
 class PredrawnShapeCreator(RectangleShapeCreator):
     def __init__(self, point, document):
-        self.shape = document.main_multi_shape.copy()
+        if len(document.main_multi_shape.shapes)> 1:
+            self.shape = document.main_multi_shape.copy()
+        else:
+            self.shape = document.main_multi_shape.shapes.get_at_index(0)
         self.shape.anchor_at.x = 0
         self.shape.anchor_at.y = 0
 
@@ -13,12 +16,6 @@ class PredrawnShapeCreator(RectangleShapeCreator):
         self.edit_boxes = []
         self.edit_boxes.append(RectEditBox(Point(0, 0), width=5, height=5, is_percent = False))
         self.edit_boxes.append(RectEditBox(Point(0, 0), width=5, height=5, is_percent = False))
-
-    def _resize(self):
-        self.shape.width = self.init_shape.width
-        self.shape.height = self.init_shape.height
-        self.shape.anchor_at.x = 0
-        self.shape.anchor_at.y = 0
 
     def do_movement (self, start_point, end_point):
         self.edit_boxes[0].set_point(start_point)
@@ -33,8 +30,14 @@ class PredrawnShapeCreator(RectangleShapeCreator):
         if abs(diff_point.y) ==0:
             diff_point.y = 1.
 
-        self.shape.post_scale_x = self.init_shape.post_scale_x*(abs(diff_point.x)/self.init_shape.width)
-        self.shape.post_scale_y = self.init_shape.post_scale_y*(abs(diff_point.y)/self.init_shape.height)
+        if isinstance(self.shape, MultiShape):
+            self.shape.post_scale_x = self.init_shape.post_scale_x*\
+                        (abs(diff_point.x)/self.init_shape.width)
+            self.shape.post_scale_y = self.init_shape.post_scale_y*\
+                    (abs(diff_point.y)/self.init_shape.height)
+        else:
+            self.shape.set_width(abs(diff_point.x))
+            self.shape.set_height(abs(diff_point.y))
 
         if diff_point.x>0:
             mx = start_point.x+self.shape.anchor_at.x
