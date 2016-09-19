@@ -300,12 +300,6 @@ class Shape(object):
             self.pre_matrix = cairo.Matrix()
         self.pre_matrix = self.pre_matrix*matrix
 
-    def resize_width(self, old_width, increment):
-        self.width = old_width + increment
-
-    def resize_height(self, old_height, increment):
-        self.height = old_height + increment
-
     def set_angle(self, angle):
         rel_left_top_corner = Point(-self.anchor_at.x, -self.anchor_at.y)
         rel_left_top_corner.scale(self.post_scale_x, self.post_scale_y)

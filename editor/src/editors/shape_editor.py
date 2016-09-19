@@ -14,6 +14,7 @@ RESIZING_TOP = "RESIZING_TOP"
 RESIZING_RIGHT = "RESIZING_RIGHT"
 RESIZING_BOTTOM = "RESIZING_BOTTOM"
 RESIZING_LEFT = "RESIZING_LEFT"
+RESIZING_BOTTOM_RIGHT = "RESIZING_BOTTOM_RIGHT"
 ANCHOR = "ANCHOR"
 
 SELECTED_EDIT_BOX_COLOR = Color.from_html("00b100")
@@ -77,8 +78,8 @@ class ShapeEditor(object):
                     OUTER, ROTATION_TOP_LEFT, self.rotation_edit_boxes)
         self.new_edit_box(OvalEditBox(Point(1.0, 0.0), offset=Point(margin, -margin)),
                     OUTER, ROTATION_TOP_RIGHT, self.rotation_edit_boxes)
-        self.new_edit_box(OvalEditBox(Point(1.0, 1.0), offset=Point(margin, margin)),
-                    OUTER, ROTATION_BOTTOM_RIGHT, self.rotation_edit_boxes)
+        #self.new_edit_box(OvalEditBox(Point(1.0, 1.0), offset=Point(margin, margin)),
+        #            OUTER, ROTATION_BOTTOM_RIGHT, self.rotation_edit_boxes)
         self.new_edit_box(OvalEditBox(Point(0.0, 1.0), offset=Point(-margin, margin)),
                     OUTER, ROTATION_LEFT_BOTTOM, self.rotation_edit_boxes)
 
@@ -90,6 +91,9 @@ class ShapeEditor(object):
                           OUTER, RESIZING_BOTTOM)
         self.new_edit_box(RectEditBox(Point(0.0, 0.5), angle=270, offset=Point(-margin, 0)),
                           OUTER, RESIZING_LEFT)
+        self.new_edit_box(RectEditBox(Point(1.0, 1.0), angle=0,
+                          offset=Point(margin, margin), height=10.),
+                          OUTER, RESIZING_BOTTOM_RIGHT)
 
         self.new_edit_box(AnchorEditBox(self.shape), INNER, ANCHOR)
 
@@ -308,13 +312,14 @@ class ShapeEditor(object):
                         self.shape.post_scale_y = self.init_shape.post_scale_y * \
                         ((self.init_shape.height+rel_dpoint.y)/self.init_shape.height)
                     else:
-                        self.shape.resize_height(self.init_shape.height, rel_dpoint.y)
+                        self.shape.set_height(self.init_shape.height+rel_dpoint.y)
 
                 elif edit_box == self.named_edit_boxes[RESIZING_RIGHT]:
                     if isinstance(self.shape, MultiShape):
                         self.shape.post_scale_x = self.init_shape.post_scale_x * \
                         ((self.init_shape.width+rel_dpoint.x)/self.init_shape.width)
-                        self.shape.anchor_at.x = self.init_shape.anchor_at.x *self.init_shape.post_scale_x/self.shape.post_scale_x
+                        self.shape.anchor_at.x = self.init_shape.anchor_at.x * \
+                            (self.init_shape.post_scale_x/self.shape.post_scale_x)
                     else:
                         self.shape.set_width(self.init_shape.width+rel_dpoint.x)
 
@@ -345,6 +350,22 @@ class ShapeEditor(object):
                         self.shape.anchor_at.x = self.init_shape.anchor_at.x - rel_dpoint.x
                         self.shape.set_width(self.init_shape.width-rel_dpoint.x)
                     self.shape.move_to(init_abs_anchor_at.x, init_abs_anchor_at.y)
+
+                elif edit_box == self.named_edit_boxes[RESIZING_BOTTOM_RIGHT]:
+                    if isinstance(self.shape, MultiShape):
+                        self.shape.post_scale_x = self.init_shape.post_scale_x * \
+                        ((self.init_shape.width+rel_dpoint.x)/self.init_shape.width)
+                        self.shape.anchor_at.x = self.init_shape.anchor_at.x *\
+                            (self.init_shape.post_scale_x/self.shape.post_scale_x)
+
+                        self.shape.post_scale_y = self.init_shape.post_scale_y * \
+                            ((self.init_shape.height+rel_dpoint.y)/self.init_shape.height)
+                        self.shape.anchor_at.y = self.init_shape.height-\
+                            (self.init_shape.height-self.init_shape.anchor_at.y)*\
+                            (self.init_shape.post_scale_y/self.shape.post_scale_y)
+                    else:
+                        self.shape.set_width(self.init_shape.width+rel_dpoint.x)
+                        self.shape.set_height(self.init_shape.height+rel_dpoint.y)
 
                 elif edit_box == self.named_edit_boxes[ANCHOR]:
                     edit_box.move_offset(rel_dpoint.x, rel_dpoint.y)

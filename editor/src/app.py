@@ -274,6 +274,7 @@ class ApplicationWindow(MasterEditor):
             for shape in shapes:
                 self.shape_manager.add_shape(shape.copy())
             self.shape_manager.multi_shape.readjust_sizes()
+            self.redraw()
 
 class Application(Gtk.Application):
     def __init__(self):

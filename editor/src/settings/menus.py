@@ -18,22 +18,22 @@ m.add(path="Edit/<UndoRedo>/Undo", accel="<Control>z",
       action_name="win.undo_redo", action_param="undo")
 m.add(path="Edit/<UndoRedo>/Redo", accel="<Control>Y",
       action_name="win.undo_redo", action_param="redo")
-m.add(path="Edit/Shape/Copy", icon="copy_shape",
+m.add(path="Edit/Shape/Copy", icon="copy_shape", accel="<Control>c",
       action_name="win.copy_shape_action")
-m.add(path="Edit/Shape/Paste", icon="paste_shape",
+m.add(path="Edit/Shape/Paste", icon="paste_shape", accel="<Control>v",
       action_name="win.paste_shape_action")
-m.add(path="Edit/Shape/Duplicate",
-      action_name="win.duplicate_shape")
-m.add(path="Edit/Shape/Delete",
+m.add(path="Edit/Shape/Delete", icon="delete_shape",
       action_name="win.delete_shape")
+m.add(path="Edit/Shape/Duplicate", icon="duplicate_shape", accel="<Control>b",
+      action_name="win.duplicate_shape")
 m.add(path="Edit/Shape/Flip/Flip X", icon="flip_x",
       action_name="win.flip_shape", action_param="x")
 m.add(path="Edit/Shape/Flip/Flip Y", icon="flip_y",
       action_name="win.flip_shape", action_param="y")
-m.add(path="Edit/<Layer>/Layer Up",
-      action_name="win.change_shape_depth", action_param="1")
-m.add(path="Edit/<Layer>/Layer Down",
-      action_name="win.change_shape_depth", action_param="-1")
+m.add(path="Edit/<Layer>/Layer Up", icon="layer_up", desc="Move shape layer up",
+      action_name="win.change_shape_depth", action_param="1", icon_scale=2.)
+m.add(path="Edit/<Layer>/Layer Down", icon="layer_down", desc="Move shape layer down",
+      action_name="win.change_shape_depth", action_param="-1", icon_scale=2.)
 
 m.add(path="Edit/Points/Join", icon="join_points", desc="Join points together",
       action_name="win.join_points_of_shape")
@@ -65,12 +65,12 @@ m.add(path="Shapes/Align/Y", icon="y_align", desc="Align shapes along Y-axis",
 m.add(path="Shapes/Align/XY", icon="xy_align", desc="Align shapes along X-axis & Y-axis",
       action_name="win.align_shapes", action_param="xy", icon_scale = 2)
 
-m.add(path="Shapes/Group/Create",
-      action_name="win.create_shape_group")
-m.add(path="Shapes/Group/Break",
-      action_name="win.break_shape_group")
-m.add(path="Shapes/Group/Merge",
-      action_name="win.merge_shapes")
+m.add(path="Shapes/Group/Create", icon="create_shape_group", icon_scale=1.5,
+      action_name="win.create_shape_group", desc="Combined shapes into group")
+m.add(path="Shapes/Group/Break", icon="break_shape_group", icon_scale=1.5,
+      action_name="win.break_shape_group", desc="Break shape group")
+m.add(path="Shapes/Group/Merge", icon="merge_shapes", icon_scale=1.5,
+      action_name="win.merge_shapes", desc="Merge shapes")
 
 m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert into Polygon",
       action_name="win.convert_shape_to", action_param="polygon", icon_scale=1.2)
@@ -83,15 +83,14 @@ m.add(path="Edit/Preferences/Lock Movement/X", icon="x_only_movement", desc="Mov
       action_name="win.lock_xy_movement", action_state="x", accel="<Control>w")
 m.add(path="Edit/Preferences/Lock Movement/Y", icon="y_only_movement", desc="Move along Y-axis only",
       action_name="win.lock_xy_movement", action_state="y", accel="<Control>e")
-m.add(path="Edit/Preferences/Lock Guides",
+m.add(path="Edit/Preferences/Lock Guides", icon="lock_guides",
       action_name="win.lock_guides", action_state=False)
-m.add(path="Edit/Preferences/Hide Control Points",
-      action_name="win.hide_control_points", action_state=False)
+m.add(path="Edit/Preferences/Hide Control Points", icon="hide_control_points",
+      action_name="win.hide_control_points", action_state=False, icon_scale=2.)
 
 m.tool_rows = [
-    ["File/<Open>", "File/New", "Edit/Shape"],
-    ["Shapes/Group"],
-    ["Edit/Preferences/Lock Movement", "Edit/Shape/Flip", "Shapes/<New>", "Edit/Points",
+    ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement", "Edit/Preferences" ],
+    ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>", "Edit/Points",
      "Shapes/Align", "Shapes/Convert To"],
-    ["Edit/<Layer>", "Shapes/Pre-Drawn", "Edit/Preferences"]
+    ["Shapes/Pre-Drawn"]
 ]

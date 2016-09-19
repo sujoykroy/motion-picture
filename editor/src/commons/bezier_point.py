@@ -56,7 +56,7 @@ class BezierPoint(object):
         self.dest.scale(sx ,sy)
         return self
 
-    def align_straigh_with(self, point):
+    def align_straight_with(self, point):
         f = .25
         self.control_1.x = point.x + (self.dest.x-point.x)*f
         self.control_1.y = point.y + (self.dest.y-point.y)*f

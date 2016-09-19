@@ -38,7 +38,7 @@ class RectangleShapePropBox(ShapePropBox):
     def __init__(self, draw_callback, insert_time_slice_callback):
         ShapePropBox.__init__(self, draw_callback, None, insert_time_slice_callback)
         self.add_prop("corner_radius",  PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=1, upper=1000, step_increment=1, page_increment=1, page_size=1))
+                dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
 
 class OvalShapePropBox(ShapePropBox):
     def __init__(self, draw_callback, insert_time_slice_callback):

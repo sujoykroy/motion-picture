@@ -329,14 +329,17 @@ class CurveShape(Shape):
             if curve.closed:
                 curve.bezier_points[-1].dest.copy_from(curve.origin)
         elif bezier_point_index == len(curve.bezier_points)-1:
-            del curve.bezier_points[-1]
             if curve.closed and curve.bezier_points:
+                curve.origin.copy_from(curve.bezier_points[0].dest)
                 curve.bezier_points[-1].dest.copy_from(curve.origin)
+                del curve.bezier_points[0]
+            else:
+                del curve.bezier_points[-1]
         else:
             del curve.bezier_points[bezier_point_index]
         if len(curve.bezier_points)<3:
             curve.closed = False
-        if len(curve.bezier_points)<=1:
+        if (len(curve.bezier_points)<=1 and curve.closed) or len(curve.bezier_points)==0:
             del self.curves[curve_index]
         return True
 
@@ -374,10 +377,10 @@ class CurveShape(Shape):
             curved_points[3],
             BezierPoint(control_1=p4.copy(), control_2=p4.copy(), dest=p4.copy()),
         ]
-        final_points[1].align_straigh_with(final_points[0].dest)
-        final_points[3].align_straigh_with(final_points[2].dest)
-        final_points[5].align_straigh_with(final_points[4].dest)
-        final_points[7].align_straigh_with(final_points[6].dest)
+        final_points[1].align_straight_with(final_points[0].dest)
+        final_points[3].align_straight_with(final_points[2].dest)
+        final_points[5].align_straight_with(final_points[4].dest)
+        final_points[7].align_straight_with(final_points[6].dest)
         curve_shape.curves.append(Curve(
                 origin=Point(1.-crsx, 0),
                 bezier_points=final_points, closed=True))
