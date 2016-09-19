@@ -5,6 +5,8 @@ from ..commons import *
 from ..commons.draw_utils import *
 from ..time_line_boxes import *
 
+from ..gui_utils import buttons
+
 EDITOR_LINE_COLOR = "ff0000"
 TIME_SLICE_START_X = PropTimeLineBox.TOTAL_LABEL_WIDTH + SHAPE_LINE_LEFT_PADDING
 
@@ -149,9 +151,9 @@ class TimeLineEditor(Gtk.VBox):
 
         self.play_head_time_label = Gtk.Label()
         self.play_head_time_label.set_size_request(100, -1)
-        info_hbox.pack_start(self.play_head_time_label, expand=False, fill=False, padding=5)
+        info_hbox.pack_end(self.play_head_time_label, expand=False, fill=False, padding=5)
 
-        self.play_button = Gtk.Button("Play")
+        self.play_button = buttons.create_new_image_button("play")
         self.play_button.connect("clicked", self.on_play_pause_button_click, True)
         info_hbox.pack_end(self.play_button, expand=False, fill=False, padding=5)
         self.pause_button = Gtk.Button("Pause")
@@ -304,12 +306,15 @@ class TimeLineEditor(Gtk.VBox):
                     break
 
     def on_play_pause_button_click(self, widget, play):
-        was_playing = self.is_playing
-        if not self.is_playing:
-            self.last_play_updated_at = 0
-        self.is_playing = play
-        if not was_playing:
-            self.timer_id = GObject.timeout_add(100, self.on_playing_timer_movement)
+        if self.time_line.duration == 0:
+            self.is_playing = False
+        else:
+            was_playing = self.is_playing
+            if not self.is_playing:
+                self.last_play_updated_at = 0
+            self.is_playing = play
+            if not was_playing:
+                self.timer_id = GObject.timeout_add(100, self.on_playing_timer_movement)
         if self.is_playing:
             self.play_button.hide()
             self.pause_button.show()
