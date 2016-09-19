@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 import os, math, cairo
 
 from ..shapes import *
@@ -330,6 +330,7 @@ class MasterEditor(Gtk.ApplicationWindow):
                     self.shape_manager.start_creating_new_shape(
                                     self.next_new_shape_type, doc_point, shape_point)
                     self.state_mode = None
+                    self.lookup_action("create_new_shape").activate(GLib.Variant.new_string(""))
             else:
                 self.shape_manager.select_item_at(self.mouse_point.copy(),
                         multi_select=self.keyboard_object.shift_key_pressed,

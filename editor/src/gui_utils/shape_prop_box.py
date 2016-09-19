@@ -11,6 +11,7 @@ PROP_TYPE_POINT = 4
 class ShapePropBox(Gtk.VBox):
     def __init__(self, draw_callback, shape_name_checker, insert_time_slice_callback):
         Gtk.VBox.__init__(self)
+        self.set_name("propbox")
         self.prop_boxes = dict()
         self.prop_object = None
         self.draw_callback = draw_callback
@@ -53,9 +54,11 @@ class ShapePropBox(Gtk.VBox):
             point_entry = Gtk.Entry()
             point_entry.connect("changed", self.point_entry_value_changed, prop_name)
             prop_widget = point_entry
+            point_entry.props.width_chars = 10
         elif value_type == PROP_TYPE_NAME_ENTRY:
             can_insert_slice = False
             entry = Gtk.Entry()
+            entry.props.width_chars = 10
             entry.connect("activate", self.shape_name_entry_activated, prop_name)
             prop_widget = entry
         elif value_type == PROP_TYPE_TEXT_LIST:
@@ -65,12 +68,21 @@ class ShapePropBox(Gtk.VBox):
 
         prop_widget.value_type = value_type
 
-        label = Gtk.Label(prop_name)
-        label.set_size_request(50, -1)
-        prop_widget.set_size_request(150, -1)
+        label_words = prop_name.replace("_", " ").split(" ")
+        for i in range(len(label_words)):
+            label_words[i] = label_words[i][0].upper() + label_words[i][1:]
+
+        label_box = Gtk.HBox()
+        label_box.set_name("label_box")
+        label_box.set_size_request(100, -1)
+        label = Gtk.Label(" ".join(label_words))
+        label.set_halign(Gtk.Align.START)
+        label_box.pack_start(label, expand=False, fill=False, padding =0)
+
+        prop_widget.set_size_request(130, -1)
 
         hbox = Gtk.HBox()
-        hbox.pack_start(label, expand=False, fill=False, padding =0)
+        hbox.pack_start(label_box, expand=False, fill=False, padding = 5)
         hbox.pack_start(prop_widget, expand=False, fill=False, padding =5)
 
         if can_insert_slice:
@@ -78,7 +90,7 @@ class ShapePropBox(Gtk.VBox):
             insert_slice_button.connect("clicked", self.insert_slice_button_clicked, prop_name)
             hbox.pack_start(insert_slice_button, expand=False, fill=False, padding =5)
 
-        self.pack_start(hbox, expand=False, fill=False, padding = 5)
+        self.pack_start(hbox, expand=False, fill=False, padding = 0)
         self.prop_boxes[prop_name] = prop_widget
         return prop_widget
 

@@ -143,6 +143,7 @@ class ApplicationWindow(MasterEditor):
         action.set_state(parameter)
         change_action_tool_buttons(action)
         shape_type = parameter.get_string()
+        if not shape_type: return
         if shape_type == "image":
             filename = FileOp.choose_file(self, purpose="open", file_types=[["Image", "image/*"]])
             if not filename:

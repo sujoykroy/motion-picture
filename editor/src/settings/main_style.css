@@ -1,3 +1,22 @@
+GtkBox * {
+   font-size: 10;
+}
+
+#propbox * {
+  padding-bottom:0px;
+  padding-top:0px;
+  margin:0px;
+}
+
+GtkLabel text {
+    background-color:#ffffff;
+    color: #123456;
+}
+
+GtkWindow GtkLabel {
+  background-color: #898989
+}
+
 .pane-separator{
     border-radius: 2px;
     border-width:1px;
