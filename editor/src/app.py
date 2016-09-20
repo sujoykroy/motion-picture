@@ -3,7 +3,7 @@ from gi.repository import Gdk, GdkPixbuf
 from gi.repository.GdkPixbuf import Pixbuf
 import sys, os, cairo
 
-from editors import MasterEditor
+from editors import MasterEditor, ShapeEditor
 from gui_utils import *
 from gui_utils.menu_builder import MenuItem
 from document import Document
@@ -12,6 +12,7 @@ from settings import EditingChoice
 from commons.draw_utils import draw_text
 from tasks import *
 from shapes import MultiShape, CurveShape, MultiSelectionShape
+from shapes import get_hierarchy_names, get_shape_at_hierarchy
 from shape_creators import CurveShapeCreator
 
 THIS_FOLDER = os.path.dirname(__file__)
@@ -114,7 +115,7 @@ class ApplicationWindow(MasterEditor):
                 action.activate(menu_item.get_target_value())
             else:
                 if menu_item.is_boolean_stateful():
-                    action.change_state(GLib.Variant.new_boolean(widget.get_active()))
+                    action.activate(GLib.Variant.new_boolean(widget.get_active()))
                 else:
                     if widget.get_active():
                         if not action.get_state().equal(widget.action_variant_state_value):
@@ -222,6 +223,16 @@ class ApplicationWindow(MasterEditor):
         else:
             task = self.doc.reundo.get_redo_task()
         if not task: return
+        editing_shape = None
+        editing_shape_hierarchy = None
+        if self.shape_manager.shape_editor and \
+           not isinstance(self.shape_manager.shape_editor.shape, MultiSelectionShape):
+            editing_shape = self.shape_manager.shape_editor.shape
+        elif self.shape_manager.shape_creator:
+            editing_shape = self.shape_creator.shape
+        if editing_shape:
+            editing_shape_hierarchy = get_hierarchy_names(editing_shape)
+
         self.shape_manager.delete_shape_editor()
         if isinstance(task, ShapeStateTask):
             getattr(task, urnam)(self.doc)
@@ -235,7 +246,12 @@ class ApplicationWindow(MasterEditor):
                     self.shape_manager.shape_creator = None
             else:
                 self.shape_manager.reload_shapes()
-            self.redraw()
+
+        if editing_shape_hierarchy:
+            editing_shape = get_shape_at_hierarchy(self.doc.main_multi_shape, editing_shape_hierarchy)
+            if editing_shape:
+                self.shape_manager.shape_editor = ShapeEditor(editing_shape)
+        self.redraw()
 
     def lock_shape_movement(self, action, parameter):
         action.set_state(parameter)
@@ -332,6 +348,7 @@ class Application(Gtk.Application):
             new_action(win, menu_item)
 
         win.lookup_action("create_new_shape").set_state(GLib.Variant.new_string(""))
+        win.lookup_action("lock_xy_movement").set_state(GLib.Variant.new_string(""))
 
         win.build_toolbar(self.menubar)
         self.add_window(win)

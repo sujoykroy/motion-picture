@@ -211,8 +211,53 @@ class Curve(object):
         else:
             self.bezier_points.insert(bezier_point_index+1, post_bzp)
 
-class StraightCurve(Curve):
-    def __init__(self, points):
-        Curve.__init__(self, points[0])
-        for point in points[1:]:
-            self.add_bezier_point(BezierPoint(point, point, point))
+    @staticmethod
+    def move_point_forward(point, base_point, to_point):
+        rel_point = point.diff(base_point)
+        to_distance = to_point.distance(base_point)
+        angle = rel_point.get_angle()*math.pi/180.
+        dx = to_distance*math.cos(angle)
+        dy = to_distance*math.sin(angle)
+        final_point = Point(base_point.x+dx, base_point.y + dy)
+        return final_point
+
+    def _get_avg_point(self, *points):
+        x = 0.
+        y = 0.
+        for point in points:
+            x += point.x
+            y += point.y
+        return Point(x/len(points), y/len(points))
+
+    def smoothe_out(self, task_start, task_end):
+        i = 1
+        while i<len(self.bezier_points):
+            prev_bzp = self.bezier_points[i-1]
+            cur_bzp = self.bezier_points[i]
+            if i > 1:
+                base = self.bezier_points[i-2].dest
+                ances_bzp = self.bezier_points[i-2]
+                mid_point = self._get_avg_point(
+                    ances_bzp.control_1, ances_bzp.control_2,
+                    cur_bzp.control_1, cur_bzp.control_2
+                )
+            else:
+                base = self.origin
+                mid_point = Point(
+                    (base.x+prev_bzp.dest.x+cur_bzp.dest.x)/3.,
+                    (base.y+prev_bzp.dest.y+cur_bzp.dest.y)/3.
+                )
+            prev_slope_point = prev_bzp.dest.diff(base)
+            post_slope_point = cur_bzp.control_1.diff(base)
+            pre_angle = prev_slope_point.get_angle()
+            post_angle = post_slope_point.get_angle()
+            if abs(post_angle-pre_angle)<1:
+                task = task_start()
+
+                cur_bzp.control_1.copy_from(self.move_point_forward(prev_bzp.control_1, base, mid_point))
+                cur_bzp.control_2.copy_from(self.move_point_forward(cur_bzp.control_2, cur_bzp.dest, mid_point))
+                del self.bezier_points[i-1]
+                task_end(task)
+            else:
+                base = prev_bzp.dest.copy()
+                i += 1

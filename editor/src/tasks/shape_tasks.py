@@ -1,4 +1,5 @@
 from ..shapes import get_hierarchy_names, MultiSelectionShape
+from ..shapes import PolygonShape, CurveShape
 from ..commons import OrderedDict
 from ..commons.misc import copy_list, Matrix
 import cairo
@@ -88,6 +89,8 @@ class ShapeState(object):
                 if not shape: continue
                 props = self.leaf_shapes_props[shape_name]
                 self.apply_props(props, shape)
+                if isinstance(shape, PolygonShape) or isinstance(shape, CurveShape):
+                    shape.fit_size_to_include_all()
 
     def get_parent_shape(self, doc):
         last_shape = None

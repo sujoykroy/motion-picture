@@ -274,7 +274,7 @@ class ShapeEditor(object):
         for edit_box in self.inner_edit_boxes:
             edit_box.reposition(inner_rect)
 
-        if False and isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>5:
+        if False and isinstance(self.shape, CurveShape) and len(self.shape.curves[0].bezier_points)>20:
             return
 
         if not EditingChoice.HIDE_CONTROL_POINTS:

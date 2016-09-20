@@ -1,9 +1,10 @@
 from ..commons import *
 from ..shapes import PolygonShape, OvalEditBox
+from ..shapes import CurveShape
 
 class FreehandShapeCreator(object):
     def __init__(self, point):
-        self.shape = PolygonShape(Point(0, 0), Color(0,0,0,1), 10, Color(1,1,1,0), 1, 1)
+        self.shape = CurveShape(Point(0, 0), Color(0,0,0,1), 10, Color(1,1,1,0), 1, 1)
         self.shape.move_to(point.x, point.y)
 
         self.edit_boxes = []
@@ -21,16 +22,23 @@ class FreehandShapeCreator(object):
             edit_box.reposition(rect)
 
     def begin_movement(self, point):
-        self.polygon = Polygon(points=[])
-        self.shape.polygons.append(self.polygon)
+        self.curve = Curve(origin=point.copy(), bezier_points=[])
+        self.shape.curves.append(self.curve)
         self.can_move = True
         self.do_movement(point, point)
 
     def do_movement (self, start_point, end_point):
         if not self.can_move: return
         trans_end_point = self.shape.transform_point(end_point)
-        if not self.polygon.points or trans_end_point.distance(self.polygon.points[-1])> 1:
-            self.polygon.add_point(trans_end_point.copy())
+        if not self.curve.bezier_points or \
+            trans_end_point.distance(self.curve.bezier_points[-1].dest)> 1:
+            bzp = BezierPoint(control_1=trans_end_point.copy(), control_2=trans_end_point.copy(),
+                              dest=trans_end_point.copy())
+            if self.curve.bezier_points:
+                bzp.align_straight_with(self.curve.bezier_points[-1].dest)
+            else:
+                bzp.align_straight_with(self.curve.origin)
+            self.curve.add_bezier_point(bzp)
             self.edit_boxes[0].set_point(end_point)
 
         rect = self.shape.get_outline(0)

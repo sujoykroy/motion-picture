@@ -54,8 +54,8 @@ m.add(path="Shapes/<New>/Curve", icon="curve",
       action_name="win.create_new_shape", action_state="curve")
 m.add(path="Shapes/<New>/Image", icon="image",
       action_name="win.create_new_shape", action_state="image")
-#m.add(path="Shapes/<New>/Freehand", icon="image",
-#      action_name="win.create_new_shape", action_state="freehand")
+m.add(path="Shapes/<New>/Freehand", icon="image",
+      action_name="win.create_new_shape", action_state="freehand")
 
 
 m.add(path="Shapes/Align/X", icon="x_align", desc="Align shapes along X-axis",
