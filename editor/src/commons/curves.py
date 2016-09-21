@@ -229,7 +229,7 @@ class Curve(object):
             y += point.y
         return Point(x/len(points), y/len(points))
 
-    def smoothe_out(self, task_start, task_end):
+    def smooth_out(self, angle=1., task_start=None, task_end=None):
         i = 1
         while i<len(self.bezier_points):
             prev_bzp = self.bezier_points[i-1]
@@ -251,13 +251,15 @@ class Curve(object):
             post_slope_point = cur_bzp.control_1.diff(base)
             pre_angle = prev_slope_point.get_angle()
             post_angle = post_slope_point.get_angle()
-            if abs(post_angle-pre_angle)<1:
-                task = task_start()
+            if abs(post_angle-pre_angle)<angle:
+                if task_start:
+                    task = task_start()
 
                 cur_bzp.control_1.copy_from(self.move_point_forward(prev_bzp.control_1, base, mid_point))
                 cur_bzp.control_2.copy_from(self.move_point_forward(cur_bzp.control_2, cur_bzp.dest, mid_point))
                 del self.bezier_points[i-1]
-                task_end(task)
+                if task_end:
+                    task_end(task)
             else:
                 base = prev_bzp.dest.copy()
                 i += 1

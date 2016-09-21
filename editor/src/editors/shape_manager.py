@@ -569,19 +569,19 @@ class ShapeManager(object):
             if self.current_task:
                 self.current_task.save(self.doc, self.shape_creator.shape)
                 self.current_task = None
-            if isinstance(self.shape_creator, FreehandShapeCreator):
+            #if isinstance(self.shape_creator, FreehandShapeCreator):
                 #task = ShapeStateTask(self.doc, self.shape_creator.shape)
-                for curve in self.shape_creator.shape.curves:
-                    curve.smoothe_out(self._shape_creation_task_start, self._shape_creation_task_end)
+                #for curve in self.shape_creator.shape.curves:
+                #    curve.smoothe_out(self._shape_creation_task_start, self._shape_creation_task_end)
                 #task.save(self.doc, self.shape_creator.shape)
             self.multi_shape.readjust_sizes()
             self.shape_creator = None
 
-    def _shape_creation_task_start(self):
-        return ShapeStateTask(self.doc, self.shape_creator.shape)
+    def shape_editor_task_start(self):
+        return ShapeStateTask(self.doc, self.shape_editor.shape)
 
-    def _shape_creation_task_end(self, task):
-        task.save(self.doc, self.shape_creator.shape)
+    def shape_editor_task_end(self, task):
+        task.save(self.doc, self.shape_editor.shape)
 
     def update(self):
         self.multi_shape.readjust_sizes()

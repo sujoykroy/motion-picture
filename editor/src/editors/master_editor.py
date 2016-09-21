@@ -7,6 +7,7 @@ from ..time_lines import *
 
 from ..document import Document
 from shape_manager import ShapeManager
+from shape_editor import ShapeEditor
 from time_line_editor import TimeLineEditor
 
 from .. import settings as Settings
@@ -89,6 +90,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.rectangle_shape_prop_box = RectangleShapePropBox(self.redraw, self.insert_time_slice)
         self.oval_shape_prop_box = OvalShapePropBox(self.redraw, self.insert_time_slice)
         self.multi_shape_prop_box = MultiShapePropBox(self.redraw, self.insert_time_slice)
+        self.curve_smooth_prop_box = CurveSmoothPropBox(self.recreate_shape_editor,
+                                                        self.get_shape_manager)
 
         self.left_prop_box.pack_start(self.common_shape_prop_box, expand=False, fill=False, padding=0)
         self.left_prop_box.pack_start(self.rectangle_shape_prop_box, expand=False, fill=False, padding=0)
@@ -143,6 +146,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
         self.right_prop_box.pack_start(self.shape_form_prop_box, expand=False, fill=False, padding=0)
+        self.right_prop_box.pack_start(self.curve_smooth_prop_box, expand=False, fill=False, padding=0)
 
         #self.show_all()
         #self.maximize()
@@ -252,6 +256,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.oval_shape_prop_box.hide()
         self.multi_shape_prop_box.hide()
         self.shape_form_prop_box.hide()
+        self.curve_smooth_prop_box.hide()
 
         if shape != None:
             self.common_shape_prop_box.show()
@@ -269,6 +274,10 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.shape_form_prop_box.show()
                 self.shape_form_prop_box.set_curve_shape(shape)
 
+            if isinstance(shape, CurveShape):
+                self.curve_smooth_prop_box.set_curve_shape(shape)
+                self.curve_smooth_prop_box.show()
+
     def update_drawing_area_scrollbars(self):
         w, h = self.get_drawing_area_size()
         self.shape_manager.resize_scollable_area(w, h)
@@ -279,6 +288,14 @@ class MasterEditor(Gtk.ApplicationWindow):
     def update_shape_manager(self):
         self.shape_manager.update()
         self.redraw()
+
+    def recreate_shape_editor(self):
+        if self.shape_manager.shape_editor:
+            self.shape_manager.shape_editor = ShapeEditor(self.shape_manager.shape_editor.shape)
+        self.redraw()
+
+    def get_shape_manager(self):
+        return self.shape_manager
 
     def redraw(self):
         self.drawing_area.queue_draw()

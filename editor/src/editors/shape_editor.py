@@ -206,6 +206,17 @@ class ShapeEditor(object):
                 return edit_box
         return None
 
+    def get_selected_moveable_point_indices(self):
+        items = dict()
+        if not isinstance(self.shape, CurveShape): return items
+        for edit_box in self.selected_edit_boxes:
+            if edit_box not in self.moveable_point_edit_boxes:
+                continue
+            if edit_box.curve_index not in items:
+                items[edit_box.curve_index] = dict()
+            items[edit_box.curve_index][edit_box.bezier_point_index]=edit_box.bezier_point_index
+        return items
+
     def select_items_inside_rect(self, rect):
         if not (isinstance(self.shape, CurveShape) or \
                 isinstance(self.shape, PolygonShape)): return False
