@@ -35,6 +35,9 @@ m.add(path="Edit/<Layer>/Layer Up", icon="layer_up", desc="Move shape layer up",
 m.add(path="Edit/<Layer>/Layer Down", icon="layer_down", desc="Move shape layer down",
       action_name="win.change_shape_depth", action_param="-1", icon_scale=2.)
 
+m.add(path="Edit/TimeLine/Delete Slice", icon="delete_time_slice",
+      action_name="win.delete_time_slice", desc="Delete Time Slice")
+
 m.add(path="Edit/Points/Join", icon="join_points", desc="Join points together",
       action_name="win.join_points_of_shape")
 m.add(path="Edit/Points/Break", icon="break_point", desc="Break point into two points",
@@ -89,7 +92,8 @@ m.add(path="Edit/Preferences/Hide Control Points", icon="hide_control_points",
       action_name="win.hide_control_points", action_state=False, icon_scale=2.)
 
 m.tool_rows = [
-    ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement", "Edit/Preferences" ],
+    ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement",
+     "Edit/TimeLine", "Edit/Preferences"],
     ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>", "Edit/Points",
      "Shapes/Align", "Shapes/Convert To", "Shapes/Pre-Drawn"],
 ]

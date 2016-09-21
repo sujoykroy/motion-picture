@@ -10,7 +10,7 @@ class CurveSmoothPropBox(Gtk.VBox):
 
         self.pack_start(Gtk.Label("Smoothe"), expand=False, fill=False, padding=0)
 
-        adjustment = Gtk.Adjustment(0, 0, 360, 1, 1, 1)
+        adjustment = Gtk.Adjustment(0, 0, 360, .1, 1, 1)
         self.spin_button = Gtk.SpinButton()
         self.spin_button.set_digits(2)
         self.spin_button.set_numeric(True)

@@ -278,6 +278,7 @@ class TimeLineEditor(Gtk.VBox):
 
         diff_point.translate(self.init_selected_item.left, self.init_selected_item.top)
         self.selected_item.move_to(diff_point, self.on_move_to)
+        self.time_line.get_duration()
 
     def update_slices_left(self):
         self.multi_shape_time_line_box.update_slices_container_box_left(

@@ -80,7 +80,10 @@ class TimeSliceBox(Box):
         ctx.save()
         self.pre_draw(ctx)
         draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, 0)
-        draw_fill(ctx, "eda4b5")
+        if self.highlighted:
+            draw_fill(ctx, "D6E424")
+        else:
+            draw_fill(ctx, "eda4b5")
         draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, 0)
         ctx.restore()
         draw_stroke(ctx, 1, "000000")
@@ -115,7 +118,7 @@ class TimeSliceBox(Box):
         ctx.restore()
         draw_stroke(ctx, 1, "000000")
 
-        if self.highlighted:
+        if False and self.highlighted:
             ctx.save()
             self.pre_draw(ctx)
             draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, 0)
