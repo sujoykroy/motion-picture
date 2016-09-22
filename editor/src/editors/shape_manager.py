@@ -797,3 +797,18 @@ class ShapeManager(object):
         task.save(self.doc, self.multi_shape)
         self.reload_shapes()
         return True
+
+    def save_doc(self, filename=None):
+        shapes = []
+        if self.shape_editor and isinstance(self.shape_editor.shape, MultiSelectionShape):
+            for shape in self.shape_editor.shape.shapes:
+                shapes.append(shape)
+            self.delete_shape_editor()
+
+        self.doc.save(filename)
+        if shapes:
+            multi_selection_shape = MultiSelectionShape()
+            for shape in shapes:
+                multi_selection_shape.add_shape(shape)
+            self.add_shape(multi_selection_shape)
+            self.shape_editor = ShapeEditor(multi_selection_shape)

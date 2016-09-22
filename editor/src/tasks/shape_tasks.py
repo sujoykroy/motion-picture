@@ -236,8 +236,11 @@ class ShapeCombineTask(ShapeStateTask):
     def __init__(self, doc, shape):
         ShapeStateTask.__init__(self, doc, shape)
         self.deleted_shapes = []
-        for child_shape in shape.shapes:
-            self.deleted_shapes.append(child_shape)
+        if isinstance(shape, MultiSelectionShape):
+            for child_shape in shape.shapes:
+                self.deleted_shapes.append(child_shape)
+        else:
+            self.deleted_shapes.append(shape)
         self.combined_shape = None
 
     def save(self, doc, new_shape):

@@ -3,10 +3,12 @@ from ..commons.draw_utils import *
 from rect_box import RectBox
 
 class FixedSizeRectBox(RectBox):
-    def __init__(self, parent_box, width, height, border_color, border_width, fill_color):
+    def __init__(self, parent_box, width, height, border_color, border_width,
+                                                  fill_color, corner_radius=2.):
         RectBox.__init__(self, parent_box, width, height, border_color, border_width, fill_color)
         self.is_aligned_left = True
         self.is_height_fixed = True
+        self.corner_radius = corner_radius
         self.yalign = .5
 
     def set_right(self, right):
@@ -41,10 +43,10 @@ class FixedSizeRectBox(RectBox):
             height = self.height
         if self.is_aligned_left:
             draw_rounded_rectangle(ctx, abs_left_top.x, abs_left_top.y-height*self.yalign,
-                                         self.width, height, 5)
+                                         self.width, height, self.corner_radius)
         else:
             draw_rounded_rectangle(ctx, abs_left_top.x-self.width, abs_left_top.y-height*self.yalign,
-                                         self.width, height, 5)
+                                         self.width, height, self.corner_radius)
 
     def draw(self, ctx):
         if self.fill_color:

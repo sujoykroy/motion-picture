@@ -188,18 +188,13 @@ class MenuItem(object):
         return type(self.state) is str
 
 class MenuBar(object):
-    def __init__(self, recent_files, top_menu, predrawn_folder):
+    def __init__(self, top_menu, predrawn_folder):
         self.top_menu = top_menu
         self.actions = self.top_menu.actions
         self.tool_rows = top_menu.tool_rows
         self.menu_items = top_menu.menu_items
 
-        for filepath in recent_files:
-            filename = os.path.basename(filepath)
-            path = "File/<Open>/Open Recent/" + filename
-            self.top_menu.add(path=path, action_name="app.open_document", action_param=filepath)
-
-        for filename in os.listdir(predrawn_folder):
+      for filename in os.listdir(predrawn_folder):
             name = ".".join(os.path.basename(filename).split(".")[:-1])
             icon = os.path.join(os.path.basename(predrawn_folder), name)
             name = name.upper()[0] + name[1:]

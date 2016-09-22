@@ -2,7 +2,7 @@ from gi.repository import Gtk
 
 class FileOp(object):
     @staticmethod
-    def choose_file(parent, purpose, file_types=[["Motion Picture", "text/xml"]]):
+    def choose_file(parent, purpose, file_types=[["Motion Picture", "text/xml"]], filename=None):
         if purpose == "save":
             title = "Save"
             action = Gtk.FileChooserAction.SAVE
@@ -18,7 +18,8 @@ class FileOp(object):
 
         dialog = Gtk.FileChooserDialog(title, parent, action,
                 (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, ok_key, Gtk.ResponseType.OK))
-
+        if filename:
+            dialog.set_filename(filename)
         if purpose in ("save", "save_as"):
             dialog.props.do_overwrite_confirmation = True
 

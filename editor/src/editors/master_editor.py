@@ -61,7 +61,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.root_box.pack_start(self.top_info_bar, expand=False, fill=False, padding=2)
 
         editing_label = Gtk.Label()
-        editing_label.set_markup(Text.markup(color=Settings.TOP_INFO_BAR_TEXT_COLOR, weight="bold",text="Editing :"))
+        editing_label.set_markup(Text.markup(
+            color=Settings.TOP_INFO_BAR_TEXT_COLOR, weight="bold",text="Editing :"))
         self.top_info_bar.pack_start(editing_label, expand=False, fill=False, padding=5)
         self.multi_shape_name_label = Gtk.Label()
         self.top_info_bar.pack_start(self.multi_shape_name_label, expand=False, fill=False, padding=5)
@@ -122,11 +123,14 @@ class MasterEditor(Gtk.ApplicationWindow):
         drawing_area_container = Gtk.VBox()
 
         drawing_area_container_tbox = Gtk.HBox()
-        drawing_area_container.pack_start(drawing_area_container_tbox, expand=True,  fill=True, padding=0)
-        drawing_area_container.pack_start(self.drawing_area_hscrollbar, expand=False,  fill=True, padding=0)
+        drawing_area_container.pack_start(
+                drawing_area_container_tbox, expand=True, fill=True, padding=0)
+        drawing_area_container.pack_start(
+                self.drawing_area_hscrollbar, expand=False, fill=True, padding=0)
 
         drawing_area_container_tbox.pack_start(self.drawing_area, expand=True,  fill=True, padding=0)
-        drawing_area_container_tbox.pack_start(self.drawing_area_vscrollbar, expand=False,  fill=True, padding=0)
+        drawing_area_container_tbox.pack_start(
+                    self.drawing_area_vscrollbar, expand=False, fill=True, padding=0)
 
         self.paned_box_3.pack1(drawing_area_container, resize=True, shrink=True)
 
@@ -137,7 +141,8 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.multi_shape_internal_prop_box = MultiShapeInternalPropBox(
                             self.redraw, self.load_multi_shape_time_line)
-        self.right_prop_box.pack_start(self.multi_shape_internal_prop_box, expand=False, fill=False, padding=0)
+        self.right_prop_box.pack_start(
+                self.multi_shape_internal_prop_box, expand=False, fill=False, padding=0)
         self.multi_shape_internal_prop_box.parent_window = self
 
         self.time_slice_prop_box = TimeSlicePropBox(self.time_line_editor.update)
@@ -148,9 +153,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.right_prop_box.pack_start(self.shape_form_prop_box, expand=False, fill=False, padding=0)
         self.right_prop_box.pack_start(self.curve_smooth_prop_box, expand=False, fill=False, padding=0)
 
-        #self.show_all()
-        #self.maximize()
-
     def init_interface(self):
         self.show_prop_of(None)
         self.show_time_slice_props(None)
@@ -160,7 +162,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.paned_box_1.set_position(180)
 
         self.open_document(None)
-        ##self.timer_id = GObject.timeout_add(100, self.redraw)
 
     def show_filename(self):
         filename = self.doc.filename

@@ -23,7 +23,7 @@ class ShapeTimeLineBox(Box):
             prop_name = prop_time_line.prop_name
             if not self.prop_time_line_boxes.key_exists(prop_name):
                 prop_time_line_box = PropTimeLineBox(prop_time_line, self)
-                self.prop_time_line_boxes.add(prop_name, prop_time_line_box)
+                self.prop_time_line_boxes.insert(vert_index, prop_name, prop_time_line_box)
             else:
                 prop_time_line_box = self.prop_time_line_boxes[prop_name]
             prop_time_line_box.set_index(vert_index)

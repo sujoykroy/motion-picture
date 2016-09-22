@@ -45,6 +45,8 @@ class MultiShapeTimeLine(object):
         if not self.shape_time_lines.key_exists(shape): return
         shape_time_line = self.shape_time_lines[shape]
         shape_time_line.remove_prop_time_slice(prop_name, time_slice)
+        if len(shape_time_line.prop_time_lines)==0:
+            self.shape_time_lines.remove(shape)
         self.get_duration()
 
     def insert_shape_prop_time_slice_at(self, t, shape, prop_name, time_slice):

@@ -8,6 +8,11 @@ class OrderedDict(object):
             self.keys.append(key)
         self.items[key] = item
 
+    def insert(self, index, key, item):
+        if key in self.keys: return
+        self.keys.insert(index, key)
+        self.items[key] = item
+
     def clear(self):
         del self.keys[:]
         self.items.clear()
@@ -21,7 +26,7 @@ class OrderedDict(object):
             self.items[key] = item
 
     def remove(self, key):
-        if key in self.keys():
+        if key in self.keys:
             self.keys.remove(key)
         if key in self.items.keys():
             del self.items[key]

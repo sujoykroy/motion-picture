@@ -127,16 +127,16 @@ class ApplicationWindow(MasterEditor):
         if not self.doc.filename:
             filename = FileOp.choose_file(self, purpose="save")
             if filename:
-                self.doc.save(filename)
+                self.shape_manager.save_doc(filename)
                 self.show_filename()
                 self.parent.recent_manager.add_item(filename)
         else:
-            self.doc.save()
+            self.shape_manager.save_doc()
 
     def save_as_document(self, action, parameter):
-        filename = FileOp.choose_file(self, purpose="save_as")
+        filename = FileOp.choose_file(self, purpose="save_as", filename=self.doc.filename)
         if filename:
-            self.doc.save(filename)
+            self.shape_manager.save_doc(filename)
             self.show_filename()
             self.parent.recent_manager.add_item(filename)
 
@@ -293,6 +293,9 @@ class ApplicationWindow(MasterEditor):
             self.shape_manager.multi_shape.readjust_sizes()
             self.redraw()
 
+    def delete_time_slice(self, action, parameter):
+        self.time_line_editor.delete_time_slice()
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,
@@ -318,27 +321,38 @@ class Application(Gtk.Application):
         win.open_document(width=float(w), height=float(h))
         win.redraw()
 
-    def open_document(self, action, parameter):
+    def get_fresh_window(self):
         win = None
-        newly_created = True
         for w in self.get_windows():
-            if w.doc.filename is None:
+            if w.doc.is_empty() :
                 win = w
-                newly_created = False
                 break
         if win is None:
             win = self.new_app_window()
+        return win
 
+    def open_recent_document(self, action, parameter):
+        dialog = RecentFilesManager(None, self.get_recent_files())
+        if dialog.run() == Gtk.ResponseType.OK:
+            filename = dialog.get_filename()
+            dialog.destroy()
+            if filename:
+                self.recent_manager.add_item(filename)
+                win = self.get_fresh_window()
+                win.open_document(filename)
+        else:
+            dialog.destroy()
+
+    def open_document(self, action, parameter):
+        win = self.get_fresh_window()
         if parameter:
             filename = parameter.get_string()
         else:
             filename = FileOp.choose_file(win, purpose="open")
+
         if filename:
             self.recent_manager.add_item(filename)
             win.open_document(filename)
-        elif newly_created:
-            self.remove_window(win)
-            win.destroy()
 
     def new_app_window(self):
         win = ApplicationWindow(self)
@@ -356,16 +370,20 @@ class Application(Gtk.Application):
         win.init_interface()
         return win
 
-    def on_activate(self, app):
-        self.recent_manager = Gtk.RecentManager.get_default()
-        self.app_name = os.path.basename(self.argv[0])
-        recent_files = []
+    def get_recent_files(self):
+        recent_files = dict()
         for recent_info in self.recent_manager.get_items():
             if not recent_info.has_application(self.app_name): continue
             if recent_info.get_mime_type() != "application/xml": continue
             filepath = recent_info.get_uri()
-            recent_files.append(filepath)
-        self.menubar = MenuBar(recent_files, Settings.menus.TopMenuItem,
+            filepath = filepath.replace("file://", "")
+            recent_files[filepath] = filepath
+        return recent_files.values()
+
+    def on_activate(self, app):
+        self.recent_manager = Gtk.RecentManager.get_default()
+        self.app_name = os.path.basename(self.argv[0])
+        self.menubar = MenuBar(Settings.menus.TopMenuItem,
                                Settings.PREDRAWN_SHAPE_FOLDER)
 
         for menu_item in self.menubar.menu_items.values():

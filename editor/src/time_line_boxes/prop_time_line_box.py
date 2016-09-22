@@ -48,11 +48,10 @@ class PropTimeLineBox(Box):
         for time_slice in self.prop_time_line.time_slices:
             if not self.time_slice_boxes.key_exists(time_slice):
                 time_slice_box = TimeSliceBox(time_slice, self)
-                self.time_slice_boxes.add(time_slice, time_slice_box)
+                self.time_slice_boxes.insert(horiz_index, time_slice, time_slice_box)
             else:
                 time_slice_box = self.time_slice_boxes[time_slice]
             time_slice_box.set_index(horiz_index)
-
             time_slice_box.update()
             time_slice_box.left = width
             time_slice_box.top = 0

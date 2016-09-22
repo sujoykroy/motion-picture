@@ -38,6 +38,8 @@ class ShapeTimeLine(object):
         if not self.prop_time_lines.key_exists(prop_name): return
         prop_time_line = self.prop_time_lines[prop_name]
         prop_time_line.remove_time_slice(time_slice)
+        if len(prop_time_line.time_slices) == 0:
+            self.prop_time_lines.remove(prop_name)
 
     def insert_prop_time_slice_at(self, t, prop_name, time_slice):
         if not self.prop_time_lines.key_exists(prop_name):

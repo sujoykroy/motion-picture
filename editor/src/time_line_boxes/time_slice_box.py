@@ -15,6 +15,7 @@ class TimeSliceBox(Box):
         self.right_point_box = PointBox(self, self.right_point_move_to_callback)
         self.right_expand_box = ExpandBox(self, self.right_expand_move_to_callback)
         self.right_expand_box.is_height_fixed = False
+        self.right_expand_box.corner_radius = 0.
 
         self.edit_boxes.append(self.right_expand_box)
         self.edit_boxes.append(self.left_point_box)

@@ -27,6 +27,9 @@ class Document(object):
             self.main_multi_shape = MultiShape(width=width, height=height, border_color="000000")
             self.main_multi_shape._name = "MainShape"
 
+    def is_empty(self):
+        return not self.filename and self.reundo.is_empty()
+
     def get_main_multi_shape(self):
         return self.main_multi_shape
 
@@ -91,7 +94,10 @@ class Document(object):
         ctx.set_antialias(cairo.ANTIALIAS_DEFAULT)
 
         shape = self.main_multi_shape
-        ctx.scale(width*1./self.width, height*1./self.height)
+        #ctx.scale(width*1./self.width, height*1./self.height)
+        scale = min(width*1./self.width, height*1./self.height)
+        ctx.translate((width-scale*self.width)*.5, (height-scale*self.height)*.5)
+        ctx.scale(scale, scale)
         shape.draw(ctx)
 
         surface= ctx.get_target()

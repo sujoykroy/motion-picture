@@ -3,6 +3,9 @@ class TaskManager(object):
         self.tasks = []
         self.index = 0
 
+    def is_empty(self):
+        return len(self.tasks) == 0
+
     def add_task(self, task):
         del self.tasks[self.index:]
         self.tasks.append(task)

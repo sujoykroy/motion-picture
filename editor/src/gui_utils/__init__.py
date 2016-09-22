@@ -14,3 +14,4 @@ from multi_shape_internal_prop_box import MultiShapeInternalPropBox
 from time_slice_prop_box import TimeSlicePropBox
 
 from menu_builder import MenuBar
+from recent_files_manager import RecentFilesManager

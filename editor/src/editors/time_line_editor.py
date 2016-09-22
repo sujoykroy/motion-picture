@@ -156,7 +156,7 @@ class TimeLineEditor(Gtk.VBox):
         self.play_button = buttons.create_new_image_button("play")
         self.play_button.connect("clicked", self.on_play_pause_button_click, True)
         info_hbox.pack_end(self.play_button, expand=False, fill=False, padding=5)
-        self.pause_button = Gtk.Button("Pause")
+        self.pause_button = buttons.create_new_image_button("pause")
         self.pause_button.connect("clicked", self.on_play_pause_button_click, False)
         info_hbox.pack_end(self.pause_button, expand=False, fill=False, padding=5)
 
@@ -249,6 +249,24 @@ class TimeLineEditor(Gtk.VBox):
         if self.selected_item:
             self.selected_item.copy_into(self.init_selected_item)
 
+    def delete_time_slice(self):
+        if not self.selected_time_slice_box: return
+        time_slice = self.selected_time_slice_box.time_slice
+
+        prop_time_line_box = self.selected_time_slice_box.prop_time_line_box
+        prop_time_line = prop_time_line_box.prop_time_line
+
+        shape_time_line_box = prop_time_line_box.parent_box
+        shape_time_line = shape_time_line_box.shape_time_line
+
+        multi_shape_time_line_box = shape_time_line_box.parent_box
+        multi_shape_time_line = multi_shape_time_line_box.multi_shape_time_line
+
+        multi_shape_time_line.remove_shape_prop_time_slice(
+                shape_time_line.shape, prop_time_line.prop_name, time_slice)
+        self.update()
+        self.redraw()
+
     def select_time_slice_box_at(self, point):
         if not self.multi_shape_time_line_box: return
         self.selected_time_slice_box = None
@@ -329,7 +347,9 @@ class TimeLineEditor(Gtk.VBox):
             diff = current_time - self.last_play_updated_at
             diff = .05
             value = self.play_head_time + diff
-            if value > self.time_line.duration:
+            if self.time_line.duration == 0:
+                value = 0
+            elif value > self.time_line.duration:
                 value %= self.time_line.duration
             self.move_play_head_to_time(value)
         self.last_play_updated_at = current_time

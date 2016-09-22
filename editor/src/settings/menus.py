@@ -8,7 +8,8 @@ m.add(path="File/New/Document", icon="file_new_document", desc="Create New Docum
 
 m.add(path="File/<Open>/Open", icon="file_open", desc="Open file",
       action_name="app.open_document", action_param="", accel="<Control>o")
-m.add(path="File/<Open>/Open Recent")
+m.add(path="File/<Open>/Open Recent", icon="file_open_recent", desc="Open from recent files",
+      action_name="app.open_recent_document")
 m.add(path="File/<Open>/Save", accel="<Control>s", icon="file_save", desc="Save file",
       action_name="win.save_document")
 m.add(path="File/<Open>/Save As", accel="<Shift><Control>s", icon="file_save_as",
