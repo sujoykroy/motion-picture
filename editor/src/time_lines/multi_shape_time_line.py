@@ -22,6 +22,7 @@ class MultiShapeTimeLine(object):
         multi_shape_time_line = cls(name=elm.attrib["name"])
         for shape_time_line_elm in elm.findall(ShapeTimeLine.TAG_NAME):
             shape_time_line = ShapeTimeLine.create_from_xml_element(shape_time_line_elm, multi_shape)
+            if not shape_time_line: continue
             multi_shape_time_line.shape_time_lines.add(shape_time_line.shape, shape_time_line)
         multi_shape_time_line.get_duration()
         return multi_shape_time_line
@@ -57,6 +58,9 @@ class MultiShapeTimeLine(object):
             shape_time_line = self.shape_time_lines[shape]
         shape_time_line.insert_prop_time_slice_at(t, prop_name, time_slice)
         self.get_duration()
+
+    def remove_shape(self, shape):
+        self.shape_time_lines.remove(shape)
 
     def move_to(self, t):
         for shape_time_line in self.shape_time_lines:

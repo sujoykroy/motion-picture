@@ -194,7 +194,7 @@ class MenuBar(object):
         self.tool_rows = top_menu.tool_rows
         self.menu_items = top_menu.menu_items
 
-      for filename in os.listdir(predrawn_folder):
+        for filename in os.listdir(predrawn_folder):
             name = ".".join(os.path.basename(filename).split(".")[:-1])
             icon = os.path.join(os.path.basename(predrawn_folder), name)
             name = name.upper()[0] + name[1:]

@@ -1,4 +1,4 @@
-from text_input_dialog import TextInputDialog
+from helper_dialogs import TextInputDialog, YesNoDialog
 from name_value_combo_box import NameValueComboBox
 from file_op import FileOp
 

@@ -182,7 +182,35 @@ class ApplicationWindow(MasterEditor):
         self.redraw()
 
     def delete_shape(self, action, parameter):
-        self.shape_manager.delete_selected_shape()
+        if self.shape_manager.shape_editor:
+            top_shape = self.shape_manager.shape_editor.shape
+            if not isinstance(top_shape, MultiSelectionShape):
+                if isinstance(top_shape, MultiShape):
+                    if top_shape.time_lines:
+                        dialog = YesNoDialog(self, "Deleting shape",
+                            "This shape as its own timeines!" +
+                            "\nDo you really want to delete this?")
+                        if dialog.run() != Gtk.ResponseType.YES:
+                            dialog.destroy()
+                            return
+                        dialog.destroy()
+                elif self.shape_manager.multi_shape.timelines:
+                    for timeline in self.shape_manager.multi_shape.timelines.values():
+                        if timeline.shape_time_lines.key_exists(top_shape):
+                            dialog = YesNoDialog(self, "Deleting shape",
+                            "This shape is placed in timeline!" +
+                            "\nDo you really want to delete this?")
+                            if dialog.run() != Gtk.ResponseType.YES:
+                                dialog.destroy()
+                                return
+                            dialog.destroy()
+                            break
+
+        shape = self.shape_manager.delete_selected_shape()
+        if shape:
+            for timeline in self.shape_manager.multi_shape.timelines.values():
+                timeline.remove_shape(shape)
+
         self.time_line_editor.update()
         self.redraw()
 
@@ -295,6 +323,19 @@ class ApplicationWindow(MasterEditor):
 
     def delete_time_slice(self, action, parameter):
         self.time_line_editor.delete_time_slice()
+
+    def export(self, action, parameter):
+        export_type = parameter.get_string()
+        if export_type == "png":
+            filename = FileOp.choose_file(self, "save",
+                            file_types=[["PNG Image", "image/png"]])
+            if filename:
+                parent_shape = self.doc.main_multi_shape.parent_shape
+                self.doc.main_multi_shape.parent_shape = None
+                pixbuf = self.doc.get_pixbuf(self.doc.width, self.doc.height)
+                self.doc.main_multi_shape.parent_shape = parent_shape
+                pixbuf.savev(filename, "png", [], [])
+
 
 class Application(Gtk.Application):
     def __init__(self):

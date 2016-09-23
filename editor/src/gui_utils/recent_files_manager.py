@@ -24,6 +24,7 @@ class RecentFilesManager(Gtk.Dialog):
         for i in range(len(recent_files)):
             filename = recent_files[i]
             if not os.path.isfile(filename): continue
+            #print filename
             basename = os.path.basename(filename)
             if count%image_per_row == 0:
                 hbox = Gtk.HBox()

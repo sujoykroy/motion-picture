@@ -84,7 +84,6 @@ class Document(object):
             self.filename = filename
         tree.write(self.filename)
 
-
     def get_pixbuf(self, width, height):
         pixbuf = Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width, height)
 

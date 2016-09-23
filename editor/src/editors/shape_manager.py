@@ -614,13 +614,15 @@ class ShapeManager(object):
         task.save(self.doc, new_shape)
 
     def delete_selected_shape(self):
-        if not self.shape_editor: return
+        if not self.shape_editor: return None
         if not isinstance(self.shape_editor.shape, MultiSelectionShape):
             shape = self.shape_editor.shape
             task = ShapeDeleteTask(self.doc, shape)
             self.delete_shape_editor()
             self.remove_shape(shape)
             task.save(self.doc, self.multi_shape)
+            return shape
+        return None
 
     def insert_point_in_shape_at(self, point):
         if not self.selected_shape_supports_point_insert(): return False

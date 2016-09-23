@@ -19,7 +19,9 @@ class ShapeTimeLine(object):
 
     @classmethod
     def create_from_xml_element(cls, elm, multi_shape):
-        shape=multi_shape.shapes[elm.attrib[cls.SHAPE_NAME]]
+        shape_name = elm.attrib[cls.SHAPE_NAME]
+        if not multi_shape.shapes.contain(shape_name): return None
+        shape=multi_shape.shapes[shape_name]
         shape_time_line = cls(shape)
         for prop_time_line_elm in elm.findall(PropTimeLine.TAG_NAME):
             prop_time_line = PropTimeLine.create_from_xml_element(prop_time_line_elm, shape)

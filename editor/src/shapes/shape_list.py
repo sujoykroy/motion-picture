@@ -60,7 +60,9 @@ class ShapeList(object):
         return self.items[self.names[index]]
 
     def contain(self, shape):
-        return shape.get_name() in self.names
+        if (isinstance(shape, Shape)):
+            return (shape.get_name() in self.names)
+        return (shape in self.names)
 
     def get_item_by_name(self, name):
         if name not in self.names: return None
