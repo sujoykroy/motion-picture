@@ -83,6 +83,8 @@ m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert
 m.add(path="Shapes/Convert To/Curve", icon="convert_to_curve", desc="Convert into Curve",
       action_name="win.convert_shape_to", action_param="curve", icon_scale=1.2)
 
+m.add(path="Edit/Preferences/Hide Axis", icon="hide_axis",
+      action_name="win.hide_axis", action_state=True, icon_scale=2.)
 m.add(path="Edit/Preferences/Lock Movement/Shape", icon="lock_movement", desc="Lock Shape movement",
       action_name="win.lock_shape_movement", action_state=False, icon_scale = 1.5)
 m.add(path="Edit/Preferences/Lock Movement/X", icon="x_only_movement", desc="Move along X-axis only",
@@ -97,6 +99,6 @@ m.add(path="Edit/Preferences/Hide Control Points", icon="hide_control_points",
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement",
      "Edit/TimeLine", "Edit/Preferences"],
-    ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>", "Edit/Points",
-     "Shapes/Align", "Shapes/Convert To", "Shapes/Pre-Drawn"],
+    ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>",
+     "Shapes/Align", "Shapes/Convert To", "Shapes/Pre-Drawn", "Edit/Points"],
 ]

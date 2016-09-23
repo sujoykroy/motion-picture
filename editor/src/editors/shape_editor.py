@@ -308,7 +308,7 @@ class ShapeEditor(object):
 
     def move_active_item(self, start_point, end_point):
         if self.edit_box_can_move is False:
-            if not EditingChoice.LOCK_SHAPE_MOVEMENT:
+            if not EditingChoice.LOCK_SHAPE_MOVEMENT and self.shape.moveable:
                 diff_point = end_point.diff(start_point)
                 init_abs_anchor_at = self.init_shape.get_abs_anchor_at()
                 self.shape.move_to(init_abs_anchor_at.x+diff_point.x, init_abs_anchor_at.y+diff_point.y)

@@ -4,6 +4,7 @@ class CommonShapePropBox(ShapePropBox):
     def __init__(self, draw_callback, shape_name_checker, insert_time_slice_callback):
         ShapePropBox.__init__(self, draw_callback, shape_name_checker, insert_time_slice_callback)
         self.add_prop("name",  PROP_TYPE_NAME_ENTRY, None)
+        self.add_prop("moveable",  PROP_TYPE_CHECK_BUTTON, None)
         self.add_prop("stage_xy",  PROP_TYPE_POINT, None)
 
         self.add_prop("x",  PROP_TYPE_NUMBER_ENTRY,

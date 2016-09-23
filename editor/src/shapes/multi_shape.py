@@ -294,7 +294,7 @@ class MultiShape(Shape):
         return shapes
 
     def rename_shape(self, shape, name):
-        return self.shapes.rename(shape, name)
+        return self.shapes.rename(shape.get_name(), name)
 
     def draw(self, ctx):
         for shape in self.shapes:

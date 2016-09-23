@@ -25,6 +25,7 @@ class Shape(object):
         self.parent_shape = None
         self._name = self.new_name()
         Shape.ID_SEED += 1
+        self.moveable = True
 
     @classmethod
     def get_pose_prop_names(cls):

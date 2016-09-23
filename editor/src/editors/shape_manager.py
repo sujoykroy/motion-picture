@@ -142,8 +142,9 @@ class ShapeManager(object):
         self.multi_shape.remove_shape(shape)
 
     def rename_shape(self, shape, name):
-        if self.mult_shape.rename_name(shape, name):
-            return self.shapes.rename(shape, name)
+        old_name = shape.get_name()
+        if self.multi_shape.rename_shape(shape, name):
+            return self.shapes.rename(old_name, name)
         return False
 
     def get_shape_at(self, point, multi_select):
@@ -167,7 +168,8 @@ class ShapeManager(object):
         ctx.save()
         self.multi_shape.draw(ctx)
         ctx.restore()
-        self.multi_shape.draw_axis(ctx)
+        if not EditingChoice.HIDE_AXIS:
+            self.multi_shape.draw_axis(ctx)
 
         if self.shape_editor:
             if isinstance(self.shape_editor.shape, MultiSelectionShape):
@@ -741,7 +743,7 @@ class ShapeManager(object):
             self.add_shape(new_shape)
             old_shape.copy_into(new_shape)
             self.remove_shape(old_shape)
-            self.multi_shape.shapes.rename(new_shape, old_shape.get_name())
+            self.multi_shape.shapes.rename(new_shape.get_name(), old_shape.get_name())
             self.multi_shape.readjust_sizes()
             self.reload_shapes()
             self.shape_editor = ShapeEditor(new_shape)

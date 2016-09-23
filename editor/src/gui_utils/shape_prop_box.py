@@ -7,6 +7,7 @@ PROP_TYPE_COLOR = 1
 PROP_TYPE_NAME_ENTRY = 2
 PROP_TYPE_TEXT_LIST = 3
 PROP_TYPE_POINT = 4
+PROP_TYPE_CHECK_BUTTON = 5
 
 class ShapePropBox(Gtk.VBox):
     def __init__(self, draw_callback, shape_name_checker, insert_time_slice_callback):
@@ -23,7 +24,7 @@ class ShapePropBox(Gtk.VBox):
         for prop_name in self.prop_boxes.keys():
             prop_widget = self.prop_boxes[prop_name]
             value = self.prop_object.get_prop_value(prop_name)
-            if value is None: return
+            if value is None: continue
             if isinstance(prop_widget, Gtk.SpinButton):
                 prop_widget.set_value(value)
             elif isinstance(prop_widget, Gtk.ColorButton):
@@ -32,6 +33,8 @@ class ShapePropBox(Gtk.VBox):
                 if prop_widget.value_type == PROP_TYPE_POINT:
                     value = value.to_text()
                 prop_widget.set_text(value)
+            elif isinstance(prop_widget, Gtk.CheckButton):
+                prop_widget.set_active(value)
 
     def add_prop(self, prop_name, value_type, values):
         can_insert_slice = True
@@ -65,6 +68,10 @@ class ShapePropBox(Gtk.VBox):
             combo_box= NameValueComboBox()
             combo_box.connect("changed", self.combo_box_changed, prop_name)
             prop_widget = combo_box
+        elif value_type == PROP_TYPE_CHECK_BUTTON:
+            check_button= Gtk.CheckButton()
+            check_button.connect("clicked", self.check_button_clicked, prop_name)
+            prop_widget = check_button
 
         prop_widget.value_type = value_type
 
@@ -130,3 +137,7 @@ class ShapePropBox(Gtk.VBox):
                 self.prop_object.set_prop_value(prop_name, value)
                 self.draw_callback()
 
+    def check_button_clicked(self, check_button, prop_name):
+        if self.prop_object != None:
+            self.prop_object.set_prop_value(prop_name, check_button.get_active())
+            self.draw_callback()
