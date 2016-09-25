@@ -7,7 +7,7 @@ class PredrawnShapeCreator(RectangleShapeCreator):
         if len(document.main_multi_shape.shapes)> 1:
             self.shape = document.main_multi_shape.copy()
         else:
-            self.shape = document.main_multi_shape.shapes.get_at_index(0)
+            self.shape = document.main_multi_shape.shapes.get_at_index(0).copy()
         self.shape.anchor_at.x = 0
         self.shape.anchor_at.y = 0
 

@@ -621,7 +621,8 @@ class ShapeManager(object):
 
     def delete_selected_shape(self):
         if not self.shape_editor: return None
-        if len(self.multi_shape.shapes) == 1: return None
+        if self.doc.main_multi_shape != self.multi_shape and \
+           len(self.multi_shape.shapes) == 1: return None
         if not isinstance(self.shape_editor.shape, MultiSelectionShape):
             shape = self.shape_editor.shape
             task = ShapeDeleteTask(self.doc, shape)
