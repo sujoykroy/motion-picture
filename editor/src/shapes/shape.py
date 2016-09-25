@@ -21,11 +21,44 @@ class Shape(object):
         self.translation = Point(0,0)
         self.angle = 0
         self.pre_matrix = None
+
         self.id_num = Shape.ID_SEED
+        Shape.ID_SEED += 1
+
         self.parent_shape = None
         self._name = self.new_name()
-        Shape.ID_SEED += 1
+
         self.moveable = True
+        self.linked_to = None
+        self.linked_clones = None
+
+    def cleanup(self):
+        if self.linked_clones:
+            for linked_clone in self.linked_clones:
+                linked_clone.set_linked_to(None)
+        if self.linked_to:
+            self.set_linked_to(None)
+
+    def set_linked_to(self, linked_to_shape):
+        if self.linked_to:
+            self.linked_to.remove_linked_clone(self)
+        self.linked_to = linked_to_shape
+        if linked_to_shape:
+            linked_to_shape.add_linked_clone(self)
+
+    def add_linked_clone(self, linked_clone):
+        if self.linked_clones is None:
+            self.linked_clones = []
+        if linked_clone not in self.linked_clones:
+            self.linked_clones.append(linked_clone)
+
+    def remove_linked_clone(self, linked_clone):
+        if self.linked_clones and linked_clone in self.linked_clones:
+            self.linked_clones.remove(linked_clone)
+
+
+    def copy_data_from_linked(self):
+        pass
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -489,10 +522,13 @@ class Shape(object):
 
 
     NAME_SEED = 0
+    _APP_EPOCH_TIME = time.mktime(time.strptime("1 Jan 2016", "%d %b %Y"))
+
     @staticmethod
     def new_name():
         Shape.NAME_SEED += 1
-        return "{0}_{1}".format(time.time(), Shape.NAME_SEED).replace(".", "")
+        elapsed_time = round(time.time()-Shape._APP_EPOCH_TIME, 3)
+        return "{0}_{1}".format(elapsed_time, Shape.NAME_SEED).replace(".", "")
 
     @staticmethod
     def rounded_rectangle(ctx, x, y, w, h, r=20):

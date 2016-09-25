@@ -21,6 +21,8 @@ m.add(path="Edit/<UndoRedo>/Undo", accel="<Control>z",
       action_name="win.undo_redo", action_param="undo")
 m.add(path="Edit/<UndoRedo>/Redo", accel="<Control>Y",
       action_name="win.undo_redo", action_param="redo")
+
+
 m.add(path="Edit/Shape/Copy", icon="copy_shape", accel="<Control>c",
       action_name="win.copy_shape_action")
 m.add(path="Edit/Shape/Paste", icon="paste_shape", accel="<Control>v",
@@ -28,11 +30,18 @@ m.add(path="Edit/Shape/Paste", icon="paste_shape", accel="<Control>v",
 m.add(path="Edit/Shape/Delete", icon="delete_shape",
       action_name="win.delete_shape")
 m.add(path="Edit/Shape/Duplicate", icon="duplicate_shape", accel="<Control>b",
-      action_name="win.duplicate_shape")
+      action_name="win.duplicate_shape", action_param="")
+
+m.add(path="Edit/Shape/<Linked>/Linked Duplicate", icon="linked_duplicate_shape",
+      action_name="win.duplicate_shape", action_param="linked")
+m.add(path="Edit/Shape/<Linked>/Update Linked Shapes", icon="update_linked_shapes",
+      action_name="win.update_linked_shapes")
+
 m.add(path="Edit/Shape/Flip/Flip X", icon="flip_x",
       action_name="win.flip_shape", action_param="x")
 m.add(path="Edit/Shape/Flip/Flip Y", icon="flip_y",
       action_name="win.flip_shape", action_param="y")
+
 m.add(path="Edit/<Layer>/Layer Up", icon="layer_up", desc="Move shape layer up",
       action_name="win.change_shape_depth", action_param="1", icon_scale=2.)
 m.add(path="Edit/<Layer>/Layer Down", icon="layer_down", desc="Move shape layer down",
@@ -49,6 +58,8 @@ m.add(path="Edit/Points/Delete", icon="delete_point", desc="Delete point",
       action_name="win.delete_point_of_shape", icon_scale = 1.5)
 m.add(path="Edit/Points/Extend", icon="extend_point", desc="Extend point into new point",
       action_name="win.extend_point_of_shape")
+m.add(path="Edit/Points/Center Anchor", icon="center_anchor",
+      action_name="win.center_anchor", desc="Place anchor at center")
 
 m.add(path="Shapes/<New>/Rectangle", icon="rectangle",
       action_name="win.create_new_shape", action_state="rect")
@@ -62,7 +73,8 @@ m.add(path="Shapes/<New>/Image", icon="image",
       action_name="win.create_new_shape", action_state="image")
 m.add(path="Shapes/<New>/Freehand", icon="freehand_shape",
       action_name="win.create_new_shape", action_state="freehand")
-
+m.add(path="Shapes/<New>/Ring", icon="ring_shape",
+      action_name="win.create_new_shape", action_state="ring")
 
 m.add(path="Shapes/Align/X", icon="x_align", desc="Align shapes along X-axis",
       action_name="win.align_shapes", action_param="x", icon_scale = 1.2)
@@ -98,7 +110,7 @@ m.add(path="Edit/Preferences/Hide Control Points", icon="hide_control_points",
 
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement",
-     "Edit/TimeLine", "Edit/Preferences"],
+     "Edit/TimeLine", "Edit/Preferences", "Edit/Shape/<Linked>"],
     ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>",
      "Shapes/Align", "Shapes/Convert To", "Shapes/Pre-Drawn", "Edit/Points"],
 ]

@@ -2,6 +2,10 @@ from colors import Color, GradientColor
 from rect import Rect
 import pango, pangocairo, cairo, math
 
+def set_default_line_style(ctx):
+    ctx.set_line_cap(cairo.LINE_CAP_ROUND)
+    ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+
 def draw_stroke(ctx, line_width, color=Color(0,0,0,1)):
     ctx.save()
     if isinstance(color, Color):

@@ -7,6 +7,7 @@ from polygon_shape import PolygonShape
 from multi_shape import MultiShape
 from image_shape import ImageShape
 from multi_selection_shape import MultiSelectionShape
+from ring_shape import RingShape
 from edit_shapes import *
 
 def get_hierarchy_names(shape):

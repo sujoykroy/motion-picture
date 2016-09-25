@@ -9,6 +9,7 @@ from gui_utils.menu_builder import MenuItem
 from document import Document
 import settings as Settings
 from settings import EditingChoice
+from commons import OrderedDict
 from commons.draw_utils import draw_text
 from tasks import *
 from shapes import MultiShape, CurveShape, MultiSelectionShape
@@ -173,7 +174,12 @@ class ApplicationWindow(MasterEditor):
             self.redraw()
 
     def duplicate_shape(self, action, parameter):
-        if self.shape_manager.duplicate_shape():
+        linked = (parameter.get_string() == "linked")
+        if self.shape_manager.duplicate_shape(linked=linked):
+            self.redraw()
+
+    def update_linked_shapes(self, action, parameter):
+        if self.shape_manager.update_linked_shapes():
             self.redraw()
 
     def flip_shape(self, action, parameter):
@@ -186,7 +192,7 @@ class ApplicationWindow(MasterEditor):
             top_shape = self.shape_manager.shape_editor.shape
             if not isinstance(top_shape, MultiSelectionShape):
                 if isinstance(top_shape, MultiShape):
-                    if top_shape.time_lines:
+                    if top_shape.timelines:
                         dialog = YesNoDialog(self, "Deleting shape",
                             "This shape as its own timeines!" +
                             "\nDo you really want to delete this?")
@@ -257,7 +263,7 @@ class ApplicationWindow(MasterEditor):
            not isinstance(self.shape_manager.shape_editor.shape, MultiSelectionShape):
             editing_shape = self.shape_manager.shape_editor.shape
         elif self.shape_manager.shape_creator:
-            editing_shape = self.shape_creator.shape
+            editing_shape = self.shape_manager.shape_creator.shape
         if editing_shape:
             editing_shape_hierarchy = get_hierarchy_names(editing_shape)
 
@@ -342,6 +348,9 @@ class ApplicationWindow(MasterEditor):
                 self.doc.main_multi_shape.parent_shape = parent_shape
                 pixbuf.savev(filename, "png", [], [])
 
+    def center_anchor(self, action, parameter):
+        if self.shape_manager.place_anchor_at_center_of_shape():
+            self.redraw()
 
 class Application(Gtk.Application):
     def __init__(self):
@@ -418,14 +427,14 @@ class Application(Gtk.Application):
         return win
 
     def get_recent_files(self):
-        recent_files = dict()
+        recent_files = OrderedDict()
         for recent_info in self.recent_manager.get_items():
             if not recent_info.has_application(self.app_name): continue
             if recent_info.get_mime_type() != "application/xml": continue
             filepath = recent_info.get_uri()
             filepath = filepath.replace("file://", "")
-            recent_files[filepath] = filepath
-        return recent_files.values()
+            recent_files.add(filepath, filepath)
+        return recent_files.keys
 
     def on_activate(self, app):
         self.recent_manager = Gtk.RecentManager.get_default()

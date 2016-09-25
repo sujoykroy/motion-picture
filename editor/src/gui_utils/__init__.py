@@ -5,6 +5,7 @@ from file_op import FileOp
 from misc_prop_boxes import CommonShapePropBox
 from misc_prop_boxes import RectangleShapePropBox
 from misc_prop_boxes import OvalShapePropBox
+from misc_prop_boxes import RingShapePropBox
 from misc_prop_boxes import MultiShapePropBox
 
 from curve_smooth_prop_box import CurveSmoothPropBox

@@ -97,6 +97,7 @@ class Document(object):
         scale = min(width*1./self.width, height*1./self.height)
         ctx.translate((width-scale*self.width)*.5, (height-scale*self.height)*.5)
         ctx.scale(scale, scale)
+        set_default_line_style(ctx)
         shape.draw(ctx)
 
         surface= ctx.get_target()

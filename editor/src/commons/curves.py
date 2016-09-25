@@ -1,5 +1,5 @@
 from bezier_point import BezierPoint
-from point import Point
+from point import Point, RAD_PER_DEG
 from xml.etree.ElementTree import Element as XmlElement
 import numpy, math
 
@@ -256,10 +256,82 @@ class Curve(object):
                     task = task_start()
 
                 cur_bzp.control_1.copy_from(self.move_point_forward(prev_bzp.control_1, base, mid_point))
-                cur_bzp.control_2.copy_from(self.move_point_forward(cur_bzp.control_2, cur_bzp.dest, mid_point))
+                cur_bzp.control_2.copy_from(self.move_point_forward(
+                    cur_bzp.control_2, cur_bzp.dest, mid_point))
                 del self.bezier_points[i-1]
                 if task_end:
                     task_end(task)
             else:
                 base = prev_bzp.dest.copy()
                 i += 1
+
+
+    @classmethod
+    def create_circle(cls, sweep_angle=None):
+        k = .5522847498*.5#magic number
+        bezier_points = [
+            BezierPoint(control_1=Point(1., .5+k), control_2=Point(.5+k, 1.), dest=Point(.5, 1.)),
+            BezierPoint(control_1=Point(.5-k, 1.), control_2=Point(0, .5+k), dest=Point(0., .5)),
+            BezierPoint(control_1=Point(0., .5-k), control_2=Point(0.5-k, 0.), dest=Point(.5, 0.)),
+            BezierPoint(control_1=Point(.5+k, 0), control_2=Point(1., .5-k), dest=Point(1., .5)),
+        ]
+        curve = Curve(origin=Point(1., .5), bezier_points=bezier_points, closed=True)
+        if sweep_angle is not None:
+            if sweep_angle>360:
+                sweep_angle %= 360.
+            if sweep_angle<0:
+                sweep_angle = 360+sweep_angle
+            if 0<=sweep_angle<90:
+                i = 0
+            elif 90<=sweep_angle<180:
+                i = 1
+            elif 180<=sweep_angle<270:
+                i = 2
+            elif 270<=sweep_angle<=360:
+                i = 3
+            curve.insert_point_at(i, (sweep_angle-i*90)/90.)
+            del curve.bezier_points[i+1:]
+            curve.closed = False
+        return curve
+
+    @classmethod
+    def create_ring(cls, sweep_angle, thickness):
+        outer_curve = Curve.create_circle(sweep_angle=sweep_angle)
+        if thickness <= 0:
+            return outer_curve
+
+        if thickness >= 1.:
+            center_bzp = BezierPoint(
+                    control_1=Point(.5, .5), control_2=Point(.5, .5), dest=Point(.5, .5))
+            center_bzp.align_straight_with(outer_curve.bezier_points[-1].dest)
+            origin_bzp = BezierPoint(
+                    control_1=outer_curve.origin.copy(),
+                    control_2=outer_curve.origin.copy(),
+                    dest=outer_curve.origin.copy())
+            origin_bzp.align_straight_with(center_bzp.dest)
+            outer_curve.bezier_points.append(center_bzp)
+            outer_curve.bezier_points.append(origin_bzp)
+            outer_curve.closed = True
+            return outer_curve
+
+        outer_curve = outer_curve.reverse_copy()
+        inner_curve = Curve.create_circle(sweep_angle=sweep_angle)
+        inner_curve.translate(-.5, -.5)
+        inner_curve.scale(1-thickness, 1-thickness)
+        inner_curve.translate(.5, .5)
+
+        outer_curve_origin_bzp = BezierPoint(
+                control_1=outer_curve.origin.copy(),
+                control_2=outer_curve.origin.copy(),
+                dest = outer_curve.origin.copy())
+        outer_curve_origin_bzp.align_straight_with(inner_curve.bezier_points[-1].dest)
+        inner_curve.bezier_points.append(outer_curve_origin_bzp)
+        inner_curve.bezier_points.extend(outer_curve.bezier_points)
+
+        inner_curve_origin_bzp = BezierPoint(
+                control_1=inner_curve.origin.copy(),
+                control_2=inner_curve.origin.copy(),
+                dest = inner_curve.origin.copy())
+        inner_curve_origin_bzp.align_straight_with(inner_curve.bezier_points[-1].dest)
+        inner_curve.closed = True
+        return inner_curve

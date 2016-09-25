@@ -159,6 +159,8 @@ class ShapeManager(object):
         return None
 
     def draw(self, ctx):
+        set_default_line_style(ctx)
+
         ctx.save()
         self.document_area_box.pre_draw(ctx)
         self.document_area_box.draw_path(ctx)
@@ -309,6 +311,8 @@ class ShapeManager(object):
             self.shape_creator = PolygonShapeCreator(point)
         elif shape_type == "freehand":
             self.shape_creator = FreehandShapeCreator(point)
+        elif shape_type == "ring":
+            self.shape_creator = RingShapeCreator(point)
         else:
             filename = os.path.join(settings.PREDRAWN_SHAPE_FOLDER, shape_type)
             if os.path.exists(filename):
@@ -617,11 +621,13 @@ class ShapeManager(object):
 
     def delete_selected_shape(self):
         if not self.shape_editor: return None
+        if len(self.multi_shape.shapes) == 1: return None
         if not isinstance(self.shape_editor.shape, MultiSelectionShape):
             shape = self.shape_editor.shape
             task = ShapeDeleteTask(self.doc, shape)
             self.delete_shape_editor()
             self.remove_shape(shape)
+            shape.cleanup()
             task.save(self.doc, self.multi_shape)
             return shape
         return None
@@ -683,18 +689,52 @@ class ShapeManager(object):
             task.remove(self.doc)
         return False
 
-    def duplicate_shape(self):
+    def duplicate_shape(self, linked=False):
         if not self.shape_editor: return False
         exist_shape = self.shape_editor.shape
-        if isinstance(exist_shape, MultiShape):
-            new_shape = exist_shape.copy(copy_shapes=True)
+        new_shapes = []
+        old_shapes = []
+
+        if isinstance(exist_shape, MultiSelectionShape):
+            for old_shape in exist_shape.shapes:
+                old_shapes.append(old_shape)
+            self.delete_shape_editor()
+
+            for old_shape in old_shapes:
+                if isinstance(old_shape, MultiShape):
+                    new_shapes.append(old_shape.copy(copy_shapes=True))
+                else:
+                    new_shapes.append(old_shape.copy())
+        elif isinstance(exist_shape, MultiShape):
+            old_shapes.append(exist_shape)
+            new_shapes.append(exist_shape.copy(copy_shapes=True))
         else:
-            new_shape = exist_shape.copy()
-        self.add_shape(new_shape)
-        self.shape_editor.shape.copy_into(new_shape)
+            old_shapes.append(exist_shape)
+            new_shapes.append(exist_shape.copy())
+
+        self.delete_shape_editor()
+
+        for i in range(len(new_shapes)):
+            new_shape = new_shapes[i]
+            old_shape = old_shapes[i]
+            self.add_shape(new_shape)
+            old_shape.copy_into(new_shape)
+            if linked and (isinstance(new_shape, PolygonShape) or \
+                           isinstance(new_shape, CurveShape) or \
+                           isinstance(new_shape, MultiShape)):
+                new_shape.set_linked_to(exist_shape)
+
         self.multi_shape.readjust_sizes()
 
-        self.shape_editor = ShapeEditor(new_shape)
+        if len(new_shapes)>1:
+            multi_selection_shape = MultiSelectionShape()
+            for new_shape in new_shapes:
+                multi_selection_shape.add_shape(new_shape)
+            self.add_shape(multi_selection_shape)
+            self.shape_editor = ShapeEditor(multi_selection_shape)
+        elif new_shapes:
+            self.shape_editor = ShapeEditor(new_shapes[0])
+
         return True
 
     def align_shapes(self, x_dir, y_dir):
@@ -739,11 +779,14 @@ class ShapeManager(object):
                 new_shape = CurveShape.create_from_polygon_shape(old_shape)
         if new_shape:
             task = ShapeConvertTask(self.doc, self.shape_editor.shape)
-            new_shape.recreate_name()
             self.add_shape(new_shape)
             old_shape.copy_into(new_shape)
             self.remove_shape(old_shape)
-            self.multi_shape.shapes.rename(new_shape.get_name(), old_shape.get_name())
+
+            new_shape_name = new_shape.get_name()
+            self.multi_shape.shapes.rename(new_shape_name, old_shape.get_name())
+            self.shapes.rename(new_shape_name, old_shape.get_name())
+
             self.multi_shape.readjust_sizes()
             self.reload_shapes()
             self.shape_editor = ShapeEditor(new_shape)
@@ -816,3 +859,36 @@ class ShapeManager(object):
                 multi_selection_shape.add_shape(shape)
             self.add_shape(multi_selection_shape)
             self.shape_editor = ShapeEditor(multi_selection_shape)
+
+    def update_linked_shapes(self):
+        if not self.shape_editor: return False
+        selected_shapes = []
+
+        if isinstance(self.shape_editor.shape, MultiSelectionShape):
+            for shape in self.shape_editor.shape.shapes:
+                selected_shapes.append(shape)
+        else:
+            selected_shapes.append(self.shape_editor.shape)
+
+        for selected_shape in selected_shapes:
+            if selected_shape.linked_to:
+                selected_shape.copy_data_from_linked()
+            if selected_shape.linked_clones:
+                for linked_clone in selected_shape.linked_clones:
+                    if linked_clone in selected_shapes:
+                        continue
+                    linked_clone.copy_data_from_linked()
+        return True
+
+    def place_anchor_at_center_of_shape(self):
+        if not self.shape_editor: return False
+        shape = self.shape_editor.shape
+        if not isinstance(shape, MultiSelectionShape):
+            task = ShapeStateTask(self.doc, shape)
+
+        shape.anchor_at.x = shape.width*.5
+        shape.anchor_at.y = shape.height*.5
+
+        if not isinstance(shape, MultiSelectionShape):
+            task.save(self.doc, shape)
+        return True

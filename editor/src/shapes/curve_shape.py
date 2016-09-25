@@ -11,6 +11,23 @@ class CurveShape(Shape):
         self.curves = []
         self.forms = dict()
 
+    def copy_data_from_linked(self):
+        if not self.linked_to: return
+        del self.curves[:]
+        for curve in  self.linked_to.curves:
+            curve = curve.copy()
+            linked_to_anchor_at = self.linked_to.anchor_at.copy()
+            linked_to_anchor_at.scale(1./self.linked_to.width, 1./self.linked_to.height)
+
+            self_anchor_at = self.anchor_at.copy()
+            self_anchor_at.scale(1./self.width, 1./self.height)
+
+            curve.translate(self_anchor_at.x-linked_to_anchor_at.x,
+                            self_anchor_at.y-linked_to_anchor_at.y)
+            self.curves.append(curve)
+        self.fit_size_to_include_all()
+        self.forms = copy_dict(self.linked_to.forms)
+
     def save_form(self, form_name):
         if form_name is None:
             i = len(self.forms)
@@ -398,8 +415,9 @@ class CurveShape(Shape):
             BezierPoint(control_1=Point(.5-k, 1.), control_2=Point(0, .5+k), dest=Point(0., .5)),
             BezierPoint(control_1=Point(0., .5-k), control_2=Point(0.5-k, 0.), dest=Point(.5, 0.))
         ]
-        curve_shape.curves.append(Curve(origin=Point(.5, 0.), bezier_points=bezier_points, closed=True))
-        oval_shape.copy_into(curve_shape, all_fields=True, copy_name=True)
+        #curve_shape.curves.append(Curve(origin=Point(.5, 0.), bezier_points=bezier_points, closed=True))
+        curve_shape.curves.append(Curve.create_circle(angle=sweep_angle))
+        oval_shape.copy_into(curve_shape, all_fields=True, copy_name=False)
         curve_shape.fit_size_to_include_all()
         return curve_shape
 
@@ -416,16 +434,16 @@ class CurveShape(Shape):
                     bzp = BezierPoint(
                         control_1 = point.copy(), control_2 = point.copy(), dest = point.copy())
                     curve.add_bezier_point(bzp)
-                    bzp.align_straigh_with(polygon.points[i-1])
+                    bzp.align_straight_with(polygon.points[i-1])
             curve.closed = polygon.closed
             if polygon.closed:
                 point = polygon.points[0]
                 bzp = BezierPoint(
                         control_1 = point.copy(), control_2 = point.copy(), dest = point.copy())
                 curve.add_bezier_point(bzp)
-                bzp.align_straigh_with(polygon.points[-1])
+                bzp.align_straight_with(polygon.points[-1])
             curve_shape.curves.append(curve)
-        polygon_shape.copy_into(curve_shape, all_fields=True, copy_name=True)
+        polygon_shape.copy_into(curve_shape, all_fields=True, copy_name=False)
         curve_shape.fit_size_to_include_all()
         return curve_shape
 

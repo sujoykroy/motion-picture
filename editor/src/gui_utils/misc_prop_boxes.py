@@ -47,6 +47,13 @@ class OvalShapePropBox(ShapePropBox):
         self.add_prop("sweep_angle",  PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-360, upper=361, step_increment=1, page_increment=1, page_size=1))
 
+class RingShapePropBox(OvalShapePropBox):
+    def __init__(self, draw_callback, insert_time_slice_callback):
+        OvalShapePropBox.__init__(self, draw_callback, insert_time_slice_callback)
+        self.add_prop("thickness",  PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0, upper=1.01,
+                     step_increment=.01, page_increment=.01, page_size=.01))
+
 class MultiShapePropBox(ShapePropBox):
     def __init__(self, draw_callback, insert_time_slice_callback):
         ShapePropBox.__init__(self, draw_callback, None, insert_time_slice_callback)

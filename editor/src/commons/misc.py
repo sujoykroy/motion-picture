@@ -27,10 +27,26 @@ def format_time(value):
 def copy_list(arr):
     copied_list = []
     for val in arr:
-        if hasattr(val, "copy"):
+        if isinstance(val, dict):
+            val = copy_dict(val)
+        elif isinstance(val, list):
+            val = copy_list(val)
+        elif hasattr(val, "copy"):
             val = val.copy()
         copied_list.append(val)
     return copied_list
+
+def copy_dict(dicto):
+    copied_dict = dict()
+    for key, val in dicto.items():
+        if isinstance(val, dict):
+            val = copy_dict(val)
+        elif isinstance(val, list):
+            val = copy_list(val)
+        elif hasattr(val, "copy"):
+            val = val.copy()
+        copied_dict[key] = val
+    return copied_dict
 
 class Matrix(object):
     @staticmethod

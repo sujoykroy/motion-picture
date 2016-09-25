@@ -90,12 +90,14 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.common_shape_prop_box = CommonShapePropBox(self.redraw, self, self.insert_time_slice)
         self.rectangle_shape_prop_box = RectangleShapePropBox(self.redraw, self.insert_time_slice)
         self.oval_shape_prop_box = OvalShapePropBox(self.redraw, self.insert_time_slice)
+        self.ring_shape_prop_box = RingShapePropBox(self.redraw, self.insert_time_slice)
         self.multi_shape_prop_box = MultiShapePropBox(self.redraw, self.insert_time_slice)
         self.curve_smooth_prop_box = CurveSmoothPropBox(self.recreate_shape_editor,
                                                         self.get_shape_manager)
 
         self.left_prop_box.pack_start(self.common_shape_prop_box, expand=False, fill=False, padding=0)
         self.left_prop_box.pack_start(self.rectangle_shape_prop_box, expand=False, fill=False, padding=0)
+        self.left_prop_box.pack_start(self.ring_shape_prop_box, expand=False, fill=False, padding=0)
         self.left_prop_box.pack_start(self.oval_shape_prop_box, expand=False, fill=False, padding=0)
         self.left_prop_box.pack_start(self.multi_shape_prop_box, expand=False, fill=False, padding=0)
 
@@ -255,6 +257,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.common_shape_prop_box.hide()
         self.rectangle_shape_prop_box.hide()
         self.oval_shape_prop_box.hide()
+        self.ring_shape_prop_box.hide()
         self.multi_shape_prop_box.hide()
         self.shape_form_prop_box.hide()
         self.curve_smooth_prop_box.hide()
@@ -265,6 +268,9 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, RectangleShape):
                 self.rectangle_shape_prop_box.show()
                 self.rectangle_shape_prop_box.set_prop_object(shape)
+            elif isinstance(shape, RingShape):
+                self.ring_shape_prop_box.show()
+                self.ring_shape_prop_box.set_prop_object(shape)
             elif isinstance(shape, OvalShape):
                 self.oval_shape_prop_box.show()
                 self.oval_shape_prop_box.set_prop_object(shape)

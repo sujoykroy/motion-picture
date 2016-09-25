@@ -3,6 +3,7 @@ from shape import Shape
 from shape_list import ShapeList
 from rectangle_shape import RectangleShape
 from oval_shape import OvalShape
+from ring_shape import RingShape
 from curve_shape import CurveShape
 from polygon_shape import PolygonShape
 from image_shape import ImageShape
@@ -62,6 +63,8 @@ class MultiShape(Shape):
             child_shape = None
             if shape_type == RectangleShape.TYPE_NAME:
                 child_shape = RectangleShape.create_from_xml_element(shape_element)
+            elif shape_type == RingShape.TYPE_NAME:
+                child_shape = RingShape.create_from_xml_element(shape_element)
             elif shape_type == OvalShape.TYPE_NAME:
                 child_shape = OvalShape.create_from_xml_element(shape_element)
             elif shape_type == CurveShape.TYPE_NAME:
