@@ -3,6 +3,7 @@ from ..commons.draw_utils import *
 from box import Box
 from sizes import *
 from prop_time_line_box import PropTimeLineBox
+from .. import settings
 
 class ShapeTimeLineBox(Box):
     def __init__(self, shape_time_line, multi_shape_time_line_box):
@@ -45,8 +46,8 @@ class ShapeTimeLineBox(Box):
 
     def draw(self, ctx):
         draw_text(ctx,
-            self.shape_time_line.shape.get_name(), 0, 0, font_name="10",
-            text_color = SHAPE_NAME_TEXT_COLOR, padding=5,
+            self.shape_time_line.shape.get_name(), 0, 0, font_name=settings.TIME_LINE_FONT,
+            text_color = SHAPE_NAME_TEXT_COLOR, padding=2,
             border_color = SHAPE_NAME_BORDER_COLOR, border_width=1,
             back_color = SHAPE_NAME_BACK_COLOR, pre_draw=self.pre_draw)
         for prop_time_line_box in self.prop_time_line_boxes:

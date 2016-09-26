@@ -1,4 +1,5 @@
 import cairo
+from gi.repository import Gtk
 
 class Keyboard(object):
     def __init__(self):
@@ -7,9 +8,21 @@ class Keyboard(object):
 
 class Text(object):
     @staticmethod
-    def markup(text, color, weight="normal"):
-        text = '<span color="#{0}" weight="{1}">{2}</span>'.format(color, weight, text)
-        return text
+    def markup(text, **params):
+        markup = "<span"
+        for key, value in params.items():
+            if value is None: continue
+            if key in ("color", "background"):
+                value = "#" + value
+            markup += " {0}=\"{1}\"".format(key, value)
+        markup += ">{0}</span>".format(text)
+        return markup
+
+    @staticmethod
+    def label(text, **params):
+        label = Gtk.Label()
+        label.set_markup(Text.markup(text, **params))
+        return label
 
 def format_time(value):
     hour = int(math.floor(value / 3600.))

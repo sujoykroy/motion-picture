@@ -5,6 +5,9 @@ from text_input_dialog import TextInputDialog
 class MultiShapeInternalPropBox(Gtk.VBox):
     def __init__(self, draw_callback, timeline_load_callback):
         Gtk.VBox.__init__(self)
+        self.set_margin_left(10)
+        self.set_margin_right(10)
+
         self.draw_callback = draw_callback
         self.timeline_load_callback = timeline_load_callback
 

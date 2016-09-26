@@ -3,6 +3,7 @@ from ..commons.draw_utils import *
 from box import Box
 from sizes import *
 from time_slice_box import TimeSliceBox
+from .. import settings
 
 class PropTimeLineBox(Box):
     TOTAL_LABEL_WIDTH = PROP_NAME_LABEL_WIDTH + PROP_VALUE_LABEL_WIDTH + 6*PROP_NAME_LABEL_RIGHT_PADDING
@@ -86,7 +87,8 @@ class PropTimeLineBox(Box):
         draw_fill(ctx, PROP_LEFT_BACK_COLOR)
 
         draw_text(ctx,
-            self.prop_time_line.prop_name, 0, 0, font_name="10", width=PROP_NAME_LABEL_WIDTH,
+            self.prop_time_line.prop_name, 0, 0, font_name=settings.TIME_LINE_FONT,
+            width=PROP_NAME_LABEL_WIDTH,
             text_color = PROP_NAME_TEXT_COLOR, padding=PROP_NAME_LABEL_RIGHT_PADDING,
             border_color = PROP_NAME_BORDER_COLOR, border_width=2,
             back_color = PROP_NAME_BACK_COLOR, pre_draw=self.pre_draw)
@@ -108,7 +110,8 @@ class PropTimeLineBox(Box):
         draw_straight_line(ctx, value_x_pos, 0, value_x_pos+2*PROP_NAME_LABEL_RIGHT_PADDING, 0)
         draw_stroke(ctx, 1)
         draw_straight_line(ctx, value_x_pos, self.height-END_POINT_HEIGHT*.5,
-                                value_x_pos+2*PROP_NAME_LABEL_RIGHT_PADDING, self.height-END_POINT_HEIGHT*.5)
+                                value_x_pos+2*PROP_NAME_LABEL_RIGHT_PADDING,
+                                self.height-END_POINT_HEIGHT*.5)
         draw_stroke(ctx, 1)
         ctx.restore()
 

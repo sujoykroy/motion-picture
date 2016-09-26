@@ -1,14 +1,13 @@
 from gi.repository import Gtk
 from ..commons import Curve, BezierPoint
 
-class CurveSmoothPropBox(Gtk.VBox):
+class CurveSmoothPropBox(object):
     def __init__(self, draw_callback, get_shape_manager_callback):
-        Gtk.VBox.__init__(self)
         self.curve_shape = None
         self.draw_callback = draw_callback
         self.get_shape_manager_callback = get_shape_manager_callback
 
-        self.pack_start(Gtk.Label("Smoothe"), expand=False, fill=False, padding=0)
+        self.heading = Gtk.Label("Smooth")
 
         adjustment = Gtk.Adjustment(0, 0, 360, .1, 1, 1)
         self.spin_button = Gtk.SpinButton()
@@ -16,14 +15,25 @@ class CurveSmoothPropBox(Gtk.VBox):
         self.spin_button.set_numeric(True)
         self.spin_button.set_adjustment(adjustment)
 
-        self.pack_start(self.spin_button, expand=False, fill=False, padding=0)
+        self.apply_button = Gtk.Button("Apply")
+        self.apply_button.connect("clicked", self.apply_button_clicked)
 
-        hbox = Gtk.HBox()
-        self.pack_start(hbox, expand=False, fill=False, padding=0)
+    def hide(self):
+        self.heading.hide()
+        self.spin_button.hide()
+        self.apply_button.hide()
 
-        apply_button = Gtk.Button("Apply")
-        apply_button.connect("clicked", self.apply_button_clicked)
-        hbox.pack_start(apply_button, expand=False, fill=False, padding=0)
+    def show(self):
+        self.heading.show()
+        self.spin_button.show()
+        self.apply_button.show()
+
+    def add_into_grid(self, grid, start_row):
+        r = start_row
+        grid.attach(self.heading, left=0, top=r, width=3, height=1)
+        grid.attach(self.spin_button, left=0, top=r+1, width=3, height=1)
+        grid.attach(self.apply_button, left=0, top=r+2, width=1, height=1)
+        return r+3
 
     def set_curve_shape(self, curve_shape):
         self.curve_shape = curve_shape

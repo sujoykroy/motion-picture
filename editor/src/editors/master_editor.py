@@ -95,12 +95,22 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.curve_smooth_prop_box = CurveSmoothPropBox(self.recreate_shape_editor,
                                                         self.get_shape_manager)
 
-        self.left_prop_box.pack_start(self.common_shape_prop_box, expand=False, fill=False, padding=0)
-        self.left_prop_box.pack_start(self.rectangle_shape_prop_box, expand=False, fill=False, padding=0)
-        self.left_prop_box.pack_start(self.ring_shape_prop_box, expand=False, fill=False, padding=0)
-        self.left_prop_box.pack_start(self.oval_shape_prop_box, expand=False, fill=False, padding=0)
-        self.left_prop_box.pack_start(self.multi_shape_prop_box, expand=False, fill=False, padding=0)
+        self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
+        self.shape_form_prop_box.parent_window = self
 
+        prop_grid = Gtk.Grid()
+        prop_grid.set_margin_left(10)
+        prop_grid.set_margin_right(10)
+        row_count = 0
+        row_count = self.common_shape_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.rectangle_shape_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.oval_shape_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.ring_shape_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.multi_shape_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.shape_form_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.curve_smooth_prop_box.add_into_grid(prop_grid, row_count)
+
+        self.left_prop_box.pack_start(prop_grid, expand=False, fill=False, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
 
         self.drawing_area = Gtk.DrawingArea()
@@ -138,6 +148,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.right_prop_box = Gtk.VBox()
         right_prop_box_container = Gtk.ScrolledWindow()
+        right_prop_box_container.set_name("rightpropbox")
         right_prop_box_container.add_with_viewport(self.right_prop_box)
         self.paned_box_3.pack2(right_prop_box_container, resize=True, shrink=True)
 
@@ -150,17 +161,13 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.time_slice_prop_box = TimeSlicePropBox(self.time_line_editor.update)
         self.right_prop_box.pack_start(self.time_slice_prop_box, expand=False, fill=False, padding=0)
 
-        self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
-        self.shape_form_prop_box.parent_window = self
-        self.right_prop_box.pack_start(self.shape_form_prop_box, expand=False, fill=False, padding=0)
-        self.right_prop_box.pack_start(self.curve_smooth_prop_box, expand=False, fill=False, padding=0)
 
     def init_interface(self):
         self.show_prop_of(None)
         self.show_time_slice_props(None)
 
-        self.paned_box_2.set_position(180)
-        self.paned_box_3.set_position(80)
+        self.paned_box_2.set_position(160)
+        self.paned_box_3.set_position(75)
         self.paned_box_1.set_position(180)
 
         self.open_document(None)

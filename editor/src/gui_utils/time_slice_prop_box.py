@@ -1,17 +1,21 @@
 from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
 from ..time_lines.time_change_types import *
-from ..commons import get_displayble_prop_name
+from ..commons import get_displayble_prop_name, Text
 
-class TimeSlicePropBox(Gtk.VBox):
+class TimeSlicePropBox(Gtk.Frame):
     NUMBER = 0
     BOOLEAN = 1
     TEXT = 2
     LIST = 3
 
     def __init__(self, draw_callback):
-        Gtk.VBox.__init__(self)
-        self.set_name("propbox")
+        Gtk.Frame.__init__(self)
+        self.set_margin_left(10)
+        self.set_margin_right(10)
+
+        self.set_name("frame")
+        self.set_label("Time Slice Properties")
         self.draw_callback = draw_callback
         self.attrib_widgets = dict()
         self.periodic_widgets = dict()
@@ -20,15 +24,14 @@ class TimeSlicePropBox(Gtk.VBox):
         self.time_slice = None
         self.time_slice_box = None
 
-        hbox = Gtk.HBox()
-        self.pack_start(hbox, expand=False, fill=False, padding=0)
-        hbox.pack_start(Gtk.Label("Time Slice Properties"), expand=False, fill=False, padding=0)
+        #Todo
         self.close_button = Gtk.Button("x")
-        hbox.pack_end(self.close_button, expand=False, fill=False, padding=0)
         self.close_button.connect("clicked", self.close_button_clicked)
 
-        self.prop_data_widgets_container = Gtk.VBox()
-        self.pack_start(self.prop_data_widgets_container, expand=False, fill=False, padding=0)
+        self.grid = Gtk.Grid()
+        self.grid_row_count = 0
+        self.add(self.grid)
+
         self.add_editable_item("prop_data", "start_pose", self.LIST)
         self.add_editable_item("prop_data", "end_pose", self.LIST)
         self.add_editable_item("prop_data", "pose", self.LIST)
@@ -42,8 +45,6 @@ class TimeSlicePropBox(Gtk.VBox):
         self.add_editable_item("attrib", "linked_to_next", self.BOOLEAN)
         self.add_editable_item("attrib", "change_type_class", self.LIST)
 
-        self.periodic_widgets_container = Gtk.VBox()
-        self.pack_start(self.periodic_widgets_container, expand=False, fill=False, padding=0)
         self.add_editable_item("periodic", "period", self.NUMBER)
         self.add_editable_item("periodic", "phase", self.NUMBER)
         self.add_editable_item("periodic", "amplitude",self.NUMBER)
@@ -73,10 +74,10 @@ class TimeSlicePropBox(Gtk.VBox):
 
         if widget is None or widget.item_name == "change_type_class":
             if isinstance(self.time_slice.change_type, PeriodicChangeType):
-                self.periodic_widgets_container.show()
+                self.show_widgets(self.periodic_widgets, True)
                 self.show_values(self.periodic_widgets, self.time_slice.change_type)
             else:
-                self.periodic_widgets_container.hide()
+                self.show_widgets(self.periodic_widgets, False)
         if widget is None:
             self.show_values(self.attrib_widgets, self.time_slice)
 
@@ -99,11 +100,22 @@ class TimeSlicePropBox(Gtk.VBox):
 
             for key, widget in self.prop_data_widgets.items():
                 if not prop_data or key not in prop_data:
-                     widget.hbox.hide()
+                     widget.hide()
+                     widget.label.hide()
                 else:
-                    widget.hbox.show()
+                    widget.show()
+                    widget.label.show()
                     if isinstance(widget, NameValueComboBox):
                         widget.set_value(prop_data[key])
+
+    def show_widgets(self, widgets, visible):
+        for key, widget in widgets.items():
+            if visible:
+                widget.label.show()
+                widget.show()
+            else:
+                widget.label.hide()
+                widget.hide()
 
     def show_values(self, widgets, obj):
         for key, widget in widgets.items():
@@ -139,15 +151,8 @@ class TimeSlicePropBox(Gtk.VBox):
             setattr(obj, name, value)
 
     def add_editable_item(self, source_name, item_name, item_type):
-        hbox = Gtk.HBox()
-        label_box = Gtk.HBox()
-        label_box.set_name("label_box")
-        label_box.set_size_request(100, -1)
-        hbox.pack_start(label_box, expand=False, fill=False, padding=0)
-
         label = Gtk.Label(get_displayble_prop_name(item_name))
         label.set_halign(Gtk.Align.START)
-        label_box.pack_start(label, expand=False, fill=False, padding =0)
 
         if item_type == self.NUMBER:
             entry = Gtk.Entry()
@@ -166,24 +171,21 @@ class TimeSlicePropBox(Gtk.VBox):
         item_widget.item_type = item_type
         item_widget.item_name = item_name
         item_widget.source_name = source_name
-
-        item_widget_container = Gtk.HBox()
-        item_widget_container.pack_start(item_widget, expand=False, fill=False, padding=0)
-        hbox.pack_start(item_widget_container, expand=False, fill=False, padding=0)
+        #item_widget.set_name("itemwidget")
 
         if source_name == "attrib":
-            container = self
             widgets_dict = self.attrib_widgets
         elif source_name == "periodic":
-            container = self.periodic_widgets_container
             widgets_dict = self.periodic_widgets
         elif source_name == "prop_data":
-            container = self.prop_data_widgets_container
             widgets_dict = self.prop_data_widgets
 
-        container.pack_start(hbox, expand=False, fill=False, padding=0)
+        self.grid.attach(label, left=0, top=self.grid_row_count, width=1, height=1)
+        self.grid.attach(item_widget, left=1, top=self.grid_row_count, width=1, height=1)
+        self.grid_row_count += 1
+
         widgets_dict[item_name] = item_widget
-        item_widget.hbox = hbox
+        item_widget.label = label
 
         return item_widget
 

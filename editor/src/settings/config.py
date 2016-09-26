@@ -10,3 +10,5 @@ ICONS_FOLDER = os.path.join(_PARENT_FOLDER, "icons")
 MAIN_CSS_FILE = os.path.join(_THIS_FOLDER, "main_style.css")
 PREDRAWN_SHAPE_FOLDER = os.path.join(ICONS_FOLDER, "predrawns")
 
+TIME_LINE_FONT = "8"
+

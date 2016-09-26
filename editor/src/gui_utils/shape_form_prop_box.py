@@ -2,9 +2,8 @@ from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
 from text_input_dialog import TextInputDialog
 
-class ShapeFormPropBox(Gtk.VBox):
+class ShapeFormPropBox(object):
     def __init__(self, draw_callback, insert_time_slice_callback):
-        Gtk.VBox.__init__(self)
         self.draw_callback = draw_callback
         self.insert_time_slice_callback = insert_time_slice_callback
         self.form_label = Gtk.Label("Forms")
@@ -19,26 +18,39 @@ class ShapeFormPropBox(Gtk.VBox):
         self.save_form_button = Gtk.Button("Save")
         self.save_form_button.connect("clicked", self.save_form_button_clicked)
 
-        form_button_box = Gtk.HBox()
-        form_button_box.pack_start(self.apply_form_button, expand=False, fill=False, padding=0)
-        form_button_box.pack_start(self.save_form_button, expand=False, fill=False, padding=0)
-        form_button_box.pack_start(self.rename_form_button, expand=False, fill=False, padding=0)
-        form_button_box.pack_start(self.new_form_button, expand=False, fill=False, padding=0)
+        self.form_button_box = Gtk.HBox()
+        self.form_button_box.pack_start(self.apply_form_button, expand=False, fill=False, padding=0)
+        self.form_button_box.pack_start(self.save_form_button, expand=False, fill=False, padding=0)
+        self.form_button_box.pack_start(self.rename_form_button, expand=False, fill=False, padding=0)
+        self.form_button_box.pack_start(self.new_form_button, expand=False, fill=False, padding=0)
 
 
         insert_slice_button = Gtk.Button("[+]")
         insert_slice_button.connect("clicked", self.insert_slice_button_clicked)
-        form_button_box.pack_start(insert_slice_button, expand=False, fill=False, padding=0)
-
-        self.pack_start(self.form_label, expand=False, fill=False, padding=0)
-        self.pack_start(self.forms_combo_box, expand=False, fill=False, padding=0)
-        self.pack_start(form_button_box, expand=False, fill=False, padding=0)
+        self.form_button_box.pack_start(insert_slice_button, expand=False, fill=False, padding=0)
 
         self.curve_shape = None
 
+    def hide(self):
+        self.form_label.hide()
+        self.forms_combo_box.hide()
+        self.form_button_box.hide()
+
+    def show(self):
+        self.form_label.show()
+        self.forms_combo_box.show()
+        self.form_button_box.show()
+
+    def add_into_grid(self, grid, start_row):
+        r = start_row
+        grid.attach(self.form_label, left=0, top=r, width=3, height=1)
+        grid.attach(self.forms_combo_box, left=0, top=r+1, width=3, height=1)
+        grid.attach(self.form_button_box, left=0, top=r+2, width=3, height=1)
+        r += 3
+        return r
+
     def set_curve_shape(self, curve_shape):
         if self.curve_shape == curve_shape: return
-        self.form_label.set_text("Forms of " + curve_shape.get_name())
         self.curve_shape = curve_shape
         self.apply_form_button.hide()
         self.rename_form_button.hide()
