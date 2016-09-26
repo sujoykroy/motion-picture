@@ -1,6 +1,7 @@
 from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
 from ..time_lines.time_change_types import *
+from ..commons import get_displayble_prop_name
 
 class TimeSlicePropBox(Gtk.VBox):
     NUMBER = 0
@@ -10,6 +11,7 @@ class TimeSlicePropBox(Gtk.VBox):
 
     def __init__(self, draw_callback):
         Gtk.VBox.__init__(self)
+        self.set_name("propbox")
         self.draw_callback = draw_callback
         self.attrib_widgets = dict()
         self.periodic_widgets = dict()
@@ -138,12 +140,20 @@ class TimeSlicePropBox(Gtk.VBox):
 
     def add_editable_item(self, source_name, item_name, item_type):
         hbox = Gtk.HBox()
-        label = Gtk.Label(item_name)
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        label_box = Gtk.HBox()
+        label_box.set_name("label_box")
+        label_box.set_size_request(100, -1)
+        hbox.pack_start(label_box, expand=False, fill=False, padding=0)
+
+        label = Gtk.Label(get_displayble_prop_name(item_name))
+        label.set_halign(Gtk.Align.START)
+        label_box.pack_start(label, expand=False, fill=False, padding =0)
+
         if item_type == self.NUMBER:
             entry = Gtk.Entry()
             entry.connect("changed", self.item_widget_changed)
             item_widget = entry
+            entry.props.max_length = 5
         elif item_type == self.BOOLEAN:
             checkbox = Gtk.CheckButton()
             checkbox.connect("toggled", self.item_widget_changed)
@@ -153,12 +163,13 @@ class TimeSlicePropBox(Gtk.VBox):
             combobox.connect("changed", self.item_widget_changed)
             item_widget = combobox
 
-        label.set_size_request(120, -1)
-
         item_widget.item_type = item_type
         item_widget.item_name = item_name
         item_widget.source_name = source_name
-        hbox.pack_start(item_widget, expand=False, fill=False, padding=0)
+
+        item_widget_container = Gtk.HBox()
+        item_widget_container.pack_start(item_widget, expand=False, fill=False, padding=0)
+        hbox.pack_start(item_widget_container, expand=False, fill=False, padding=0)
 
         if source_name == "attrib":
             container = self

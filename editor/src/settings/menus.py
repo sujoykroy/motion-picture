@@ -23,9 +23,9 @@ m.add(path="Edit/<UndoRedo>/Redo", accel="<Control>Y",
       action_name="win.undo_redo", action_param="redo")
 
 
-m.add(path="Edit/Shape/Copy", icon="copy_shape", accel="<Control>c",
+m.add(path="Edit/Shape/Copy", icon="copy_shape", accel="<Control><Shift>c",
       action_name="win.copy_shape_action")
-m.add(path="Edit/Shape/Paste", icon="paste_shape", accel="<Control>v",
+m.add(path="Edit/Shape/Paste", icon="paste_shape", accel="<Control><Shift>v",
       action_name="win.paste_shape_action")
 m.add(path="Edit/Shape/Delete", icon="delete_shape",
       action_name="win.delete_shape")

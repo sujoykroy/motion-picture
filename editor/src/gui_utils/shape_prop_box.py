@@ -1,6 +1,6 @@
 from gi.repository import Gtk, Gdk
 from name_value_combo_box import NameValueComboBox
-from ..commons import Point, Color
+from ..commons import Point, Color, get_displayble_prop_name
 
 PROP_TYPE_NUMBER_ENTRY = 0
 PROP_TYPE_COLOR = 1
@@ -75,14 +75,10 @@ class ShapePropBox(Gtk.VBox):
 
         prop_widget.value_type = value_type
 
-        label_words = prop_name.replace("_", " ").split(" ")
-        for i in range(len(label_words)):
-            label_words[i] = label_words[i][0].upper() + label_words[i][1:]
-
         label_box = Gtk.HBox()
         label_box.set_name("label_box")
         label_box.set_size_request(100, -1)
-        label = Gtk.Label(" ".join(label_words))
+        label = Gtk.Label(get_displayble_prop_name(prop_name))
         label.set_halign(Gtk.Align.START)
         label_box.pack_start(label, expand=False, fill=False, padding =0)
 
