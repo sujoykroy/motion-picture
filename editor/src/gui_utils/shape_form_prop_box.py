@@ -58,7 +58,11 @@ class ShapeFormPropBox(object):
         self.update()
 
     def update(self):
-        self.forms_combo_box.build_and_set_model(sorted(self.curve_shape.forms.keys()))
+        if self.curve_shape:
+            values = sorted(self.curve_shape.forms.keys())
+        else:
+            values = None
+        self.forms_combo_box.build_and_set_model(values)
 
     def forms_combo_box_changed(self, widget):
         form_name = self.forms_combo_box.get_value()

@@ -132,6 +132,8 @@ class ShapePropBox(object):
     def shape_name_entry_activated(self, widget, prop_name):
         if self.prop_object != None:
             text = widget.get_text()
+            text = text.replace(".", "_")
+            widget.set_text(text)
             if not self.shape_name_checker.set_shape_name(self.prop_object, text):
                 widget.set_text(self.prop_object.get_prop_value(prop_name))
 

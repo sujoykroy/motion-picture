@@ -98,10 +98,19 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
 
+
         prop_grid = Gtk.Grid()
         prop_grid.set_margin_left(10)
         prop_grid.set_margin_right(10)
-        row_count = 0
+
+        self.linked_to_label = Gtk.Label()
+        self.linked_to_hbox = Gtk.HBox()
+        self.linked_to_hbox.pack_start(
+                Document.create_image("linked_to"),
+                expand=False, fill=False, padding=0)
+        self.linked_to_hbox.pack_start(self.linked_to_label, expand=False, fill=False, padding=10)
+        prop_grid.attach(self.linked_to_hbox, left=0, top=0, width=3, height=1)
+        row_count = 1
         row_count = self.common_shape_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.rectangle_shape_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.oval_shape_prop_box.add_into_grid(prop_grid, row_count)
@@ -180,12 +189,6 @@ class MasterEditor(Gtk.ApplicationWindow):
             filename = os.path.basename(filename)
         self.set_title("MotionPicture-{0}".format(filename))
 
-    def get_multi_stack_breadcrumb_name(self):
-        names = []
-        for multi_shape in self.multi_shape_stack:
-            names.append(multi_shape.get_name())
-        return "->".join(names)
-
     def add_new_action_button(self, name, click_callback, parent_box):
         button = Gtk.Button(name)
         parent_box.pack_start(button, expand = False, fill= False, padding = 5)
@@ -212,10 +215,10 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.show_prop_of(None)
         self.load_multi_shape_time_line(None)
+
+        shape_info = ".".join(get_hierarchy_names(multi_shape))
         self.multi_shape_name_label.set_markup(
-            Text.markup(color=Settings.TOP_INFO_BAR_TEXT_COLOR, weight="bold",
-                text=self.get_multi_stack_breadcrumb_name()
-            )
+            Text.markup(shape_info, color=Settings.TOP_INFO_BAR_TEXT_COLOR, weight="bold")
         )
         self.multi_shape_internal_prop_box.set_multi_shape(multi_shape)
         if multi_shape.timelines:
@@ -270,6 +273,11 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.curve_smooth_prop_box.hide()
 
         if shape != None:
+            if shape.linked_to:
+                self.linked_to_label.set_text(".".join(get_hierarchy_names(shape.linked_to)))
+                self.linked_to_hbox.show()
+            else:
+                self.linked_to_hbox.hide()
             self.common_shape_prop_box.show()
             self.common_shape_prop_box.set_prop_object(shape)
             if isinstance(shape, RectangleShape):
@@ -291,6 +299,9 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, CurveShape):
                 self.curve_smooth_prop_box.set_curve_shape(shape)
                 self.curve_smooth_prop_box.show()
+        else:
+            self.linked_to_hbox.hide()
+            self.shape_form_prop_box.set_curve_shape(None)
 
     def update_drawing_area_scrollbars(self):
         w, h = self.get_drawing_area_size()
