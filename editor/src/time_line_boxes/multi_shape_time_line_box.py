@@ -54,10 +54,11 @@ class MultiShapeTimeLineBox(Box):
         self.width = width + SHAPE_LINE_LEFT_PADDING
         self.height = height
 
-    def draw(self, ctx):
+    def draw(self, ctx, shape=None):
         for shape_time_line_box in self.shape_time_line_boxes:
+            selected = shape_time_line_box.shape_time_line.shape == shape
             ctx.save()
-            shape_time_line_box.draw(ctx)
+            shape_time_line_box.draw(ctx, selected=selected)
             ctx.restore()
 
     def update_slices_container_box_left(self, value):

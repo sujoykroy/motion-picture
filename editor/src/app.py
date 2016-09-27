@@ -310,6 +310,14 @@ class ApplicationWindow(MasterEditor):
         change_action_tool_buttons(action)
         self.redraw()
 
+    def show_all_time_lines(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.SHOW_ALL_TIME_LINES = parameter.get_boolean()
+        self.time_line_editor.set_selected_shape(
+            self.shape_manager.get_selected_shape()
+        )
+        change_action_tool_buttons(action)
+
     def hide_axis(self, action, parameter):
         action.set_state(parameter)
         EditingChoice.HIDE_AXIS = parameter.get_boolean()

@@ -1,5 +1,6 @@
 from gi.repository import Gtk, Gdk
 from name_value_combo_box import NameValueComboBox
+from buttons import ColorButton
 from ..commons import Point, Color, get_displayble_prop_name
 
 PROP_TYPE_NUMBER_ENTRY = 0
@@ -50,8 +51,8 @@ class ShapePropBox(object):
             if value is None: continue
             if isinstance(prop_widget, Gtk.SpinButton):
                 prop_widget.set_value(value)
-            elif isinstance(prop_widget, Gtk.ColorButton):
-                prop_widget.set_rgba(Gdk.RGBA(*value.get_array()))
+            elif isinstance(prop_widget, ColorButton):
+                prop_widget.set_color(value)
             elif isinstance(prop_widget, Gtk.Entry):
                 if prop_widget.value_type == PROP_TYPE_POINT:
                     value = value.to_text()
@@ -72,9 +73,8 @@ class ShapePropBox(object):
             spin_button.connect("value-changed", self.spin_button_value_changed, prop_name)
             prop_widget = spin_button
         elif value_type == PROP_TYPE_COLOR:
-            color_button = Gtk.ColorButton()
-            color_button.set_use_alpha(True)
-            color_button.connect("color-set", self.color_button_value_changed, prop_name)
+            color_button = ColorButton()
+            color_button.connect("clicked", self.color_button_clicked, prop_name)
             prop_widget = color_button
         elif value_type == PROP_TYPE_POINT:
             point_entry = Gtk.Entry()
@@ -111,6 +111,19 @@ class ShapePropBox(object):
         self.prop_boxes[prop_name] = prop_widget
         return prop_widget
 
+    def color_button_clicked(self, color_button, prop_name):
+        value = self.prop_object.get_prop_value(prop_name)
+        dialog = Gtk.ColorChooserDialog()
+        rgba = Gdk.RGBA(*value.get_array())
+        dialog.set_rgba(rgba)
+        if dialog.run() == Gtk.ResponseType.OK:
+            dialog.get_rgba(rgba)
+            color = Color(rgba.red, rgba.green, rgba.blue, rgba.alpha)
+            color_button.set_color(color)
+            self.prop_object.set_prop_value(prop_name, color)
+            self.draw_callback()
+        dialog.destroy()
+
     def insert_slice_button_clicked(self, widget, prop_name):
         if self.prop_object != None:
             value = self.prop_object.get_prop_value(prop_name)
@@ -125,13 +138,6 @@ class ShapePropBox(object):
     def spin_button_value_changed(self, spin_button, prop_name):
         if self.prop_object != None:
             self.prop_object.set_prop_value(prop_name, spin_button.get_value())
-            self.draw_callback()
-
-    def color_button_value_changed(self, color_button, prop_name):
-        if self.prop_object != None:
-            rgba = color_button.get_rgba()
-            color = Color(rgba.red, rgba.green, rgba.blue, rgba.alpha)
-            self.prop_object.set_prop_value(prop_name, color)
             self.draw_callback()
 
     def point_entry_value_changed(self, point_entry, prop_name):

@@ -8,3 +8,4 @@ class EditingChoice:
     LOCK_GUIDES = False
     HIDE_CONTROL_POINTS = False
     HIDE_AXIS = True
+    SHOW_ALL_TIME_LINES = True

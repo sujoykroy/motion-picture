@@ -22,6 +22,14 @@ class Color(object):
     def to_text(self):
         return "{0},{1},{2},{3}".format(self.red, self.green, self.blue, self.alpha)
 
+    def to_html(self):
+        arr = [self.red, self.green, self.blue, self.alpha]
+        for i in range(len(arr)):
+            arr[i] = hex(int(arr[i]*255))[2:]
+            if len(arr[i]) == 1:
+                arr[i] = "0" + arr[i]
+        return "#" + "".join(arr)
+
     @classmethod
     def from_text(cls, text):
         if text is None: return None

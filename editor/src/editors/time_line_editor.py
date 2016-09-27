@@ -3,9 +3,11 @@ import time
 
 from ..commons import *
 from ..commons.draw_utils import *
+from ..time_lines import MultiShapeTimeLine
 from ..time_line_boxes import *
 
 from ..gui_utils import buttons
+from ..settings import EditingChoice
 
 EDITOR_LINE_COLOR = "ff0000"
 TIME_SLICE_START_X = PropTimeLineBox.TOTAL_LABEL_WIDTH + SHAPE_LINE_LEFT_PADDING
@@ -136,7 +138,8 @@ class TimeLineEditor(Gtk.VBox):
         self.pack_start(self.drawing_area_hscrollbar, expand=False,  fill=True, padding=0)
 
         drawing_area_container_tbox.pack_start(self.drawing_area, expand=True,  fill=True, padding=0)
-        drawing_area_container_tbox.pack_start(self.drawing_area_vscrollbar, expand=False,  fill=True, padding=0)
+        drawing_area_container_tbox.pack_start(self.drawing_area_vscrollbar,
+                                expand=False,  fill=True, padding=0)
 
         self.drawing_area.set_events(
             Gdk.EventMask.POINTER_MOTION_MASK|Gdk.EventMask.BUTTON_PRESS_MASK|\
@@ -185,6 +188,7 @@ class TimeLineEditor(Gtk.VBox):
 
         self.is_playing = False
         self.last_play_updated_at = 0
+        self.selected_shape = None
 
     def set_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line = multi_shape_time_line
@@ -230,6 +234,24 @@ class TimeLineEditor(Gtk.VBox):
             self.play_head_box.height = self.drawing_area.get_allocated_height()
         self.mouse_position_box.height = self.drawing_area.get_allocated_height()
         self.redraw()
+
+    def set_selected_shape(self, shape):
+        if self.selected_shape and self.time_line and EditingChoice.SHOW_ALL_TIME_LINES:
+            self.multi_shape_time_line_box = MultiShapeTimeLineBox(self.time_line)
+
+        self.selected_shape = shape
+        if not self.time_line: return
+
+        if EditingChoice.SHOW_ALL_TIME_LINES:
+            self.update()
+            return
+
+        multi_shape_time_line = MultiShapeTimeLine()
+        if self.time_line.shape_time_lines.key_exists(shape):
+            shape_time_line =  self.time_line.shape_time_lines[shape]
+            multi_shape_time_line.shape_time_lines.add(shape, shape_time_line)
+        self.multi_shape_time_line_box = MultiShapeTimeLineBox(multi_shape_time_line)
+        self.update()
 
     def redraw(self):
         self.drawing_area.queue_draw()
@@ -392,7 +414,7 @@ class TimeLineEditor(Gtk.VBox):
             #draw time slices
             ctx.save()
             ctx.translate(0, TIME_STAMP_LABEL_HEIGHT)
-            self.multi_shape_time_line_box.draw(ctx)
+            self.multi_shape_time_line_box.draw(ctx, self.selected_shape)
             ctx.restore()
 
         #left prop name vertical box, rework to unwind prop_line's back distortions

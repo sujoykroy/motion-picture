@@ -366,6 +366,7 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.shape_manager.select_item_at(self.mouse_point.copy(),
                         multi_select=self.keyboard_object.shift_key_pressed,
                         box_select=self.keyboard_object.control_key_pressed)
+                self.time_line_editor.set_selected_shape(self.shape_manager.get_selected_shape())
                 if self.shape_manager.get_selected_edit_box() is not None:
                     return
             self.show_prop_of(self.shape_manager.get_selected_shape())
