@@ -101,12 +101,18 @@ class ShapePropBox(object):
         label = Gtk.Label(get_displayble_prop_name(prop_name))
         label.set_halign(Gtk.Align.START)
 
+        widgets = [label, prop_widget]
+
         if can_insert_slice:
             insert_slice_button = Gtk.Button("I+I")
             insert_slice_button.connect("clicked", self.insert_slice_button_clicked, prop_name)
-            self.widget_rows.append((label, prop_widget, insert_slice_button))
-        else:
-            self.widget_rows.append((label, prop_widget))
+            widgets.append(insert_slice_button)
+
+            apply_on_poses_button = Gtk.Button("P")
+            apply_on_poses_button.connect("clicked", self.apply_on_poses_button_clicked, prop_name)
+            widgets.append(apply_on_poses_button)
+
+        self.widget_rows.append(widgets)
 
         self.prop_boxes[prop_name] = prop_widget
         return prop_widget
@@ -128,6 +134,11 @@ class ShapePropBox(object):
         if self.prop_object != None:
             value = self.prop_object.get_prop_value(prop_name)
             self.insert_time_slice_callback(self.prop_object, prop_name, value)
+
+    def apply_on_poses_button_clicked(self, widget, prop_name):
+        if not self.prop_object or not hasattr(self.prop_object.parent_shape, "set_shape_prop_for_all_poses"):
+            return
+        self.prop_object.parent_shape.set_shape_prop_for_all_poses(self.prop_object, prop_name)
 
     def shape_name_entry_activated(self, widget, prop_name):
         if self.prop_object != None:

@@ -90,6 +90,8 @@ class Matrix(object):
 
     @staticmethod
     def from_text(text):
+        if text == "None":
+            return None
         values = text.split(",")
         for i in range(len(values)):
             values[i] = float(values[i])

@@ -32,7 +32,7 @@ class Color(object):
 
     @classmethod
     def from_text(cls, text):
-        if text is None: return None
+        if text is None or text == "None": return None
         r, g, b, a = text.split(",")
         return cls(float(r), float(g), float(b), float(a))
 

@@ -40,9 +40,7 @@ class MultiShape(Shape):
                 pose_shape_elm = XmlElement(self.POSE_SHAPE_TAG_NAME)
                 pose_shape_elm.attrib["name"] = shape_name
                 for prop_name, value in prop_dict.items():
-                    if isinstance(value, Point):
-                        value = value.to_text()
-                    elif isinstance(value, Color):
+                    if hasattr(value, "to_text"):
                         value = value.to_text()
                     pose_shape_elm.attrib[prop_name] = "{0}".format(value)
                 pose_elm.append(pose_shape_elm)
@@ -87,10 +85,12 @@ class MultiShape(Shape):
                     if prop_name == "name":
                         shape_name = value
                         continue
-                    if prop_name in ("anchor_at, translation"):
+                    if prop_name in ("anchor_at", "translation"):
                         value = Point.from_text(value)
                     elif prop_name in ("fill_color", "border_color"):
                         value = Color.from_text(value)
+                    elif prop_name == "pre_matrix":
+                        value = Matrix.from_text(value)
                     else:
                         value = float(value)
                     prop_dict[prop_name] = value
@@ -153,6 +153,12 @@ class MultiShape(Shape):
             tpoint = shape.translation
             tpoint.translate(anchor_at.x, anchor_at.y)
         self.readjust_sizes()
+
+    def set_shape_prop_for_all_poses(self, shape, prop_name):
+        for pose in self.poses.values():
+            old_prop_dict = pose[shape.get_name()]
+            current_shape_prop_dict = shape.get_pose_prop_dict()
+            old_prop_dict[prop_name] = current_shape_prop_dict[prop_name]
 
     def set_pose_transition(self, start_pose, end_pose, value):
         start_pose = self.poses[start_pose]
