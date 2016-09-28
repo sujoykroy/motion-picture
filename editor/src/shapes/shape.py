@@ -309,6 +309,12 @@ class Shape(object):
             xy.translate(-parent_anchor.x, -parent_anchor.y)
         return xy
 
+    def get_stage_x(self):
+        return self.get_stage_xy().x
+
+    def get_stage_y(self):
+        return self.get_stage_xy().y
+
     def set_stage_xy(self, point):
         if not point: return
         xy = point.copy()

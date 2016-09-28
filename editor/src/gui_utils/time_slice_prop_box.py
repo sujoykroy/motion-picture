@@ -39,8 +39,8 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "start_form", self.LIST)
         self.add_editable_item("prop_data", "end_form", self.LIST)
 
-        self.add_editable_item("attrib", "start_value", self.NUMBER)
-        self.add_editable_item("attrib", "end_value", self.NUMBER)
+        self.add_editable_item("attrib", "start_value", self.NUMBER, syncable=True)
+        self.add_editable_item("attrib", "end_value", self.NUMBER, syncable=True)
         self.add_editable_item("attrib", "duration", self.NUMBER)
         self.add_editable_item("attrib", "linked_to_next", self.BOOLEAN)
         self.add_editable_item("attrib", "change_type_class", self.LIST)
@@ -61,7 +61,8 @@ class TimeSlicePropBox(Gtk.Frame):
         self.time_slice_box = time_slice_box
         if time_slice_box:
             self.time_slice = time_slice_box.time_slice
-            self.shape = time_slice_box.prop_time_line_box.parent_box.shape_time_line.shape
+            self.prop_name = time_slice_box.prop_time_line_box.prop_time_line.prop_name
+            self.shape = time_slice_box.prop_time_line_box.prop_time_line.shape
             self.update()
             self.show()
         else:
@@ -121,6 +122,8 @@ class TimeSlicePropBox(Gtk.Frame):
         for key, widget in widgets.items():
             value = self.get_item_value(obj, key)
             if isinstance(widget, Gtk.Entry):
+                if hasattr(value, "to_text"):
+                    value = value.to_text()
                 widget.set_text("{0}".format(value))
             elif isinstance(widget, Gtk.CheckButton):
                 widget.set_active(bool(value))
@@ -150,7 +153,7 @@ class TimeSlicePropBox(Gtk.Frame):
         else:
             setattr(obj, name, value)
 
-    def add_editable_item(self, source_name, item_name, item_type):
+    def add_editable_item(self, source_name, item_name, item_type, syncable=False):
         label = Gtk.Label(get_displayble_prop_name(item_name))
         label.set_halign(Gtk.Align.START)
 
@@ -182,6 +185,10 @@ class TimeSlicePropBox(Gtk.Frame):
 
         self.grid.attach(label, left=0, top=self.grid_row_count, width=1, height=1)
         self.grid.attach(item_widget, left=1, top=self.grid_row_count, width=1, height=1)
+        if syncable:
+            sync_button = Gtk.Button("sync")
+            sync_button.connect("clicked", self.sync_button_clicked, item_widget)
+            self.grid.attach(sync_button, left=2, top=self.grid_row_count, width=1, height=1)
         self.grid_row_count += 1
 
         widgets_dict[item_name] = item_widget
@@ -189,8 +196,35 @@ class TimeSlicePropBox(Gtk.Frame):
 
         return item_widget
 
+    def sync_button_clicked(self, widget, item_widget):
+        if not self.time_slice:
+            return
+        value = self.shape.get_prop_value(self.prop_name)
+        if value is None:
+            return
+        if hasattr(value, "copy"):
+            value = value.copy()
+        self.set_item_value_for_widget(item_widget, value)
+        self.update()
+
     def close_button_clicked(self, widget):
         self.hide()
+
+    def set_item_value_for_widget(self, item_widget, value):
+        if item_widget.item_type == self.NUMBER:
+            try:
+                value = float(value)
+            except ValueError as e:
+                return
+        elif item_widget.item_type == self.BOOLEAN:
+            value == bool(value)
+
+        if item_widget.source_name == "periodic":
+            self.set_item_value(self.time_slice.change_type, item_widget.item_name, value)
+        elif item_widget.source_name == "prop_data":
+            self.set_item_value(self.time_slice.prop_data, item_widget.item_name, value)
+        else:
+            self.set_item_value(self.time_slice, item_widget.item_name, value)
 
     def item_widget_changed(self, widget):
         if not self.time_slice: return
@@ -202,20 +236,7 @@ class TimeSlicePropBox(Gtk.Frame):
         elif isinstance(widget, NameValueComboBox):
             value = widget.get_value()
 
-        if widget.item_type == self.NUMBER:
-            try:
-                value = float(value)
-            except ValueError as e:
-                return
-        elif widget.item_type == self.BOOLEAN:
-            value == bool(value)
-
-        if widget.source_name == "periodic":
-            self.set_item_value(self.time_slice.change_type, widget.item_name, value)
-        elif widget.source_name == "prop_data":
-            self.set_item_value(self.time_slice.prop_data, widget.item_name, value)
-        else:
-            self.set_item_value(self.time_slice, widget.item_name, value)
+        self.set_item_value_for_widget(widget, value)
 
         self.time_slice_box.update()
         self.time_slice_box.update_prev_linked_box()
