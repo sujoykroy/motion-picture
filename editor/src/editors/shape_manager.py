@@ -313,6 +313,8 @@ class ShapeManager(object):
             self.shape_creator = FreehandShapeCreator(point)
         elif shape_type == "ring":
             self.shape_creator = RingShapeCreator(point)
+        elif shape_type == "text":
+            self.shape_creator = TextShapeCreator(point)
         else:
             filename = os.path.join(settings.PREDRAWN_SHAPE_FOLDER, shape_type)
             if os.path.exists(filename):

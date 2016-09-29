@@ -91,6 +91,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.rectangle_shape_prop_box = RectangleShapePropBox(self.redraw, self.insert_time_slice)
         self.oval_shape_prop_box = OvalShapePropBox(self.redraw, self.insert_time_slice)
         self.ring_shape_prop_box = RingShapePropBox(self.redraw, self.insert_time_slice)
+        self.text_shape_prop_box = TextShapePropBox(self.redraw, self.insert_time_slice)
         self.multi_shape_prop_box = MultiShapePropBox(self.redraw, self.insert_time_slice)
         self.curve_smooth_prop_box = CurveSmoothPropBox(self.recreate_shape_editor,
                                                         self.get_shape_manager)
@@ -116,6 +117,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         row_count = self.oval_shape_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.ring_shape_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.multi_shape_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.text_shape_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.shape_form_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.curve_smooth_prop_box.add_into_grid(prop_grid, row_count)
 
@@ -271,6 +273,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_prop_box.hide()
         self.shape_form_prop_box.hide()
         self.curve_smooth_prop_box.hide()
+        self.text_shape_prop_box.hide()
 
         if shape != None:
             if shape.linked_to:
@@ -280,6 +283,11 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.linked_to_hbox.hide()
             self.common_shape_prop_box.show()
             self.common_shape_prop_box.set_prop_object(shape)
+
+            if isinstance(shape, TextShape):
+                self.text_shape_prop_box.show()
+                self.text_shape_prop_box.set_prop_object(shape)
+
             if isinstance(shape, RectangleShape):
                 self.rectangle_shape_prop_box.show()
                 self.rectangle_shape_prop_box.set_prop_object(shape)

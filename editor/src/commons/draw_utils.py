@@ -147,7 +147,7 @@ def draw_text(ctx, text,
     if pre_draw: pre_draw(ctx)
     ctx.translate(x, y)
 
-    ctx.translate(padding, padding)
+    ctx.move_to(padding, padding)
     ctx.scale(scale_x, scale_y)
     pangocairo_context.update_layout(layout)
     pangocairo_context.show_layout(layout)

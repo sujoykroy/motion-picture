@@ -7,6 +7,7 @@ from ring_shape import RingShape
 from curve_shape import CurveShape
 from polygon_shape import PolygonShape
 from image_shape import ImageShape
+from text_shape import TextShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 
@@ -65,6 +66,8 @@ class MultiShape(Shape):
                 child_shape = RingShape.create_from_xml_element(shape_element)
             elif shape_type == OvalShape.TYPE_NAME:
                 child_shape = OvalShape.create_from_xml_element(shape_element)
+            elif shape_type == TextShape.TYPE_NAME:
+                child_shape = TextShape.create_from_xml_element(shape_element)
             elif shape_type == CurveShape.TYPE_NAME:
                 child_shape = CurveShape.create_from_xml_element(shape_element)
             elif shape_type == PolygonShape.TYPE_NAME:
@@ -321,6 +324,13 @@ class MultiShape(Shape):
                     shape.pre_draw(ctx)
                     shape.draw_path(ctx)
                     shape.draw_image(ctx)
+                    ctx.restore()
+
+                elif isinstance(shape, TextShape):
+                    ctx.save()
+                    shape.pre_draw(ctx)
+                    shape.draw_path(ctx)
+                    shape.draw_text(ctx)
                     ctx.restore()
 
                 ctx.save()

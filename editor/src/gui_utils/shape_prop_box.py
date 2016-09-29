@@ -9,6 +9,9 @@ PROP_TYPE_NAME_ENTRY = 2
 PROP_TYPE_TEXT_LIST = 3
 PROP_TYPE_POINT = 4
 PROP_TYPE_CHECK_BUTTON = 5
+PROP_TYPE_LONG_TEXT = 6
+PROP_TYPE_TEXT = 7
+PROP_TYPE_FONT = 8
 
 class ShapePropBox(object):
     def __init__(self, draw_callback, shape_name_checker, insert_time_slice_callback):
@@ -38,7 +41,11 @@ class ShapePropBox(object):
         for widget_row in self.widget_rows:
             c = 0
             for widget in widget_row:
-                grid.attach(widget, left=c, top=r, width=1, height=1)
+                if len(widget_row) == 2 and c == 1:
+                    width=4
+                else:
+                    width = 1
+                grid.attach(widget, left=c, top=r, width=width, height=1)
                 c += 1
             r += 1
         return r
@@ -53,6 +60,12 @@ class ShapePropBox(object):
                 prop_widget.set_value(value)
             elif isinstance(prop_widget, ColorButton):
                 prop_widget.set_color(value)
+            elif isinstance(prop_widget, Gtk.FontButton):
+                prop_widget.set_font_name(value)
+            elif isinstance(prop_widget, Gtk.TextView):
+                prop_widget.get_buffer().set_text(value)
+            elif isinstance(prop_widget, NameValueComboBox):
+                prop_widget.set_value(value)
             elif isinstance(prop_widget, Gtk.Entry):
                 if prop_widget.value_type == PROP_TYPE_POINT:
                     value = value.to_text()
@@ -76,6 +89,11 @@ class ShapePropBox(object):
             color_button = ColorButton()
             color_button.connect("clicked", self.color_button_clicked, prop_name)
             prop_widget = color_button
+        elif value_type == PROP_TYPE_FONT:
+            can_insert_slice = False
+            font_button = Gtk.FontButton()
+            font_button.connect("font-set", self.font_button_font_set, prop_name)
+            prop_widget = font_button
         elif value_type == PROP_TYPE_POINT:
             point_entry = Gtk.Entry()
             point_entry.connect("changed", self.point_entry_value_changed, prop_name)
@@ -95,6 +113,19 @@ class ShapePropBox(object):
             check_button= Gtk.CheckButton()
             check_button.connect("clicked", self.check_button_clicked, prop_name)
             prop_widget = check_button
+        elif value_type == PROP_TYPE_LONG_TEXT:
+            text_view = Gtk.TextView()
+            text_view.set_margin_top(2)
+            text_view.set_margin_bottom(5)
+            text_view.get_buffer().connect("changed", self.text_buffer_changed, prop_name, text_view)
+            prop_widget = text_view
+            can_insert_slice = False
+        elif value_type == PROP_TYPE_TEXT:
+            can_insert_slice = False
+            entry = Gtk.Entry()
+            entry.props.width_chars = 10
+            entry.connect("activate", self.entry_activated, prop_name)
+            prop_widget = entry
 
         prop_widget.value_type = value_type
 
@@ -116,6 +147,13 @@ class ShapePropBox(object):
 
         self.prop_boxes[prop_name] = prop_widget
         return prop_widget
+
+
+    def font_button_font_set(self, font_button, prop_name):
+        if self.prop_object != None:
+            font = font_button.get_font_name()
+            self.prop_object.set_prop_value(prop_name, font)
+            self.draw_callback()
 
     def color_button_clicked(self, color_button, prop_name):
         value = self.prop_object.get_prop_value(prop_name)
@@ -148,6 +186,12 @@ class ShapePropBox(object):
             if not self.shape_name_checker.set_shape_name(self.prop_object, text):
                 widget.set_text(self.prop_object.get_prop_value(prop_name))
 
+    def entry_activated(self, widget, prop_name):
+        if self.prop_object != None:
+            text = widget.get_text()
+            self.prop_object.set_prop_value(prop_name, text)
+            self.draw_callback()
+
     def spin_button_value_changed(self, spin_button, prop_name):
         if self.prop_object != None:
             self.prop_object.set_prop_value(prop_name, spin_button.get_value())
@@ -162,11 +206,17 @@ class ShapePropBox(object):
     def combo_box_changed(self, combo_box, prop_name):
         if self.prop_object != None:
             value = combo_box.get_value()
-            if value:
-                self.prop_object.set_prop_value(prop_name, value)
-                self.draw_callback()
+            self.prop_object.set_prop_value(prop_name, value)
+            self.draw_callback()
 
     def check_button_clicked(self, check_button, prop_name):
         if self.prop_object != None:
             self.prop_object.set_prop_value(prop_name, check_button.get_active())
+            self.draw_callback()
+
+    def text_buffer_changed(self, text_buffer, prop_name, text_view):
+        if self.prop_object != None:
+            value = text_buffer.get_text(
+                text_buffer.get_start_iter(), text_buffer.get_end_iter(), False)
+            self.prop_object.set_prop_value(prop_name, value)
             self.draw_callback()

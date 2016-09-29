@@ -7,6 +7,7 @@ from misc_prop_boxes import RectangleShapePropBox
 from misc_prop_boxes import OvalShapePropBox
 from misc_prop_boxes import RingShapePropBox
 from misc_prop_boxes import MultiShapePropBox
+from misc_prop_boxes import TextShapePropBox
 
 from curve_smooth_prop_box import CurveSmoothPropBox
 

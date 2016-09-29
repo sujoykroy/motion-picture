@@ -24,7 +24,7 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("post_scale_y",  PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=.001, upper=100, step_increment=.01, page_increment=.1, page_size=1))
         self.add_prop("border_width",  PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=1, upper=1000, step_increment=1, page_increment=1, page_size=1))
+                dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("border_color",  PROP_TYPE_COLOR, None)
         self.add_prop("fill_color",  PROP_TYPE_COLOR, None)
 
@@ -53,6 +53,20 @@ class RingShapePropBox(OvalShapePropBox):
         self.add_prop("thickness",  PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1.01,
                      step_increment=.01, page_increment=.01, page_size=.01))
+
+class TextShapePropBox(OvalShapePropBox):
+    def __init__(self, draw_callback, insert_time_slice_callback):
+        OvalShapePropBox.__init__(self, draw_callback, insert_time_slice_callback)
+        xalign_combobox = self.add_prop("x_align", PROP_TYPE_TEXT_LIST, None)
+        yalign_combobox = self.add_prop("y_align", PROP_TYPE_TEXT_LIST, None)
+        self.add_prop("font",  PROP_TYPE_FONT, None)
+        self.add_prop("font_color",  PROP_TYPE_COLOR, None)
+        linenalign_combobox = self.add_prop("line_align",  PROP_TYPE_TEXT_LIST, None)
+        self.add_prop("text",  PROP_TYPE_LONG_TEXT, None)
+
+        xalign_combobox.build_and_set_model([["Left", 0], ["Center", 1], ["Right", 2]])
+        yalign_combobox.build_and_set_model([["Top", 0], ["Middle", 1], ["Bottom", 2]])
+        linenalign_combobox.build_and_set_model([["Left", 0], ["Center", 1], ["Right", 2]])
 
 class MultiShapePropBox(ShapePropBox):
     def __init__(self, draw_callback, insert_time_slice_callback):
