@@ -29,6 +29,25 @@ class MultiShape(Shape):
         self.poses = dict()
         self.timelines = dict()
 
+    def copy_data_from_linked(self):
+        if not self.linked_to: return
+
+        diff_point = self.anchor_at.diff(self.linked_to.anchor_at)
+        self.shapes.clear()
+
+        for shape in  self.linked_to.shapes:
+            shape_abs_anchor_at = shape.get_abs_anchor_at()
+            shape = shape.copy(copy_name=True, deep_copy=True)
+            shape.parent_shape=self
+            shape.move_to(shape_abs_anchor_at.x + diff_point.x,
+                          shape_abs_anchor_at.y + diff_point.y)
+            self.shapes.add(shape)
+        self.readjust_sizes()
+        self.poses = copy_dict(self.linked_to.poses)
+        self.timelines.clear()
+        for key, timeline in self.linked_to.timelines.items():
+            self.timelines[key] = timeline.copy(self.shapes)
+
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)
         for shape in self.shapes:
@@ -106,14 +125,18 @@ class MultiShape(Shape):
             shape.timelines[time_line.name] = time_line
         return shape
 
-    def copy(self, copy_name=False, copy_shapes=True):
+    def copy(self, copy_name=False, copy_shapes=True, deep_copy=False):
         newob = MultiShape(anchor_at=self.anchor_at.copy(), width=self.width, height=self.height)
         Shape.copy_into(self, newob, copy_name=copy_name)
         if copy_shapes:
             for shape in self.shapes:
-                child_shape = shape.copy(copy_name=True)
+                child_shape = shape.copy(copy_name=True, deep_copy=deep_copy)
                 child_shape.parent_shape = newob
                 newob.shapes.add(child_shape)
+        if deep_copy:
+            newob.poses = copy_dict(self.poses)
+            for key, timeline in self.timelines.items():
+                newob.timelines[key] = timeline.copy(newob.shapes)
         return newob
 
     def save_pose(self, pose_name):

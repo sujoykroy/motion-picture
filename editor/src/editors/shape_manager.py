@@ -126,9 +126,9 @@ class ShapeManager(object):
         shapes = []
         if isinstance(self.shape_editor.shape, MultiSelectionShape):
             for shape in self.shape_editor.shape.shapes:
-                shapes.append(shape.copy())
+                shapes.append(shape.copy(deep_copy=True))
         else:
-            shapes.append(self.shape_editor.shape.copy())
+            shapes.append(self.shape_editor.shape.copy(deep_copy=True))
         return shapes
 
     def add_shape(self, shape):
@@ -705,15 +705,15 @@ class ShapeManager(object):
 
             for old_shape in old_shapes:
                 if isinstance(old_shape, MultiShape):
-                    new_shapes.append(old_shape.copy(copy_shapes=True))
+                    new_shapes.append(old_shape.copy(copy_shapes=True, deep_copy=True))
                 else:
-                    new_shapes.append(old_shape.copy())
+                    new_shapes.append(old_shape.copy(deep_copy=True))
         elif isinstance(exist_shape, MultiShape):
             old_shapes.append(exist_shape)
-            new_shapes.append(exist_shape.copy(copy_shapes=True))
+            new_shapes.append(exist_shape.copy(copy_shapes=True, deep_copy=True))
         else:
             old_shapes.append(exist_shape)
-            new_shapes.append(exist_shape.copy())
+            new_shapes.append(exist_shape.copy(deep_copy=True))
 
         self.delete_shape_editor()
 

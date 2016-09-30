@@ -30,6 +30,13 @@ class PropTimeLine(object):
             prop_time_line.time_slices.add(time_slice, time_slice)
         return prop_time_line
 
+    def copy(self, shape):
+        newob = PropTimeLine(shape, self.prop_name)
+        for key in self.time_slices.keys:
+            time_slice = self.time_slices[key].copy()
+            newob.time_slices.add(time_slice, time_slice)
+        return newob
+
     def add_time_slice(self, time_slice):
         self.time_slices.add(time_slice, time_slice)
 

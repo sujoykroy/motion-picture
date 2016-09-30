@@ -28,7 +28,7 @@ class OvalShape(Shape):
         shape.assign_params_from_xml_element(elm)
         return shape
 
-    def copy(self, copy_name=False):
+    def copy(self, copy_name=False, deep_copy=False):
         newob = OvalShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                             self.fill_color.copy(), self.width, self.height, self.sweep_angle)
         self.copy_into(newob, copy_name)

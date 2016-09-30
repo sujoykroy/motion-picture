@@ -27,6 +27,16 @@ class MultiShapeTimeLine(object):
         multi_shape_time_line.get_duration()
         return multi_shape_time_line
 
+    def copy(self, shapes):
+        newob = MultiShapeTimeLine(name=self.name)
+        for orig_shape in self.shape_time_lines.keys:
+            new_shape = shapes[orig_shape.get_name()]
+            newob.shape_time_lines.add(
+                new_shape,
+                self.shape_time_lines[orig_shape].copy(new_shape))
+        newob.duration = self.duration
+        return newob
+
     def get_prop_count(self):
         prop_count = 0
         for shape_time_line in self.shape_time_lines:

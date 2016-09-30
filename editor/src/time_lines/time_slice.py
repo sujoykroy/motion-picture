@@ -1,5 +1,6 @@
 from xml.etree.ElementTree import Element as XmlElement
 from time_change_types import *
+from ..commons import copy_dict
 
 class TimeSlice(object):
     TAG_NAME = "time_slice"
@@ -77,6 +78,12 @@ class TimeSlice(object):
         time_slice = cls(start_value, end_value, duration, change_type, prop_data)
         time_slice.linked_to_next = linked_to_next
         return time_slice
+
+    def copy(self):
+        newob = TimeSlice(start_value=self.start_value,
+            end_value=self.end_value, duration=self.duration,
+            change_type=self.change_type.copy(), prop_data=copy_dict(self.prop_data))
+        return newob
 
     def __hash__(self):
         return hash(self.id_num)

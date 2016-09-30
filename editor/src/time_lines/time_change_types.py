@@ -13,6 +13,9 @@ class TimeChangeType(object):
         elm.attrib["type"] = self.TYPE_NAME
         return elm
 
+    def copy(self):
+        return TimeChangeType()
+
     def value_at(self, start_value, end_value, t, duration):
         return start_value + (end_value - start_value)*t/float(duration)
 
@@ -28,8 +31,6 @@ class PeriodicChangeType(TimeChangeType):
         self.period = float(period)
         self.phase = phase
         self.amplitude = amplitude
-        self.dc_offset = 0
-        self.calculate_dc_offset()
 
     def get_xml_element(self):
         elm = TimeChangeType.get_xml_element(self)
@@ -38,6 +39,13 @@ class PeriodicChangeType(TimeChangeType):
         elm.attrib[self.PERIOD_NAME] = "{0}".format(self.period)
         return elm
 
+    def copy(self):
+        return self.create_new_object(self.amplitude, self.period, self.phase)
+
+    @classmethod
+    def create_new_object(cls, amplitude, period, phase):
+        return cls(amplitude, period, phase)
+
     @classmethod
     def create_from_xml_element(cls, elm):
         amplitude = float(elm.attrib.get(cls.AMPLITUDE_NAME, 1.))
@@ -45,10 +53,6 @@ class PeriodicChangeType(TimeChangeType):
         period = float(elm.attrib.get(cls.PERIOD_NAME, 1.))
         change_type = cls(amplitude, period, phase)
         return change_type
-
-    def calculate_dc_offset(self):
-        self.dc_offset = 0
-        #self.dc_offset = -self.self_value_at(0)
 
     def self_value_at(self, t):
         return 0
@@ -68,7 +72,6 @@ class SineChangeType(PeriodicChangeType):
 
     def self_value_at(self, t):
         value = self.amplitude*math.sin(math.pi*2*t/self.period + self.phase*math.pi/180.)
-        value += self.dc_offset
         return value
 
 

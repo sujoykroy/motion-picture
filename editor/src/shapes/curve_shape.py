@@ -14,16 +14,19 @@ class CurveShape(Shape):
     def copy_data_from_linked(self):
         if not self.linked_to: return
         del self.curves[:]
+
+        linked_to_anchor_at = self.linked_to.anchor_at.copy()
+        linked_to_anchor_at.scale(1./self.linked_to.width, 1./self.linked_to.height)
+
+        self_anchor_at = self.anchor_at.copy()
+        self_anchor_at.scale(1./self.width, 1./self.height)
+
+        diff_x = self_anchor_at.x-linked_to_anchor_at.x
+        diff_y = self_anchor_at.y-linked_to_anchor_at.y
+
         for curve in  self.linked_to.curves:
             curve = curve.copy()
-            linked_to_anchor_at = self.linked_to.anchor_at.copy()
-            linked_to_anchor_at.scale(1./self.linked_to.width, 1./self.linked_to.height)
-
-            self_anchor_at = self.anchor_at.copy()
-            self_anchor_at.scale(1./self.width, 1./self.height)
-
-            curve.translate(self_anchor_at.x-linked_to_anchor_at.x,
-                            self_anchor_at.y-linked_to_anchor_at.y)
+            curve.translate(diff_x, diff_y)
             self.curves.append(curve)
         self.fit_size_to_include_all()
         self.forms = copy_dict(self.linked_to.forms)
@@ -190,12 +193,14 @@ class CurveShape(Shape):
         shape.assign_params_from_xml_element(elm)
         return shape
 
-    def copy(self, copy_name=False):
+    def copy(self, copy_name=False, deep_copy=False):
         newob = CurveShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                             self.fill_color.copy(), self.width, self.height)
         self.copy_into(newob, copy_name)
         for curve in self.curves:
             newob.curves.append(curve.copy())
+        if deep_copy:
+            newob.forms = copy_dict(self.forms)
         return newob
 
     def is_empty(self):

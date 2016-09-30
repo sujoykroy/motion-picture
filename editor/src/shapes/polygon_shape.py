@@ -152,12 +152,14 @@ class PolygonShape(Shape):
         shape.assign_params_from_xml_element(elm)
         return shape
 
-    def copy(self, copy_name=False):
+    def copy(self, copy_name=False, deep_copy=False):
         newob = PolygonShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                             self.fill_color.copy(), self.width, self.height)
         self.copy_into(newob, copy_name)
         for polygon in self.polygons:
             newob.polygons.append(polygon.copy())
+        if deep_copy:
+            newob.forms = copy_dict(self.forms)
         return newob
 
     def add_polygon(self, polygon):

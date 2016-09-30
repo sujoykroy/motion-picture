@@ -65,7 +65,7 @@ class TextShape(RectangleShape):
         shape.assign_params_from_xml_element(elm)
         return shape
 
-    def copy(self, copy_name=False):
+    def copy(self, copy_name=False, deep_copy=False):
         newob = TextShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                             self.fill_color.copy(), self.width, self.height,self.corner_radius,
                             self.x_align, self.y_align, self.text, self.font, self.font_color)

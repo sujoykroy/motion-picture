@@ -28,6 +28,12 @@ class ShapeTimeLine(object):
             shape_time_line.prop_time_lines.add(prop_time_line.prop_name, prop_time_line)
         return shape_time_line
 
+    def copy(self, shape):
+        newob = ShapeTimeLine(shape)
+        for key in self.prop_time_lines.keys:
+            newob.prop_time_lines.add(key, self.prop_time_lines[key].copy(shape))
+        return newob
+
     def add_prop_time_slice(self, prop_name, time_slice):
         if not self.prop_time_lines.key_exists(prop_name):
             prop_time_line = PropTimeLine(self.shape, prop_name)

@@ -38,6 +38,8 @@ def format_time(value):
         return "{0:02.2f}s".format(value)
 
 def copy_list(arr):
+    if arr is None:
+        return None
     copied_list = []
     for val in arr:
         if isinstance(val, dict):
@@ -50,6 +52,8 @@ def copy_list(arr):
     return copied_list
 
 def copy_dict(dicto):
+    if dicto is None:
+        return None
     copied_dict = dict()
     for key, val in dicto.items():
         if isinstance(val, dict):
