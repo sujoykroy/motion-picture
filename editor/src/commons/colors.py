@@ -104,6 +104,14 @@ class GradientColor(object):
         newob.get_pattern()
         return newob
 
+    def to_text(self):
+        arr = []
+        for color_point in self.color_points:
+            text = "{0};{1}".format(color_point.color.to_text(), color_point.point.to_text())
+            arr.append(text)
+        text = ";".join(arr)
+        return self.COLOR_TYPE_NAME + ":" + text
+
     def insert_color_point_at(self, index, color, point):
         color_point = ColorPoint(color, point)
         self.color_points.insert(index, color_point)
@@ -136,21 +144,23 @@ class GradientColor(object):
                 frac_pos, color.red, color.green, color.blue, color.alpha)
         return self.pattern
 
+    @classmethod
+    def from_text(cls, text):
+        arr = text.split(";")
+        ob = cls([])
+        for i in range(0, len(arr), 2):
+            color = Color.from_text(arr[i])
+            point = Point.from_text(arr[i+1])
+            ob.color_points.append(ColorPoint(color, point))
+        return ob
+
 class LinearGradientColor(GradientColor):
+    COLOR_TYPE_NAME = "linear"
+
     def build_base_cairo_pattern(self):
         return cairo.LinearGradient(
                 self.color_points[0].point.x, self.color_points[0].point.y,
                 self.color_points[-1].point.x, self.color_points[-1].point.y)
-
-
-    @classmethod
-    def create_default(cls, rect):
-        newob = cls([])
-        newob.color_points.append(
-            ColorPoint(Color(0, 0, 0, 0), Point(rect.left+rect.width*.5, rect.top+rect.height*.5)))
-        newob.color_points.append(
-            ColorPoint(Color(0, 0, 0, 1), Point(rect.left+rect.width, rect.top+rect.height)))
-        return newob
 
     @classmethod
     def create_default(cls, rect):
@@ -183,6 +193,8 @@ class LinearGradientColor(GradientColor):
         return grad
 
 class RadialGradientColor(GradientColor):
+    COLOR_TYPE_NAME = "radial"
+
     def build_base_cairo_pattern(self):
         radius = self.get_full_distance()
         return cairo.RadialGradient(
@@ -198,3 +210,15 @@ class RadialGradientColor(GradientColor):
         newob.color_points.append(
             ColorPoint(Color(0, 0, 0, 1), Point(rect.left+rect.width, rect.top+rect.height)))
         return newob
+
+def color_from_text(text):
+    if not text:
+        return None
+    arr = text.split(":")
+    if len(arr) == 1:
+        return Color.from_text(arr[0])
+    color_type = arr[0]
+    if color_type == LinearGradientColor.COLOR_TYPE_NAME:
+        return LinearGradientColor.from_text(arr[1])
+    elif color_type == RadialGradientColor.COLOR_TYPE_NAME:
+        return RadialGradientColor.from_text(arr[1])

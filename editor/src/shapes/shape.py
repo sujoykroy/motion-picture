@@ -154,9 +154,9 @@ class Shape(object):
         height_str = elm.attrib.get("height", "1")
         arr = []
         arr.append(Point.from_text(anchor_at_str))
-        arr.append(Color.from_text(border_color_str))
+        arr.append(color_from_text(border_color_str))
         arr.append(float(border_width_str))
-        arr.append(Color.from_text(fill_color_str))
+        arr.append(color_from_text(fill_color_str))
         arr.append(float(width_str))
         arr.append(float(height_str))
         return arr
@@ -247,7 +247,12 @@ class Shape(object):
         return self.border_width
 
     def set_border_color(self, color):
-        self.border_color.copy_from(color)
+        if color is None:
+            self.border_color = None
+        elif isinstance(self.border_color, Color) and isinstance(color, Color):
+            self.border_color.copy_from(color)
+        else:
+            self.border_color = color
 
     def get_border_color(self):
         return self.border_color
@@ -432,9 +437,7 @@ class Shape(object):
 
     def draw_border(self, ctx):
         if self.border_color is None: return
-        ctx.set_source_rgba(*self.border_color.get_array())
-        ctx.set_line_width(self.border_width)
-        ctx.stroke()
+        draw_stroke(ctx, self.border_width, self.border_color)
 
     def draw_fill(self, ctx):
         if self.fill_color is None: return

@@ -59,7 +59,7 @@ class TextShape(RectangleShape):
         arr.append(int(elm.attrib.get("y_align", 0)))
         arr.append(elm.attrib.get("text", ""))
         arr.append(elm.attrib.get("font", ""))
-        arr.append(Color.from_text(elm.attrib.get("font_color", None)))
+        arr.append(color_from_text(elm.attrib.get("font_color", None)))
         arr.append(int(elm.attrib.get("line_align", 0)))
         shape = cls(*arr)
         shape.assign_params_from_xml_element(elm)
@@ -100,7 +100,11 @@ class TextShape(RectangleShape):
         elif self.y_align == Y_ALIGN_MIDDLE:
             y = (self.height-text_height)*.5
 
-        ctx.set_source_rgba(*self.font_color.get_array())
+        if isinstance(self.font_color, GradientColor):
+            ctx.set_source(self.font_color.get_pattern())
+        else:
+            ctx.set_source_rgba(*self.font_color.get_array())
+
         ctx.move_to(x-text_left, y-text_top)
         pangocairo_context.update_layout(layout)
         pangocairo_context.show_layout(layout)

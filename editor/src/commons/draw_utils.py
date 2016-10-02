@@ -12,7 +12,7 @@ def draw_stroke(ctx, line_width, color=Color(0,0,0,1)):
         ctx.set_source_rgba(*color.get_array())
     elif isinstance(color, str):
         ctx.set_source_rgba(*Color.from_html(color).get_array())
-    elif isinstance(color, LinearGradientColor):
+    elif isinstance(color, GradientColor):
         ctx.set_source(color.get_pattern())
     else:
         ctx.set_source(color)

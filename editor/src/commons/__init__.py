@@ -1,5 +1,5 @@
 from point import Point
-from colors import Color, LinearGradientColor, RadialGradientColor
+from colors import *
 from curves import Curve
 from polygon import Polygon
 from bezier_point import BezierPoint
