@@ -1,4 +1,4 @@
-from colors import Color, GradientColor
+from colors import *
 from rect import Rect
 import pango, pangocairo, cairo, math
 
@@ -12,6 +12,8 @@ def draw_stroke(ctx, line_width, color=Color(0,0,0,1)):
         ctx.set_source_rgba(*color.get_array())
     elif isinstance(color, str):
         ctx.set_source_rgba(*Color.from_html(color).get_array())
+    elif isinstance(color, LinearGradientColor):
+        ctx.set_source(color.get_pattern())
     else:
         ctx.set_source(color)
     ctx.set_line_width(line_width)
@@ -34,6 +36,8 @@ def draw_fill(ctx, color=Color(1, 1, 1,1)):
         ctx.set_source_rgba(*Color.from_html(color).get_array())
     elif isinstance(color, cairo.Pattern):
         ctx.set_source(color)
+    elif isinstance(color, GradientColor):
+        ctx.set_source(color.get_pattern())
     ctx.fill()
     ctx.restore()
 
@@ -119,7 +123,7 @@ def draw_text(ctx, text,
         draw_rounded_rectangle(ctx, 0, 0, w+2*padding, h+2*padding, corner)
         ctx.restore()
         if isinstance(back_color, GradientColor):
-            draw_fill(ctx, back_color.get_pattern(0, 0, w+2*padding, 0))
+            draw_fill(ctx, back_color.get_pattern_for(0, 0, w+2*padding, 0))
         else:
             draw_fill(ctx, back_color)
 
@@ -139,7 +143,7 @@ def draw_text(ctx, text,
     elif isinstance(text_color, Color):
         ctx.set_source_rgba(*color.get_array())
     elif isinstance(text_color, GradientColor):
-        ctx.set_source(text_color.get_pattern(0, 0, w+2*padding, 0))
+        ctx.set_source(text_color.get_pattern_for(0, 0, w+2*padding, 0))
     elif type(text_color) is str:
         ctx.set_source_rgba(*Color.from_html(text_color).get_array())
 

@@ -2,6 +2,7 @@ from gi.repository import GdkPixbuf
 import os
 
 from shape_editor import ShapeEditor
+from gradient_color_editor import GradientColorEditor
 
 from ..commons import *
 from ..commons.draw_utils import *
@@ -61,6 +62,7 @@ class ShapeManager(object):
 
         self.out_width = doc.width
         self.out_height = doc.height
+        self.color_editor = None
 
 
     def reload_shapes(self):
@@ -204,6 +206,9 @@ class ShapeManager(object):
             ctx.restore()
             self.selection_box.draw_border(ctx)
         #ctx.restore()
+
+        if self.color_editor:
+            self.color_editor.draw(ctx)
 
         for guide in self.guides:
             ctx.save()
@@ -356,6 +361,7 @@ class ShapeManager(object):
             self.shape_editor.shape.remove_all_shapes()
             self.remove_shape(self.shape_editor.shape)
         self.shape_editor = None
+        self.color_editor = None
 
     def select_document_area_box(self):
         self.document_area_box_selected = True
@@ -398,6 +404,11 @@ class ShapeManager(object):
                     self.selected_guide = guide
                     self.selected_guide.save_position()
                     return
+
+        if self.color_editor is not None:
+            self.color_editor.select_item_at(shape_point)
+            if self.color_editor.selected_edit_box:
+                return
 
         if self.shape_editor is not None:
             self.shape_editor.select_item_at(shape_point, multi_select)
@@ -511,6 +522,8 @@ class ShapeManager(object):
             dpoint = doc_end_point.diff(doc_start_point)
             self.selected_guide.move(dpoint)
 
+        elif self.color_editor and self.color_editor.selected_edit_box:
+            self.color_editor.move_active_item(shape_start_point, shape_end_point)
         elif self.shape_editor is not None:
             if self.current_task is None:
                 self.current_task = ShapeStateTask(self.doc, self.shape_editor.shape)
@@ -564,6 +577,8 @@ class ShapeManager(object):
                         else:
                             selected_shape = selected_shapes[0]
                         self.shape_editor = ShapeEditor(selected_shape)
+            elif self.color_editor:
+                self.color_editor.end_movement()
             elif self.shape_editor is not None:
                 self.multi_shape.readjust_sizes()
                 self.shape_editor.end_movement()
@@ -645,6 +660,17 @@ class ShapeManager(object):
             self.shape_editor = ShapeEditor(shape)
         else:
             task.remove(self.doc)
+
+    def double_click_in_color_editor(self, point):
+        if not self.color_editor: return False
+        self.color_editor.select_item_at(point)
+        shape = self.color_editor.parent_shape
+        task = ShapeStateTask(self.doc, shape)
+        if self.color_editor.selected_edit_box:
+            self.color_editor.choose_color()
+        else:
+            self.color_editor.insert_point_at(point)
+        task.save(self.doc, shape)
 
     def insert_break(self):
         if not self.shape_editor: return False
@@ -895,3 +921,11 @@ class ShapeManager(object):
         if not isinstance(shape, MultiSelectionShape):
             task.save(self.doc, shape)
         return True
+
+    def toggle_color_editor(self, prop_name, color_type):
+        if self.color_editor:
+            self.color_editor = None
+            return
+        if not self.shape_editor: return
+        shape = self.shape_editor.shape
+        self.color_editor = GradientColorEditor(prop_name, shape)

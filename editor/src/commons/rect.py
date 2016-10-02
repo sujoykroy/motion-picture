@@ -1,3 +1,5 @@
+from point import Point
+
 class Rect(object):
     def __init__(self, left, top, width, height, corner_radius=0):
         self.left = left
@@ -24,3 +26,10 @@ class Rect(object):
         return "Rect(left={0}, top={1}, width={2}, height={3})".format(
                 self.left, self.top, self.width, self.height)
 
+    @classmethod
+    def create_from_points(cls, *points):
+        x0, y0 = points[0].x, points[0].y
+        x1, y1 = points[1].x, points[1].y
+        width = abs(x1-x0)
+        height = abs(y1-y0)
+        return cls(min(x0, x1), min(y0, y1), width, height)

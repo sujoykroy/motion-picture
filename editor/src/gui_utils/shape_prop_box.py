@@ -2,6 +2,7 @@ from gi.repository import Gtk, Gdk
 from name_value_combo_box import NameValueComboBox
 from buttons import ColorButton
 from ..commons import Point, Color, get_displayble_prop_name
+from ..commons import LinearGradientColor, RadialGradientColor
 
 PROP_TYPE_NUMBER_ENTRY = 0
 PROP_TYPE_COLOR = 1
@@ -14,7 +15,8 @@ PROP_TYPE_TEXT = 7
 PROP_TYPE_FONT = 8
 
 class ShapePropBox(object):
-    def __init__(self, draw_callback, shape_name_checker, insert_time_slice_callback):
+    def __init__(self, parent_window, draw_callback, shape_name_checker, insert_time_slice_callback):
+        self.parent_window = parent_window
         self.prop_boxes = dict()
         self.prop_object = None
         self.draw_callback = draw_callback
@@ -59,6 +61,7 @@ class ShapePropBox(object):
             if isinstance(prop_widget, Gtk.SpinButton):
                 prop_widget.set_value(value)
             elif isinstance(prop_widget, ColorButton):
+                prop_widget.reset()
                 prop_widget.set_color(value)
             elif isinstance(prop_widget, Gtk.FontButton):
                 prop_widget.set_font_name(value)
@@ -88,6 +91,8 @@ class ShapePropBox(object):
         elif value_type == PROP_TYPE_COLOR:
             color_button = ColorButton()
             color_button.connect("clicked", self.color_button_clicked, prop_name)
+            color_button.connect("type-changed", self.color_button_color_type_changed, prop_name)
+            color_button.connect("color-changed", self.color_button_color_changed, prop_name)
             prop_widget = color_button
         elif value_type == PROP_TYPE_FONT:
             can_insert_slice = False
@@ -148,7 +153,6 @@ class ShapePropBox(object):
         self.prop_boxes[prop_name] = prop_widget
         return prop_widget
 
-
     def font_button_font_set(self, font_button, prop_name):
         if self.prop_object != None:
             font = font_button.get_font_name()
@@ -156,17 +160,45 @@ class ShapePropBox(object):
             self.draw_callback()
 
     def color_button_clicked(self, color_button, prop_name):
-        value = self.prop_object.get_prop_value(prop_name)
-        dialog = Gtk.ColorChooserDialog()
-        rgba = Gdk.RGBA(*value.get_array())
-        dialog.set_rgba(rgba)
-        if dialog.run() == Gtk.ResponseType.OK:
-            dialog.get_rgba(rgba)
-            color = Color(rgba.red, rgba.green, rgba.blue, rgba.alpha)
-            color_button.set_color(color)
+        if not self.prop_object: return
+        color_type = color_button.get_color_type()
+        if color_type == "Flat":
+            value = self.prop_object.get_prop_value(prop_name)
+            dialog = Gtk.ColorChooserDialog()
+            rgba = Gdk.RGBA(*value.get_array())
+            dialog.set_rgba(rgba)
+            if dialog.run() == Gtk.ResponseType.OK:
+                dialog.get_rgba(rgba)
+                color = Color(rgba.red, rgba.green, rgba.blue, rgba.alpha)
+                dialog.destroy()
+                color_button.set_color(color)
+            else:
+                dialog.destroy()
+        else:
+            shape_manager = self.parent_window.get_shape_manager()
+            shape_manager.toggle_color_editor(prop_name, color_type)
+            self.parent_window.redraw()
+
+    def color_button_color_type_changed(self, color_button, prop_name):
+        if not self.prop_object: return
+        color_type = color_button.get_color_type()
+        shape_manager = self.parent_window.get_shape_manager()
+        shape = shape_manager.get_selected_shape()
+        if color_type == "Flat":
+            color = Color(0, 0, 0, 0)
+        elif color_type == "Linear":
+            color = LinearGradientColor.create_default(shape.get_outline(0))
+        elif color_type == "Radial":
+            color = RadialGradientColor.create_default(shape.get_outline(0))
+        if shape_manager and shape_manager.color_editor:
+            shape_manager.color_editor = None
+        color_button.set_color(color)
+
+    def color_button_color_changed(self, color_button, prop_name):
+        if self.prop_object != None:
+            color = color_button.get_color()
             self.prop_object.set_prop_value(prop_name, color)
             self.draw_callback()
-        dialog.destroy()
 
     def insert_slice_button_clicked(self, widget, prop_name):
         if self.prop_object != None:

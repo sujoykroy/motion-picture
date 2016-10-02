@@ -1,4 +1,4 @@
-from ..commons.colors import GradientColor
+from ..commons.colors import LinearGradientColor
 
 SHAPE_LABEL_WIDTH = 100
 HEIGHT_PER_TIME_SLICE = 30
@@ -20,13 +20,13 @@ PROP_NAME_LABEL_WIDTH = 100
 PROP_NAME_LABEL_RIGHT_PADDING = 2
 PROP_VALUE_LABEL_WIDTH = 20
 
-SHAPE_NAME_BACK_COLOR = GradientColor.simple(("666666", "aaaaaa"))
+SHAPE_NAME_BACK_COLOR = LinearGradientColor.simple_horiz(("666666", "aaaaaa"))
 SHAPE_NAME_BORDER_COLOR = "000000"
 SHAPE_NAME_TEXT_COLOR = "000000"
 
 END_POINT_HEIGHT = 10
 
-PROP_NAME_BACK_COLOR = GradientColor.simple(("cccccc", "eeeeee"))
+PROP_NAME_BACK_COLOR = LinearGradientColor.simple_horiz(("cccccc", "eeeeee"))
 PROP_NAME_BORDER_COLOR = "333333"
 PROP_NAME_TEXT_COLOR = "000000"
 

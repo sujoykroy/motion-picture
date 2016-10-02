@@ -47,10 +47,14 @@ class EditBox(object):
         self.point.y = point.y
 
     def draw_edit_box(self, ctx, draw_frac=1.):
+        ctx.save()
         self._draw_path_around(ctx, self.cpoint, draw_frac)
         self.draw_fill(ctx)
+        ctx.restore()
+        ctx.save()
         self._draw_path_around(ctx, self.cpoint, draw_frac)
         self.draw_border(ctx)
+        ctx.restore()
 
 class RectEditBox(RectangleShape, EditBox):
     def __init__(self, percent_point, angle=0, is_percent=True, width=10, height=5, offset=None):
@@ -59,12 +63,10 @@ class RectEditBox(RectangleShape, EditBox):
         EditBox.__init__(self, percent_point, is_percent=is_percent, offset=offset, angle=angle)
 
     def _draw_path_around(self, ctx, cpoint, draw_frac):
-        ctx.save()
         ctx.translate(cpoint.x, cpoint.y)
         ctx.rotate(self.abs_angle(self.edit_box_angle)*RAD_PER_DEG)
         draw_rounded_rectangle(ctx,
             -self.width*.5, -self.height*.5, self.width, self.height, 1)
-        ctx.restore()
 
     def is_within(self, point):
         if not self.cpoint: return False

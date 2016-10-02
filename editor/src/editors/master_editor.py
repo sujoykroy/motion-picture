@@ -87,14 +87,14 @@ class MasterEditor(Gtk.ApplicationWindow):
         left_prop_box_container = Gtk.ScrolledWindow()
         left_prop_box_container.add_with_viewport(self.left_prop_box)
 
-        self.common_shape_prop_box = CommonShapePropBox(self.redraw, self, self.insert_time_slice)
-        self.rectangle_shape_prop_box = RectangleShapePropBox(self.redraw, self.insert_time_slice)
-        self.oval_shape_prop_box = OvalShapePropBox(self.redraw, self.insert_time_slice)
-        self.ring_shape_prop_box = RingShapePropBox(self.redraw, self.insert_time_slice)
-        self.text_shape_prop_box = TextShapePropBox(self.redraw, self.insert_time_slice)
-        self.multi_shape_prop_box = MultiShapePropBox(self.redraw, self.insert_time_slice)
-        self.curve_smooth_prop_box = CurveSmoothPropBox(self.recreate_shape_editor,
-                                                        self.get_shape_manager)
+        self.common_shape_prop_box = CommonShapePropBox(self, self.redraw, self, self.insert_time_slice)
+        self.rectangle_shape_prop_box = RectangleShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.oval_shape_prop_box = OvalShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.ring_shape_prop_box = RingShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.text_shape_prop_box = TextShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.multi_shape_prop_box = MultiShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.curve_smooth_prop_box = CurveSmoothPropBox(
+                            self.recreate_shape_editor, self.get_shape_manager)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
@@ -359,6 +359,9 @@ class MasterEditor(Gtk.ApplicationWindow):
                 elif self.shape_manager.has_designable_multi_shape_selected():
                     multi_shape = self.shape_manager.get_selected_shape()
                     self.load_multi_shape(multi_shape)
+                elif self.shape_manager.color_editor:
+                    doc_point, shape_point = self.get_doc_and_multi_shape_point(self.mouse_point)
+                    self.shape_manager.double_click_in_color_editor(shape_point)
                 elif self.shape_manager.selected_shape_supports_point_insert():
                     doc_point, shape_point = self.get_doc_and_multi_shape_point(self.mouse_point)
                     self.shape_manager.insert_point_in_shape_at(shape_point)

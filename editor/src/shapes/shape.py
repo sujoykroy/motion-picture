@@ -1,4 +1,5 @@
 from ..commons import *
+from ..commons.draw_utils import *
 import time, cairo
 from xml.etree.ElementTree import Element as XmlElement
 
@@ -254,8 +255,10 @@ class Shape(object):
     def set_fill_color(self, color):
         if color is None:
             self.fill_color = None
-        elif self.fill_color:
+        elif isinstance(self.fill_color, Color) and isinstance(color, Color):
             self.fill_color.copy_from(color)
+        else:
+            self.fill_color = color
 
     def get_fill_color(self):
         return self.fill_color
@@ -435,16 +438,15 @@ class Shape(object):
 
     def draw_fill(self, ctx):
         if self.fill_color is None: return
-        ctx.set_source_rgba(*self.fill_color.get_array())
-        ctx.fill()
+        draw_fill(ctx, self.fill_color)
 
     def draw(self, ctx):
         if self.fill_color is not None:
             ctx.save()
             self.pre_draw(ctx)
             self.draw_path(ctx, for_fill=True)
-            ctx.restore()
             self.draw_fill(ctx)
+            ctx.restore()
 
         if self.border_color is not None:
             ctx.save()

@@ -1,8 +1,9 @@
 from shape_prop_box import *
 
 class CommonShapePropBox(ShapePropBox):
-    def __init__(self, draw_callback, shape_name_checker, insert_time_slice_callback):
-        ShapePropBox.__init__(self, draw_callback, shape_name_checker, insert_time_slice_callback)
+    def __init__(self, parent_window, draw_callback, shape_name_checker, insert_time_slice_callback):    
+        ShapePropBox.__init__(self, parent_window, draw_callback,
+                                shape_name_checker, insert_time_slice_callback)
         self.add_prop("name",  PROP_TYPE_NAME_ENTRY, None)
         self.add_prop("moveable",  PROP_TYPE_CHECK_BUTTON, None)
         self.add_prop("stage_xy",  PROP_TYPE_POINT, None)
@@ -36,27 +37,27 @@ class CommonShapePropBox(ShapePropBox):
                 dict(value=0, lower=-360, upper=360*100, step_increment=1, page_increment=1, page_size=1))
 
 class RectangleShapePropBox(ShapePropBox):
-    def __init__(self, draw_callback, insert_time_slice_callback):
-        ShapePropBox.__init__(self, draw_callback, None, insert_time_slice_callback)
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
         self.add_prop("corner_radius",  PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
 
 class OvalShapePropBox(ShapePropBox):
-    def __init__(self, draw_callback, insert_time_slice_callback):
-        ShapePropBox.__init__(self, draw_callback, None, insert_time_slice_callback)
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
         self.add_prop("sweep_angle",  PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-360, upper=361, step_increment=1, page_increment=1, page_size=1))
 
 class RingShapePropBox(OvalShapePropBox):
-    def __init__(self, draw_callback, insert_time_slice_callback):
-        OvalShapePropBox.__init__(self, draw_callback, insert_time_slice_callback)
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        OvalShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
         self.add_prop("thickness",  PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1.01,
                      step_increment=.01, page_increment=.01, page_size=.01))
 
 class TextShapePropBox(OvalShapePropBox):
-    def __init__(self, draw_callback, insert_time_slice_callback):
-        OvalShapePropBox.__init__(self, draw_callback, insert_time_slice_callback)
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        OvalShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
         xalign_combobox = self.add_prop("x_align", PROP_TYPE_TEXT_LIST, None)
         yalign_combobox = self.add_prop("y_align", PROP_TYPE_TEXT_LIST, None)
         self.add_prop("font",  PROP_TYPE_FONT, None)
@@ -69,8 +70,8 @@ class TextShapePropBox(OvalShapePropBox):
         linenalign_combobox.build_and_set_model([["Left", 0], ["Center", 1], ["Right", 2]])
 
 class MultiShapePropBox(ShapePropBox):
-    def __init__(self, draw_callback, insert_time_slice_callback):
-        ShapePropBox.__init__(self, draw_callback, None, insert_time_slice_callback)
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
         self.poses_combo_box= self.add_prop("pose",  PROP_TYPE_TEXT_LIST, None)
         self.timelines_combo_box= self.add_prop("timeline",  PROP_TYPE_TEXT_LIST, None)
 
