@@ -237,6 +237,14 @@ class Shape(object):
             return getattr(self, prop_name)
         return None
 
+    def has_prop(self, prop_name):
+        get_attr_name = "get_" + prop_name
+        if hasattr(self, get_attr_name):
+            return True
+        elif hasattr(self, prop_name):
+            return True
+        return False
+
     def get_angle(self):
         return self.angle
 

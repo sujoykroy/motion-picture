@@ -56,6 +56,14 @@ class ShapePropBox(object):
         self.prop_object = prop_object
         for prop_name in self.prop_boxes.keys():
             prop_widget = self.prop_boxes[prop_name]
+            if not self.prop_object.has_prop(prop_name):
+                prop_widget.hide()
+                for widget in prop_widget.widgets:
+                    widget.hide()
+                continue
+            prop_widget.show()
+            for widget in prop_widget.widgets:
+                widget.show()
             value = self.prop_object.get_prop_value(prop_name)
             if value is None: continue
             if isinstance(prop_widget, Gtk.SpinButton):
@@ -76,8 +84,7 @@ class ShapePropBox(object):
             elif isinstance(prop_widget, Gtk.CheckButton):
                 prop_widget.set_active(value)
 
-    def add_prop(self, prop_name, value_type, values):
-        can_insert_slice = True
+    def add_prop(self, prop_name, value_type, values, can_insert_slice = True):
         if value_type == PROP_TYPE_NUMBER_ENTRY:
             adjustment = Gtk.Adjustment(values["value"], values["lower"],
                     values["upper"], values["step_increment"], values["page_increment"],
@@ -136,6 +143,8 @@ class ShapePropBox(object):
 
         label = Gtk.Label(get_displayble_prop_name(prop_name))
         label.set_halign(Gtk.Align.START)
+        prop_widget.widgets = []
+        prop_widget.widgets.append(label)
 
         widgets = [label, prop_widget]
 
@@ -143,10 +152,12 @@ class ShapePropBox(object):
             insert_slice_button = Gtk.Button("I+I")
             insert_slice_button.connect("clicked", self.insert_slice_button_clicked, prop_name)
             widgets.append(insert_slice_button)
+            prop_widget.widgets.append(insert_slice_button)
 
             apply_on_poses_button = Gtk.Button("P")
             apply_on_poses_button.connect("clicked", self.apply_on_poses_button_clicked, prop_name)
             widgets.append(apply_on_poses_button)
+            prop_widget.widgets.append(apply_on_poses_button)
 
         self.widget_rows.append(widgets)
 

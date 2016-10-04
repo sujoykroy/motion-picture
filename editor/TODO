@@ -1,0 +1,4 @@
+* Mirror and Mirror Angle needs to be saved in and retrived from xml
+* Checking difficulty of introducing mirror feature in Multi shape
+* Checking possibility to merging mirror objects
+* Mirror needs to be saved in "form", undo-redo "task"

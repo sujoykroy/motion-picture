@@ -1,13 +1,15 @@
 from ..commons import *
 from shape import Shape
 from xml.etree.ElementTree import Element as XmlElement
+from mirror import *
 
-class PolygonShape(Shape):
+class PolygonShape(Shape, Mirror):
     TYPE_NAME = "polygon_shape"
     FORM_TAG_NAME = "form"
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height):
         Shape.__init__(self, anchor_at, border_color, border_width, fill_color, width, height)
+        Mirror.__init__(self)
         self.polygons = []
         self.forms = dict()
 
@@ -166,9 +168,21 @@ class PolygonShape(Shape):
         self.polygons.append(polygon)
         self.fit_size_to_include_all()
 
-    def _draw_polygon(self, ctx, polygon):
+    def _draw_polygon(self, ctx, polygon, scale=None, angle=None):
         ctx.save()
+        if angle is not None:
+            ctx.translate(self.anchor_at.x, self.anchor_at.y)
+            ctx.rotate(angle*RAD_PER_DEG)
+            ctx.translate(-self.anchor_at.x, -self.anchor_at.y)
         ctx.scale(self.width, self.height)
+        if scale:
+            if scale[0] == -1 and scale[1] == 1:
+                ctx.translate(2*self.anchor_at.x/self.width, 0)
+            elif scale[0] == 1 and scale[1] == -1:
+                ctx.translate(0, 2*self.anchor_at.y/self.height)
+            elif scale[0] == -1 and scale[1] == -1:
+                ctx.translate(2*self.anchor_at.x/self.width, 2*self.anchor_at.y/self.height)
+            ctx.scale(*scale)
         polygon.draw_path(ctx)
         ctx.restore()
 
@@ -178,6 +192,21 @@ class PolygonShape(Shape):
             if not for_fill or (for_fill and polygon.closed):
                 self._draw_polygon(ctx, polygon)
                 paths.append(ctx.copy_path())
+        if self.mirror != 0:
+            scales, rotations = self.get_scales_n_rotations()
+
+            for scale in scales:
+                for polygon in self.polygons:
+                    if not for_fill or (for_fill and polygon.closed):
+                        self._draw_polygon(ctx, polygon, scale=scale)
+                        paths.append(ctx.copy_path())
+
+            for angle in rotations:
+                for polygon in self.polygons:
+                    if not for_fill or (for_fill and polygon.closed):
+                        self._draw_polygon(ctx, polygon, angle=angle)
+                        paths.append(ctx.copy_path())
+
         ctx.new_path()
         for path in paths:
             ctx.append_path(path)

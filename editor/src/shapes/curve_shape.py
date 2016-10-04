@@ -1,13 +1,15 @@
 from ..commons import *
 from shape import Shape
 from xml.etree.ElementTree import Element as XmlElement
+from mirror import *
 
-class CurveShape(Shape):
+class CurveShape(Shape, Mirror):
     TYPE_NAME = "curve_shape"
     FORM_TAG_NAME = "form"
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height):
         Shape.__init__(self, anchor_at, border_color, border_width, fill_color, width, height)
+        Mirror.__init__(self)
         self.curves = []
         self.forms = dict()
 
@@ -210,9 +212,21 @@ class CurveShape(Shape):
         self.curves.append(curve)
         self.fit_size_to_include_all()
 
-    def _draw_curve(self, ctx, curve):
+    def _draw_curve(self, ctx, curve, scale=None, angle=None):
         ctx.save()
+        if angle is not None:
+            ctx.translate(self.anchor_at.x, self.anchor_at.y)
+            ctx.rotate(angle*RAD_PER_DEG)
+            ctx.translate(-self.anchor_at.x, -self.anchor_at.y)
         ctx.scale(self.width, self.height)
+        if scale:
+            if scale[0] == -1 and scale[1] == 1:
+                ctx.translate(2*self.anchor_at.x/self.width, 0)
+            elif scale[0] == 1 and scale[1] == -1:
+                ctx.translate(0, 2*self.anchor_at.y/self.height)
+            elif scale[0] == -1 and scale[1] == -1:
+                ctx.translate(2*self.anchor_at.x/self.width, 2*self.anchor_at.y/self.height)
+            ctx.scale(*scale)
         ctx.new_path()
         ctx.move_to(curve.origin.x, curve.origin.y)
         for bezier_point in curve.bezier_points:
@@ -230,6 +244,20 @@ class CurveShape(Shape):
             if not for_fill or (for_fill and curve.closed):
                 self._draw_curve(ctx, curve)
                 paths.append(ctx.copy_path())
+        if self.mirror != 0:
+            scales, rotations = self.get_scales_n_rotations()
+
+            for scale in scales:
+                for curve in self.curves:
+                    if not for_fill or (for_fill and curve.closed):
+                        self._draw_curve(ctx, curve, scale=scale)
+                        paths.append(ctx.copy_path())
+
+            for angle in rotations:
+                for curve in self.curves:
+                    if not for_fill or (for_fill and curve.closed):
+                        self._draw_curve(ctx, curve, angle=angle)
+                        paths.append(ctx.copy_path())
         ctx.new_path()
         for path in paths:
             ctx.append_path(path)
