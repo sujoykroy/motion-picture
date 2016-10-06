@@ -2,6 +2,7 @@ from ..commons import *
 from ..commons.draw_utils import *
 import time, cairo
 from xml.etree.ElementTree import Element as XmlElement
+from mirror import Mirror
 
 class Shape(object):
     ID_SEED = 0
@@ -142,6 +143,8 @@ class Shape(object):
         elm.attrib["post_scale_y"] = "{0}".format(self.post_scale_y)
         if self.pre_matrix:
             elm.attrib["pre_matrix"] = Matrix.to_text(self.pre_matrix)
+        if isinstance(self, Mirror):
+            Mirror.set_xml_element(self, elm)
         return elm
 
     @classmethod
@@ -178,6 +181,8 @@ class Shape(object):
         name = elm.attrib.get("name", None)
         if name:
             self._name = name.replace(".", "")
+        if isinstance(self, Mirror):
+            Mirror.assign_params_from_xml_element(self, elm)
 
     def copy_into(self, newob, copy_name=False, all_fields=False):
         newob.translation = self.translation.copy()
@@ -209,6 +214,8 @@ class Shape(object):
                 newob.fill_color = None
             newob.width = self.width
             newob.height = self.height
+        if isinstance(self, Mirror) and isinstance(newob, Mirror):
+            Mirror.copy_into(self, newob)
 
     def __hash__(self):
         return hash(self.id_num)

@@ -50,14 +50,14 @@ class ColorButton(Gtk.HBox):
         self.pack_start(self.color_button, expand=False, fill=False, padding = 0)
 
     def reset(self):
-        self.color_tpe = None
+        self.color_type = None
         self.color = None
 
     def color_button_clicked(self, widget):
         self.emit("clicked")
 
     def color_types_combobox_changed(self, widget):
-        changed = (self.color_type is not None and self.color_type != widget.get_value())
+        changed = (self.color_type != widget.get_value())
         self.color_type = widget.get_value()
         if changed:
             self.emit("type-changed")
@@ -93,7 +93,7 @@ class ColorButton(Gtk.HBox):
             color = Color(0,0,0,.1)
         if isinstance(color, Color):
             self.pixbuf.fill(int(color.to_html()[1:], 16))
-            self.color_types_combobox.set_value("Flat")
+            self.color_type = "Flat"
         elif isinstance(color, GradientColor):
             surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                 self.pixbuf.get_width(), self.pixbuf.get_height())
@@ -115,11 +115,11 @@ class ColorButton(Gtk.HBox):
             self.pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0,
                     surface.get_width(), surface.get_height())
             self.image.set_from_pixbuf(self.pixbuf)
-            if isinstance(color, LinearGradientColor):
-                color_type_name = "Linear"
-            elif isinstance(color, RadialGradientColor):
-                color_type_name = "Radial"
-            self.color_types_combobox.set_value(color_type_name)
+            if isinstance(color, RadialGradientColor):
+                self.color_type = "Radial"
+            elif isinstance(color, LinearGradientColor):
+                self.color_type = "Linear"
+        self.color_types_combobox.set_value(self.color_type)
         self.emit("color-changed")
 
 GObject.signal_new('clicked', ColorButton,
