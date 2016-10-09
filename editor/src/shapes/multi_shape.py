@@ -339,8 +339,8 @@ class MultiShape(Shape):
                 ctx.save()
                 shape.pre_draw(ctx)
                 shape.draw_path(ctx)
-                shape.draw_fill(ctx)
                 ctx.restore()
+                shape.draw_fill(ctx)
 
                 if isinstance(shape, ImageShape):
                     ctx.save()
