@@ -17,7 +17,13 @@ public class FlatColor extends Color {
 
     @Override
     public void setPaint(Paint paint) {
+        paint.setShader(null);
         paint.setARGB((int)(mAlpha*255), (int)(mRed*255), (int)(mGreen*255), (int)(mBlue*255));
+    }
+
+    public int getIntValue() {
+        return android.graphics.Color.argb(
+                (int)(mAlpha*255), (int)(mRed*255), (int)(mGreen*255), (int)(mBlue*255));
     }
 
     @Override

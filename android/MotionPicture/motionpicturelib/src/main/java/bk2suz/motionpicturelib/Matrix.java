@@ -15,6 +15,12 @@ public class Matrix {
         mY0 = y0;
     }
 
+    public android.graphics.Matrix getGraphicsMatrix() {
+        android.graphics.Matrix graphicsMatrix = new android.graphics.Matrix();
+        graphicsMatrix.setValues(new float[] {mXX, mXY, mX0, mYX, mYY, mY0, 0F, 0F, 1F});
+        return graphicsMatrix;
+    }
+
     public static Matrix createFromText(String text) {
         if (text == null) return null;
         String[] values = text.split(",");

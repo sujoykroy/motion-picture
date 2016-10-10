@@ -33,6 +33,12 @@ public class Point {
         }
     }
 
+    public float distance(Point other) {
+        float dx = this.x-other.x;
+        float dy = this.y-other.y;
+        return (float) Math.sqrt(dx*dx+dy*dy);
+    }
+
     public static Point createFromText(String text) {
         String[] values = text.split(",");
         if (values.length<2) {

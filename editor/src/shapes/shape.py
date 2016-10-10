@@ -175,7 +175,7 @@ class Shape(object):
         self.angle = float(elm.attrib.get("angle", 0))
         self.post_scale_x = float(elm.attrib.get("post_scale_x", 1))
         self.post_scale_y = float(elm.attrib.get("post_scale_y", 1))
-        pre_matrix_str = elm.attrib.get("pre_marix", None)
+        pre_matrix_str = elm.attrib.get("pre_matrix", None)
         if pre_matrix_str:
             self.pre_matrix = Matrix.from_text(pre_matrix_str)
         name = elm.attrib.get("name", None)

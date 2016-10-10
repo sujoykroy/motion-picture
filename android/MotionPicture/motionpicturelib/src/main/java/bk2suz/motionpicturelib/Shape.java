@@ -35,6 +35,8 @@ public abstract class Shape {
         mBorderPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         mBorderPaint.setDither(true);
         mBorderPaint.setStyle(Paint.Style.STROKE);
+        mBorderPaint.setStrokeJoin(Paint.Join.ROUND);
+        mBorderPaint.setStrokeCap(Paint.Cap.ROUND);
     }
 
     public void setParentShape(Shape parentShape) {
@@ -115,7 +117,7 @@ public abstract class Shape {
         }
         canvas.translate(mTranslation.x, mTranslation.y);
         if (mPreMatrix != null) {
-            //canvas.setMatrix(mPreMatrix.get);
+            canvas.concat(mPreMatrix.getGraphicsMatrix());
         }
         canvas.scale(mScaleX, mScaleY);
         canvas.rotate(mAngle);

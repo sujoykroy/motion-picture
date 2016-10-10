@@ -1,6 +1,8 @@
 package bk2suz.motionpicturelib;
 
 import android.graphics.Paint;
+import android.graphics.RadialGradient;
+import android.graphics.Shader;
 
 /**
  * Created by sujoy on 9/10/16.
@@ -10,7 +12,14 @@ public class RadialGradientColor extends GradientColor {
 
     @Override
     public void setPaint(Paint paint) {
-
+        RadialGradient radialShader = new RadialGradient(
+                mColorPoints.get(0).getPoint().x, mColorPoints.get(0).getPoint().y,
+                mColorPoints.get(mColorPoints.size()-1).getPoint().distance(mColorPoints.get(0).getPoint()),
+                getColors(),
+                getPositions(),
+                Shader.TileMode.CLAMP
+        );
+        paint.setShader(radialShader);
     }
 
     @Override

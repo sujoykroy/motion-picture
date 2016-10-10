@@ -12,16 +12,34 @@ public abstract class GradientColor extends Color {
     public void copyFrom(Color color) {
         GradientColor gradientColor = (GradientColor) color;
         mColorPoints.clear();
-        for (ColorPoint colorPoint: gradientColor.mColorPoints) {
+        for (ColorPoint colorPoint : gradientColor.mColorPoints) {
             mColorPoints.add(colorPoint.copy());
         }
     }
 
+    public int[] getColors() {
+        int[] colors = new int[mColorPoints.size()];
+        for (int i = 0; i < mColorPoints.size(); i++) {
+            colors[i] = mColorPoints.get(i).getColor().getIntValue();
+        }
+        return colors;
+    }
+
+    public float[] getPositions() {
+        float[] positions = new float[mColorPoints.size()];
+        float totalDistance = mColorPoints.get(mColorPoints.size() - 1).getPoint().distance(
+                                mColorPoints.get(0).getPoint());
+        for (int i = 0; i < mColorPoints.size(); i++) {
+            positions[i] = mColorPoints.get(i).getPoint().distance(mColorPoints.get(0).getPoint()) / totalDistance;
+        }
+        return positions;
+    }
+
     protected void copyFromText(String text) {
         String[] values = text.split(";");
-        for(int i=0; i<values.length; i+=2) {
+        for (int i = 0; i < values.length; i += 2) {
             FlatColor color = FlatColor.createFromText(values[i]);
-            Point point = Point.createFromText(values[i+1]);
+            Point point = Point.createFromText(values[i + 1]);
             mColorPoints.add(new ColorPoint(color, point));
         }
     }

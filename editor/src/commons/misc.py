@@ -90,7 +90,7 @@ class Matrix(object):
     @staticmethod
     def to_text(matrix):
         xx, yx, xy, yy, x0, y0 = matrix
-        return ",".join([xx, yx, xy, yy, x0, y0])
+        return "{0},{1},{2},{3},{4},{5}".format(xx, yx, xy, yy, x0, y0)
 
     @staticmethod
     def from_text(text):
