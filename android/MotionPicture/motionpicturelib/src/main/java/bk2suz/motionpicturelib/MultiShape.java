@@ -42,6 +42,8 @@ public class MultiShape extends Shape {
                     childShape = CurveShape.createFromXml(parser);
                 } else if (childShapeType.equals(MultiShape.TYPE_NAME)) {
                     childShape = MultiShape.createFromXml(parser);
+                } else if (childShapeType.equals(TextShape.TYPE_NAME)) {
+                    childShape = TextShape.createFromXml(parser);
                 }
                 if (childShape != null) {
                     multiShape.addChildShape(childShape);

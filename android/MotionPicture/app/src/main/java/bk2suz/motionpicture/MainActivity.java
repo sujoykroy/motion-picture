@@ -14,7 +14,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Document doc = Document.loadFromResource(getResources(), R.xml.sample_anim2);
+        Document doc = Document.loadFromResource(getResources(), R.xml.sample_anim);
         ImageView imageView = (ImageView) findViewById(R.id.imageView);
         //imageView.setImageBitmap(Effects.blur(this, doc.getBitmap(400F, 400F), 1));
         imageView.setImageBitmap(doc.getBitmap(400F, 400F));
