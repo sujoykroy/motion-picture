@@ -9,6 +9,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by sujoy on 8/10/16.
@@ -24,6 +25,14 @@ public class PolygonShape extends Shape {
             path.addPath(polygon.getPath(mWidth, mHeight));
         }
         return path;
+    }
+
+    @Override
+    public void setProperty(PropName propName, Object value, HashMap<PropName, PropData> propDataMap) {
+        super.setProperty(propName, value, propDataMap);
+        if (propName == PropName.INTERNAL) {
+            //TODO
+        }
     }
 
     public static PolygonShape createFromXml(XmlPullParser parser)

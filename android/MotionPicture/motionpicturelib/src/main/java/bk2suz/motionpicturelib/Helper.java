@@ -9,6 +9,8 @@ import java.io.IOException;
  * Created by sujoy on 9/10/16.
  */
 public class Helper {
+    public static final Float RADIAN_PER_DEGREE = (float) Math.PI/180F;
+
     public static void skipTag(XmlPullParser parser) throws XmlPullParserException, IOException {
         if (parser.getEventType() != XmlPullParser.START_TAG) {
             return;

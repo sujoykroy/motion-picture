@@ -7,17 +7,40 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Created by sujoy on 8/10/16.
  */
 public class MultiShape extends Shape {
     public static final String TYPE_NAME = "multi_shape";
-    private ArrayList<Shape> mChildShapes = new ArrayList<>();
+    private LinkedHashMap<String, Shape> mChildShapes = new LinkedHashMap<>();
+    private HashMap<String, MultiShapeTimeLine> mMultiShapeTimeLines = new HashMap<>();
 
     public void addChildShape(Shape shape) {
-        mChildShapes.add(shape);
+        mChildShapes.put(shape.getName(), shape);
         shape.setParentShape(this);
+    }
+
+    public Shape getChildShape(String shapeName) {
+        return mChildShapes.get(shapeName);
+    }
+
+    @Override
+    public void setProperty(PropName propName, Object value, HashMap<PropName, PropData> propDataMap) {
+        super.setProperty(propName, value, propDataMap);
+        if (propName == PropName.INTERNAL) {
+            //TODO
+        }
+    }
+
+    @Override
+    public void draw(Canvas canvas) {
+        for(Map.Entry<String, Shape> entry: mChildShapes.entrySet()) {
+            entry.getValue().draw(canvas);
+        }
     }
 
     public static MultiShape createFromXml(XmlPullParser parser)
@@ -48,16 +71,15 @@ public class MultiShape extends Shape {
                 if (childShape != null) {
                     multiShape.addChildShape(childShape);
                 }
+            } else if (parser.getName().equals(MultiShapeTimeLine.TAG_NAME)) {
+                String timeLineName = parser.getAttributeValue(null, "name");
+                MultiShapeTimeLine multiShapeTimeLine = MultiShapeTimeLine.createFromXml(parser, multiShape);
+                if (multiShapeTimeLine != null) {
+                    multiShape.mMultiShapeTimeLines.put(timeLineName, multiShapeTimeLine);
+                }
             }
             Helper.skipTag(parser);
         }
         return multiShape;
-    }
-
-    @Override
-    public void draw(Canvas canvas) {
-        for(Shape shape: mChildShapes) {
-            shape.draw(canvas);
-        }
     }
 }

@@ -7,6 +7,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Created by sujoy on 8/10/16.
@@ -29,6 +30,16 @@ public class RectangleShape extends Shape {
         Path path = new Path();
         path.addRoundRect(new RectF(0, 0, mWidth, mHeight), mCornerRadius, mCornerRadius, Path.Direction.CW);
         return path;
+    }
+
+    @Override
+    public void setProperty(PropName propName, Object value, HashMap<PropName, PropData> propDataMap) {
+        super.setProperty(propName, value, propDataMap);
+        switch (propName) {
+            case CORNER_RADIUS:
+                mCornerRadius = (float) value;
+                break;
+        }
     }
 
     public static RectangleShape createFromXml(XmlPullParser parser)

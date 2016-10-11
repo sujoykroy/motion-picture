@@ -444,7 +444,6 @@ class Shape(object):
         ctx.rotate(self.angle*RAD_PER_DEG)
         ctx.scale(self.post_scale_x, self.post_scale_y)
 
-
     def draw_anchor(self, ctx):
         ctx.translate(self.anchor_at.x, self.anchor_at.y)
         ctx.arc(0, 0, 5, 0, math.pi*2)

@@ -9,6 +9,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Created by sujoy on 8/10/16.
@@ -37,6 +38,10 @@ public abstract class Shape {
         mBorderPaint.setStyle(Paint.Style.STROKE);
         mBorderPaint.setStrokeJoin(Paint.Join.ROUND);
         mBorderPaint.setStrokeCap(Paint.Cap.ROUND);
+    }
+
+    public String getName() {
+        return mName;
     }
 
     public void setParentShape(Shape parentShape) {
@@ -153,6 +158,129 @@ public abstract class Shape {
             preDraw(canvas);
             drawBorder(canvas);
             canvas.restore();
+        }
+    }
+
+    public void setX(Float x) {
+        moveTo(x, getAbsoluteAnchorAt().y);
+    }
+
+    public void setY(Float y) {
+        moveTo(getAbsoluteAnchorAt().x, y);
+    }
+
+    public void setStageX(Float x) {
+        if (mParentShape != null) {
+            x += mParentShape.mAnchortAt.x;
+        }
+        moveTo(x, getAbsoluteAnchorAt().y);
+    }
+
+    public void setStageY(Float y) {
+        if (mParentShape != null) {
+            y += mParentShape.mAnchortAt.y;
+        }
+        moveTo(getAbsoluteAnchorAt().x, y);
+    }
+
+    public void setAngle(Float angle) {
+        Point relLefTopCorner = new Point(-mAnchortAt.x, -mAnchortAt.y);
+        relLefTopCorner.scale(mPostScaleX, mPostScaleY);
+        relLefTopCorner.rotateCoordinate(-angle);
+        relLefTopCorner.scale(mScaleX, mScaleY);
+        if (mPreMatrix != null) {
+            relLefTopCorner.transform(mPreMatrix);
+        }
+        Point absAnchorAt = getAbsoluteAnchorAt();
+        relLefTopCorner.translate(absAnchorAt.x, absAnchorAt.y);
+        mAngle = angle;
+        mTranslation.copyFrom(relLefTopCorner);
+    }
+
+    public void moveTo(float x, float y) {
+        Point point = new Point(x, y);
+        Point absAnchorAt = getAbsoluteAnchorAt();
+        point.translate(-absAnchorAt.x, - absAnchorAt.y);
+        mTranslation.translate(point.x, point.y);
+    }
+
+    public Point getAbsoluteAnchorAt() {
+        Point absAnchorAt = mAnchortAt.copy();
+        absAnchorAt.scale(mPostScaleX, mPostScaleY);
+        absAnchorAt.rotateCoordinate(-mAngle);
+        absAnchorAt.scale(mScaleX, mScaleY);
+        if (mPreMatrix != null) {
+            absAnchorAt.transform(mPreMatrix);
+        }
+        absAnchorAt.translate(mTranslation.x, mTranslation.y);
+        return absAnchorAt;
+    }
+
+
+    public Point transformPoint(Point point) {
+        point = point.copy();
+        Point absAnchorAt = getAbsoluteAnchorAt();
+        point.translate(-absAnchorAt.x, -absAnchorAt.y);
+        if (mPreMatrix != null) {
+            point.reverse_transform(mPreMatrix);
+        }
+        point.scale(1/mScaleX, 1/mScaleY);
+        point.rotateCoordinate(mAngle);
+        point.scale(mPostScaleX, mPostScaleY);
+        point.translate(mAnchortAt.x, mAnchortAt.y);
+        return point;
+    }
+
+    public void setProperty(PropName propName, Object value, HashMap<PropName, PropData> propDataMap) {
+        switch (propName) {
+            case ANGLE:
+                setAngle((float) value);
+                break;
+            case ANCHOR_X:
+                mAnchortAt.x = (float) value;
+                break;
+            case ANCHOR_Y:
+                mAnchortAt.y = (float) value;
+                break;
+            case BORDER_COLOR:
+                setBorderColor((Color) value);
+                break;
+            case BORDER_WIDTH:
+                setBorderWidth((float) value);
+                break;
+            case FILL_COLOR:
+                setFillColor((Color) value);
+                break;
+            case HEIGHT:
+                mWidth = (float) value;
+                break;
+            case WIDTH:
+                mHeight = (float) value;
+                break;
+            case POST_SCALE_X:
+                mPostScaleX = (float) value;
+                break;
+            case POST_SCALE_Y:
+                mPostScaleY = (float) value;
+                break;
+            case SCALE_X:
+                mScaleX = (float) value;
+                break;
+            case SCALE_Y:
+                mScaleY = (float) value;
+                break;
+            case X:
+                setX((float) value);
+                break;
+            case Y:
+                setY((float) value);
+                break;
+            case STAGE_X:
+                setStageX((float) value);
+                break;
+            case PRE_MATRIX:
+                mPreMatrix = (Matrix) value;
+                break;
         }
     }
 

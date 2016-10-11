@@ -33,10 +33,49 @@ public class Point {
         }
     }
 
+    public void copyFrom(Point other) {
+        this.x = other.x;
+        this.y = other.y;
+    }
+
     public float distance(Point other) {
         float dx = this.x-other.x;
         float dy = this.y-other.y;
         return (float) Math.sqrt(dx*dx+dy*dy);
+    }
+
+    public void scale(float scaleX, float scaleY) {
+        x *= scaleX;
+        y *= scaleY;
+    }
+
+    public void reverse_transform(Matrix matrix) {
+        float[] xyValues = {this.x, this.y};
+        android.graphics.Matrix inverseMatrix = new android.graphics.Matrix();
+        matrix.getGraphicsMatrix().invert(inverseMatrix);
+        inverseMatrix.mapPoints(xyValues);
+        this.x = xyValues[0];
+        this.y = xyValues[0];
+    }
+
+    public void transform(Matrix matrix) {
+        float[] xyValues = {this.x, this.y};
+        matrix.getGraphicsMatrix().mapPoints(xyValues);
+        this.x = xyValues[0];
+        this.y = xyValues[0];
+    }
+
+    public void translate(float dx, float dy) {
+        this.x += dx;
+        this.y += dy;
+    }
+
+    public void rotateCoordinate(float angle) {
+        angle *= Math.PI/Helper.RADIAN_PER_DEGREE;
+        float newX = (float) (this.x*Math.cos(angle) + this.y*Math.sin(angle));
+        float newY = (float) (-this.x*Math.sin(angle) + this.y*Math.cos(angle));
+        this.x = newX;
+        this.y = newY;
     }
 
     public static Point createFromText(String text) {

@@ -7,6 +7,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by sujoy on 8/10/16.
@@ -22,6 +23,14 @@ public class CurveShape extends Shape {
             path.addPath(curve.getPath(mWidth, mHeight));
         }
         return path;
+    }
+
+    @Override
+    public void setProperty(PropName propName, Object value, HashMap<PropName, PropData> propDataMap) {
+        super.setProperty(propName, value, propDataMap);
+        if (propName == PropName.INTERNAL) {
+            //TODO
+        }
     }
 
     public static CurveShape createFromXml(XmlPullParser parser)

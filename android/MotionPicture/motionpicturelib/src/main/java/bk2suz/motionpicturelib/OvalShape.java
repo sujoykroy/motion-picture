@@ -7,6 +7,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Created by sujoy on 8/10/16.
@@ -24,7 +25,6 @@ public class OvalShape extends Shape {
         }
     }
 
-
     @Override
     public Path getPath() {
         Path path = new Path();
@@ -37,6 +37,16 @@ public class OvalShape extends Shape {
             path.close();
         }
         return path;
+    }
+
+    @Override
+    public void setProperty(PropName propName, Object value, HashMap<PropName, PropData> propDataMap) {
+        super.setProperty(propName, value, propDataMap);
+        switch (propName) {
+            case SWEEP_ANGLE:
+                mSweepAngle = (float) value;
+                break;
+        }
     }
 
     public static OvalShape createFromXml(XmlPullParser parser)
