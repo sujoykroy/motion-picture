@@ -40,7 +40,9 @@ public enum PropName {
     TIMELINE("timeline"),
     CORNER_RADIUS("corner_radius"),
     INTERNAL("internal"),
-    FORM("form");
+    FORM("form"),
+    START_FORM("start_form"),
+    END_FORM("end_form");
 
     private String mXmlName;
 

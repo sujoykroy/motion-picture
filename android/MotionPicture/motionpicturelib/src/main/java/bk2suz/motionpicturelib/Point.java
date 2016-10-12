@@ -78,6 +78,11 @@ public class Point {
         this.y = newY;
     }
 
+    public void setInBetween(Point startPoint, Point endPoint, float frac) {
+        this.x = startPoint.x + (endPoint.x-startPoint.x)*frac;
+        this.y = startPoint.y + (endPoint.y-startPoint.y)*frac;
+    }
+
     public static Point createFromText(String text) {
         String[] values = text.split(",");
         if (values.length<2) {
