@@ -112,12 +112,9 @@ class Shape(object):
                 self_point = getattr(self, prop_name)
                 self_point.x = start_value.x + (end_value.x-start_value.x)*frac
                 self_point.y = start_value.y + (end_value.y-start_value.y)*frac
-            elif isinstance(start_value, Color):
+            elif isinstance(start_value, Color) or isinstance(start_value, GradientColor):
                 self_color = getattr(self, prop_name)
-                self_color.red = start_value.red + (end_value.red-start_value.red)*frac
-                self_color.green = start_value.green + (end_value.green-start_value.green)*frac
-                self_color.blue = start_value.blue + (end_value.blue-start_value.blue)*frac
-                self_color.alpha = start_value.alpha + (end_value.alpha-start_value.alpha)*frac
+                self_color.set_inbetween(start_value, end_value, frac)
             elif isinstance(start_value, cairo.Matrix):
                 if start_value and end_value:
                     setattr(self, prop_name, Matrix.interpolate(start_value, end_value, frac))

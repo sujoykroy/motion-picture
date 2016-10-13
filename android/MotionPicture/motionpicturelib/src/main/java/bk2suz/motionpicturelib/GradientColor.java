@@ -35,6 +35,26 @@ public abstract class GradientColor extends Color {
         return positions;
     }
 
+    public void setInBetween(Color startColor, Color endColor, float frac) {
+        if(!this.getClass().isInstance(startColor)) return;
+        if(!this.getClass().isInstance(endColor)) return;
+
+        GradientColor startGrad = (GradientColor) startColor;
+        GradientColor endGrad = (GradientColor) endColor;
+
+        float minPointCount = Math.min(startGrad.mColorPoints.size(), endGrad.mColorPoints.size());
+        minPointCount = Math.min(minPointCount, this.mColorPoints.size());
+
+        for(int i=0;i<minPointCount;i++) {
+            this.mColorPoints.get(i).getColor().setInBetween(
+                startGrad.mColorPoints.get(i).getColor(),
+                startGrad.mColorPoints.get(i).getColor(), frac);
+            this.mColorPoints.get(i).getPoint().setInBetween(
+                    startGrad.mColorPoints.get(i).getPoint(),
+                    startGrad.mColorPoints.get(i).getPoint(), frac);
+        }
+    }
+
     protected void copyFromText(String text) {
         String[] values = text.split(";");
         for (int i = 0; i < values.length; i += 2) {

@@ -21,6 +21,15 @@ public class Matrix {
         return graphicsMatrix;
     }
 
+    public void setInBetween(Matrix startMatrix, Matrix endMatrix, float frac) {
+        this.mXX = startMatrix.mXX + (endMatrix.mXX-startMatrix.mXX)*frac;
+        this.mYX = startMatrix.mYX + (endMatrix.mYX-startMatrix.mYX)*frac;
+        this.mXY = startMatrix.mXY + (endMatrix.mXY-startMatrix.mXY)*frac;
+        this.mYY = startMatrix.mYY + (endMatrix.mYY-startMatrix.mYY)*frac;
+        this.mX0 = startMatrix.mX0 + (endMatrix.mX0-startMatrix.mX0)*frac;
+        this.mY0 = startMatrix.mY0 + (endMatrix.mY0-startMatrix.mY0)*frac;
+    }
+
     public static Matrix createFromText(String text) {
         if (text == null) return null;
         String[] values = text.split(",");

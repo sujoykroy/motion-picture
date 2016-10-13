@@ -16,6 +16,7 @@ public enum PropName {
     SCALE_Y("scale_y"),
     ANCHOR_X("anchor_x"),
     ANCHOR_Y("anchor_y"),
+    ANCHOR_AT("anchor_at"),
     POST_SCALE_X("post_scale_x"),
     POST_SCALE_Y("post_scale_y"),
     BORDER_WIDTH("border_width"),
@@ -24,6 +25,7 @@ public enum PropName {
     WIDTH("width"),
     HEIGHT("width"),
     ANGLE("angle"),
+    TRANSLATION("translation"),
     PRE_MATRIX("pre_matrix"),
     MIRRO_ANGLE("mirror_angle"),
     SWEEP_ANGLE("sweep_angle"),
@@ -42,7 +44,8 @@ public enum PropName {
     INTERNAL("internal"),
     FORM("form"),
     START_FORM("start_form"),
-    END_FORM("end_form");
+    END_FORM("end_form"),
+    TYPE("type");
 
     private String mXmlName;
 

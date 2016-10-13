@@ -239,8 +239,14 @@ public abstract class Shape {
             case ANCHOR_X:
                 mAnchortAt.x = (float) value;
                 break;
+            case TRANSLATION:
+                mTranslation.copyFrom((Point) value);
+                break;
             case ANCHOR_Y:
                 mAnchortAt.y = (float) value;
+                break;
+            case ANCHOR_AT:
+                mAnchortAt.copyFrom((Point) value);
                 break;
             case BORDER_COLOR:
                 setBorderColor((Color) value);

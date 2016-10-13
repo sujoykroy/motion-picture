@@ -31,6 +31,14 @@ class Color(object):
                 arr[i] = "0" + arr[i]
         return "#" + "".join(arr)
 
+    def set_inbetween(self, start_color, end_color, frac):
+        if not isinstance(Color, start_color) or not isinstance(Color, end_color):
+            return
+        self.red = start_color.red + (end_color.red-start_color.red)*frac
+        self.green = start_color.green + (end_color.green-start_color.green)*frac
+        self.blue = start_color.blue + (end_color.blue-start_color.blue)*frac
+        self.alpha = start_color.alpha + (end_color.alpha-start_colors.alpha)*frac
+
     @classmethod
     def from_text(cls, text):
         if text is None or text == "None": return None
@@ -103,6 +111,21 @@ class GradientColor(object):
             newob.color_points.append(color_point)
         newob.get_pattern()
         return newob
+
+    def set_inbetween(self, startColor, endColor, frac):
+        if not isinstance(GradientColor, start_color) or not isinstance(GradientColor, end_color):
+            return
+
+        for i in range(min(len(startColor.colorPoints), \
+                           len(endColor.colorPoints), len(this.colorPoints))):
+            self.color_points[i].point.set_inbetween(
+                    startColor.colorPoints[i].point,
+                    endColor.colorPoints[i].point, frac
+            )
+            self.color_points[i].point.color(
+                    startColor.colorPoints[i].color,
+                    endColor.colorPoints[i].color, frac
+            )
 
     def to_text(self):
         arr = []

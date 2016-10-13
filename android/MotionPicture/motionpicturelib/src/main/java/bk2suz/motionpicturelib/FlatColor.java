@@ -41,6 +41,19 @@ public class FlatColor extends Color {
         mAlpha = flatColor.mAlpha;
     }
 
+    public void setInBetween(Color startColor, Color endColor, float frac) {
+        if(!FlatColor.class.isInstance(startColor)) return;
+        if(!FlatColor.class.isInstance(endColor)) return;
+
+        FlatColor startFlatColor = (FlatColor) startColor;
+        FlatColor endFlatColor = (FlatColor) endColor;
+
+        this.mRed = startFlatColor.mRed + (endFlatColor.mRed - startFlatColor.mRed)*frac;
+        this.mGreen = startFlatColor.mGreen + (endFlatColor.mGreen - startFlatColor.mGreen)*frac;
+        this.mBlue = startFlatColor.mBlue + (endFlatColor.mBlue - startFlatColor.mBlue)*frac;
+        this.mAlpha = startFlatColor.mAlpha + (endFlatColor.mAlpha - startFlatColor.mAlpha)*frac;
+    }
+
     public static FlatColor createFromText(String text) {
         String[] values = text.split(",");
         Float[] floatValues = new Float[4];
