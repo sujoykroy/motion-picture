@@ -15,6 +15,7 @@ class Color(object):
         return [self.red, self.green, self.blue, self.alpha]
 
     def copy_from(self, color):
+        if not isinstance(color, Color): return
         self.red = color.red
         self.green = color.green
         self.blue = color.blue
@@ -32,12 +33,12 @@ class Color(object):
         return "#" + "".join(arr)
 
     def set_inbetween(self, start_color, end_color, frac):
-        if not isinstance(Color, start_color) or not isinstance(Color, end_color):
+        if not isinstance(start_color, Color) or not isinstance(end_color, Color):
             return
         self.red = start_color.red + (end_color.red-start_color.red)*frac
         self.green = start_color.green + (end_color.green-start_color.green)*frac
         self.blue = start_color.blue + (end_color.blue-start_color.blue)*frac
-        self.alpha = start_color.alpha + (end_color.alpha-start_colors.alpha)*frac
+        self.alpha = start_color.alpha + (end_color.alpha-start_color.alpha)*frac
 
     @classmethod
     def from_text(cls, text):
@@ -63,36 +64,6 @@ class Color(object):
         else:
             return color
 
-class GradientColor1(object):
-    def __init__(self):
-        self.colors = []
-        self.positions = []
-
-    def add_color_at(self, position, color):
-        self.colors.append(color)
-        self.positions.append(position)
-
-    def get_pattern(self, x0, y0, x1, y1):
-        pat = cairo.LinearGradient(x0, y0, x1, y1)
-        for i in range(len(self.colors)):
-            color = self.colors[i]
-            pat.add_color_stop_rgba (self.positions[i], color.red, color.green, color.blue, color.alpha)
-        return pat
-
-    @classmethod
-    def simple(cls, colors, positions=None):
-        grad = cls()
-        for i in range(len(colors)):
-            color = colors[i]
-            if type(color) is str:
-                color = Color.from_html(color)
-            if positions:
-                position = positions[i]
-            else:
-                position = i*1.0/len(colors)
-            grad.add_color_at(position, color)
-        return grad
-
 class ColorPoint(object):
     def __init__(self, color, point):
         self.color = color
@@ -112,20 +83,29 @@ class GradientColor(object):
         newob.get_pattern()
         return newob
 
-    def set_inbetween(self, startColor, endColor, frac):
-        if not isinstance(GradientColor, start_color) or not isinstance(GradientColor, end_color):
+    def copy_from(self, other):
+        if not isinstance(other, GradientColor):
+            return
+        for i in range(min(len(other.color_points), len(self.color_points))):
+            self.color_points[i].point.copy_from(other.color_points[i].point)
+            self.color_points[i].color.copy_from(other.color_points[i].color)
+        self.pattern = None
+
+    def set_inbetween(self, start_color, end_color, frac):
+        if not isinstance(start_color, GradientColor) or not isinstance(end_color, GradientColor):
             return
 
-        for i in range(min(len(startColor.colorPoints), \
-                           len(endColor.colorPoints), len(this.colorPoints))):
+        for i in range(min(len(start_color.color_points), \
+                           len(end_color.color_points), len(self.color_points))):
             self.color_points[i].point.set_inbetween(
-                    startColor.colorPoints[i].point,
-                    endColor.colorPoints[i].point, frac
+                    start_color.color_points[i].point,
+                    end_color.color_points[i].point, frac
             )
-            self.color_points[i].point.color(
-                    startColor.colorPoints[i].color,
-                    endColor.colorPoints[i].color, frac
+            self.color_points[i].color.set_inbetween(
+                    start_color.color_points[i].color,
+                    end_color.color_points[i].color, frac
             )
+        self.pattern = None
 
     def to_text(self):
         arr = []

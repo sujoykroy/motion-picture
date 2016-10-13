@@ -110,7 +110,7 @@ class MultiShape(Shape):
                     if prop_name in ("anchor_at", "translation"):
                         value = Point.from_text(value)
                     elif prop_name in ("fill_color", "border_color"):
-                        value = Color.from_text(value)
+                        value = color_from_text(value)
                     elif prop_name == "pre_matrix":
                         value = Matrix.from_text(value)
                     else:

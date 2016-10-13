@@ -77,8 +77,12 @@ class Shape(object):
                 value = value.copy()
             elif isinstance(value, Color):
                 value = value.copy()
+            elif isinstance(value, GradientColor):
+                value = value.copy()
             elif isinstance(value, cairo.Matrix):
                 value = Matrix.copy(value) if value else None
+            elif value and hasattr(value, "copy"):
+                value = value.copy()
             prop_dict[prop_name] = value
         return prop_dict
 
@@ -92,6 +96,9 @@ class Shape(object):
                     self_point = getattr(self, prop_name)
                     self_point.copy_from(value)
                 elif isinstance(value, Color):
+                    self_color = getattr(self, prop_name)
+                    self_color.copy_from(value)
+                elif isinstance(value, GradientColor):
                     self_color = getattr(self, prop_name)
                     self_color.copy_from(value)
                 elif isinstance(value, cairo.Matrix):

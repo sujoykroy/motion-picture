@@ -86,6 +86,11 @@ class MultiShapePropBox(ShapePropBox):
         self.poses_combo_box.build_and_set_model(sorted(prop_object.poses.keys()))
         self.timelines_combo_box.build_and_set_model(sorted(prop_object.timelines.keys()))
 
+    def has_prop(self, prop_name):
+        if prop_name in ("pose", "timeline"):
+            return True
+        return self.prop_object.has_prop(prop_name)
+
     def insert_slice_button_clicked(self, widget, prop_name):
         if self.prop_object is None: return
         if prop_name == "pose":

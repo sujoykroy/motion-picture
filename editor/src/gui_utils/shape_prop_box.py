@@ -52,11 +52,14 @@ class ShapePropBox(object):
             r += 1
         return r
 
+    def has_prop(self, prop_name):
+        return self.prop_object.has_prop(prop_name)
+
     def set_prop_object(self, prop_object):
         self.prop_object = prop_object
         for prop_name in self.prop_boxes.keys():
             prop_widget = self.prop_boxes[prop_name]
-            if not self.prop_object.has_prop(prop_name):
+            if not self.has_prop(prop_name):
                 prop_widget.hide()
                 for widget in prop_widget.widgets:
                     widget.hide()
