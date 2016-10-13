@@ -1,9 +1,7 @@
 package bk2suz.motionpicturelib;
 
 import android.graphics.Path;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -46,7 +44,7 @@ public class PolygonShape extends Shape {
             outline.set(outline.left, outline.top, outline.right, outline.top+1/mHeight);
         }
         Point absAnchorAt = getAbsoluteAnchorAt();
-        mAnchortAt.translate(-mWidth*outline.left, -mHeight*outline.top);
+        mAnchorAt.translate(-mWidth*outline.left, -mHeight*outline.top);
         moveTo(absAnchorAt.x, absAnchorAt.y);
         mWidth = mWidth*outline.width();
         mHeight = mHeight*outline.height();
@@ -71,7 +69,7 @@ public class PolygonShape extends Shape {
         this.mWidth = form.mWidth;
         this.mHeight = form.mHeight;
 
-        Point anchorAt = this.mAnchortAt.copy();
+        Point anchorAt = this.mAnchorAt.copy();
         anchorAt.scale(1/this.mWidth, 1/this.mHeight);
 
         int minPolygonCount = Math.min(form.mPolygons.size(), this.mPolygons.size());
@@ -114,7 +112,7 @@ public class PolygonShape extends Shape {
             this.mWidth = newWidth;
             this.mHeight = newHeight;
 
-            Point anchorAt = this.mAnchortAt.copy();
+            Point anchorAt = this.mAnchorAt.copy();
             anchorAt.scale(1/this.mWidth, 1/this.mHeight);
 
             int minPolygonCount = Math.min(startForm.mPolygons.size(), endForm.mPolygons.size());

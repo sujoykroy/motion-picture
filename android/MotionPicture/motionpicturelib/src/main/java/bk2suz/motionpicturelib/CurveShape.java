@@ -44,7 +44,7 @@ public class CurveShape extends Shape {
             outline.set(outline.left, outline.top, outline.right, outline.top+1/mHeight);
         }
         Point absAnchorAt = getAbsoluteAnchorAt();
-        mAnchortAt.translate(-mWidth*outline.left, -mHeight*outline.top);
+        mAnchorAt.translate(-mWidth*outline.left, -mHeight*outline.top);
         moveTo(absAnchorAt.x, absAnchorAt.y);
         mWidth = mWidth*outline.width();
         mHeight = mHeight*outline.height();
@@ -69,7 +69,7 @@ public class CurveShape extends Shape {
         this.mWidth = form.mWidth;
         this.mHeight = form.mHeight;
 
-        Point anchorAt = this.mAnchortAt.copy();
+        Point anchorAt = this.mAnchorAt.copy();
         anchorAt.scale(1/this.mWidth, 1/this.mHeight);
 
         int minCurveCount = Math.min(form.mCurves.size(), this.mCurves.size());
@@ -126,7 +126,7 @@ public class CurveShape extends Shape {
             this.mWidth = newWidth;
             this.mHeight = newHeight;
 
-            Point anchorAt = this.mAnchortAt.copy();
+            Point anchorAt = this.mAnchorAt.copy();
             anchorAt.scale(1/this.mWidth, 1/this.mHeight);
 
             int minCurveCount = Math.min(startForm.mCurves.size(), endForm.mCurves.size());

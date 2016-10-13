@@ -71,7 +71,7 @@ public class Point {
     }
 
     public void rotateCoordinate(float angle) {
-        angle *= Math.PI/Helper.RADIAN_PER_DEGREE;
+        angle *= Helper.RADIAN_PER_DEGREE;
         float newX = (float) (this.x*Math.cos(angle) + this.y*Math.sin(angle));
         float newY = (float) (-this.x*Math.sin(angle) + this.y*Math.cos(angle));
         this.x = newX;

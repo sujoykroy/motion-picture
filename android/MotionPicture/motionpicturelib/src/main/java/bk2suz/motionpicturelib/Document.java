@@ -14,23 +14,42 @@ import java.io.IOException;
  */
 public class Document {
     private Float mWidth, mHeight;
-    private Shape mMainShape;
+    private MultiShape mMainMultiShape;
+    private MultiShapeTimeLine mMainTimeLine;
+    private Bitmap mBitmap = null;
+    private final Object BitmapLock = new Object();
 
     public Document(Float width, Float height) {
         mWidth = width;
         mHeight = height;
     }
 
-    public Bitmap getBitmap(Float width, Float height) {
-        Bitmap bitmap = Bitmap.createBitmap(width.intValue(), height.intValue(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        Float scale = Math.min(width/mWidth, height/mHeight);
-        canvas.translate((width-scale*mWidth)*.5F, (height-scale*mHeight)*.5F);
-        canvas.scale(scale, scale);
-        if (mMainShape != null) {
-            mMainShape.draw(canvas);
+    public MultiShapeTimeLine getMainTimeLine() {
+        if (mMainMultiShape == null) return null;
+        return mMainMultiShape.getLastTimeLine();
+    }
+
+    public void clearBitmap() {
+        synchronized (BitmapLock) {
+            mBitmap = null;
         }
-        return  bitmap;
+    }
+
+    public Bitmap getBitmap(Float width, Float height) {
+        synchronized (BitmapLock) {
+            if (mBitmap == null) {
+                Bitmap bitmap = Bitmap.createBitmap(width.intValue(), height.intValue(), Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                Float scale = Math.min(width / mWidth, height / mHeight);
+                canvas.translate((width - scale * mWidth) * .5F, (height - scale * mHeight) * .5F);
+                canvas.scale(scale, scale);
+                if (mMainMultiShape != null) {
+                    mMainMultiShape.draw(canvas);
+                }
+                mBitmap = bitmap;
+            }
+        }
+        return  mBitmap;
     }
 
     private static Document loadFromParser(XmlPullParser parser) {
@@ -69,7 +88,7 @@ public class Document {
                     }
                     document = new Document(docWidth, docHeight);
                 } else if (name.equals("shape") && document != null) {
-                    document.mMainShape = MultiShape.createFromXml(parser);
+                    document.mMainMultiShape = MultiShape.createFromXml(parser);
                 }
             }
         } catch (XmlPullParserException e) {

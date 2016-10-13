@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class MultiShapeTimeLine {
     public static final String TAG_NAME = "multi_shape_time_line";
     private ArrayList<ShapeTimeLine> mShapeTimeLines = new ArrayList<>();
-    private Float mDuration;
+    private Float mDuration = 0F;
 
     public void moveTo(Float t) {
         for(ShapeTimeLine shapeTimeLine: mShapeTimeLines) {

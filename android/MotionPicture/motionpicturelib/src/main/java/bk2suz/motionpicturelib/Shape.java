@@ -4,6 +4,7 @@ package bk2suz.motionpicturelib;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.RectF;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -15,7 +16,7 @@ import java.util.HashMap;
  * Created by sujoy on 8/10/16.
  */
 public abstract class Shape {
-    protected Point mAnchortAt = new Point(0F, 0F);
+    protected Point mAnchorAt = new Point(0F, 0F);
     protected Color mBorderColor, mFillColor;
     protected Float mBorderWidth = 0F;
     protected Float mWidth, mHeight;
@@ -49,7 +50,7 @@ public abstract class Shape {
     }
 
     public void copyAttributesFromXml(XmlPullParser parser) {
-        mAnchortAt.copyFromText(parser.getAttributeValue(null, "anchor_at"));
+        mAnchorAt.copyFromText(parser.getAttributeValue(null, "anchor_at"));
         mTranslation.copyFromText(parser.getAttributeValue(null, "translation"));
         try {
             mWidth = Float.parseFloat(parser.getAttributeValue(null, "width"));
@@ -171,20 +172,20 @@ public abstract class Shape {
 
     public void setStageX(Float x) {
         if (mParentShape != null) {
-            x += mParentShape.mAnchortAt.x;
+            x += mParentShape.mAnchorAt.x;
         }
         moveTo(x, getAbsoluteAnchorAt().y);
     }
 
     public void setStageY(Float y) {
         if (mParentShape != null) {
-            y += mParentShape.mAnchortAt.y;
+            y += mParentShape.mAnchorAt.y;
         }
         moveTo(getAbsoluteAnchorAt().x, y);
     }
 
     public void setAngle(Float angle) {
-        Point relLefTopCorner = new Point(-mAnchortAt.x, -mAnchortAt.y);
+        Point relLefTopCorner = new Point(-mAnchorAt.x, -mAnchorAt.y);
         relLefTopCorner.scale(mPostScaleX, mPostScaleY);
         relLefTopCorner.rotateCoordinate(-angle);
         relLefTopCorner.scale(mScaleX, mScaleY);
@@ -205,7 +206,7 @@ public abstract class Shape {
     }
 
     public Point getAbsoluteAnchorAt() {
-        Point absAnchorAt = mAnchortAt.copy();
+        Point absAnchorAt = mAnchorAt.copy();
         absAnchorAt.scale(mPostScaleX, mPostScaleY);
         absAnchorAt.rotateCoordinate(-mAngle);
         absAnchorAt.scale(mScaleX, mScaleY);
@@ -227,8 +228,43 @@ public abstract class Shape {
         point.scale(1/mScaleX, 1/mScaleY);
         point.rotateCoordinate(mAngle);
         point.scale(mPostScaleX, mPostScaleY);
-        point.translate(mAnchortAt.x, mAnchortAt.y);
+        point.translate(mAnchorAt.x, mAnchorAt.y);
         return point;
+    }
+
+    public Point reverseTransformPoint(Point point) {
+        point = point.copy();
+        point.translate(-mAnchorAt.x, -mAnchorAt.y);
+        point.scale(mPostScaleX, mPostScaleY);
+        point.rotateCoordinate(-mAngle);
+        point.scale(mScaleX, mScaleY);
+        if (mPreMatrix != null) {
+            point.transform(mPreMatrix);
+        }
+        Point absAnchorAt = getAbsoluteAnchorAt();
+        point.translate(absAnchorAt.x, absAnchorAt.y);
+        return point;
+    }
+
+    public RectF getAbsoluteOutline() {
+        RectF outline = new RectF(0, 0, mWidth, mHeight);
+        Point[] points = new Point[4];
+        points[0] = new Point(outline.left, outline.top);
+        points[1] = new Point(outline.right, outline.top);
+        points[2] = new Point(outline.right, outline.bottom);
+        points[3] = new Point(outline.left, outline.bottom);
+
+        Point absAnchorAt = getAbsoluteAnchorAt();
+        Float minX = null, minY=null, maxX=null, maxY=null;
+        for (int i=0; i<points.length; i++) {
+            Point point = reverseTransformPoint(points[i]);
+            if (minX == null || minX>point.x) minX = point.x;
+            if (minY == null || minY>point.y) minY = point.y;
+            if (maxX == null || maxX<point.x) maxX = point.x;
+            if (maxY == null || maxY<point.y) maxY = point.y;
+        }
+        outline.set(minX, minY, maxX, maxY);
+        return outline;
     }
 
     public void setProperty(PropName propName, Object value, HashMap<PropName, PropData> propDataMap) {
@@ -236,17 +272,17 @@ public abstract class Shape {
             case ANGLE:
                 setAngle((float) value);
                 break;
-            case ANCHOR_X:
-                mAnchortAt.x = (float) value;
-                break;
             case TRANSLATION:
                 mTranslation.copyFrom((Point) value);
                 break;
+            case ANCHOR_X:
+                mAnchorAt.x = (float) value;
+                break;
             case ANCHOR_Y:
-                mAnchortAt.y = (float) value;
+                mAnchorAt.y = (float) value;
                 break;
             case ANCHOR_AT:
-                mAnchortAt.copyFrom((Point) value);
+                mAnchorAt.copyFrom((Point) value);
                 break;
             case BORDER_COLOR:
                 setBorderColor((Color) value);
@@ -283,6 +319,9 @@ public abstract class Shape {
                 break;
             case STAGE_X:
                 setStageX((float) value);
+                break;
+            case STAGE_Y:
+                setStageY((float) value);
                 break;
             case PRE_MATRIX:
                 mPreMatrix = (Matrix) value;

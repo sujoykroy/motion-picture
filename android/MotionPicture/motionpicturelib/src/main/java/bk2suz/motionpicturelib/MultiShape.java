@@ -1,12 +1,12 @@
 package bk2suz.motionpicturelib;
 
 import android.graphics.Canvas;
+import android.graphics.RectF;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,8 +25,34 @@ public class MultiShape extends Shape {
         shape.setParentShape(this);
     }
 
+    public MultiShapeTimeLine getLastTimeLine() {
+        if (mMultiShapeTimeLines == null) return null;
+        return mMultiShapeTimeLines.values().toArray(new MultiShapeTimeLine[0])[0];
+    }
+
     public Shape getChildShape(String shapeName) {
         return mChildShapes.get(shapeName);
+    }
+
+    public void readjustSizes() {
+        RectF outline = new RectF();
+        for(Shape shape: mChildShapes.values()) {
+            outline.union(shape.getAbsoluteOutline());
+        }
+        if (outline.isEmpty()) return;
+        Point absAnchorAt = getAbsoluteAnchorAt();
+
+        for(Shape shape:mChildShapes.values()) {
+            Point shapeAbsAnchorAt = shape.getAbsoluteAnchorAt();
+            shapeAbsAnchorAt.translate(-outline.left, -outline.top);
+            shape.moveTo(shapeAbsAnchorAt.x, shapeAbsAnchorAt.y);
+        }
+
+        mWidth = outline.width();
+        mHeight = outline.height();
+
+        mAnchorAt.translate(-outline.left, -outline.top);
+        moveTo(absAnchorAt.x, absAnchorAt.y);
     }
 
     public void setPose(String poseName) {
@@ -37,52 +63,54 @@ public class MultiShape extends Shape {
             for(Map.Entry<PropName, Object> poseShapeEntry: poseEntry.getValue().mPropMap.entrySet()) {
                 shape.setProperty(poseShapeEntry.getKey(), poseShapeEntry.getValue(), null);
             }
+            shape.mTranslation.translate(mAnchorAt.x, mAnchorAt.y);
         }
+        readjustSizes();
     }
 
     public void setPoseInBetween(Pose startPose, Pose endPose, float frac) {
-        Point anchorAt = mAnchortAt.copy();
         for(Map.Entry<String, PoseShape> startPoseEntry: startPose.mPoseShapes.entrySet()) {
             String shapeName = startPoseEntry.getKey();
             if(!endPose.mPoseShapes.containsKey(shapeName)) continue;
 
             Shape shape = getChildShape(shapeName);
             if(shape == null) continue;
-
             PoseShape endPoseShape = endPose.mPoseShapes.get(shapeName);
 
             for(Map.Entry<PropName, Object> startPoseShapeEntry: startPoseEntry.getValue().mPropMap.entrySet()) {
                 PropName propName = startPoseShapeEntry.getKey();
                 if(!endPoseShape.mPropMap.containsKey(propName)) continue;
-                Object startValue = startPoseEntry.getValue();
-                Object endValue = endPoseShape.mPropMap.containsKey(propName);
+                Object startValue = startPoseShapeEntry.getValue();
+                Object endValue = endPoseShape.mPropMap.get(propName);
 
                 Object propValue = null;
                 if (Float.class.isInstance(startValue)) {
                     propValue = (Float) startValue + (((Float) endValue)-((Float) startValue))*frac;
                     shape.setProperty(propName, propValue, null);
                 } else if(propName == PropName.ANCHOR_AT) {
-                    mAnchortAt.setInBetween((Point) startValue, (Point) endValue, frac);
+                    shape.mAnchorAt.setInBetween((Point) startValue, (Point) endValue, frac);
                 } else if(propName == PropName.TRANSLATION) {
-                    mTranslation.setInBetween((Point) startValue, (Point) endValue, frac);
-                } else if(propName == PropName.BORDER_COLOR && mBorderColor != null) {
-                    mBorderColor.setInBetween((Color) startValue, (Color) endValue, frac);
-                    mBorderColor.setPaint(mBorderPaint);
-                } else if(propName == PropName.FILL_COLOR && mFillColor != null) {
-                    mFillColor.setInBetween((Color) startValue, (Color) endValue, frac);
-                    mFillColor.setPaint(mFillPaint);
-                } else if(propName == PropName.PRE_MATRIX) {
-                    mPreMatrix.setInBetween((Matrix) startValue, (Matrix) endValue, frac);
+                    shape.mTranslation.setInBetween((Point) startValue, (Point) endValue, frac);
+                } else if(propName == PropName.BORDER_COLOR && shape.mBorderColor != null) {
+                    shape.mBorderColor.setInBetween((Color) startValue, (Color) endValue, frac);
+                    shape.mBorderColor.setPaint(mBorderPaint);
+                } else if(propName == PropName.FILL_COLOR && shape.mFillColor != null) {
+                    shape.mFillColor.setInBetween((Color) startValue, (Color) endValue, frac);
+                    shape.mFillColor.setPaint(mFillPaint);
+                } else if(propName == PropName.PRE_MATRIX && shape.mPreMatrix != null) {
+                    shape.mPreMatrix.setInBetween((Matrix) startValue, (Matrix) endValue, frac);
                 }
             }
+            shape.mTranslation.translate(mAnchorAt.x, mAnchorAt.y);
         }
+        readjustSizes();
     }
 
     @Override
     public void setProperty(PropName propName, Object value, HashMap<PropName, PropData> propDataMap) {
         super.setProperty(propName, value, propDataMap);
         if (propName == PropName.INTERNAL) {
-            if("pose".equals(propDataMap.get(PropName.TYPE))) {
+            if("pose".equals(propDataMap.get(PropName.TYPE).getStringValue())) {
                 String startPoseName = propDataMap.get(PropName.START_POSE).getStringValue();
                 String endPoseName = propDataMap.get(PropName.END_POSE).getStringValue();
                 if(endPoseName == null || !mPoses.containsKey(endPoseName)) {
@@ -90,12 +118,12 @@ public class MultiShape extends Shape {
                 } else {
                     setPoseInBetween(mPoses.get(startPoseName),mPoses.get(endPoseName), (float) value);
                 }
-            } else if("timeline".equals(propDataMap.get(PropName.TYPE))) {
+            } else if("timeline".equals(propDataMap.get(PropName.TYPE).getStringValue())) {
                 setPose(propDataMap.get(PropName.POSE).getStringValue());
                 MultiShapeTimeLine timeline = mMultiShapeTimeLines.get(
                         propDataMap.get(PropName.TIMELINE).getStringValue());
                 if(timeline != null) {
-                    timeline.moveTo(timeline.getDuration()*((float) value));
+                    //timeline.moveTo(timeline.getDuration()*((float) value));
                 }
             }
         }

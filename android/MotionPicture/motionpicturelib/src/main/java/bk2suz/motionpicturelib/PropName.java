@@ -7,7 +7,6 @@ import java.util.HashMap;
  */
 public enum PropName {
     NONE(""),
-    NULL(null),
     X("x"),
     Y("y"),
     STAGE_X("stage_x"),
@@ -54,9 +53,10 @@ public enum PropName {
     }
 
     public static PropName getByXmlName(String xmlName) {
+        if(xmlName == null) return NONE;
         for(PropName p: PropName.values()) {
             if (p.mXmlName.equals(xmlName)) return p;
         }
-        return NULL;
+        return NONE;
     }
 }
