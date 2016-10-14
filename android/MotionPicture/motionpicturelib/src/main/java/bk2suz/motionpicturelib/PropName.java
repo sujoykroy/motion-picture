@@ -22,7 +22,7 @@ public enum PropName {
     BORDER_COLOR("border_color"),
     FILL_COLOR("fill_color"),
     WIDTH("width"),
-    HEIGHT("width"),
+    HEIGHT("height"),
     ANGLE("angle"),
     TRANSLATION("translation"),
     PRE_MATRIX("pre_matrix"),

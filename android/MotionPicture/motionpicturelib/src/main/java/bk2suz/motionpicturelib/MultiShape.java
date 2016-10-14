@@ -123,7 +123,7 @@ public class MultiShape extends Shape {
                 MultiShapeTimeLine timeline = mMultiShapeTimeLines.get(
                         propDataMap.get(PropName.TIMELINE).getStringValue());
                 if(timeline != null) {
-                    //timeline.moveTo(timeline.getDuration()*((float) value));
+                    timeline.moveTo(timeline.getDuration()*((float) value));
                 }
             }
         }

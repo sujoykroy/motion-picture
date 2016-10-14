@@ -29,6 +29,7 @@ public abstract class Shape {
     protected String mName;
 
     protected Paint mBorderPaint, mFillPaint;
+    Path mPath = null;
 
     public Shape() {
         mFillPaint = new Paint();
@@ -131,7 +132,7 @@ public abstract class Shape {
     }
 
     public Path getPath() {
-        return null;
+        return mPath;
     }
 
     public void drawFill(Canvas canvas) {
@@ -293,11 +294,13 @@ public abstract class Shape {
             case FILL_COLOR:
                 setFillColor((Color) value);
                 break;
-            case HEIGHT:
-                mWidth = (float) value;
-                break;
             case WIDTH:
+                mWidth = (float) value;
+                mPath = null;
+                break;
+            case HEIGHT:
                 mHeight = (float) value;
+                mPath = null;
                 break;
             case POST_SCALE_X:
                 mPostScaleX = (float) value;

@@ -27,6 +27,7 @@ public class OvalShape extends Shape {
 
     @Override
     public Path getPath() {
+        if (mPath != null) return mPath;
         Path path = new Path();
         if (mSweepAngle == 360) {
             path.addOval(new RectF(0, 0, mWidth, mHeight), Path.Direction.CW);
@@ -36,6 +37,7 @@ public class OvalShape extends Shape {
             path.lineTo(mWidth*.5F, mHeight*.5F);
             path.close();
         }
+        mPath = path;
         return path;
     }
 
@@ -45,6 +47,7 @@ public class OvalShape extends Shape {
         switch (propName) {
             case SWEEP_ANGLE:
                 mSweepAngle = (float) value;
+                mPath = null;
                 break;
         }
     }

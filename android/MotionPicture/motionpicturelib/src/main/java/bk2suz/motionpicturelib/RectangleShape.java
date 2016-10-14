@@ -27,8 +27,10 @@ public class RectangleShape extends Shape {
 
     @Override
     public Path getPath() {
+        if (mPath != null) return mPath;
         Path path = new Path();
         path.addRoundRect(new RectF(0, 0, mWidth, mHeight), mCornerRadius, mCornerRadius, Path.Direction.CW);
+        mPath = path;
         return path;
     }
 
@@ -38,6 +40,7 @@ public class RectangleShape extends Shape {
         switch (propName) {
             case CORNER_RADIUS:
                 mCornerRadius = (float) value;
+                mPath = null;
                 break;
         }
     }

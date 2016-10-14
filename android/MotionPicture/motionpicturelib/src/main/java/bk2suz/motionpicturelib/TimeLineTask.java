@@ -24,6 +24,10 @@ public class TimeLineTask {
         mLoop = loop;
     }
 
+    public float getPlayHead() {
+        return mPlayHead;
+    }
+
     public void setPlayHead(float t) {
         if (mTimeline == null) return;
         if(mLoop && t>mTimeline.getDuration()) {

@@ -20,10 +20,12 @@ public class PolygonShape extends Shape {
 
     @Override
     public Path getPath() {
+        if (mPath != null) return mPath;
         Path path = new Path();
         for (Polygon polygon: mPolygons) {
             path.addPath(polygon.getPath(mWidth, mHeight));
         }
+        mPath = path;
         return path;
     }
 
@@ -84,6 +86,7 @@ public class PolygonShape extends Shape {
         }
         fitSizeToIncludeAll();
         moveTo(absAnchorAt.x, absAnchorAt.y);
+        mPath = null;
     }
 
     @Override

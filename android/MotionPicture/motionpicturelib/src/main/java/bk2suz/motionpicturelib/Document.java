@@ -16,17 +16,34 @@ public class Document {
     private Float mWidth, mHeight;
     private MultiShape mMainMultiShape;
     private MultiShapeTimeLine mMainTimeLine;
+
     private Bitmap mBitmap = null;
+    private float mBitmapWidth, mBitmapHeight;
+
+    private Point mDrawEntryPoint = new Point(0F, 0F);
+    private Point mDrawScale = null;
+    private boolean mClip = false;
+
     private final Object BitmapLock = new Object();
 
     public Document(Float width, Float height) {
         mWidth = width;
         mHeight = height;
+        mBitmapWidth = width;
+        mBitmapHeight = height;
     }
 
     public MultiShapeTimeLine getMainTimeLine() {
         if (mMainMultiShape == null) return null;
         return mMainMultiShape.getLastTimeLine();
+    }
+
+    public void setBitmapSize(float width, float height) {
+        synchronized (BitmapLock) {
+            mBitmapWidth = width;
+            mBitmapHeight = height;
+            mBitmap = null;
+        }
     }
 
     public void clearBitmap() {
@@ -35,13 +52,13 @@ public class Document {
         }
     }
 
-    public Bitmap getBitmap(Float width, Float height) {
+    public Bitmap getBitmap() {
         synchronized (BitmapLock) {
             if (mBitmap == null) {
-                Bitmap bitmap = Bitmap.createBitmap(width.intValue(), height.intValue(), Bitmap.Config.ARGB_8888);
+                Bitmap bitmap = Bitmap.createBitmap((int) mBitmapWidth, (int) mBitmapHeight, Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(bitmap);
-                Float scale = Math.min(width / mWidth, height / mHeight);
-                canvas.translate((width - scale * mWidth) * .5F, (height - scale * mHeight) * .5F);
+                Float scale = Math.min(mBitmapWidth / mWidth, mBitmapHeight / mHeight);
+                canvas.translate((mBitmapWidth - scale * mWidth) * .5F, (mBitmapHeight - scale * mHeight) * .5F);
                 canvas.scale(scale, scale);
                 if (mMainMultiShape != null) {
                     mMainMultiShape.draw(canvas);
@@ -51,6 +68,39 @@ public class Document {
         }
         return  mBitmap;
     }
+
+    public void setDrawPosition(float x, float y) {
+        mDrawEntryPoint.x = x;
+        mDrawEntryPoint.y = y;
+    }
+
+    public void setDrawScale(float scale) {
+        if (mDrawScale == null) {
+            mDrawScale = new Point(1F, 1F);
+        }
+        mDrawScale.x = scale;
+        mDrawScale.y = scale;
+    }
+
+    public void setDrawClip(boolean clip) {
+        mClip = clip;
+    }
+
+    public void draw(Canvas canvas) {
+        if(mMainMultiShape == null) return;
+        canvas.save();
+        canvas.translate(mDrawEntryPoint.x, mDrawEntryPoint.y);
+        if(mDrawScale != null) {
+            canvas.scale(mDrawScale.x, mDrawScale.y);
+        }
+        if(mClip) {
+            canvas.clipRect(0, 0, mWidth, mHeight);
+        }
+        canvas.translate(-mMainMultiShape.mAnchorAt.x, -mMainMultiShape.mAnchorAt.y);
+        mMainMultiShape.draw(canvas);
+        canvas.restore();
+    }
+
 
     private static Document loadFromParser(XmlPullParser parser) {
         Document document = null;

@@ -20,10 +20,12 @@ public class CurveShape extends Shape {
 
     @Override
     public Path getPath() {
+        if (mPath != null) return mPath;
         Path path = new Path();
         for (Curve curve: mCurves) {
             path.addPath(curve.getPath(mWidth, mHeight));
         }
+        mPath = path;
         return path;
     }
 
@@ -98,6 +100,7 @@ public class CurveShape extends Shape {
         }
         fitSizeToIncludeAll();
         moveTo(absAnchorAt.x, absAnchorAt.y);
+        mPath = null;
     }
 
     @Override
