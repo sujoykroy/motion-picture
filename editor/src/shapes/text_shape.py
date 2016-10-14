@@ -2,6 +2,7 @@ from ..commons import *
 import cairo, pangocairo, pango
 from shape import Shape
 from rectangle_shape import RectangleShape
+import math
 
 X_ALIGN_LEFT = 0
 X_ALIGN_CENTER = 1
@@ -24,9 +25,11 @@ class TextShape(RectangleShape):
         self.x_align = x_align
         self.y_align = y_align
         self.text = text
+        self.display_text = text
         self.font = font
         self.font_color = font_color
         self.line_align = line_align
+        self.exposure = 1.
         self.readjust_sizes()
 
     @classmethod
@@ -49,6 +52,7 @@ class TextShape(RectangleShape):
         if self.font_color:
             elm.attrib["font_color"] = self.font_color.to_text()
         elm.attrib["line_align"] = "{0}".format(self.line_align)
+        elm.attrib["exposure"] = "{0}".format(self.exposure)
         return elm
 
     @classmethod
@@ -63,6 +67,7 @@ class TextShape(RectangleShape):
         arr.append(int(elm.attrib.get("line_align", 0)))
         shape = cls(*arr)
         shape.assign_params_from_xml_element(elm)
+        shape.set_exposure(float(elm.attrib.get("exposure", 1.)))
         return shape
 
     def copy(self, copy_name=False, deep_copy=False):
@@ -83,7 +88,7 @@ class TextShape(RectangleShape):
         layout.set_font_description(font)
         layout.set_alignment(self.line_align)
 
-        layout.set_markup(self.text)
+        layout.set_markup(self.display_text)
         text_left, text_top, text_width, text_height = layout.get_pixel_extents()[0]
 
         if self.x_align == X_ALIGN_LEFT:
@@ -129,6 +134,15 @@ class TextShape(RectangleShape):
     def set_corner_radius(self, corner_radius):
         self.corner_radius = corner_radius
         self.readjust_sizes()
+
+    def set_exposure(self, fraction):
+        self.exposure = fraction
+        length = abs(int(math.floor(len(self.text)*fraction)))
+        self.display_text = self.text[0: length]
+
+    def set_text(self, text):
+        self.text = text
+        self.set_exposure(self.exposure)
 
     def calculate_text_size(self):
         surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, 320, 120)

@@ -70,6 +70,8 @@ class TextShapePropBox(OvalShapePropBox):
         self.add_prop("font_color", PROP_TYPE_COLOR, None)
         linenalign_combobox = self.add_prop("line_align", PROP_TYPE_TEXT_LIST, None)
         self.add_prop("text", PROP_TYPE_LONG_TEXT, None)
+        self.add_prop("exposure", PROP_TYPE_NUMBER_ENTRY,
+            dict(value=0, lower=0, upper=2., step_increment=.01, page_increment=.1, page_size=.1))
 
         xalign_combobox.build_and_set_model([["Left", 0], ["Center", 1], ["Right", 2]])
         yalign_combobox.build_and_set_model([["Top", 0], ["Middle", 1], ["Bottom", 2]])
