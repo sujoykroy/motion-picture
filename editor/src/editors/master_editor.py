@@ -350,7 +350,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.mouse_init_point.x = self.mouse_point.x
         self.mouse_init_point.y = self.mouse_point.y
         self.drawing_area_mouse_pressed = True
-
         if event.button == 1:#Left mouse
             if event.type == Gdk.EventType._2BUTTON_PRESS:#double button click
                 double_click_handled = True
@@ -373,8 +372,6 @@ class MasterEditor(Gtk.ApplicationWindow):
                         self.load_multi_shape(multi_shape)
                     else:
                         double_click_handled = False
-                else:
-                    double_click_handled = False
                 if double_click_handled:
                     return
 

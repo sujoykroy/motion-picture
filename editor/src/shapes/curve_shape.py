@@ -12,6 +12,7 @@ class CurveShape(Shape, Mirror):
         Mirror.__init__(self)
         self.curves = []
         self.forms = dict()
+        self.show_points = True
 
     def copy_data_from_linked(self):
         if not self.linked_to: return
@@ -161,6 +162,9 @@ class CurveShape(Shape, Mirror):
         elm = Shape.get_xml_element(self)
         for curve in self.curves:
             elm.append(curve.get_xml_element())
+        if not self.show_points:
+            elm.attrib["show_points"] = "False"
+            print elm.attrib["show_points"]
 
         for form_name, form in self.forms.items():
             form_elm = XmlElement(self.FORM_TAG_NAME)
@@ -176,6 +180,7 @@ class CurveShape(Shape, Mirror):
     def create_from_xml_element(cls, elm):
         arr = Shape.get_params_array_from_xml_element(elm)
         shape = cls(*arr)
+        shape.show_points = (elm.attrib.get("show_points", "True") != "False")
         default_point = Point(0,0)
 
         for curve_elm in elm.findall(Curve.TAG_NAME):
@@ -434,7 +439,7 @@ class CurveShape(Shape, Mirror):
         curve_shape.curves.append(Curve(
                 origin=Point(1.-crsx, 0),
                 bezier_points=final_points, closed=True))
-        rectangle_shape.copy_into(curve_shape, all_fields=True, copy_name=True)
+        rectangle_shape.copy_into(curve_shape, all_fields=True, copy_name=False)
         curve_shape.fit_size_to_include_all()
         return curve_shape
 

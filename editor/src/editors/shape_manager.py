@@ -122,7 +122,6 @@ class ShapeManager(object):
     def place_shape_at_zero_position(self, shape):
         shape.move_to(self.multi_shape.translation.x, self.multi_shape.translation.y)
 
-
     def copy_selected_shapes(self):
         if not self.shape_editor: return None
         shapes = []
@@ -305,7 +304,6 @@ class ShapeManager(object):
 
     def start_creating_new_shape(self, shape_type, doc_point, shape_point):
         point = shape_point
-        self.delete_shape_editor()
         if shape_type == "rect":
             self.shape_creator = RectangleShapeCreator(point)
         elif shape_type == "oval":
@@ -315,7 +313,11 @@ class ShapeManager(object):
         elif shape_type == "polygon":
             self.shape_creator = PolygonShapeCreator(point)
         elif shape_type == "freehand":
-            self.shape_creator = FreehandShapeCreator(point)
+            if self.shape_editor and isinstance(self.shape_editor.shape, CurveShape):
+                curve_shape = self.shape_editor.shape
+            else:
+                curve_shape = None
+            self.shape_creator = FreehandShapeCreator(point, curve_shape=curve_shape)
         elif shape_type == "ring":
             self.shape_creator = RingShapeCreator(point)
         elif shape_type == "text":
@@ -326,13 +328,15 @@ class ShapeManager(object):
                 document = Document(filename=filename)
                 self.shape_creator = PredrawnShapeCreator(point, document)
 
+        self.delete_shape_editor()
         if self.shape_creator:
             self.last_doc_point = doc_point.copy()
-            self.place_shape_at_zero_position(self.shape_creator.shape)
+            #self.place_shape_at_zero_position(self.shape_creator.shape)
             self.shape_creator.set_relative_to(self.multi_shape)
-            self.current_task = ShapeAddTask(self.doc, self.multi_shape)
-            self.add_shape(self.shape_creator.get_shape())
-            #task.save(self.doc, self.shape_creator.shape)
+            if not self.multi_shape.shapes.contain(self.shape_creator.get_shape()):
+                self.current_task = ShapeAddTask(self.doc, self.multi_shape)
+                self.add_shape(self.shape_creator.get_shape())
+                #task.save(self.doc, self.shape_creator.shape)
             self.shape_creator.begin_movement(point)
 
     def create_image_shape(self, filename):

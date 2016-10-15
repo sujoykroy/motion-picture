@@ -1,17 +1,20 @@
 from ..commons import *
 from ..shapes import CurveShape, OvalEditBox, EditLine
+from ..settings import config
 
 class CurveShapeCreator(object):
     @classmethod
     def create_blank(cls, point):
-        shape = CurveShape(Point(0, 0), Color(0,0,0,1), 1, Color(1,1,1,0), 1, 1)
-        return cls(shape, -1, -1)
+        shape = CurveShape(Point(0, 0), Color(0,0,0,1),
+                        config.DEFAULT_BORDER_WIDTH, Color(1,1,1,0), 1, 1)
+        return cls(shape, -1, -1, new_shape=True)
 
-    def __init__(self, shape, curve_index, bezier_point_index):
+    def __init__(self, shape, curve_index, bezier_point_index, new_shape=False):
         self.shape = shape
         self.curve = None
         self.bezier_point = None
         self.move_dest = False
+        self.new_shape = new_shape
 
         if shape.curves:
             self.curve = shape.curves[curve_index]
@@ -31,7 +34,8 @@ class CurveShapeCreator(object):
         self.edit_lines.append(EditLine(Point(0, 0), Point(0, 0)))
 
     def set_relative_to(self, multi_shape):
-        #self.shape.move_to(multi_shape.translation.x, multi_shape.translation.y)
+        if self.new_shape:
+            self.shape.move_to(multi_shape.translation.x, multi_shape.translation.y)
         for edit_box in self.edit_boxes:
             edit_box.parent_shape = multi_shape
         for edit_line in self.edit_lines:

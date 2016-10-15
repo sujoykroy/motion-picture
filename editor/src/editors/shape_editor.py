@@ -99,7 +99,7 @@ class ShapeEditor(object):
 
         control_1_fill_color = Color(1,1,0,1)
         control_2_fill_color = Color(1,0,0,1)
-        if isinstance(shape, CurveShape):
+        if isinstance(shape, CurveShape) and shape.show_points:
             for curve_index in range(len(self.shape.curves)):
                 curve = self.shape.curves[curve_index]
                 last_dest_eb = None

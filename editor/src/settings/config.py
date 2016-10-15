@@ -12,3 +12,5 @@ PREDRAWN_SHAPE_FOLDER = os.path.join(ICONS_FOLDER, "predrawns")
 
 TIME_LINE_FONT = "8"
 
+DEFAULT_BORDER_WIDTH = 2.
+

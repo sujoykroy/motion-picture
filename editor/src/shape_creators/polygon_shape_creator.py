@@ -1,9 +1,11 @@
 from ..commons import *
 from ..shapes import PolygonShape, OvalEditBox
+from ..settings import config
 
 class PolygonShapeCreator(object):
     def __init__(self, point):
-        self.shape = PolygonShape(Point(0, 0), Color(0,0,0,1), 1, Color(1,1,1,0), 1, 1)
+        self.shape = PolygonShape(Point(0, 0), Color(0,0,0,1),
+                        config.DEFAULT_BORDER_WIDTH, Color(1,1,1,0), 1, 1)
         self.polygon = None
         self.point = None
         self.shape.move_to(point.x, point.y)

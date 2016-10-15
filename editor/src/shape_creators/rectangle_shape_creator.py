@@ -1,9 +1,11 @@
 from ..commons import *
 from ..shapes import RectangleShape, RectEditBox
+from ..settings import config
 
 class RectangleShapeCreator(object):
     def __init__(self, point):
-        self.shape = RectangleShape(Point(0, 0), Color(0,0,0,1), 5, Color(1,1,1,0), 1, 1, 0)
+        self.shape = RectangleShape(Point(0, 0), Color(0,0,0,1),
+                        config.DEFAULT_BORDER_WIDTH, Color(1,1,1,0), 1, 1, 0)
         self.edit_boxes = []
         self.edit_boxes.append(RectEditBox(Point(0, 0), width=5, height=5, is_percent = False))
         self.edit_boxes.append(RectEditBox(Point(0, 0), width=5, height=5, is_percent = False))
