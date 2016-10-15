@@ -164,7 +164,6 @@ class CurveShape(Shape, Mirror):
             elm.append(curve.get_xml_element())
         if not self.show_points:
             elm.attrib["show_points"] = "False"
-            print elm.attrib["show_points"]
 
         for form_name, form in self.forms.items():
             form_elm = XmlElement(self.FORM_TAG_NAME)
@@ -373,30 +372,67 @@ class CurveShape(Shape, Mirror):
         del self.curves[curve_index_2]
         return True
 
-    def delete_point_at(self, curve_index, bezier_point_index):
+    def delete_point_at(self, curve_index, bezier_point_index, break_allowed=False):
         if curve_index>=len(self.curves): return False
         curve = self.curves[curve_index]
         if bezier_point_index>=len(curve.bezier_points): return False
-        #if len(curve.bezier_points)<2: return False
-        if bezier_point_index == -1:
-            curve.origin.copy_from(curve.bezier_points[0].dest)
-            del curve.bezier_points[0]
-            if curve.closed:
-                curve.bezier_points[-1].dest.copy_from(curve.origin)
-        elif bezier_point_index == len(curve.bezier_points)-1:
-            if curve.closed and curve.bezier_points:
+        if bezier_point_index<-1: return False
+
+        if len(curve.bezier_points)>1:
+            if bezier_point_index == -1:
                 curve.origin.copy_from(curve.bezier_points[0].dest)
-                curve.bezier_points[-1].dest.copy_from(curve.origin)
                 del curve.bezier_points[0]
+                if curve.closed:
+                    curve.bezier_points[-1].dest.copy_from(curve.origin)
+            elif bezier_point_index == len(curve.bezier_points)-1:
+                if curve.closed and curve.bezier_points:
+                    curve.origin.copy_from(curve.bezier_points[0].dest)
+                    curve.bezier_points[-1].dest.copy_from(curve.origin)
+                    del curve.bezier_points[0]
+                else:
+                    del curve.bezier_points[-1]
             else:
-                del curve.bezier_points[-1]
-        else:
-            del curve.bezier_points[bezier_point_index]
-        if len(curve.bezier_points)<3:
-            curve.closed = False
-        if (len(curve.bezier_points)<=1 and curve.closed) or len(curve.bezier_points)==0:
+                if break_allowed:
+                    new_curve = Curve(origin=curve.bezier_points[bezier_point_index].dest.copy())
+                    new_curve.bezier_points.extend(curve.bezier_points[bezier_point_index+1:])
+                    del curve.bezier_points[bezier_point_index+1:]
+                    self.curves.insert(curve_index+1, new_curve)
+                del curve.bezier_points[bezier_point_index]
+
+            if len(curve.bezier_points)<3:
+                curve.closed = False
+            if len(self.curves)>1:
+                if (len(curve.bezier_points)<=1 and curve.closed) or len(curve.bezier_points)==0:
+                    del self.curves[curve_index]
+
+        elif len(self.curves)>1:
             del self.curves[curve_index]
+
         return True
+
+    def delete_dest_points_inside_rect(self, rect):
+        curve_point_indices = dict()
+        for curve_index in range(len(self.curves)):
+            curve = self.curves[curve_index]
+            for bezier_point_index in range(-1, len(curve.bezier_points)):
+                if bezier_point_index == -1:
+                    point = curve.origin.copy()
+                else:
+                    point = curve.bezier_points[bezier_point_index].dest.copy()
+                point.scale(self.width, self.height)
+                point = self.reverse_transform_point(point)
+                if rect.left<=point.x and point.x<=rect.left+rect.width and \
+                   rect.top<=point.y and point.y<=rect.top+rect.height:
+                    if curve_index not in curve_point_indices:
+                        curve_point_indices[curve_index] = []
+                    curve_point_indices[curve_index].append(bezier_point_index)
+
+        delete_count = 0
+        for curve_index in reversed(sorted(curve_point_indices.keys())):
+            for bezier_point_index in reversed(sorted(curve_point_indices[curve_index])):
+                if self.delete_point_at(curve_index, bezier_point_index, break_allowed=True):
+                    delete_count += 1
+        return delete_count>0
 
     @staticmethod
     def create_from_rectangle_shape(rectangle_shape):

@@ -63,7 +63,21 @@ class ShapeManager(object):
         self.out_width = doc.width
         self.out_height = doc.height
         self.color_editor = None
+        self.eraser_box = None
 
+
+    def create_eraser(self, size=5.):
+        if not (self.shape_editor and \
+                isinstance(self.shape_editor.shape, CurveShape)):
+            return False
+        self.eraser_box = RectangleShape(Point(size*.5, size*.5),
+                border_color="000000", border_width=1, fill_color="ffffff",
+                width=size, height=size, corner_radius=0.)
+        self.eraser_box.parent_shape = self.multi_shape
+        return True
+
+    def delete_eraser(self):
+        self.eraser_box = None
 
     def reload_shapes(self):
         self.delete_shape_editor()
@@ -196,6 +210,11 @@ class ShapeManager(object):
         #self.document_area_box.draw_anchor(ctx)
         self.document_area_box.draw_border(ctx)
         ctx.restore()
+
+        if self.eraser_box:
+            ctx.save()
+            self.eraser_box.draw(ctx)
+            ctx.restore()
 
         if self.selection_box.visible:
             ctx.save()
@@ -414,6 +433,14 @@ class ShapeManager(object):
             if self.color_editor.selected_edit_box:
                 return
 
+        if EditingChoice.FREE_ERASING:
+            if self.eraser_box is None:
+                self.create_eraser()
+            if self.eraser_box is not None:
+                #point = self.shape_editor.shape.transform_point(shape_point)
+                self.eraser_box.move_to(shape_point.x, shape_point.y)
+                return
+
         if self.shape_editor is not None:
             self.shape_editor.select_item_at(shape_point, multi_select)
 
@@ -531,7 +558,17 @@ class ShapeManager(object):
         elif self.shape_editor is not None:
             if self.current_task is None:
                 self.current_task = ShapeStateTask(self.doc, self.shape_editor.shape)
-            self.shape_editor.move_active_item(shape_start_point, shape_end_point)
+            if self.eraser_box is not None:
+                shape = self.shape_editor.shape
+                self.eraser_box.move_to(shape_end_point.x, shape_end_point.y)
+                res = shape.delete_dest_points_inside_rect(
+                    self.eraser_box.get_abs_outline(0)
+                )
+                if res and shape.show_points:
+                    self.delete_shape_editor()
+                    self.shape_editor = ShapeEditor(shape)
+            else:
+                self.shape_editor.move_active_item(shape_start_point, shape_end_point)
 
     def end_movement(self):
         self.allow_mouse_move = False
@@ -584,8 +621,11 @@ class ShapeManager(object):
             elif self.color_editor:
                 self.color_editor.end_movement()
             elif self.shape_editor is not None:
-                self.multi_shape.readjust_sizes()
-                self.shape_editor.end_movement()
+                if self.eraser_box:
+                    self.delete_eraser()
+                else:
+                    self.multi_shape.readjust_sizes()
+                    self.shape_editor.end_movement()
                 if self.current_task:
                     self.current_task.save(self.doc, self.shape_editor.shape)
                     self.current_task = None
@@ -701,7 +741,7 @@ class ShapeManager(object):
     def delete_point(self):
         if not self.shape_editor: return False
         task = ShapeStateTask(self.doc, self.shape_editor.shape)
-        if self.shape_editor.delete_point():
+        if self.shape_editor.delete_point(break_allowed):
             task.save(self.doc, self.shape_editor.shape)
             self.shape_editor = ShapeEditor(self.shape_editor.shape)
             self.multi_shape.readjust_sizes()

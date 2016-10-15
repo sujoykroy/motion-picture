@@ -206,6 +206,9 @@ class ShapeEditor(object):
                 return edit_box
         return None
 
+    def deselect_all(self):
+        del self.selected_edit_boxes[:]
+
     def get_selected_moveable_point_indices(self):
         items = dict()
         if not isinstance(self.shape, CurveShape): return items
@@ -307,12 +310,7 @@ class ShapeEditor(object):
             ctx.restore()
 
     def move_active_item(self, start_point, end_point):
-        if self.edit_box_can_move is False:
-            if not EditingChoice.LOCK_SHAPE_MOVEMENT and self.shape.moveable:
-                diff_point = end_point.diff(start_point)
-                init_abs_anchor_at = self.init_shape.get_abs_anchor_at()
-                self.shape.move_to(init_abs_anchor_at.x+diff_point.x, init_abs_anchor_at.y+diff_point.y)
-        elif self.selected_edit_boxes:
+        if self.selected_edit_boxes:
             rel_start_point = self.init_shape.transform_point(start_point)
             rel_end_point = self.init_shape.transform_point(end_point)
             rel_dpoint = rel_end_point.diff(rel_start_point)
@@ -406,6 +404,11 @@ class ShapeEditor(object):
                                 break
                     edit_box.move_offset(percent_point.x, percent_point.y)
             self.named_edit_boxes[ANCHOR].set_point(self.shape.anchor_at)
+        elif self.edit_box_can_move is False:
+            if not EditingChoice.LOCK_SHAPE_MOVEMENT and self.shape.moveable:
+                diff_point = end_point.diff(start_point)
+                init_abs_anchor_at = self.init_shape.get_abs_anchor_at()
+                self.shape.move_to(init_abs_anchor_at.x+diff_point.x, init_abs_anchor_at.y+diff_point.y)
 
     def end_movement(self):
         self.edit_box_can_move = (len(self.selected_edit_boxes)>0)
@@ -475,14 +478,10 @@ class ShapeEditor(object):
                     items[edit_box.curve_index] = dict()
                 items[edit_box.curve_index][edit_box.bezier_point_index]=edit_box.bezier_point_index
             delete_count = 0
-            curve_count = len(self.shape.curves)
             for curve_index in reversed(sorted(items.keys())):
                 for bezier_point_index in reversed(sorted(items[curve_index].keys())):
                     if self.shape.delete_point_at(curve_index, bezier_point_index):
                         delete_count += 1
-                    if curve_count != len(self.shape.curves):
-                        curve_count = len(self.shape.curves)
-                        break
             return delete_count>0
 
         elif isinstance(self.shape, PolygonShape):

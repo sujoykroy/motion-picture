@@ -360,6 +360,15 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.place_anchor_at_center_of_shape():
             self.redraw()
 
+    def freely_erase_points(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.FREE_ERASING = parameter.get_boolean()
+        change_action_tool_buttons(action)
+
+        if not parameter.get_boolean():
+            self.shape_manager.delete_eraser()
+
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,

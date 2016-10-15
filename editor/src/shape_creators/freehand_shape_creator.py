@@ -31,6 +31,7 @@ class FreehandShapeCreator(object):
 
     def begin_movement(self, point):
         origin = point.copy()
+        origin = self.shape.transform_point(origin)
         origin.scale(1./self.shape.width, 1./self.shape.height)
         self.curve = Curve(origin=origin, bezier_points=[])
         self.shape.curves.append(self.curve)

@@ -9,3 +9,4 @@ class EditingChoice:
     HIDE_CONTROL_POINTS = False
     HIDE_AXIS = True
     SHOW_ALL_TIME_LINES = True
+    FREE_ERASING = False

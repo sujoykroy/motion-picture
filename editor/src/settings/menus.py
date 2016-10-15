@@ -56,6 +56,8 @@ m.add(path="Edit/Points/Break", icon="break_point", desc="Break point into two p
       action_name="win.insert_break_in_shape", icon_scale = 1.5)
 m.add(path="Edit/Points/Delete", icon="delete_point", desc="Delete point",
       action_name="win.delete_point_of_shape", icon_scale = 1.5)
+m.add(path="Edit/Points/Freely Erase", action_state=False, icon="freely_eraser",
+      action_name="win.freely_erase_points", desc="Freely erase points with breaks")
 m.add(path="Edit/Points/Extend", icon="extend_point", desc="Extend point into new point",
       action_name="win.extend_point_of_shape")
 m.add(path="Edit/Points/Center Anchor", icon="center_anchor",
