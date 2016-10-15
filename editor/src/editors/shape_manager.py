@@ -70,9 +70,9 @@ class ShapeManager(object):
         if not (self.shape_editor and \
                 isinstance(self.shape_editor.shape, CurveShape)):
             return False
-        self.eraser_box = RectangleShape(Point(size*.5, size*.5),
+        self.eraser_box = OvalShape(Point(size*.5, size*.5),
                 border_color="000000", border_width=1, fill_color="ffffff",
-                width=size, height=size, corner_radius=0.)
+                width=size, height=size, sweep_angle=360)
         self.eraser_box.parent_shape = self.multi_shape
         return True
 
@@ -562,7 +562,7 @@ class ShapeManager(object):
                 shape = self.shape_editor.shape
                 self.eraser_box.move_to(shape_end_point.x, shape_end_point.y)
                 res = shape.delete_dest_points_inside_rect(
-                    self.eraser_box.get_abs_outline(0)
+                    shape_end_point, self.eraser_box.width
                 )
                 if res and shape.show_points:
                     self.delete_shape_editor()

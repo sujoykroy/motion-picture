@@ -404,14 +404,18 @@ class CurveShape(Shape, Mirror):
             if len(self.curves)>1:
                 if (len(curve.bezier_points)<=1 and curve.closed) or len(curve.bezier_points)==0:
                     del self.curves[curve_index]
-
+            curve.make_dirty()
         elif len(self.curves)>1:
             del self.curves[curve_index]
 
         return True
 
-    def delete_dest_points_inside_rect(self, rect):
+    def delete_dest_points_inside_rect(self, center, radius):
+        center = self.transform_point(center)
+        radius /= (self.width+self.height)*.5
+        center.scale(1./self.width, 1./self.height)
         curve_point_indices = dict()
+
         for curve_index in range(len(self.curves)):
             curve = self.curves[curve_index]
             for bezier_point_index in range(-1, len(curve.bezier_points)):
@@ -419,10 +423,7 @@ class CurveShape(Shape, Mirror):
                     point = curve.origin.copy()
                 else:
                     point = curve.bezier_points[bezier_point_index].dest.copy()
-                point.scale(self.width, self.height)
-                point = self.reverse_transform_point(point)
-                if rect.left<=point.x and point.x<=rect.left+rect.width and \
-                   rect.top<=point.y and point.y<=rect.top+rect.height:
+                if point.distance(center)<radius:
                     if curve_index not in curve_point_indices:
                         curve_point_indices[curve_index] = []
                     curve_point_indices[curve_index].append(bezier_point_index)
