@@ -2,6 +2,7 @@ from bezier_point import BezierPoint
 from point import Point, RAD_PER_DEG
 from xml.etree.ElementTree import Element as XmlElement
 import numpy, math
+from scipy.spatial import distance
 
 class Curve(object):
     TAG_NAME = "curve"
@@ -12,6 +13,11 @@ class Curve(object):
         if bezier_points is not None:
             self.bezier_points.extend(bezier_points)
         self.closed = closed
+        #TODO
+        # bare points are more easing the erasing of freely drawn curves.
+        # for normal small curves, this element needs to be out of
+        # operation. some checks neceserray to implement it.
+        self.bare_point_xys = numpy.array([(origin.x, origin.y)])
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -27,7 +33,7 @@ class Curve(object):
         closed = (elm.attrib["closed"] == "True")
         curve = cls(origin=origin, closed=closed)
         for bezier_point_element in elm.findall(BezierPoint.TAG_NAME):
-            curve.bezier_points.append(BezierPoint.create_from_xml_element(bezier_point_element))
+            curve.add_bezier_point(BezierPoint.create_from_xml_element(bezier_point_element))
         return curve
 
     def copy(self):
@@ -52,9 +58,33 @@ class Curve(object):
 
     def add_bezier_point(self, bezier_point):
         self.bezier_points.append(bezier_point)
+        self.bare_point_xys=numpy.append(self.bare_point_xys, [(bezier_point.dest.x, bezier_point.dest.y)], axis=0)
+
+    def add_bezier_points(self, bezier_points):
+        for bezier_point in bezier_points:
+            self.add_bezier_point(bezier_point)
 
     def remove_bezier_point(self, bezier_point):
+        self.bare_point_xys=numpy.delete(self.bare_point_xys, self.bezier_points.index(bezier_point), axis=0)
         self.bezier_points.remove(bezier_point)
+
+    def remove_bezier_point_indices(self, start_index, end_index):
+        for i in range(end_index-1, start_index-1, -1):
+            numpy.delete(self.bare_point_xys, i, axis=0)
+            del self.bezier_points[i]
+
+    def update_bezier_point(self, bezier_point):
+        index = self.bezier_points.index(bezier_point)
+        self.bare_point_xys[index][0] = bezier_point.dest.x
+        self.bare_point_xys[index][1] = bezier_point.dest.y
+
+    def update_origin(self):
+        self.bare_point_xys[0][0] = self.origin.x
+        self.bare_point_xys[0][1] = self.origin.y
+
+    def get_indices_within(self, center, radius):
+        distances = distance.cdist(self.bare_point_xys, [(center.x, center.y)])
+        return numpy.nonzero(distances<radius)[0]
 
     def set_closed(self, closed):
         self.closed = closed
@@ -207,9 +237,11 @@ class Curve(object):
         bezier_point.dest.y = ty
 
         if bezier_point_index == len(self.bezier_points)-1:
-            self.bezier_points.append(post_bzp)
+            self.add_bezier_point(post_bzp)
         else:
             self.bezier_points.insert(bezier_point_index+1, post_bzp)
+            self.bare_point_xys=numpy.insert(self.bare_point_xys, bezier_point_index+1,
+                    [(post_bzp.dest.x, post_bzp.dest.y)], axis=0)
 
     @staticmethod
     def move_point_forward(point, base_point, to_point):
@@ -309,8 +341,8 @@ class Curve(object):
                     control_2=outer_curve.origin.copy(),
                     dest=outer_curve.origin.copy())
             origin_bzp.align_straight_with(center_bzp.dest)
-            outer_curve.bezier_points.append(center_bzp)
-            outer_curve.bezier_points.append(origin_bzp)
+            outer_curve.add_bezier_point(center_bzp)
+            outer_curve.add_bezier_point(origin_bzp)
             outer_curve.closed = True
             return outer_curve
 
@@ -325,7 +357,7 @@ class Curve(object):
                 control_2=outer_curve.origin.copy(),
                 dest = outer_curve.origin.copy())
         outer_curve_origin_bzp.align_straight_with(inner_curve.bezier_points[-1].dest)
-        inner_curve.bezier_points.append(outer_curve_origin_bzp)
+        inner_curve.add_bezier_point(outer_curve_origin_bzp)
         inner_curve.bezier_points.extend(outer_curve.bezier_points)
 
         inner_curve_origin_bzp = BezierPoint(

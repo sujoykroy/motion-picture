@@ -381,30 +381,33 @@ class CurveShape(Shape, Mirror):
         if len(curve.bezier_points)>1:
             if bezier_point_index == -1:
                 curve.origin.copy_from(curve.bezier_points[0].dest)
+                curve.update_origin()
                 del curve.bezier_points[0]
                 if curve.closed:
                     curve.bezier_points[-1].dest.copy_from(curve.origin)
+                    curve.update_bezier_point(curve.bezier_points[-1])#
             elif bezier_point_index == len(curve.bezier_points)-1:
                 if curve.closed and curve.bezier_points:
                     curve.origin.copy_from(curve.bezier_points[0].dest)
                     curve.bezier_points[-1].dest.copy_from(curve.origin)
-                    del curve.bezier_points[0]
+                    curve.update_bezier_point(curve.bezier_points[-1])#
+                    curve.remove_bezier_point(curve.bezier_points[0])
                 else:
-                    del curve.bezier_points[-1]
+                    curve.remove_bezier_point(curve.bezier_points[-1])
             else:
                 if break_allowed:
                     new_curve = Curve(origin=curve.bezier_points[bezier_point_index].dest.copy())
-                    new_curve.bezier_points.extend(curve.bezier_points[bezier_point_index+1:])
-                    del curve.bezier_points[bezier_point_index+1:]
+                    new_curve.add_bezier_points(curve.bezier_points[bezier_point_index+1:])
+                    curve.remove_bezier_point_indices(
+                        bezier_point_index+1, len(curve.bezier_points))
                     self.curves.insert(curve_index+1, new_curve)
-                del curve.bezier_points[bezier_point_index]
+                curve.remove_bezier_point(curve.bezier_points[bezier_point_index])
 
             if len(curve.bezier_points)<3:
                 curve.closed = False
             if len(self.curves)>1:
                 if (len(curve.bezier_points)<=1 and curve.closed) or len(curve.bezier_points)==0:
                     del self.curves[curve_index]
-            curve.make_dirty()
         elif len(self.curves)>1:
             del self.curves[curve_index]
 
@@ -418,16 +421,16 @@ class CurveShape(Shape, Mirror):
 
         for curve_index in range(len(self.curves)):
             curve = self.curves[curve_index]
-            for bezier_point_index in range(-1, len(curve.bezier_points)):
-                if bezier_point_index == -1:
-                    point = curve.origin.copy()
-                else:
-                    point = curve.bezier_points[bezier_point_index].dest.copy()
-                if point.distance(center)<radius:
-                    if curve_index not in curve_point_indices:
-                        curve_point_indices[curve_index] = []
-                    curve_point_indices[curve_index].append(bezier_point_index)
-
+            curve_point_indices[curve_index] = curve.get_indices_within(center, radius)
+            #for bezier_point_index in range(-1, len(curve.bezier_points)):
+            #    if bezier_point_index == -1:
+            #        point = curve.origin.copy()
+            #    else:
+            #        point = curve.bezier_points[bezier_point_index].dest.copy()
+            #    if point.distance(center)<radius:
+            #        if curve_index not in curve_point_indices:
+            #            curve_point_indices[curve_index] = []
+            #        curve_point_indices[curve_index].append(bezier_point_index)
         delete_count = 0
         for curve_index in reversed(sorted(curve_point_indices.keys())):
             for bezier_point_index in reversed(sorted(curve_point_indices[curve_index])):
