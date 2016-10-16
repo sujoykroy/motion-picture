@@ -207,6 +207,7 @@ class CurveShape(Shape, Mirror):
             newob.curves.append(curve.copy())
         if deep_copy:
             newob.forms = copy_dict(self.forms)
+        newob.show_points = self.show_points
         return newob
 
     def is_empty(self):
@@ -385,15 +386,15 @@ class CurveShape(Shape, Mirror):
                 del curve.bezier_points[0]
                 if curve.closed:
                     curve.bezier_points[-1].dest.copy_from(curve.origin)
-                    curve.update_bezier_point(curve.bezier_points[-1])#
+                    curve.update_bezier_point_index(-1)#
             elif bezier_point_index == len(curve.bezier_points)-1:
                 if curve.closed and curve.bezier_points:
                     curve.origin.copy_from(curve.bezier_points[0].dest)
                     curve.bezier_points[-1].dest.copy_from(curve.origin)
-                    curve.update_bezier_point(curve.bezier_points[-1])#
-                    curve.remove_bezier_point(curve.bezier_points[0])
+                    curve.update_bezier_point_index(-1)#
+                    curve.remove_bezier_point_index(0)
                 else:
-                    curve.remove_bezier_point(curve.bezier_points[-1])
+                    curve.remove_bezier_point_index(-1)
             else:
                 if break_allowed:
                     new_curve = Curve(origin=curve.bezier_points[bezier_point_index].dest.copy())
@@ -401,7 +402,7 @@ class CurveShape(Shape, Mirror):
                     curve.remove_bezier_point_indices(
                         bezier_point_index+1, len(curve.bezier_points))
                     self.curves.insert(curve_index+1, new_curve)
-                curve.remove_bezier_point(curve.bezier_points[bezier_point_index])
+                curve.remove_bezier_point_index(bezier_point_index)
 
             if len(curve.bezier_points)<3:
                 curve.closed = False

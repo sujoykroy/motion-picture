@@ -10,14 +10,14 @@ class Curve(object):
     def __init__(self, origin, bezier_points=None, closed=False):
         self.origin = origin
         self.bezier_points = []
-        if bezier_points is not None:
-            self.bezier_points.extend(bezier_points)
-        self.closed = closed
         #TODO
         # bare points are more easing the erasing of freely drawn curves.
         # for normal small curves, this element needs to be out of
         # operation. some checks neceserray to implement it.
         self.bare_point_xys = numpy.array([(origin.x, origin.y)])
+        if bezier_points is not None:
+            self.add_bezier_points(bezier_points)
+        self.closed = closed
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -64,19 +64,23 @@ class Curve(object):
         for bezier_point in bezier_points:
             self.add_bezier_point(bezier_point)
 
-    def remove_bezier_point(self, bezier_point):
-        self.bare_point_xys=numpy.delete(self.bare_point_xys, self.bezier_points.index(bezier_point), axis=0)
-        self.bezier_points.remove(bezier_point)
+    def remove_bezier_point_index(self, index):
+        if index<0:
+            index += len(self.bezier_points)
+        del self.bezier_points[index]
+        self.bare_point_xys=numpy.delete(self.bare_point_xys, index, axis=0)
 
     def remove_bezier_point_indices(self, start_index, end_index):
         for i in range(end_index-1, start_index-1, -1):
-            numpy.delete(self.bare_point_xys, i, axis=0)
+            self.bare_point_xys=numpy.delete(self.bare_point_xys, i, axis=0)
             del self.bezier_points[i]
 
-    def update_bezier_point(self, bezier_point):
-        index = self.bezier_points.index(bezier_point)
-        self.bare_point_xys[index][0] = bezier_point.dest.x
-        self.bare_point_xys[index][1] = bezier_point.dest.y
+    def update_bezier_point_index(self, index):
+        if index<0:
+            index += len(self.bezier_points)
+        bezier_point = self.bezier_points[index]
+        self.bare_point_xys[index+1][0] = bezier_point.dest.x
+        self.bare_point_xys[index+1][1] = bezier_point.dest.y
 
     def update_origin(self):
         self.bare_point_xys[0][0] = self.origin.x
@@ -117,13 +121,17 @@ class Curve(object):
 
     def translate(self, dx, dy):
         self.origin.translate(dx, dy)
-        for bezier_point in self.bezier_points:
-            bezier_point.translate(dx, dy)
+        self.update_origin()
+        for index in range(len(self.bezier_points)):
+            self.bezier_points[index].translate(dx, dy)
+            self.update_bezier_point_index(index)
 
     def scale(self, sx ,sy):
         self.origin.scale(sx, sy)
-        for bezier_point in self.bezier_points:
-            bezier_point.scale(sx, sy)
+        self.update_origin()
+        for index in range(len(self.bezier_points)):
+            self.bezier_points[index].scale(sx, sy)
+            self.update_bezier_point_index(index)
 
     def draw_path(self, ctx):
         ctx.move_to(self.origin.x, self.origin.y)
