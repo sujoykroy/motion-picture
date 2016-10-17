@@ -12,12 +12,14 @@ Y_ALIGN_TOP = 0
 Y_ALIGN_MIDDLE = 1
 Y_ALIGN_BOTTOM = 2
 
+WRAP_MODE = pango.WRAP_WORD_CHAR
+
 class TextShape(RectangleShape):
     TYPE_NAME = "text"
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius,
                        x_align=X_ALIGN_CENTER, y_align=Y_ALIGN_MIDDLE, text="Sample",
-                       font="10", font_color=None, line_align = 0):
+                       font="10", font_color=None, line_align = 1):
         if font_color is None:
             font_color = Color.parse("000000")
         RectangleShape.__init__(self, anchor_at, border_color,
@@ -30,6 +32,7 @@ class TextShape(RectangleShape):
         self.font_color = font_color
         self.line_align = line_align
         self.exposure = 1.
+        self.max_width_chars = -1
         self.readjust_sizes()
 
     @classmethod
@@ -53,6 +56,7 @@ class TextShape(RectangleShape):
             elm.attrib["font_color"] = self.font_color.to_text()
         elm.attrib["line_align"] = "{0}".format(self.line_align)
         elm.attrib["exposure"] = "{0}".format(self.exposure)
+        elm.attrib["max_width_chars"] = "{0}".format(self.max_width_chars)
         return elm
 
     @classmethod
@@ -66,15 +70,19 @@ class TextShape(RectangleShape):
         arr.append(color_from_text(elm.attrib.get("font_color", None)))
         arr.append(int(elm.attrib.get("line_align", 0)))
         shape = cls(*arr)
-        shape.assign_params_from_xml_element(elm)
         shape.set_exposure(float(elm.attrib.get("exposure", 1.)))
+        shape.set_char_width(int(float(elm.attrib.get("max_width_chars", -1))))
+        shape.assign_params_from_xml_element(elm, all_fields=True)
         return shape
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = TextShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                             self.fill_color.copy(), self.width, self.height,self.corner_radius,
-                            self.x_align, self.y_align, self.text, self.font, self.font_color)
-        self.copy_into(newob, copy_name)
+                            self.x_align, self.y_align, self.text, self.font, self.font_color,
+                            self.line_align)
+        self.copy_into(newob, copy_name, all_fields=True)
+        newob.exposure = self.exposure
+        newob.max_width_chars = self.max_width_chars
         return newob
 
     def draw_text(self, ctx):
@@ -83,12 +91,14 @@ class TextShape(RectangleShape):
         pangocairo_context.set_antialias(cairo.ANTIALIAS_SUBPIXEL)
 
         layout = pangocairo_context.create_layout()
-        font = pango.FontDescription(self.font)
-        layout.set_wrap(pango.WRAP_WORD)
-        layout.set_font_description(font)
+        pango_font_desc = pango.FontDescription(self.font)
+        layout.set_wrap(WRAP_MODE)
+        layout.set_font_description(pango_font_desc)
         layout.set_alignment(self.line_align)
 
         layout.set_markup(self.display_text)
+        if (self.max_width_chars>0):
+            layout.set_width(int(self.max_width_chars*pango_font_desc.get_size()))
         text_left, text_top, text_width, text_height = layout.get_pixel_extents()[0]
 
         if self.x_align == X_ALIGN_LEFT:
@@ -143,6 +153,14 @@ class TextShape(RectangleShape):
     def set_text(self, text):
         self.text = text
         self.set_exposure(self.exposure)
+        self.readjust_sizes()
+
+    def set_char_width(self, value):
+        self.max_width_chars = value
+        self.readjust_sizes()
+
+    def get_char_width(self):
+        return self.max_width_chars
 
     def calculate_text_size(self):
         surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, 320, 120)
@@ -153,9 +171,11 @@ class TextShape(RectangleShape):
 
         layout = pangocairo_context.create_layout()
         pango_font_desc = pango.FontDescription(self.font)
-        layout.set_wrap(pango.WRAP_WORD)
+        layout.set_wrap(WRAP_MODE)
         layout.set_font_description(pango_font_desc)
         layout.set_alignment(self.line_align)
+        if (self.max_width_chars>0):
+            layout.set_width(int(self.max_width_chars*pango_font_desc.get_size()))
 
         try:
             layout.set_markup(self.text)

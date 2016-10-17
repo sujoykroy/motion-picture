@@ -1,5 +1,5 @@
 from ..commons import *
-from rectangle_shape import RectangleShape
+from rectangle_shape import RectangleShape, Shape
 from gi.repository import Gdk, GdkPixbuf
 from gi.repository.GdkPixbuf import Pixbuf
 
@@ -19,6 +19,19 @@ class ImageShape(RectangleShape):
         self.set_image_path(self.image_path)
         return newob
 
+    def get_xml_element(self):
+        elm = RectangleShape.get_xml_element(self)
+        elm.attrib["image_path"] = self.image_path
+        return elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        arr = Shape.get_params_array_from_xml_element(elm)
+        arr.append(float(elm.attrib.get("corner_radius", 0)))
+        shape = cls(*arr)
+        shape.assign_params_from_xml_element(elm)
+        shape.set_image_path(elm.attrib.get("image_path", ""))
+        return shape
 
     def set_image_path(self, image_path):
         self.image_path = image_path

@@ -130,6 +130,7 @@ class ShapePropBox(object):
             prop_widget = check_button
         elif value_type == PROP_TYPE_LONG_TEXT:
             text_view = Gtk.TextView()
+            text_view.props.wrap_mode = 1
             text_view.set_margin_top(2)
             text_view.set_margin_bottom(5)
             text_view.get_buffer().connect("changed", self.text_buffer_changed, prop_name, text_view)

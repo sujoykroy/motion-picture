@@ -87,6 +87,8 @@ class MultiShape(Shape):
                 child_shape = OvalShape.create_from_xml_element(shape_element)
             elif shape_type == TextShape.TYPE_NAME:
                 child_shape = TextShape.create_from_xml_element(shape_element)
+            elif shape_type == ImageShape.TYPE_NAME:
+                child_shape = ImageShape.create_from_xml_element(shape_element)
             elif shape_type == CurveShape.TYPE_NAME:
                 child_shape = CurveShape.create_from_xml_element(shape_element)
             elif shape_type == PolygonShape.TYPE_NAME:

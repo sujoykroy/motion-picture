@@ -177,7 +177,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.show_prop_of(None)
         self.show_time_slice_props(None)
 
-        self.paned_box_2.set_position(160)
+        self.paned_box_2.set_position(180)
         self.paned_box_3.set_position(75)
         self.paned_box_1.set_position(180)
 

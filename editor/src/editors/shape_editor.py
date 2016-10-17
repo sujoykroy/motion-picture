@@ -414,6 +414,8 @@ class ShapeEditor(object):
         self.edit_box_can_move = (len(self.selected_edit_boxes)>0)
         if isinstance(self.shape, CurveShape) or isinstance(self.shape, PolygonShape):
             self.shape.fit_size_to_include_all()
+        elif isinstance(self.shape, TextShape):
+            self.shape.readjust_sizes()
         self.init_shape = self.shape.copy()
         for edit_box in self.all_edit_box_list:
             edit_box.update()

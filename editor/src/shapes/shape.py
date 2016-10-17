@@ -168,7 +168,7 @@ class Shape(object):
         arr.append(float(height_str))
         return arr
 
-    def assign_params_from_xml_element(self, elm):
+    def assign_params_from_xml_element(self, elm, all_fields=False):
         self.scale_x = float(elm.attrib.get("scale_x", 1))
         self.scale_y = float(elm.attrib.get("scale_y", 1))
 
@@ -187,6 +187,11 @@ class Shape(object):
             self._name = name.replace(".", "")
         if isinstance(self, Mirror):
             Mirror.assign_params_from_xml_element(self, elm)
+        if all_fields:
+            self.width = float(elm.attrib.get("width", 1))
+            self.height = float(elm.attrib.get("height", 1))
+            #TODO
+            #rest of the fiels needs to be implemted, but later.
 
     def copy_into(self, newob, copy_name=False, all_fields=False):
         newob.translation = self.translation.copy()
