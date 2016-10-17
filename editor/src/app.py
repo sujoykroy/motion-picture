@@ -427,6 +427,11 @@ class Application(Gtk.Application):
             self.recent_manager.add_item(filename)
             win.open_document(filename)
 
+    def open_file(self, filename):
+        win = self.get_fresh_window()
+        self.recent_manager.add_item(filename)
+        win.open_document(filename)
+
     def new_app_window(self):
         win = ApplicationWindow(self)
 

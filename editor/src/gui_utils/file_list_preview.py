@@ -3,7 +3,7 @@ from ..document import Document
 import os
 
 class FileListPreview(Gtk.Window):
-    def __init__(self, width=800, height=600, title="FileList"):
+    def __init__(self, width=800, height=600, title="FileList", on_file_select=None):
         Gtk.Window.__init__(self, title=title, resizable=False, type=Gtk.WindowType.TOPLEVEL)
         self.set_default_size(width, height)
         self.width = width
@@ -16,6 +16,7 @@ class FileListPreview(Gtk.Window):
 
         self.grid = Gtk.Grid()
         scrolled_window.add_with_viewport(self.grid)
+        self.on_file_select = on_file_select
 
     def quit(self, widget, event):
         Gtk.main_quit()
@@ -38,7 +39,7 @@ class FileListPreview(Gtk.Window):
             button.set_tooltip_text(filename)
             button.set_events(Gdk.EventMask.POINTER_MOTION_MASK|Gdk.EventMask.BUTTON_PRESS_MASK)
             button.connect("button-press-event", self.file_button_mouse_pressed)
-            button.filename = filename
+            button.filename = fullpath
 
             label = Gtk.Label(basename)
             label.set_halign(.5)
@@ -60,5 +61,6 @@ class FileListPreview(Gtk.Window):
 
     def file_button_mouse_pressed(self, widget, event):
         if event.type == Gdk.EventType._2BUTTON_PRESS:
-            print widget.filename
+            if self.on_file_select:
+                self.on_file_select(widget.filename)
 
