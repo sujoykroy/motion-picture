@@ -741,7 +741,7 @@ class ShapeManager(object):
     def delete_point(self):
         if not self.shape_editor: return False
         task = ShapeStateTask(self.doc, self.shape_editor.shape)
-        if self.shape_editor.delete_point(break_allowed):
+        if self.shape_editor.delete_point():
             task.save(self.doc, self.shape_editor.shape)
             self.shape_editor = ShapeEditor(self.shape_editor.shape)
             self.multi_shape.readjust_sizes()

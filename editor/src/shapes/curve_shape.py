@@ -495,7 +495,7 @@ class CurveShape(Shape, Mirror):
             BezierPoint(control_1=Point(0., .5-k), control_2=Point(0.5-k, 0.), dest=Point(.5, 0.))
         ]
         #curve_shape.curves.append(Curve(origin=Point(.5, 0.), bezier_points=bezier_points, closed=True))
-        curve_shape.curves.append(Curve.create_circle(angle=sweep_angle))
+        curve_shape.curves.append(Curve.create_circle(sweep_angle=oval_shape.sweep_angle))
         oval_shape.copy_into(curve_shape, all_fields=True, copy_name=False)
         curve_shape.fit_size_to_include_all()
         return curve_shape

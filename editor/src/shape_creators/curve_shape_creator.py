@@ -115,7 +115,7 @@ class CurveShapeCreator(object):
     def close_down(self):
         self.shape.fit_size_to_include_all()
 
-        self.curve.remove_bezier_point(self.bezier_point)
+        self.curve.remove_bezier_point_index(-1)
         dx = self.curve.bezier_points[-1].dest.x - self.curve.origin.x
         dy = self.curve.bezier_points[-1].dest.y - self.curve.origin.y
 

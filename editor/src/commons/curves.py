@@ -331,7 +331,7 @@ class Curve(object):
                 i = 3
             curve.insert_point_at(i, (sweep_angle-i*90)/90.)
             del curve.bezier_points[i+1:]
-            curve.closed = False
+            curve.closed = (sweep_angle == 360)
         return curve
 
     @classmethod
