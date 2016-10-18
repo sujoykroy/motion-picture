@@ -28,6 +28,7 @@ class MultiShape(Shape):
         self.shapes = ShapeList()
         self.poses = dict()
         self.timelines = dict()
+        self.masked = False
 
     def copy_data_from_linked(self):
         if not self.linked_to: return
@@ -50,6 +51,8 @@ class MultiShape(Shape):
 
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)
+        if self.masked:
+            elm.attrib["masked"] = "True"
         for shape in self.shapes:
             elm.append(shape.get_xml_element())
 
@@ -75,7 +78,7 @@ class MultiShape(Shape):
         arr = Shape.get_params_array_from_xml_element(elm)
         shape = cls(*arr)
         shape.assign_params_from_xml_element(elm)
-
+        shape.masked = (elm.attrib.get("masked", None) == "True")
         for shape_element in elm.findall(Shape.TAG_NAME):
             shape_type = shape_element.attrib.get("type", None)
             child_shape = None
@@ -139,6 +142,7 @@ class MultiShape(Shape):
             newob.poses = copy_dict(self.poses)
             for key, timeline in self.timelines.items():
                 newob.timelines[key] = timeline.copy(newob.shapes)
+        newob.masked = self.masked
         return newob
 
     def save_pose(self, pose_name):
@@ -333,10 +337,38 @@ class MultiShape(Shape):
     def rename_shape(self, shape, name):
         return self.shapes.rename(shape.get_name(), name)
 
-    def draw(self, ctx):
+    def draw(self, ctx, drawing_size=None):
+        if self.masked and len(self.shapes)>1:
+            last_shape = self.shapes.get_at_index(-1)
+            if not isinstance(last_shape, MultiShape):
+                for i in range(len(self.shapes)-1):
+                    shape = self.shapes.get_at_index(i)
+                    masked_surface = cairo.ImageSurface(
+                            cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
+                    masked_ctx= cairo.Context(masked_surface)
+                    if isinstance(shape, MultiShape):
+                        shape.draw(masked_ctx, drawing_size)
+                    else:
+                        shape.draw(masked_ctx)
+
+                    ctx.set_source_surface(masked_surface)
+                    ctx.save()
+                    last_shape.pre_draw(ctx)
+                    last_shape.draw_path(ctx)
+                    ctx.clip()
+                    ctx.paint()
+                    ctx.restore()
+
+                ctx.save()
+                last_shape.pre_draw(ctx)
+                last_shape.draw_path(ctx)
+                ctx.restore()
+                last_shape.draw_border(ctx)
+                return
+
         for shape in self.shapes:
             if isinstance(shape, MultiShape):
-                shape.draw(ctx)
+                shape.draw(ctx, drawing_size)
             else:
                 ctx.save()
                 shape.pre_draw(ctx)

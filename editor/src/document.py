@@ -127,7 +127,7 @@ class Document(object):
         ctx.translate((width-scale*self.width)*.5, (height-scale*self.height)*.5)
         ctx.scale(scale, scale)
         set_default_line_style(ctx)
-        shape.draw(ctx)
+        shape.draw(ctx, Point(self.width, self.height))
 
         surface= ctx.get_target()
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())

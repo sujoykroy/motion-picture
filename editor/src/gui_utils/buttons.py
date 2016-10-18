@@ -68,25 +68,6 @@ class ColorButton(Gtk.HBox):
     def get_color(self):
         return self.color
 
-    def flat_color_button_clicked(self, widget):
-        value = self.prop_object.get_prop_value(prop_name)
-        dialog = Gtk.ColorChooserDialog()
-        rgba = Gdk.RGBA(*self.color.get_array())
-        dialog.set_rgba(rgba)
-        if dialog.run() == Gtk.ResponseType.OK:
-            dialog.get_rgba(rgba)
-            color = Color(rgba.red, rgba.green, rgba.blue, rgba.alpha)
-            dialog.destroy()
-            set.set_color(color)
-            self.button_clicked_callback(self)
-        else:
-            dialog.destroy()
-
-    def gradient_color_button_clicked(self, widget):
-        self.gradient_color_button_clicked_callback(widget.get_active())
-        if not widget.get_active():
-            self.set_color(self.color)
-
     def set_color(self, color):
         self.color = color
         if not color:
@@ -119,6 +100,7 @@ class ColorButton(Gtk.HBox):
                 self.color_type = "Radial"
             elif isinstance(color, LinearGradientColor):
                 self.color_type = "Linear"
+
         self.color_types_combobox.set_value(self.color_type)
         self.emit("color-changed")
 

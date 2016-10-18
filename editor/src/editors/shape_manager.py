@@ -173,7 +173,7 @@ class ShapeManager(object):
                 return shape
         return None
 
-    def draw(self, ctx):
+    def draw(self, ctx, drawing_size):
         set_default_line_style(ctx)
 
         ctx.save()
@@ -183,7 +183,7 @@ class ShapeManager(object):
         ctx.restore()
 
         ctx.save()
-        self.multi_shape.draw(ctx)
+        self.multi_shape.draw(ctx, drawing_size)
         ctx.restore()
         if not EditingChoice.HIDE_AXIS:
             self.multi_shape.draw_axis(ctx)

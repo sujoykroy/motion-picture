@@ -225,3 +225,8 @@ def color_from_text(text):
         return LinearGradientColor.from_text(arr[1])
     elif color_type == RadialGradientColor.COLOR_TYPE_NAME:
         return RadialGradientColor.from_text(arr[1])
+
+def color_copy(color):
+    if color is None:
+        return None
+    return color.copy()

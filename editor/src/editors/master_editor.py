@@ -446,9 +446,10 @@ class MasterEditor(Gtk.ApplicationWindow):
     def on_drawing_area_draw(self, widget, ctx):
         ctx.set_antialias(cairo.ANTIALIAS_SUBPIXEL)
         ctx.save()
-        self.shape_manager.draw(ctx)
-        ctx.restore()
         w, h = self.get_drawing_area_size()
+        area = Point(float(w),float(h))
+        self.shape_manager.draw(ctx, area)
+        ctx.restore()
         ctx.rectangle(0, 0, w, h)
         ctx.set_source_rgba(*Color.parse("cccccc").get_array())
         ctx.stroke()

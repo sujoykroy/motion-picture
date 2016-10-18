@@ -156,7 +156,7 @@ class PolygonShape(Shape, Mirror):
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = PolygonShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
-                            self.fill_color.copy(), self.width, self.height)
+                            color_copy(self.fill_color), self.width, self.height)
         self.copy_into(newob, copy_name)
         for polygon in self.polygons:
             newob.polygons.append(polygon.copy())
