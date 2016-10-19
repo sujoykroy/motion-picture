@@ -368,6 +368,17 @@ class ApplicationWindow(MasterEditor):
         if not parameter.get_boolean():
             self.shape_manager.delete_eraser()
 
+    def change_canas_size(self, action, parameter):
+        canvas_size = "{0}x{1}".format(self.doc.width, self.doc.height)
+        dialog = TextInputDialog(self, "Canvas Size", "WidthxHeight",input_text=canvas_size)
+        if dialog.run() == Gtk.ResponseType.OK:
+            canvas_sizes = dialog.get_input_text().split("x")
+            if len(canvas_sizes) >1:
+                width, height = float(canvas_sizes[0]), float(canvas_sizes[1])
+                self.doc.width = width
+                self.doc.height = height
+                self.load_multi_shape(self.shape_manager.multi_shape)
+        dialog.destroy()
 
 class Application(Gtk.Application):
     def __init__(self):

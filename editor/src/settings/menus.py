@@ -17,6 +17,9 @@ m.add(path="File/<Open>/Save As", accel="<Shift><Control>s", icon="file_save_as"
 m.add(path="File/<Open>/Export as Image", icon="export_to_image",
       action_name="win.export", action_param="png", desc="Export as Image")
 
+m.add(path="File/<Open>/Canvas Size", icon="canvas_size",
+      action_name="win.change_canas_size", desc="Change canvas size")
+
 m.add(path="Edit/<UndoRedo>/Undo", accel="<Control>z",
       action_name="win.undo_redo", action_param="undo")
 m.add(path="Edit/<UndoRedo>/Redo", accel="<Control>Y",
