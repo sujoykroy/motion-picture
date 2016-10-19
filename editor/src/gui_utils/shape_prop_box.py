@@ -179,6 +179,8 @@ class ShapePropBox(object):
         color_type = color_button.get_color_type()
         if color_type == "Flat":
             value = self.prop_object.get_prop_value(prop_name)
+            if not value:
+                value = Color(0,0,0,0)
             dialog = Gtk.ColorChooserDialog()
             rgba = Gdk.RGBA(*value.get_array())
             dialog.set_rgba(rgba)

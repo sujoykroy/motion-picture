@@ -328,7 +328,7 @@ class CurveShape(Shape, Mirror):
         bezier_point = prev_curve.bezier_points[bezier_point_index]
         new_curve = Curve(origin=bezier_point.dest.copy(),
                           bezier_points=prev_curve.bezier_points[bezier_point_index+1:])
-        del prev_curve.bezier_points[bezier_point_index+1:]
+        prev_curve.remove_bezier_point_indices(bezier_point_index+1, len(prev_curve.bezier_points))
         prev_curve.closed = False
 
         self.curves.insert(curve_index+1, new_curve)
@@ -369,7 +369,7 @@ class CurveShape(Shape, Mirror):
         curve_1.bezier_points[-1].dest.x = (curve_1.bezier_points[-1].dest.x +  curve_2.origin.x)*.5
         curve_1.bezier_points[-1].dest.y = (curve_1.bezier_points[-1].dest.y +  curve_2.origin.y)*.5
 
-        curve_1.bezier_points.extend(curve_2.bezier_points)
+        curve_1.add_bezier_points(curve_2.bezier_points)
         del self.curves[curve_index_2]
         return True
 
@@ -383,7 +383,7 @@ class CurveShape(Shape, Mirror):
             if bezier_point_index == -1:
                 curve.origin.copy_from(curve.bezier_points[0].dest)
                 curve.update_origin()
-                del curve.bezier_points[0]
+                curve.remove_bezier_point_index(0)
                 if curve.closed:
                     curve.bezier_points[-1].dest.copy_from(curve.origin)
                     curve.update_bezier_point_index(-1)#
