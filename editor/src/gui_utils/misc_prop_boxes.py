@@ -9,6 +9,8 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("moveable", PROP_TYPE_CHECK_BUTTON, None)
         self.add_prop("masked", PROP_TYPE_CHECK_BUTTON, None)
         self.add_prop("stage_xy", PROP_TYPE_POINT, None)
+        self.add_prop("alpha", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0, upper=1.1, step_increment=.1, page_increment=.1, page_size=.1))
 
         self.add_prop("x", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-10000, upper=10000, step_increment=1, page_increment=1, page_size=1))

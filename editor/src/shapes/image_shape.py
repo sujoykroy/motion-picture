@@ -11,17 +11,20 @@ class ImageShape(RectangleShape):
                                 fill_color, width, height, corner_radius)
         self.image_path = None
         self.image_pixbuf = None
+        self.alpha = 1.
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = ImageShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                         self.fill_color.copy(), self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
         self.set_image_path(self.image_path)
+        newob.alpha = self.alpha
         return newob
 
     def get_xml_element(self):
         elm = RectangleShape.get_xml_element(self)
         elm.attrib["image_path"] = self.image_path
+        elm.attrib["alpha"] = "{0}".format(self.alpha)
         return elm
 
     @classmethod
@@ -31,6 +34,7 @@ class ImageShape(RectangleShape):
         shape = cls(*arr)
         shape.assign_params_from_xml_element(elm)
         shape.set_image_path(elm.attrib.get("image_path", ""))
+        shape.alpha = float(elm.attrib.get("alpha", 1.))
         return shape
 
     def set_image_path(self, image_path):
@@ -43,7 +47,10 @@ class ImageShape(RectangleShape):
             ctx.scale(self.width/float(self.image_pixbuf.get_width()),
                       self.height/float(self.image_pixbuf.get_height()))
             Gdk.cairo_set_source_pixbuf(ctx, self.image_pixbuf, 0, 0)
-            ctx.paint()
+            if self.alpha<1:
+                ctx.paint_with_alpha(self.alpha)
+            else:
+                ctx.paint()
             ctx.restore()
 
     def draw(self, ctx):

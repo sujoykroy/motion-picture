@@ -88,9 +88,20 @@ class Document(object):
         root.append(self.main_multi_shape.get_xml_element())
         self.add_linked_clone_elements(self.main_multi_shape, root)
 
+        backup_file = None
         if filename is not None:
             self.filename = filename
-        tree.write(self.filename)
+            backup_file = filename + ".bk"
+            os.rename(filename, backup_file)
+        try:
+            tree.write(self.filename)
+        except:
+            if backup_file:
+                os.rename(backup_file, filename)
+                backup_file = None
+
+        if backup_file:
+            os.remove(backup_file)
 
     def add_linked_clone_elements(self, multi_shape, root):
         for shape in multi_shape.shapes:
