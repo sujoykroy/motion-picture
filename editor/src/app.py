@@ -243,7 +243,17 @@ class ApplicationWindow(MasterEditor):
         elif direction == "xy":
             x_dir = True
             y_dir = True
-        self.shape_manager.align_shapes(x_dir=x_dir, y_dir=y_dir)
+
+        if direction == "center":
+            shape = self.shape_manager.get_selected_shape()
+            if shape:
+                shape.set_stage_x(0.)
+                shape.set_stage_y(0.)
+        else:
+            self.shape_manager.align_shapes(x_dir=x_dir, y_dir=y_dir)
+        self.redraw()
+
+    def move_shape_to_center(self, action, parameter):
         self.redraw()
 
     def convert_shape_to(self, action, parameter):

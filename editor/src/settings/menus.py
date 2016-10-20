@@ -89,6 +89,8 @@ m.add(path="Shapes/Align/Y", icon="y_align", desc="Align shapes along Y-axis",
       action_name="win.align_shapes", action_param="y", icon_scale = 1.2)
 m.add(path="Shapes/Align/XY", icon="xy_align", desc="Align shapes along X-axis & Y-axis",
       action_name="win.align_shapes", action_param="xy", icon_scale = 2)
+m.add(path="Shapes/Align/Center", icon="center_align", desc="Align shape to the center",
+      action_name="win.align_shapes", action_param="center", icon_scale = 2)
 
 m.add(path="Shapes/Group/Create", icon="create_shape_group", icon_scale=1.5,
       action_name="win.create_shape_group", desc="Combined shapes into group")

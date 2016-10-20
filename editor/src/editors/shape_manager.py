@@ -320,7 +320,6 @@ class ShapeManager(object):
         self.out_width = out_width
         self.out_height = out_height
         scale = min(out_width/self.doc.width, out_height/self.doc.height)
-        print scale
         self.document_area_box.scale_x = scale
         self.document_area_box.scale_y = scale
         self.document_area_box.move_to(out_width*.5, out_height*.5)
