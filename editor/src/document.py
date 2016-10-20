@@ -33,6 +33,11 @@ class Document(object):
     def get_main_multi_shape(self):
         return self.main_multi_shape
 
+    def set_doc_size(self, width, height):
+        self.width = width
+        self.height = height
+        self.main_multi_shape.move_to(width*.5, height*.5)
+
     def load_from_xml_file(self):
         try:
             tree = ET.parse(self.filename)

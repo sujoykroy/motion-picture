@@ -183,6 +183,11 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.open_document(None)
 
+    def set_panel_sizes(self, left, right, bottom):
+        self.paned_box_2.set_position(float(left))
+        self.paned_box_3.set_position(float(right))
+        self.paned_box_1.set_position(float(bottom))
+
     def show_filename(self):
         filename = self.doc.filename
         if not filename:
@@ -226,6 +231,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         if multi_shape.timelines:
             timeline_name = sorted(multi_shape.timelines.keys())[0]
             self.load_multi_shape_time_line(multi_shape.timelines[timeline_name])
+        self.on_configure_event(self, None)
         self.redraw()
 
     def load_multi_shape_time_line(self, multi_shape_time_line):

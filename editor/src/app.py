@@ -375,10 +375,12 @@ class ApplicationWindow(MasterEditor):
             canvas_sizes = dialog.get_input_text().split("x")
             if len(canvas_sizes) >1:
                 width, height = float(canvas_sizes[0]), float(canvas_sizes[1])
-                self.doc.width = width
-                self.doc.height = height
+                self.doc.set_doc_size(width, height)
                 self.load_multi_shape(self.shape_manager.multi_shape)
         dialog.destroy()
+
+    def change_panel_layout(self, action, parameter):
+        self.set_panel_sizes(*parameter.get_string().split("/"))
 
 class Application(Gtk.Application):
     def __init__(self):

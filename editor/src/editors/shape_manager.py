@@ -181,6 +181,7 @@ class ShapeManager(object):
         self.document_area_box.draw_path(ctx)
         self.document_area_box.draw_fill(ctx)
         ctx.restore()
+        self.document_area_box.draw_axis(ctx)
 
         ctx.save()
         self.multi_shape.draw(ctx, drawing_size)
@@ -245,6 +246,7 @@ class ShapeManager(object):
 
         self.document_area_box.move_to(point.x, point.y)
         self.resize_scollable_area(out_width, out_height)
+        self.document_area_box.anchor_at.assign(self.doc.width*.5, self.doc.height*.5)
 
     def scroll(self, value , direction, out_width, out_height):
         if direction == "vert":
@@ -317,7 +319,13 @@ class ShapeManager(object):
     def fit_area_in_size(self, out_width, out_height):
         self.out_width = out_width
         self.out_height = out_height
-        self.document_area_box.top = (out_height-self.document_area_box.height)*.5
+        scale = min(out_width/self.doc.width, out_height/self.doc.height)
+        print scale
+        self.document_area_box.scale_x = scale
+        self.document_area_box.scale_y = scale
+        self.document_area_box.move_to(out_width*.5, out_height*.5)
+
+        self.resize_scollable_area(out_width, out_height)
         self.scroll(.5, "vert", out_width, out_height)
         self.scroll(.5, "horiz", out_width, out_height)
 

@@ -117,9 +117,19 @@ m.add(path="Edit/Preferences/Hide Control Points", icon="hide_control_points",
 m.add(path="Edit/Preferences/Show All Time Lines", icon="show_all_time_lines",
       action_name="win.show_all_time_lines", action_state=True, icon_scale=1.2)
 
+
+m.add(path="Edit/Preferences/Panel Layout/Drawing", icon="panel_drawing",
+      desc = "Drawing Panel Layout",
+      action_name="win.change_panel_layout", action_param="272/1017/614", icon_scale=3)
+m.add(path="Edit/Preferences/Panel Layout/Animation", icon="panel_animation",
+      desc = "Animation Panel Layout",
+      action_name="win.change_panel_layout", action_param="294/679/444", icon_scale=3)
+
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement",
-     "Edit/TimeLine", "Edit/Preferences", "Edit/Shape/<Linked>"],
+     "Edit/TimeLine", "Edit/Preferences", "Edit/Shape/<Linked>",
+     "Edit/Preferences/Panel Layout"],
     ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>",
      "Shapes/Align", "Shapes/Convert To", "Shapes/Pre-Drawn", "Edit/Points"],
+    []
 ]
