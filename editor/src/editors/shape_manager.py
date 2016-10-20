@@ -237,16 +237,19 @@ class ShapeManager(object):
     def zoom(self, scale, point, out_width, out_height):
         scale = 1. + scale*.1
 
-        self.document_area_box.scale_x *= scale
-        self.document_area_box.scale_y *= scale
-
         new_anchor_at = self.document_area_box.transform_point(point)
-        new_anchor_at.scale(scale, scale)
+        #new_anchor_at.scale(scale, scale)
         self.document_area_box.anchor_at.copy_from(new_anchor_at)
 
+        self.document_area_box.scale_x *= scale
+        self.document_area_box.scale_y *= scale
         self.document_area_box.move_to(point.x, point.y)
+
         self.resize_scollable_area(out_width, out_height)
         self.document_area_box.anchor_at.assign(self.doc.width*.5, self.doc.height*.5)
+
+    def get_scale(self):
+        return self.document_area_box.scale_x
 
     def scroll(self, value , direction, out_width, out_height):
         if direction == "vert":

@@ -135,11 +135,11 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.drawing_area.connect("motion-notify-event", self.on_drawing_area_mouse_move)
         self.drawing_area.connect("scroll-event", self.on_drawing_area_mouse_scroll)
 
-        self.drawing_area_vadjust = Gtk.Adjustment(0, 0, 1., .1, 0, 0)
+        self.drawing_area_vadjust = Gtk.Adjustment(0, 0, 1., .01, 0, 0)
         self.drawing_area_vscrollbar = Gtk.VScrollbar(self.drawing_area_vadjust)
         self.drawing_area_vscrollbar.connect("value-changed", self.on_drawing_area_scroll, "vert")
 
-        self.drawing_area_hadjust = Gtk.Adjustment(0, 0, 1., .1, 0, 0)
+        self.drawing_area_hadjust = Gtk.Adjustment(0, 0, 1., .01, 0, 0)
         self.drawing_area_hscrollbar = Gtk.HScrollbar(self.drawing_area_hadjust)
         self.drawing_area_hscrollbar.connect("value-changed", self.on_drawing_area_scroll, "horiz")
 
@@ -436,6 +436,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             elif event.direction == Gdk.ScrollDirection.DOWN:
                 value = 1.
             value = self.drawing_area_vadjust.get_step_increment()*value
+            value /= self.shape_manager.get_scale()
             value += self.drawing_area_vadjust.get_value()
             self.drawing_area_vadjust.set_value(value)
             self.shape_manager.scroll(self.drawing_area_vadjust.get_value(), "vert", w, h)
