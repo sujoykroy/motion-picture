@@ -14,8 +14,8 @@ from .. import settings as Settings
 from ..settings import EditingChoice
 
 MODE_NEW_SHAPE_CREATE = "MODE_NEW_SHAPE_CREATE"
-SHIFT_KEY_CODE = 65505
-SHIFT_CTRL_CODE = 65507
+SHIFT_KEY_CODES = (65505, 65506)
+CTRL_KEY_CODES = (65507, 65508)
 
 class MasterEditor(Gtk.ApplicationWindow):
     def __init__(self, width=800, height=300, title="MotionPicture"):
@@ -341,15 +341,15 @@ class MasterEditor(Gtk.ApplicationWindow):
         return self.playing
 
     def on_drawing_area_key_press(self, widget, event):
-        if event.keyval == SHIFT_KEY_CODE:
+        if event.keyval in SHIFT_KEY_CODES:
             self.keyboard_object.shift_key_pressed = True
-        elif event.keyval == SHIFT_CTRL_CODE:
+        elif event.keyval in CTRL_KEY_CODES:
             self.keyboard_object.control_key_pressed = True
 
     def on_drawing_area_key_release(self, widget, event):
-        if event.keyval == SHIFT_KEY_CODE:
+        if event.keyval in SHIFT_KEY_CODES:
             self.keyboard_object.shift_key_pressed = False
-        elif event.keyval == SHIFT_CTRL_CODE:
+        elif event.keyval in CTRL_KEY_CODES:
             self.keyboard_object.control_key_pressed = False
 
     def on_drawing_area_mouse_press(self, widget, event):

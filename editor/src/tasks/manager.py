@@ -1,4 +1,6 @@
 class TaskManager(object):
+    MAX_TASK_COUNT = 20
+
     def __init__(self):
         self.tasks = []
         self.index = 0
@@ -9,6 +11,8 @@ class TaskManager(object):
     def add_task(self, task):
         del self.tasks[self.index:]
         self.tasks.append(task)
+        if len(self.tasks)> self.MAX_TASK_COUNT:
+            del self.tasks[0:len(self.tasks)-self.MAX_TASK_COUNT]
         self.index = len(self.tasks)
 
     def remove_task(self, task):
