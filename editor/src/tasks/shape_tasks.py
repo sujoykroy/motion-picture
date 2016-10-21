@@ -304,14 +304,18 @@ class ShapeMergeTask(ShapeStateTask):
         ShapeStateTask.__init__(self, doc, shape)
         self.merged_shapes = list(merged_shapes)
 
-    def save(self, doc, mega_shape):
+    def save(self, doc, mega_shape, newly_added_shapes):
         self.post_shape_state = ShapeState(doc, mega_shape)
+        self.mega_shape = mega_shape
+        self.newly_added_shapes = newly_added_shapes
 
     def undo(self, doc):
         parent_shape = self.prev_shape_state.get_parent_shape(doc)
         if not parent_shape: return
         for merged_shape in self.merged_shapes:
             parent_shape.add_shape(merged_shape)
+        for added_shape in self.newly_added_shapes:
+            self.mega_shape.remove_shape(added_shape)
         self.prev_shape_state.apply_shapes_state(doc)
 
     def redo(self, doc):
@@ -320,6 +324,8 @@ class ShapeMergeTask(ShapeStateTask):
         if not parent_shape: return
         for merged_shape in self.merged_shapes:
             parent_shape.remove_shape(merged_shape)
+        for added_shape in self.newly_added_shapes:
+            self.mega_shape.add_shape(added_shape)
         self.post_shape_state.apply_shapes_state(doc)
 
 class ShapeConvertTask(ShapeStateTask):

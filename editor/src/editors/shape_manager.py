@@ -889,24 +889,43 @@ class ShapeManager(object):
         if not isinstance(self.shape_editor.shape, MultiSelectionShape): return False
         mega_shape = None
         merged_shapes = []
+
+        flat_merge = False
         for shape in self.shape_editor.shape.shapes:
-            if not isinstance(shape, PolygonShape) and not isinstance(shape, CurveShape): continue
+            if isinstance(shape, MultiShape):
+                flat_merge = True
+                mega_shape = shape
+
+        for shape in self.shape_editor.shape.shapes:
+            if flat_merge:
+                if shape == mega_shape: continue
+            else:
+                if not isinstance(shape, PolygonShape) and \
+                    not isinstance(shape, CurveShape):
+                    continue
             if mega_shape is None:
                 mega_shape = shape
                 continue
-            elif not isinstance(shape, type(mega_shape)):
+            elif not flat_merge and not isinstance(shape, type(mega_shape)):
                 continue
-            if mega_shape.include_inside(shape):
+            if flat_merge or mega_shape.include_inside(shape):
                 merged_shapes.append(shape)
+
         if merged_shapes:
             task = ShapeMergeTask(self.doc, self.shape_editor.shape, merged_shapes)
             self.delete_shape_editor()
+            newly_added_shapes = []
             for shape in merged_shapes:
+                if flat_merge:
+                    new_shape = shape.copy()
+                    shape.copy_into(new_shape, all_fields=True)
+                    mega_shape.add_shape(new_shape)
+                    newly_added_shapes.append(new_shape)
                 self.remove_shape(shape)
-            mega_shape.fit_size_to_include_all()
             self.shape_editor = ShapeEditor(mega_shape)
-            task.save(self.doc, mega_shape)
+            task.save(self.doc, mega_shape, newly_added_shapes)
             return True
+
         return False
 
     def break_selected_multi_shape(self):

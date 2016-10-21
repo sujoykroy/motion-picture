@@ -91,8 +91,9 @@ class Document(object):
         backup_file = None
         if filename is not None:
             self.filename = filename
-            backup_file = filename + ".bk"
-            os.rename(filename, backup_file)
+            if os.path.isfile(filename):
+                backup_file = filename + ".bk"
+                os.rename(filename, backup_file)
         try:
             tree.write(self.filename)
         except:
