@@ -1007,3 +1007,11 @@ class ShapeManager(object):
         if not self.shape_editor: return
         shape = self.shape_editor.shape
         self.color_editor = GradientColorEditor(prop_name, shape)
+
+    def apply_saved_child_shape_positions_with_order(self):
+        if not hasattr(self.multi_shape, "child_shape_postions_with_order"):
+            return False
+        task = ShapeStateTask(self.doc, self.multi_shape)
+        self.multi_shape.apply_saved_shape_positions_with_order()
+        task.save(self.doc, self.multi_shape)
+        return True

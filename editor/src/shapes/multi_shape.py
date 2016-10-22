@@ -430,3 +430,21 @@ class MultiShape(Shape):
                 abs_anchor_at.y = 2*self.anchor_at.y - abs_anchor_at.y
             shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.readjust_sizes()
+
+
+    def save_shape_positions_with_order(self):
+        positions = OrderedDict()
+        for shape in self.shapes:
+            positions.add(shape.get_name(), shape.get_stage_xy())
+        self.child_shape_postions_with_order = positions
+
+    def apply_saved_shape_positions_with_order(self):
+        positions = self.child_shape_postions_with_order
+        for i in range(len(positions)):
+            shape_name = positions.keys[i]
+            stage_xy = positions.get_item_at_index(i)
+            for shape in self.shapes:
+                if shape.get_name() == shape_name:
+                    shape.set_stage_xy(stage_xy)
+                    self.shapes.insert_at(i, shape)
+        self.readjust_sizes()

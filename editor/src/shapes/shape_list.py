@@ -69,6 +69,11 @@ class ShapeList(object):
         if name not in self.names: return None
         return self.items[name]
 
+    def insert_at(self, index, shape):
+        self.remove(shape)
+        self.names.insert(index, shape.get_name())
+        self.items[shape.get_name()] = shape
+
     def change_index(self, name, index_offset):
         index = self.names.index(name)
         if index+index_offset<0 or index+index_offset>=len(self.names): return False

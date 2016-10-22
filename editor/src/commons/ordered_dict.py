@@ -25,6 +25,11 @@ class OrderedDict(object):
             self.keys.insert(index+1, key)
             self.items[key] = item
 
+    def insert_at(self, index, key, item):
+        self.remove(key)
+        self.keys.insert(index, key)
+        self.items[key] = item
+
     def remove(self, key):
         if key in self.keys:
             self.keys.remove(key)

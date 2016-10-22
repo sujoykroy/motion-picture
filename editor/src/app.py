@@ -53,6 +53,7 @@ class ApplicationWindow(MasterEditor):
     def __init__(self, parent):
         MasterEditor.__init__(self)
         self.parent = parent
+        self.child_shape_positions = None
 
     def build_toolbar(self, menubar):
         for tool_row in menubar.tool_rows:
@@ -405,6 +406,14 @@ class ApplicationWindow(MasterEditor):
         self.doc.fixed_border = parameter.get_boolean()
         change_action_tool_buttons(action)
         self.redraw()
+
+    def copy_child_shape_positions(self, action, parameter):
+        self.shape_manager.multi_shape.save_shape_positions_with_order()
+
+    def apply_child_shape_positions(self, action, parameter):
+        if self.shape_manager.apply_saved_child_shape_positions_with_order():
+            self.shape_manager.reload_shapes()
+            self.redraw()
 
 class Application(Gtk.Application):
     def __init__(self):

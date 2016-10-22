@@ -65,6 +65,12 @@ m.add(path="Edit/Points/Center Anchor", icon="center_anchor",
 
 m.add(path="Edit/Document/Canvas Size", icon="canvas_size",
       action_name="win.change_canas_size", desc="Change canvas size")
+m.add(path="Edit/Document/Copy Child Shape Postions",
+      icon="copy_child_shape_positions", icon_scale = 1.2,
+      action_name="win.copy_child_shape_positions", desc="Copy Positions")
+m.add(path="Edit/Document/Apply Saved Child Shape Postions",
+      icon="apply_child_shape_positions", icon_scale = 1.2,
+      action_name="win.apply_child_shape_positions", desc="Apply Positions")
 m.add(path="Edit/Document/Fixed Border Size", icon="fixed_border", icon_scale = 2.,
       action_name="win.border_fixed", action_state=True, desc="Fixed Border")
 
