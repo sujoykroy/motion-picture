@@ -883,8 +883,21 @@ class ShapeManager(object):
     def change_shape_depth(self, depth_offset):
         if not self.shape_editor: return False
         if isinstance(self.shape_editor.shape, MultiSelectionShape): return False
-        self.multi_shape.shapes.change_index(self.shape_editor.shape.get_name(), depth_offset)
-        self.shapes.change_index(self.shape_editor.shape.get_name(), depth_offset)
+        shape = self.shape_editor.shape
+        shape_name = shape.get_name()
+        if abs(depth_offset) == 1:
+            self.multi_shape.shapes.change_index(shape_name, depth_offset)
+            self.shapes.change_index(shape_name, depth_offset)
+        else:
+            if depth_offset>0:
+                self.multi_shape.shapes.remove(shape)
+                self.multi_shape.shapes.add(shape)
+
+                self.shapes.remove(shape)
+                self.shapes.add(shape)
+            else:
+                self.multi_shape.shapes.insert_at(0, shape)
+                self.shapes.insert_at(0, shape)
         return True
 
     def merge_shapes(self):

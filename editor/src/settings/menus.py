@@ -46,6 +46,10 @@ m.add(path="Edit/<Layer>/Layer Up", icon="layer_up", desc="Move shape layer up",
       action_name="win.change_shape_depth", action_param="1", icon_scale=2.)
 m.add(path="Edit/<Layer>/Layer Down", icon="layer_down", desc="Move shape layer down",
       action_name="win.change_shape_depth", action_param="-1", icon_scale=2.)
+m.add(path="Edit/<Layer>/Layer Top", icon="layer_top", desc="Move shape layer to top",
+      action_name="win.change_shape_depth", action_param="1000", icon_scale=2.)
+m.add(path="Edit/<Layer>/Layer Bottom", icon="layer_bottom", desc="Move shape layer to bottom",
+      action_name="win.change_shape_depth", action_param="-1000", icon_scale=2.)
 
 m.add(path="Edit/TimeLine/Delete Slice", icon="delete_time_slice",
       action_name="win.delete_time_slice", desc="Delete Time Slice")
