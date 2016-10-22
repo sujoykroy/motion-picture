@@ -21,6 +21,7 @@ class Document(object):
         self.main_multi_shape = None
         self.guides = []
         self.reundo = TaskManager()
+        self.fixed_border = True
         if self.filename:
             self.load_from_xml_file()
         if not self.main_multi_shape:
@@ -55,6 +56,7 @@ class Document(object):
 
         self.width = float(width)
         self.height = float(height)
+        self.fixed_border = (doc.attrib.get("fixed_border", "") != "False")
 
         shape_element = root.find(Shape.TAG_NAME)
         shape_type = shape_element.attrib.get("type", None)
@@ -79,6 +81,8 @@ class Document(object):
         doc = XmlElement("doc")
         doc.attrib["width"] = "{0}".format(self.width)
         doc.attrib["height"] = "{0}".format(self.height)
+        if not self.fixed_border:
+            doc.attrib["fixed_border"] = "False"
         root.append(doc)
 
         for guide in self.guides:
@@ -144,7 +148,7 @@ class Document(object):
         ctx.translate((width-scale*self.width)*.5, (height-scale*self.height)*.5)
         ctx.scale(scale, scale)
         set_default_line_style(ctx)
-        shape.draw(ctx, Point(self.width, self.height))
+        shape.draw(ctx, Point(self.width, self.height), self.fixed_border)
 
         surface= ctx.get_target()
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())

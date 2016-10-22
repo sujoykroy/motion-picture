@@ -53,7 +53,7 @@ class ImageShape(RectangleShape):
                 ctx.paint()
             ctx.restore()
 
-    def draw(self, ctx):
+    def draw(self, ctx, fixed_border):
         if self.fill_color is not None:
             ctx.save()
             self.pre_draw(ctx)
@@ -66,6 +66,9 @@ class ImageShape(RectangleShape):
             self.pre_draw(ctx)
             self.draw_path(ctx, for_fill=False)
             self.draw_image(ctx)
-            ctx.restore()
-            self.draw_border(ctx)
-
+            if fixed_border:
+                ctx.restore()
+                self.draw_border(ctx)
+            else:
+                self.draw_border(ctx)
+                ctx.restore()

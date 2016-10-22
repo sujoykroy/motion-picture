@@ -213,12 +213,17 @@ class MasterEditor(Gtk.ApplicationWindow):
             shape_point = multi_shape.transform_point(shape_point)
         return doc_point, shape_point
 
-    def load_multi_shape(self, multi_shape):
+    def load_multi_shape(self, multi_shape, recreate_shape_manager=False):
         self.multi_shape_stack.append(multi_shape)
-        self.shape_manager = ShapeManager(multi_shape, self.doc)
-        w, h = self.get_drawing_area_size()
-        self.shape_manager.document_area_box.move_to(w*.5, h*.5)
-        self.shape_manager.resize_scollable_area(w, h)
+        if not recreate_shape_manager and self.shape_manager and \
+            self.shape_manager.doc.filename == self.doc.filename:
+            self.shape_manager.load_multi_shape(multi_shape)
+        else:
+            self.shape_manager = ShapeManager(multi_shape, self.doc)
+            w, h = self.get_drawing_area_size()
+            self.shape_manager.document_area_box.move_to(w*.5, h*.5)
+            self.shape_manager.resize_scollable_area(w, h)
+            self.fit_shape_manager_in_drawing_area()
 
         self.show_prop_of(None)
         self.load_multi_shape_time_line(None)
@@ -231,7 +236,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         if multi_shape.timelines:
             timeline_name = sorted(multi_shape.timelines.keys())[0]
             self.load_multi_shape_time_line(multi_shape.timelines[timeline_name])
-        self.on_configure_event(self, None)
         self.redraw()
 
     def load_multi_shape_time_line(self, multi_shape_time_line):
@@ -240,7 +244,7 @@ class MasterEditor(Gtk.ApplicationWindow):
     def open_document(self, filename=None, width=400., height=400.):
         self.doc = Document(filename, width=width, height=height)
         del self.multi_shape_stack[:]
-        self.load_multi_shape(self.doc.get_main_multi_shape())
+        self.load_multi_shape(self.doc.get_main_multi_shape(), recreate_shape_manager=True)
         self.show_filename()
 
     def set_shape_creation_mode(self, shape_type):
@@ -444,11 +448,15 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.redraw()
         return True
 
-    def on_configure_event(self, widget, event):
+    def fit_shape_manager_in_drawing_area(self):
         w, h = self.get_drawing_area_size()
         if self.shape_manager:
             self.shape_manager.fit_area_in_size(w, h)
             self.update_drawing_area_scrollbars()
+
+
+    def on_configure_event(self, widget, event):
+        self.fit_shape_manager_in_drawing_area()
 
     def on_drawing_area_draw(self, widget, ctx):
         ctx.set_antialias(cairo.ANTIALIAS_SUBPIXEL)

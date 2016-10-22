@@ -17,9 +17,6 @@ m.add(path="File/<Open>/Save As", accel="<Shift><Control>s", icon="file_save_as"
 m.add(path="File/<Open>/Export as Image", icon="export_to_image",
       action_name="win.export", action_param="png", desc="Export as Image")
 
-m.add(path="File/<Open>/Canvas Size", icon="canvas_size",
-      action_name="win.change_canas_size", desc="Change canvas size")
-
 m.add(path="Edit/<UndoRedo>/Undo", accel="<Control>z",
       action_name="win.undo_redo", action_param="undo")
 m.add(path="Edit/<UndoRedo>/Redo", accel="<Control>Y",
@@ -65,6 +62,11 @@ m.add(path="Edit/Points/Extend", icon="extend_point", desc="Extend point into ne
       action_name="win.extend_point_of_shape")
 m.add(path="Edit/Points/Center Anchor", icon="center_anchor",
       action_name="win.center_anchor", desc="Place anchor at center")
+
+m.add(path="Edit/Document/Canvas Size", icon="canvas_size",
+      action_name="win.change_canas_size", desc="Change canvas size")
+m.add(path="Edit/Document/Fixed Border Size", icon="fixed_border", icon_scale = 2.,
+      action_name="win.border_fixed", action_state=True, desc="Fixed Border")
 
 m.add(path="Shapes/<New>/Rectangle", icon="rectangle",
       action_name="win.create_new_shape", action_state="rect")
@@ -130,7 +132,7 @@ m.add(path="Edit/Preferences/Panel Layout/Animation", icon="panel_animation",
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement",
      "Edit/TimeLine", "Edit/Preferences", "Edit/Shape/<Linked>",
-     "Edit/Preferences/Panel Layout"],
+     "Edit/Preferences/Panel Layout", "Edit/Document"],
     ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>",
      "Shapes/Align", "Shapes/Convert To", "Shapes/Pre-Drawn", "Edit/Points"],
     []

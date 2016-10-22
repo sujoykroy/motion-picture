@@ -337,7 +337,7 @@ class MultiShape(Shape):
     def rename_shape(self, shape, name):
         return self.shapes.rename(shape.get_name(), name)
 
-    def draw(self, ctx, drawing_size=None):
+    def draw(self, ctx, drawing_size=None, fixed_border=True):
         if self.masked and len(self.shapes)>1:
             last_shape = self.shapes.get_at_index(-1)
             if not isinstance(last_shape, MultiShape):
@@ -347,9 +347,9 @@ class MultiShape(Shape):
                             cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
                     masked_ctx= cairo.Context(masked_surface)
                     if isinstance(shape, MultiShape):
-                        shape.draw(masked_ctx, drawing_size)
+                        shape.draw(masked_ctx, drawing_size, fixed_border)
                     else:
-                        shape.draw(masked_ctx)
+                        shape.draw(masked_ctx, fixed_border)
 
                     ctx.set_source_surface(masked_surface)
                     ctx.save()
@@ -362,13 +362,17 @@ class MultiShape(Shape):
                 ctx.save()
                 last_shape.pre_draw(ctx)
                 last_shape.draw_path(ctx)
-                ctx.restore()
-                last_shape.draw_border(ctx)
+                if fixed_border:
+                    ctx.restore()
+                    last_shape.draw_border(ctx)
+                else:
+                    last_shape.draw_border(ctx)
+                    ctx.restore()
                 return
 
         for shape in self.shapes:
             if isinstance(shape, MultiShape):
-                shape.draw(ctx, drawing_size)
+                shape.draw(ctx, drawing_size, fixed_border)
             else:
                 ctx.save()
                 shape.pre_draw(ctx)
@@ -393,8 +397,12 @@ class MultiShape(Shape):
                 ctx.save()
                 shape.pre_draw(ctx)
                 shape.draw_path(ctx)
-                ctx.restore()
-                shape.draw_border(ctx)
+                if fixed_border:
+                    ctx.restore()
+                    shape.draw_border(ctx)
+                else:
+                    shape.draw_border(ctx)
+                    ctx.restore()
 
     def be_like_shape(self, shape):
         self.width = shape.width

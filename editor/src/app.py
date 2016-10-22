@@ -124,6 +124,14 @@ class ApplicationWindow(MasterEditor):
                     elif action.get_state().equal(widget.action_variant_state_value):
                         action.activate(GLib.Variant.new_string(""))
 
+    def open_document(self, filename):
+        MasterEditor.open_document(self, filename)
+        border_fixed_action = self.lookup_action("border_fixed")
+        border_fixed_parameter = GLib.Variant.new_boolean(self.doc.fixed_border)
+        #border_fixed_action.activate(border_fixed_parameter)
+        border_fixed_action.set_state(border_fixed_parameter)
+        change_action_tool_buttons(border_fixed_action)
+
     def save_document(self, action, parameter):
         if not self.doc.filename:
             filename = FileOp.choose_file(self, purpose="save")
@@ -392,6 +400,12 @@ class ApplicationWindow(MasterEditor):
     def change_panel_layout(self, action, parameter):
         self.set_panel_sizes(*parameter.get_string().split("/"))
 
+    def border_fixed(self, action, parameter):
+        action.set_state(parameter)
+        self.doc.fixed_border = parameter.get_boolean()
+        change_action_tool_buttons(action)
+        self.redraw()
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,
@@ -445,7 +459,6 @@ class Application(Gtk.Application):
             filename = parameter.get_string()
         else:
             filename = FileOp.choose_file(win, purpose="open")
-
         if filename:
             self.recent_manager.add_item(filename)
             win.open_document(filename)

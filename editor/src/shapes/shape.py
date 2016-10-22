@@ -466,7 +466,7 @@ class Shape(object):
         if self.fill_color is None: return
         draw_fill(ctx, self.fill_color)
 
-    def draw(self, ctx):
+    def draw(self, ctx, fixed_border):
         if self.fill_color is not None:
             ctx.save()
             self.pre_draw(ctx)

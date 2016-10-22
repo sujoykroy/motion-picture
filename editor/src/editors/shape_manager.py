@@ -25,7 +25,6 @@ class ScrollableArea(object):
 class ShapeManager(object):
     def __init__(self, multi_shape, doc):
         self.doc = doc
-        self.multi_shape = multi_shape
         self.document_area_box = RectangleShape(
                 anchor_at=Point(doc.width*.5, doc.height*.5),
                 border_color = "cccccc",
@@ -34,6 +33,16 @@ class ShapeManager(object):
                 width = doc.width, height = doc.height, corner_radius=2)
         doc.main_multi_shape.parent_shape = self.document_area_box
 
+        self.scrollable_area = ScrollableArea()
+        self.guides = doc.guides
+        for guide in self.guides:
+            guide.parent_shape = self.document_area_box
+        self.out_width = doc.width
+        self.out_height = doc.height
+        self.load_multi_shape(multi_shape)
+
+    def load_multi_shape(self, multi_shape):
+        self.multi_shape = multi_shape
         self.shape_hierarchy = [multi_shape]
         last_shape = multi_shape
         while last_shape.parent_shape and last_shape.parent_shape != self.document_area_box:
@@ -49,19 +58,13 @@ class ShapeManager(object):
         self.selection_box.visible = False
         self.document_area_box_selected = False
         self.init_document_area_box = None
-        self.scrollable_area = ScrollableArea()
         self.shape_editor = None
         self.shape_creator = None
         self.shapes = ShapeList(multi_shape.shapes)
         self.current_task = None
 
-        self.guides = doc.guides
-        for guide in self.guides:
-            guide.parent_shape = self.document_area_box
         self.selected_guide = None
 
-        self.out_width = doc.width
-        self.out_height = doc.height
         self.color_editor = None
         self.eraser_box = None
 
@@ -184,7 +187,7 @@ class ShapeManager(object):
         self.document_area_box.draw_axis(ctx)
 
         ctx.save()
-        self.multi_shape.draw(ctx, drawing_size)
+        self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border)
         ctx.restore()
         if not EditingChoice.HIDE_AXIS:
             self.multi_shape.draw_axis(ctx)
@@ -910,6 +913,8 @@ class ShapeManager(object):
                 continue
             if flat_merge or mega_shape.include_inside(shape):
                 merged_shapes.append(shape)
+        if not flat_merge:
+            mega_shape.fit_size_to_include_all()
 
         if merged_shapes:
             task = ShapeMergeTask(self.doc, self.shape_editor.shape, merged_shapes)
