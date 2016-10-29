@@ -478,8 +478,12 @@ class Shape(object):
             ctx.save()
             self.pre_draw(ctx)
             self.draw_path(ctx, for_fill=False)
-            ctx.restore()
-            self.draw_border(ctx)
+            if fixed_border:
+                ctx.restore()
+                self.draw_border(ctx)
+            else:
+                self.draw_border(ctx)
+                ctx.restore()
 
     def draw_axis(self, ctx):
         ctx.save()

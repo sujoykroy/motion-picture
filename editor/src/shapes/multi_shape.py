@@ -345,7 +345,7 @@ class MultiShape(Shape):
                     shape = self.shapes.get_at_index(i)
                     masked_surface = cairo.ImageSurface(
                             cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
-                    masked_ctx= cairo.Context(masked_surface)
+                    masked_ctx = cairo.Context(masked_surface)
                     if isinstance(shape, MultiShape):
                         shape.draw(masked_ctx, drawing_size, fixed_border)
                     else:
