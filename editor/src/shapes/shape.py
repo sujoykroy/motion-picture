@@ -558,6 +558,8 @@ class Shape(object):
     def recreate_name(self):
         self._name = self.new_name()
 
+    def rename(self, name):
+        self._name = name
 
     NAME_SEED = 0
     _APP_EPOCH_TIME = time.mktime(time.strptime("1 Jan 2016", "%d %b %Y"))

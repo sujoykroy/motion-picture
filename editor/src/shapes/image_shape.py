@@ -17,7 +17,7 @@ class ImageShape(RectangleShape):
         newob = ImageShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                         self.fill_color.copy(), self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
-        self.set_image_path(self.image_path)
+        newob.set_image_path(self.image_path)
         newob.alpha = self.alpha
         return newob
 
