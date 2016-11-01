@@ -33,6 +33,8 @@ class Shape(object):
         self.moveable = True
         self.linked_to = None
         self.linked_clones = None
+        self.border_dashes = None
+        self.border_dash_offset = 0
 
     def cleanup(self):
         if self.linked_clones:
@@ -145,6 +147,8 @@ class Shape(object):
         elm.attrib["angle"] = "{0}".format(self.angle)
         elm.attrib["post_scale_x"] = "{0}".format(self.post_scale_x)
         elm.attrib["post_scale_y"] = "{0}".format(self.post_scale_y)
+        if self.border_dashes:
+            elm.attrib["border_dash"] = self.get_border_dash()
         if self.pre_matrix:
             elm.attrib["pre_matrix"] = Matrix.to_text(self.pre_matrix)
         if isinstance(self, Mirror):
@@ -192,6 +196,7 @@ class Shape(object):
             self.height = float(elm.attrib.get("height", 1))
             #TODO
             #rest of the fiels needs to be implemted, but later.
+        self.set_border_dash(elm.attrib.get("border_dash", ""))
 
     def copy_into(self, newob, copy_name=False, all_fields=False):
         newob.translation = self.translation.copy()
@@ -223,6 +228,7 @@ class Shape(object):
                 newob.fill_color = None
             newob.width = self.width
             newob.height = self.height
+            newob.set_border_dash(self.get_border_dash())
         if isinstance(self, Mirror) and isinstance(newob, Mirror):
             Mirror.copy_into(self, newob)
 
@@ -269,6 +275,30 @@ class Shape(object):
 
     def get_border_width(self):
         return self.border_width
+
+    def get_border_dash(self):
+        if not self.border_dashes:
+            return ""
+        text = ",".join("{0}".format(v) for v in self.border_dashes)
+        if self.border_dash_offset:
+            text += ":{0}".format(self.border_dash_offset)
+        return text
+
+    def set_border_dash(self, value):
+        arr1 = value.split(":")
+        if len(arr1)>1:
+            try:
+                self.border_dash_offset = float(arr1[1])
+            except:
+                pass
+        arr2 = arr1[0].split(",")
+        dashes = []
+        for i in range(len(arr2)):
+            try:
+                dashes.append(float(arr2[i]))
+            except:
+                pass
+        self.border_dashes = dashes
 
     def set_border_color(self, color):
         if color is None:
@@ -460,6 +490,8 @@ class Shape(object):
 
     def draw_border(self, ctx):
         if self.border_color is None: return
+        if self.border_dashes:
+            ctx.set_dash(self.border_dashes, self.border_dash_offset)
         draw_stroke(ctx, self.border_width, self.border_color)
 
     def draw_fill(self, ctx):
