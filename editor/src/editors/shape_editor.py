@@ -155,6 +155,7 @@ class ShapeEditor(object):
                 if curve.closed and last_dest_eb and first_control_1_eb:
                     last_dest_eb.add_linked_edit_box(first_control_1_eb)
                     last_dest_eb.add_linked_edit_box(origin_eb)
+                    last_dest_eb.origin_eb = origin_eb#save the origin editbox, used in alignment
                     self.all_edit_box_list.remove(first_control_1_eb)
                     self.all_edit_box_list.append(first_control_1_eb)
 
@@ -464,6 +465,13 @@ class ShapeEditor(object):
                 edit_box.point.x = self.selected_edit_boxes[0].point.x
             if y_dir:
                 edit_box.point.y = self.selected_edit_boxes[0].point.y
+            if isinstance(edit_box, DestEditBox) and isinstance(self.shape, CurveShape):
+                curve = self.shape.curves[edit_box.curve_index]
+                if curve.closed and \
+                   edit_box.bezier_point_index == len(curve.bezier_points)-1:
+                   edit_box.origin_eb.point.x = edit_box.point.x
+                   edit_box.origin_eb.point.y = edit_box.point.y
+                   edit_box.origin_eb.update()
             edit_box.update()
 
     def delete_point(self):
