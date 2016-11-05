@@ -39,7 +39,10 @@ class ImageShape(RectangleShape):
 
     def set_image_path(self, image_path):
         self.image_path = image_path
-        self.image_pixbuf = Pixbuf.new_from_file(image_path)
+        try:
+            self.image_pixbuf = Pixbuf.new_from_file(image_path)
+        except:
+            self.image_pixbuf = None
 
     def draw_image(self, ctx):
         if self.image_pixbuf:
