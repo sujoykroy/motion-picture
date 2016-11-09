@@ -275,9 +275,13 @@ class ShapeManager(object):
             x_pos = (self.scrollable_area.offset_x-self.document_area_box.translation.x)/excess_width
         else:
             x_pos = 0.
+        if x_pos>1: x_pos = 1.
+        if y_pos>1: y_pos = 1.
         return x_pos, y_pos
 
     def resize_scollable_area(self, out_width, out_height):
+        #x_pos, y_pos = self.get_scroll_position(out_width, out_height)
+
         self.out_width = out_width
         self.out_height = out_height
         rect = self.document_area_box.get_abs_outline(0)
@@ -321,6 +325,9 @@ class ShapeManager(object):
                 extra_x = rect.left-(out_width-(rect.left+rect.width))
                 self.scrollable_area.width = out_width+extra_x
                 self.scrollable_area.offset_x = rect.left
+
+        #self.scroll(y_pos, "vert", out_width, out_height)
+        #self.scroll(x_pos, "horiz", out_width, out_height)
 
     def fit_area_in_size(self, out_width, out_height):
         self.out_width = out_width

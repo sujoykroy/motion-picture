@@ -323,7 +323,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def update_drawing_area_scrollbars(self):
         w, h = self.get_drawing_area_size()
-        self.shape_manager.resize_scollable_area(w, h)
+        #self.shape_manager.resize_scollable_area(w, h)
         x_pos, y_pos = self.shape_manager.get_scroll_position(w, h)
         self.drawing_area_vadjust.set_value(y_pos)
         self.drawing_area_hadjust.set_value(x_pos)
