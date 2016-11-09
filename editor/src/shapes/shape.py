@@ -206,6 +206,7 @@ class Shape(object):
         newob.scale_y = self.scale_y
         newob.post_scale_x = self.post_scale_x
         newob.post_scale_y = self.post_scale_y
+        newob.set_border_dash(self.get_border_dash())
         if copy_name:
             newob._name = self._name
         newob.parent_shape = self.parent_shape
@@ -228,7 +229,6 @@ class Shape(object):
                 newob.fill_color = None
             newob.width = self.width
             newob.height = self.height
-            newob.set_border_dash(self.get_border_dash())
         if isinstance(self, Mirror) and isinstance(newob, Mirror):
             Mirror.copy_into(self, newob)
 
@@ -498,7 +498,7 @@ class Shape(object):
         if self.fill_color is None: return
         draw_fill(ctx, self.fill_color)
 
-    def draw(self, ctx, fixed_border):
+    def draw(self, ctx, fixed_border=True):
         if self.fill_color is not None:
             ctx.save()
             self.pre_draw(ctx)

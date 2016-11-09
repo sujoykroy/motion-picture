@@ -926,6 +926,8 @@ class ShapeManager(object):
                 continue
             if flat_merge or mega_shape.include_inside(shape):
                 merged_shapes.append(shape)
+        if not mega_shape:
+            return False
         if not flat_merge:
             mega_shape.fit_size_to_include_all()
 
