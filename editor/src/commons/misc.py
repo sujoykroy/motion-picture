@@ -100,3 +100,45 @@ class Matrix(object):
         for i in range(len(values)):
             values[i] = float(values[i])
         return cairo.Matrix(*values)
+
+class TimeLabel(object):
+    def __init__(self, start, end, step, level=0):
+        self.start = start
+        self.end = end
+        self.step = step
+        self.level= level
+
+class TimeMarker(object):
+    def __init__(self, at, text):
+        self.at = at
+        self.text = text
+
+class TimeMarkerList(object):
+    def __init__(self):
+        self.markers = dict()
+
+    def create_marker(self, at, text):
+        if at not in self.markers:
+            self.markers[at] = TimeMarker(at, text)
+
+    def delete_marker(self, at):
+        obj = self.markers[at]
+        del self.markers[at]
+        return obj
+
+    def move_marker(self, marker, to):
+        if to in self.markers:
+            return False
+        self.delete_marker(marker.at)
+        self.markers[to] = marker
+        marker.at = to
+
+    def __len__(self):
+        return len(self.markers)
+
+    def __getitem__(self, at):
+        return self.markers[at]
+
+    def at_times(self):
+        for at in sorted(self.markers.keys()):
+            yield at

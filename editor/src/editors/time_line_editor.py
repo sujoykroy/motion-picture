@@ -37,11 +37,26 @@ class PlayHeadBox(RectBox):
         Box.move_to(self, Point(point.x, self.top))
         self.play_head_callback()
 
+class TimeMarkerBox(RectBox):
+    def __init__(self, time_marker):
+        RectBox.__init__(self, parent_box=None, width=10, height=TIME_STAMP_LABEL_HEIGHT,
+                        border_color="000000", border_width=1, fill_color="65737255")
+        self.time_marker = time_marker
+
+    def set_x(self, x):
+        self.left = x
+
+    def get_x(self):
+        return self.left
+
+    def move_to(self, point, move_to_callback):
+        Box.move_to(self, Point(point.x, self.top))
+
 class TimeRange(object):
     def __init__(self):
         self._start_pixel = 0
         self._visible_duration_pixel = 0
-        #self._non_scaled_full_length_pixel = 0
+        self._non_scaled_full_length_pixel = 0
         self.scaled_full_length_pixel = 0
         self._scale = 1.
         self.pixel_per_second = PIXEL_PER_SECOND
@@ -190,8 +205,11 @@ class TimeLineEditor(Gtk.VBox):
         self.last_play_updated_at = 0
         self.selected_shape = None
 
+        self.time_marker_boxes = []
+
     def set_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line = multi_shape_time_line
+        self.time_marker_boxes = []
         self.selected_time_slice_box = None
         self.is_playing = False
         self.last_play_updated_at = 0
@@ -204,6 +222,14 @@ class TimeLineEditor(Gtk.VBox):
         else:
             self.time_line.get_duration()
             self.multi_shape_time_line_box = MultiShapeTimeLineBox(multi_shape_time_line)
+
+            time_marker_list = self.time_line.time_marker_list
+            if len(time_marker_list) == 0:
+                time_marker_list.create_marker(1.1, "hello")
+                time_marker_list.create_marker(2.9, "2hello")
+            for at in time_marker_list.at_times():
+                self.time_marker_boxes.append(TimeMarkerBox(time_marker_list[at]))
+
             self.play_head_box = PlayHeadBox(self.on_play_head_move)
             self.play_button.show()
             self.pause_button.hide()
@@ -220,7 +246,8 @@ class TimeLineEditor(Gtk.VBox):
             self.play_head_time = value
             self.time_line.move_to(self.play_head_time)
         extra_x = self.time_range.get_extra_pixel_for_time(self.play_head_time)
-        self.play_head_box.set_center_x(TIME_SLICE_START_X + extra_x)
+        if self.play_head_box:
+            self.play_head_box.set_center_x(TIME_SLICE_START_X + extra_x)
         self.show_current_play_head_time()
 
     def get_play_head_time(self):
@@ -232,8 +259,15 @@ class TimeLineEditor(Gtk.VBox):
             self.multi_shape_time_line_box.update()
             self.time_range.set_non_scaled_full_length_pixel(self.multi_shape_time_line_box.width)
             self.play_head_box.height = self.drawing_area.get_allocated_height()
+            self.update_time_marker_boxes()
+
         self.mouse_position_box.height = self.drawing_area.get_allocated_height()
         self.redraw()
+
+    def update_time_marker_boxes(self):
+        for time_marker_box in self.time_marker_boxes:
+            extra_x = self.time_range.get_extra_pixel_for_time(time_marker_box.time_marker.at)
+            time_marker_box.set_x(TIME_SLICE_START_X + extra_x)
 
     def set_selected_shape(self, shape):
         if self.selected_shape and self.time_line and EditingChoice.SHOW_ALL_TIME_LINES:
@@ -260,7 +294,16 @@ class TimeLineEditor(Gtk.VBox):
         if not self.multi_shape_time_line_box: return
         if self.play_head_box.is_within(point):
             self.selected_item = self.play_head_box
-        else:
+
+        if not self.selected_item:
+            tm_point = point.copy()
+            tm_point.translate(0, TIME_STAMP_LABEL_HEIGHT)
+            for time_marker_box in self.time_marker_boxes:
+                if time_marker_box.is_within(tm_point):
+                    self.selected_item = time_marker_box
+                    break
+
+        if not self.selected_item:
             for shape_line_box in self.multi_shape_time_line_box.shape_time_line_boxes:
                 for prop_line_box in shape_line_box.prop_time_line_boxes:
                     for time_slice_box in prop_line_box.time_slice_boxes:
@@ -318,15 +361,24 @@ class TimeLineEditor(Gtk.VBox):
 
         diff_point.translate(self.init_selected_item.left, self.init_selected_item.top)
         self.selected_item.move_to(diff_point, self.on_move_to)
+        if isinstance(self.selected_item, TimeMarkerBox):
+            time_marker_box = self.selected_item
+            time_marker = time_marker_box.time_marker
+            extra_x = time_marker_box.get_x()-TIME_SLICE_START_X
+            time_to = self.time_range.get_time_for_extra_x(extra_x)
+            self.time_line.time_marker_list.move_marker(time_marker, time_to)
         self.time_line.get_duration()
 
     def update_slices_left(self):
+        if not self.multi_shape_time_line_box:
+            return
         self.multi_shape_time_line_box.update_slices_container_box_left(
                 PropTimeLineBox.TOTAL_LABEL_WIDTH-self.time_range.get_start_pixel())
 
     def time_scroll_to(self, value):
         self.time_range.scroll_to(value)
         self.update_slices_left()
+        self.update_time_marker_boxes()
 
     def update_drawing_area_scrollbars(self):
         x_pos = self.time_range.get_scroll_position()
@@ -334,9 +386,12 @@ class TimeLineEditor(Gtk.VBox):
 
     def zoom_time(self, value):
         self.time_range.increse_scale(value, self.mouse_point)
+        if not self.multi_shape_time_line_box:
+            return
         for shape_line_box in self.multi_shape_time_line_box.shape_time_line_boxes:
             for prop_line_box in shape_line_box.prop_time_line_boxes:
                 prop_line_box.set_time_multiplier(self.time_range.get_scale())
+        self.update_time_marker_boxes()
 
     def zoom_vertical(self, value, point):
         if not self.multi_shape_time_line_box: return
@@ -431,25 +486,78 @@ class TimeLineEditor(Gtk.VBox):
         draw_stroke(ctx, 1, EDITOR_LINE_COLOR)
         ctx.restore()
 
-        #Draw time lables
+        #Draw time labels
         ctx.save()
         ctx.rectangle(0, 0, widget_width, TIME_STAMP_LABEL_HEIGHT)
         draw_fill(ctx, TIME_LINE_BACKGROUND_COLOR)
 
-        time_label_gap_unit = 1.
+        #time_label_gap_unit = 1.
         visible_time_start, visible_time_end = self.time_range.get_start_end_time()
-        printable_time_start = visible_time_start+(time_label_gap_unit-visible_time_start%time_label_gap_unit)
-        time_stamp = printable_time_start
-        while time_stamp <visible_time_end:
+        #printable_time_start = visible_time_start+(time_label_gap_unit-visible_time_start%time_label_gap_unit)
+        #time_stamp = printable_time_start
+
+        if self.time_line:
+            time_labels = self.time_line.time_labels
+        if not self.time_line or not time_labels:
+            time_labels = [TimeLabel(start=0, end=-1, step=1.)]
+            time_labels.append(TimeLabel(start=0, end=-1, step=1./2, level=1))
+            time_labels.append(TimeLabel(start=0, end=-1, step=1./4, level=2))
+            time_labels.append(TimeLabel(start=0, end=-1, step=1./8, level=3))
+
+        for time_label in time_labels:
+            if self.time_range.pixel_per_second*time_label.step<20:
+                continue
+            if time_label.start>visible_time_end:
+                continue
+            if time_label.end>0 and time_label.end<visible_time_start:
+                continue
+            if time_label.start>visible_time_start:
+                printable_time_start = time_label.start
+            else:
+                printable_time_start = visible_time_start+\
+                                   (time_label.step-visible_time_start%time_label.step)
+            time_stamp = printable_time_start
+
+            while time_stamp <visible_time_end and \
+                  (time_label.end==-1 or time_stamp<time_label.end):
+                ctx.save()
+                ctx.translate(TIME_SLICE_START_X-self.time_range.get_start_pixel(), 5)
+                ctx.translate(time_stamp*self.time_range.pixel_per_second, 0)
+
+
+                #if self.time_range.pixel_per_second*time_label.step>70:
+                #    time_stamp_text = "{0:.02f}".format(time_stamp)
+                #    draw_text(ctx, time_stamp_text, 5, 0, text_color="000000", font_name="8")
+
+                draw_straight_line(ctx, 0, time_label.level*TIME_STAMP_LABEL_HEIGHT/len(time_labels),
+                    0, TIME_STAMP_LABEL_HEIGHT-5)
+                draw_stroke(ctx, 1, EDITOR_LINE_COLOR)
+                ctx.restore()
+                time_stamp += time_label.step
+
+
+        if self.time_line:
+            time_marker_list = self.time_line.time_marker_list
+        else:
+            time_marker_list = TimeMarkerList()
+
+        for label_at in time_marker_list.at_times():
+            if label_at<visible_time_start:
+                continue
+            if label_at>visible_time_end:
+                break
             ctx.save()
-            ctx.translate(TIME_SLICE_START_X-self.time_range.get_start_pixel(), 5)
-            ctx.translate(time_stamp*self.time_range.pixel_per_second, 0)
-            time_stamp_text = "{0:.0f}".format(time_stamp)
-            draw_text(ctx, time_stamp_text, 5, 0, text_color="000000", font_name="8")
-            draw_straight_line(ctx, 0, 0, 0, TIME_STAMP_LABEL_HEIGHT-5)
+            ctx.translate(TIME_SLICE_START_X-self.time_range.get_start_pixel(), 2)
+            ctx.translate(label_at*self.time_range.pixel_per_second, 0)
+
+            if self.time_range.pixel_per_second*time_label.step>70 or True:
+                time_stamp_text = time_marker_list[label_at].text
+                draw_text(ctx, time_stamp_text, 1, 0, text_color="000000", font_name="8",
+                    border_color="000000", back_color="ffffff", corner=2, padding=2)
+
+            draw_straight_line(ctx, 0, 0, 0, self.mouse_position_box.height)
             draw_stroke(ctx, 1, EDITOR_LINE_COLOR)
             ctx.restore()
-            time_stamp += time_label_gap_unit
 
         #draw line under entire time label space
         draw_straight_line(ctx, 0, TIME_STAMP_LABEL_HEIGHT,widget_width, TIME_STAMP_LABEL_HEIGHT)
@@ -458,6 +566,12 @@ class TimeLineEditor(Gtk.VBox):
         draw_straight_line(ctx, 0, 0,widget_width, 0)
         draw_stroke(ctx, 1, EDITOR_LINE_COLOR)
         ctx.restore()
+
+        for time_marker_box in self.time_marker_boxes:
+            time_marker = time_marker_box.time_marker
+            if label_at<visible_time_start or label_at>visible_time_end:
+                continue
+            time_marker_box.draw(ctx)
 
         if self.mouse_position_box.left>=0:
             #draw current mouse position time label

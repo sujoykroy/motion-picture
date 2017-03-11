@@ -9,6 +9,8 @@ class MultiShapeTimeLine(object):
         self.shape_time_lines = OrderedDict()
         self.duration = duration
         self.name = name
+        self.time_labels = []
+        self.time_marker_list = TimeMarkerList()
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
