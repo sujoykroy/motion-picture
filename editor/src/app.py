@@ -18,6 +18,9 @@ from shape_creators import CurveShapeCreator
 
 THIS_FOLDER = os.path.dirname(__file__)
 
+from gi.repository import GObject
+GObject.threads_init()
+
 def new_action(parent, menu_item):
     action_name = menu_item.get_action_name_only()
     if parent.lookup_action(action_name): return

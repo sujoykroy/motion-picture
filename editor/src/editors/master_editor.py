@@ -13,6 +13,8 @@ from time_line_editor import TimeLineEditor
 from .. import settings as Settings
 from ..settings import EditingChoice
 
+from audio import *
+
 MODE_NEW_SHAPE_CREATE = "MODE_NEW_SHAPE_CREATE"
 SHIFT_KEY_CODES = (65505, 65506)
 CTRL_KEY_CODES = (65507, 65508)
@@ -24,6 +26,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.set_size_request(width, height)
         self.connect("key-press-event", self.on_drawing_area_key_press)
         self.connect("key-release-event", self.on_drawing_area_key_release)
+        self.connect("delete-event", self.quit)
 
         style_provider = Gtk.CssProvider()
         style_provider.load_from_path(Settings.MAIN_CSS_FILE)
@@ -47,6 +50,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.playing = False
         self.drawing_area_mouse_pressed = False
         self.multi_shape_stack = []
+        self.audio_queue = Queue.Queue(1)
 
         self.root_box = Gtk.VBox()
         self.add(self.root_box)
@@ -80,7 +84,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.paned_box_2.pack2(self.paned_box_3, resize=True, shrink=True)
 
         self.time_line_editor = TimeLineEditor(self.update_shape_manager,
-                                self.show_time_slice_props, self.keyboard_object)
+                                self.show_time_slice_props, self.keyboard_object,
+                                self.audio_queue)
         self.paned_box_1.pack2(self.time_line_editor, resize=True, shrink=True)
 
         self.left_prop_box = Gtk.VBox()
@@ -171,6 +176,16 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.time_slice_prop_box = TimeSlicePropBox(self.time_line_editor.update)
         self.right_prop_box.pack_start(self.time_slice_prop_box, expand=False, fill=False, padding=0)
+
+        self.jack_task = JackTask(audioQueue = self.audio_queue)
+        self.jack_task.start()
+
+
+    def quit(self, widget, event):
+        Gtk.main_quit()
+        if self.jack_task:
+            self.jack_task.shouldStop = True
+            self.jack_task.join()
 
 
     def init_interface(self):

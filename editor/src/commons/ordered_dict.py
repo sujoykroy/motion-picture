@@ -3,7 +3,9 @@ class OrderedDict(object):
         self.items = dict()
         self.keys = []
 
-    def add(self, key, item):
+    def add(self, key, item=None):
+        if item == None:
+            item = key
         if key not in self.keys:
             self.keys.append(key)
         self.items[key] = item

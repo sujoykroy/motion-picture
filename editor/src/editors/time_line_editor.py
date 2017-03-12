@@ -4,6 +4,7 @@ import time
 from ..commons import *
 from ..commons.draw_utils import *
 from ..time_lines import MultiShapeTimeLine
+from ..time_lines import AudioTimeLine
 from ..time_line_boxes import *
 
 from ..gui_utils import buttons
@@ -11,6 +12,7 @@ from ..settings import EditingChoice
 
 EDITOR_LINE_COLOR = "ff0000"
 TIME_SLICE_START_X = PropTimeLineBox.TOTAL_LABEL_WIDTH + SHAPE_LINE_LEFT_PADDING
+MOVE_TO_INCREMENT = .1
 
 class PlayHeadBox(RectBox):
     def __init__(self, play_head_callback):
@@ -126,12 +128,13 @@ class TimeRange(object):
 
 
 class TimeLineEditor(Gtk.VBox):
-    def __init__(self, play_head_callback, time_slice_box_select_callback, keyboard_object):
+    def __init__(self, play_head_callback, time_slice_box_select_callback, keyboard_object, audio_queue):
         Gtk.VBox.__init__(self)
 
         self.keyboard_object = keyboard_object
         self.play_head_callback = play_head_callback
         self.time_slice_box_select_callback = time_slice_box_select_callback
+        self.audio_queue = audio_queue
 
         info_hbox = Gtk.HBox()
         self.pack_start(info_hbox, expand=False, fill=False, padding=0)
@@ -230,6 +233,12 @@ class TimeLineEditor(Gtk.VBox):
             for at in time_marker_list.at_times():
                 self.time_marker_boxes.append(TimeMarkerBox(time_marker_list[at]))
 
+
+            if len(self.time_line.audio_time_lines) == 0:
+                filename = "/home/sujoy/Music/Temp/b1_dec_4.wav"
+                filename = "/home/sujoy/Music/Paradise_Coldplay.wav"
+                self.time_line.audio_time_lines.add(AudioTimeLine(filename, 0, -1))
+
             self.play_head_box = PlayHeadBox(self.on_play_head_move)
             self.play_button.show()
             self.pause_button.hide()
@@ -244,7 +253,7 @@ class TimeLineEditor(Gtk.VBox):
     def move_play_head_to_time(self, value):
         if value is not None:
             self.play_head_time = value
-            self.time_line.move_to(self.play_head_time)
+            self.time_line.move_to(self.play_head_time, self.audio_queue, MOVE_TO_INCREMENT)
         extra_x = self.time_range.get_extra_pixel_for_time(self.play_head_time)
         if self.play_head_box:
             self.play_head_box.set_center_x(TIME_SLICE_START_X + extra_x)
@@ -253,21 +262,6 @@ class TimeLineEditor(Gtk.VBox):
     def get_play_head_time(self):
         if not self.play_head_box: return 0.
         return self.play_head_time
-
-    def update(self):
-        if self.multi_shape_time_line_box:
-            self.multi_shape_time_line_box.update()
-            self.time_range.set_non_scaled_full_length_pixel(self.multi_shape_time_line_box.width)
-            self.play_head_box.height = self.drawing_area.get_allocated_height()
-            self.update_time_marker_boxes()
-
-        self.mouse_position_box.height = self.drawing_area.get_allocated_height()
-        self.redraw()
-
-    def update_time_marker_boxes(self):
-        for time_marker_box in self.time_marker_boxes:
-            extra_x = self.time_range.get_extra_pixel_for_time(time_marker_box.time_marker.at)
-            time_marker_box.set_x(TIME_SLICE_START_X + extra_x)
 
     def set_selected_shape(self, shape):
         if self.selected_shape and self.time_line and EditingChoice.SHOW_ALL_TIME_LINES:
@@ -369,37 +363,64 @@ class TimeLineEditor(Gtk.VBox):
             self.time_line.time_marker_list.move_marker(time_marker, time_to)
         self.time_line.get_duration()
 
+    def update(self):
+        if self.multi_shape_time_line_box:
+            self.multi_shape_time_line_box.update()
+            self.time_range.set_non_scaled_full_length_pixel(self.multi_shape_time_line_box.width)
+            self.play_head_box.height = self.drawing_area.get_allocated_height()
+            self.update_time_marker_boxes()
+
+        self.mouse_position_box.height = self.drawing_area.get_allocated_height()
+        self.redraw()
+
+    def update_time_marker_boxes(self):
+        for time_marker_box in self.time_marker_boxes:
+            extra_x = self.time_range.get_extra_pixel_for_time(time_marker_box.time_marker.at)
+            time_marker_box.set_x(TIME_SLICE_START_X + extra_x)
+
     def update_slices_left(self):
         if not self.multi_shape_time_line_box:
             return
         self.multi_shape_time_line_box.update_slices_container_box_left(
                 PropTimeLineBox.TOTAL_LABEL_WIDTH-self.time_range.get_start_pixel())
 
+    def update_drawing_area_scrollbars(self):
+        x_pos = self.time_range.get_scroll_position()
+        self.drawing_area_hadjust.set_value(x_pos)
+
     def time_scroll_to(self, value):
         self.time_range.scroll_to(value)
         self.update_slices_left()
         self.update_time_marker_boxes()
 
-    def update_drawing_area_scrollbars(self):
-        x_pos = self.time_range.get_scroll_position()
-        self.drawing_area_hadjust.set_value(x_pos)
-
     def zoom_time(self, value):
         self.time_range.increse_scale(value, self.mouse_point)
         if not self.multi_shape_time_line_box:
             return
+        scale_x = self.time_range.get_scale()
+
         for shape_line_box in self.multi_shape_time_line_box.shape_time_line_boxes:
             for prop_line_box in shape_line_box.prop_time_line_boxes:
-                prop_line_box.set_time_multiplier(self.time_range.get_scale())
+                prop_line_box.set_time_multiplier(scale_x)
+
+        for audio_time_line_box in self.multi_shape_time_line_box.audio_time_line_boxes:
+            audio_time_line_box.set_time_multiplier(scale_x)
+
         self.update_time_marker_boxes()
 
     def zoom_vertical(self, value, point):
         if not self.multi_shape_time_line_box: return
+        scale_y = 1+ value
+
         for shape_line_box in self.multi_shape_time_line_box.shape_time_line_boxes:
             for prop_line_box in shape_line_box.prop_time_line_boxes:
                 if prop_line_box.is_within(point):
-                    prop_line_box.set_vertical_multiplier(1+value)
+                    prop_line_box.set_vertical_multiplier(scale_y)
                     break
+        for audio_time_line_box in self.multi_shape_time_line_box.audio_time_line_boxes:
+            if audio_time_line_box.is_within(point):
+                audio_time_line_box.set_vertical_multiplier(scale_y)
+                break
 
     def on_play_pause_button_click(self, widget, play):
         if self.time_line.duration == 0:
@@ -422,7 +443,7 @@ class TimeLineEditor(Gtk.VBox):
         current_time = time.time()
         if self.last_play_updated_at>0:
             diff = current_time - self.last_play_updated_at
-            diff = .05
+            diff = MOVE_TO_INCREMENT
             value = self.play_head_time + diff
             if self.time_line.duration == 0:
                 value = 0
@@ -443,7 +464,7 @@ class TimeLineEditor(Gtk.VBox):
         if self.play_head_time<0:
             self.move_play_head_to_time(0)
         self.show_current_play_head_time()
-        self.time_line.move_to(self.play_head_time)
+        self.time_line.move_to(self.play_head_time, self.audio_queue, MOVE_TO_INCREMENT)
         self.play_head_callback()
 
     def on_move_to(self):
@@ -465,11 +486,13 @@ class TimeLineEditor(Gtk.VBox):
         ctx.rectangle(0, 0, TIME_SLICE_START_X, widget.get_allocated_height())
         draw_fill(ctx, PROP_LEFT_BACK_COLOR)
 
+        visible_time_start, visible_time_end = self.time_range.get_start_end_time()
+
         if active:
             #draw time slices
             ctx.save()
             ctx.translate(0, TIME_STAMP_LABEL_HEIGHT)
-            self.multi_shape_time_line_box.draw(ctx, self.selected_shape)
+            self.multi_shape_time_line_box.draw(ctx, self.selected_shape, visible_time_start, visible_time_end)
             ctx.restore()
 
         #left prop name vertical box, rework to unwind prop_line's back distortions
@@ -492,7 +515,6 @@ class TimeLineEditor(Gtk.VBox):
         draw_fill(ctx, TIME_LINE_BACKGROUND_COLOR)
 
         #time_label_gap_unit = 1.
-        visible_time_start, visible_time_end = self.time_range.get_start_end_time()
         #printable_time_start = visible_time_start+(time_label_gap_unit-visible_time_start%time_label_gap_unit)
         #time_stamp = printable_time_start
 

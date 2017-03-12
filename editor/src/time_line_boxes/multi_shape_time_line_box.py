@@ -2,12 +2,14 @@ from box import Box
 from sizes import *
 from ..commons import OrderedDict
 from shape_time_line_box import ShapeTimeLineBox
+from audio_time_line_box import AudioTimeLineBox
 
 class MultiShapeTimeLineBox(Box):
     def __init__(self, multi_shape_time_line):
         Box.__init__(self)
         self.multi_shape_time_line = multi_shape_time_line
         self.shape_time_line_boxes = OrderedDict()
+        self.audio_time_line_boxes = OrderedDict()
 
     def print_index_data(self):
         shape_indices = []
@@ -51,14 +53,41 @@ class MultiShapeTimeLineBox(Box):
                 width = outline.width
             vert_index += 1
 
+        for audio_time_line in self.audio_time_line_boxes.keys:
+            if not self.multi_shape_time_line.audio_time_lines.key_exists(audio_time_line):
+                self.audio_time_line_boxes.remove(audio_time_line)
+
+        vert_index = 0
+        for audio_time_line in self.multi_shape_time_line.audio_time_lines:
+            if not self.audio_time_line_boxes.key_exists(audio_time_line):
+                audio_time_line_box =  AudioTimeLineBox(audio_time_line, self)
+                self.audio_time_line_boxes.insert(vert_index, audio_time_line, audio_time_line_box)
+            else:
+                audio_time_line_box = self.audio_time_line_boxes[audio_time_line]
+            audio_time_line_box.set_index(vert_index)
+            audio_time_line_box.update()
+            outline = audio_time_line_box.get_rel_outline()
+            audio_time_line_box.left = SHAPE_LINE_LEFT_PADDING
+            audio_time_line_box.top = height
+
+            height += outline.height
+            if width<outline.width:
+                width = outline.width
+            vert_index += 1
+
         self.width = width + SHAPE_LINE_LEFT_PADDING
         self.height = height
 
-    def draw(self, ctx, shape=None):
+    def draw(self, ctx, shape=None, time_start=0, time_end=0):
         for shape_time_line_box in self.shape_time_line_boxes:
             selected = shape_time_line_box.shape_time_line.shape == shape
             ctx.save()
             shape_time_line_box.draw(ctx, selected=selected)
+            ctx.restore()
+
+        for audio_time_line_box in self.audio_time_line_boxes:
+            ctx.save()
+            audio_time_line_box.draw(ctx, time_start, time_end)
             ctx.restore()
 
     def update_slices_container_box_left(self, value):
