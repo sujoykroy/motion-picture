@@ -7,6 +7,7 @@ from ring_shape import RingShape
 from curve_shape import CurveShape
 from polygon_shape import PolygonShape
 from image_shape import ImageShape
+from movie_shape import MovieShape
 from text_shape import TextShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
@@ -380,7 +381,7 @@ class MultiShape(Shape):
                 shape.draw_fill(ctx)
                 ctx.restore()
 
-                if isinstance(shape, ImageShape):
+                if isinstance(shape, ImageShape) or isinstance(shape, MovieShape):
                     ctx.save()
                     shape.pre_draw(ctx)
                     shape.draw_path(ctx)

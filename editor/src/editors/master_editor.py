@@ -100,6 +100,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_prop_box = MultiShapePropBox(self, self.redraw, self.insert_time_slice)
         self.curve_smooth_prop_box = CurveSmoothPropBox(
                             self.recreate_shape_editor, self.get_shape_manager)
+        self.movie_shape_prop_box = MovieShapePropBox(self, self.redraw, self.insert_time_slice)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
@@ -125,6 +126,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         row_count = self.text_shape_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.shape_form_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.curve_smooth_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.movie_shape_prop_box.add_into_grid(prop_grid, row_count)
 
         self.left_prop_box.pack_start(prop_grid, expand=False, fill=False, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
@@ -183,6 +185,8 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def quit(self, widget, event):
         Gtk.main_quit()
+        if self.shape_manager:
+            self.shape_manager.cleanup()
         if self.jack_task:
             self.jack_task.shouldStop = True
             self.jack_task.join()
@@ -299,6 +303,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.shape_form_prop_box.hide()
         self.curve_smooth_prop_box.hide()
         self.text_shape_prop_box.hide()
+        self.movie_shape_prop_box.hide()
 
         if shape != None:
             if shape.linked_to:
@@ -312,6 +317,10 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, TextShape):
                 self.text_shape_prop_box.show()
                 self.text_shape_prop_box.set_prop_object(shape)
+
+            if isinstance(shape, MovieShape):
+                self.movie_shape_prop_box.show()
+                self.movie_shape_prop_box.set_prop_object(shape)
 
             if isinstance(shape, RectangleShape):
                 self.rectangle_shape_prop_box.show()
