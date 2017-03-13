@@ -118,3 +118,9 @@ class MovieShapePropBox(RectangleShapePropBox):
         RectangleShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
         self.add_prop("time_pos", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
+
+class AudioShapePropBox(RectangleShapePropBox):
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        RectangleShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
+        self.add_prop("time_pos", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))

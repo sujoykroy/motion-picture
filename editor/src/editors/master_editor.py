@@ -100,11 +100,11 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_prop_box = MultiShapePropBox(self, self.redraw, self.insert_time_slice)
         self.curve_smooth_prop_box = CurveSmoothPropBox(
                             self.recreate_shape_editor, self.get_shape_manager)
+        self.audio_shape_prop_box = AudioShapePropBox(self, self.redraw, self.insert_time_slice)
         self.movie_shape_prop_box = MovieShapePropBox(self, self.redraw, self.insert_time_slice)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
-
 
         prop_grid = Gtk.Grid()
         prop_grid.set_margin_left(10)
@@ -126,6 +126,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         row_count = self.text_shape_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.shape_form_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.curve_smooth_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.audio_shape_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.movie_shape_prop_box.add_into_grid(prop_grid, row_count)
 
         self.left_prop_box.pack_start(prop_grid, expand=False, fill=False, padding=0)
@@ -179,17 +180,17 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.time_slice_prop_box = TimeSlicePropBox(self.time_line_editor.update)
         self.right_prop_box.pack_start(self.time_slice_prop_box, expand=False, fill=False, padding=0)
 
-        self.jack_task = JackTask(audioQueue = self.audio_queue)
-        self.jack_task.start()
+        #self.jack_task = JackTask(audioQueue = self.audio_queue)
+        #self.jack_task.start()
 
 
     def quit(self, widget, event):
         Gtk.main_quit()
         if self.shape_manager:
             self.shape_manager.cleanup()
-        if self.jack_task:
-            self.jack_task.shouldStop = True
-            self.jack_task.join()
+        #if self.jack_task:
+        #    self.jack_task.shouldStop = True
+        #    self.jack_task.join()
 
 
     def init_interface(self):
@@ -303,6 +304,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.shape_form_prop_box.hide()
         self.curve_smooth_prop_box.hide()
         self.text_shape_prop_box.hide()
+        self.audio_shape_prop_box.hide()
         self.movie_shape_prop_box.hide()
 
         if shape != None:
@@ -318,7 +320,10 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.text_shape_prop_box.show()
                 self.text_shape_prop_box.set_prop_object(shape)
 
-            if isinstance(shape, MovieShape):
+            if isinstance(shape, AudioShape):
+                self.audio_shape_prop_box.show()
+                self.audio_shape_prop_box.set_prop_object(shape)
+            elif isinstance(shape, MovieShape):
                 self.movie_shape_prop_box.show()
                 self.movie_shape_prop_box.set_prop_object(shape)
 

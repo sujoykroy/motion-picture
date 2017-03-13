@@ -398,6 +398,21 @@ class ShapeManager(object):
         self.multi_shape.readjust_sizes()
         return True
 
+    def create_audio_shape(self, filename):
+        scale = 4.
+        w, h = self.doc.width/scale, self.doc.height/scale
+        shape = AudioShape(anchor_at=Point(w*.5, h*.5),
+                   border_color="000000",
+                   border_width=1, fill_color="cccccc",
+                   width=w, height=h, corner_radius=2)
+        shape.set_audio_path(filename)
+
+        self.place_shape_at_zero_position(shape)
+        self.add_shape(shape)
+        shape.set_stage_xy(Point(0, 0))
+        self.multi_shape.readjust_sizes()
+        return True
+
     def create_movie_shape(self, filename):
         shape = MovieShape(anchor_at=Point(0, 0),
                    border_color="000000",
@@ -744,6 +759,7 @@ class ShapeManager(object):
     def cleanup(self):
         for shape in self.shapes:
             shape.cleanup()
+        AudioShape.cleanup_threads()
 
     def insert_point_in_shape_at(self, point):
         if not self.selected_shape_supports_point_insert(): return False

@@ -3,6 +3,7 @@ from sizes import *
 from box import Box
 from edit_boxes import *
 from ..time_lines.time_change_types import *
+from ..shapes import AudioShape
 
 class TimeSliceBox(Box):
     def __init__(self, time_slice, prop_time_line_box):
@@ -96,6 +97,37 @@ class TimeSliceBox(Box):
 
         change_type = self.time_slice.change_type
         time_slice = self.time_slice
+
+        #draw audio_shape wave
+        prop_time_line = self.prop_time_line_box.prop_time_line
+        shape = prop_time_line.shape
+        prop_name = prop_time_line.prop_name
+        if isinstance(shape, AudioShape) and prop_name == "time_pos":
+            t_step = 1./(self.parent_box.scale_x*PIXEL_PER_SECOND)
+            t = time_slice.start_value
+            time_end = time_slice.end_value
+
+            ctx.save()
+            self.pre_draw(ctx)
+            ctx.scale(PIXEL_PER_SECOND, self.height)
+            diff_value = time_slice.end_value - time_slice.start_value
+            if diff_value <=0:
+                diff_value = 0.001
+            ctx.scale(time_slice.duration/diff_value, 1)
+            ctx.translate(-time_slice.start_value, 0)
+            wave_started = False
+            while t<time_end:
+                sample = shape.get_sample(t)
+                if sample is None:
+                    break
+                if not wave_started:
+                    wave_started = True
+                    ctx.move_to(t, .5-sample[0]/2)
+                else:
+                    ctx.line_to(t, .5-sample[0]/2)
+                t += t_step
+            ctx.restore()
+            draw_stroke(ctx, 1, "000000")
 
         ctx.save()
         self.pre_draw(ctx)

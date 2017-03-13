@@ -7,15 +7,15 @@ class JackTask(threading.Thread):
         self.shouldStop = False
         self.audioQueue = audioQueue
         try:
-            jack.attach("seq")
+            jack.attach("mpa")
         except jack.NotConnectedError as e:
             self.shouldStop = True
             return
         jack.register_port("out_1", jack.IsOutput | jack.CanMonitor)
         jack.register_port("out_2", jack.IsOutput | jack.CanMonitor)
         jack.activate()
-        jack.connect("seq:out_1", "system:playback_1")
-        jack.connect("seq:out_2", "system:playback_2")
+        jack.connect("mpa:out_1", "system:playback_1")
+        jack.connect("mpa:out_2", "system:playback_2")
         self.bufferSize = jack.get_buffer_size()
         self.sampleRate = jack.get_sample_rate()
         self.period = self.bufferSize*0.75/self.sampleRate

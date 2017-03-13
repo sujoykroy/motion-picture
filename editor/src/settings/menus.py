@@ -94,6 +94,8 @@ m.add(path="Shapes/<New>/Ring", icon="ring_shape",
       action_name="win.create_new_shape", action_state="ring")
 m.add(path="Shapes/<New>/Text", icon="text_shape",
       action_name="win.create_new_shape", action_state="text")
+m.add(path="Shapes/<New>/Audio", icon="image",
+      action_name="win.create_new_shape", action_state="audio")
 m.add(path="Shapes/<New>/Movie", icon="image",
       action_name="win.create_new_shape", action_state="movie")
 

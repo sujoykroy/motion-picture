@@ -10,3 +10,4 @@ class EditingChoice:
     HIDE_AXIS = True
     SHOW_ALL_TIME_LINES = True
     FREE_ERASING = False
+    TIME_STEP = .1

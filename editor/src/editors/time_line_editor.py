@@ -235,9 +235,9 @@ class TimeLineEditor(Gtk.VBox):
 
 
             if len(self.time_line.audio_time_lines) == 0:
-                filename = "/home/sujoy/Music/Temp/b1_dec_4.wav"
+                filename = "/home/sujoy/Music/FromRahul/mi2.mp3"
                 filename = "/home/sujoy/Music/Paradise_Coldplay.wav"
-                self.time_line.audio_time_lines.add(AudioTimeLine(filename, 0, -1))
+                #self.time_line.audio_time_lines.add(AudioTimeLine(filename, 0, -1))
 
             self.play_head_box = PlayHeadBox(self.on_play_head_move)
             self.play_button.show()
