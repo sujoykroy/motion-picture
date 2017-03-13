@@ -1,4 +1,5 @@
 import wave, numpy, math, Queue
+from moviepy.editor import *
 
 class AudioTimeLine(object):
     ID_SEED = 0
@@ -23,8 +24,15 @@ class AudioTimeLine(object):
     def __ne__(self, other):
         return not (self == other)
 
-
     def load_file(self):
+        audioclip = AudioFileClip(self.filename)
+        buffersize = 1000
+        self.samples = audioclip.to_soundarray(buffersize=buffersize).transpose().astype(numpy.float32)
+        self.frame_rate = audioclip.fps
+        self.file_duration = audioclip.duration
+        print "self.samples", self.samples.shape, self.samples.dtype
+
+    def load_file2(self):
         wavef = wave.open(self.filename, "rb")
         self.file_duration = wavef.getnframes()/wavef.getframerate()
 
@@ -50,6 +58,7 @@ class AudioTimeLine(object):
 
         self.samples = samples
         self.frame_rate = wavef.getframerate()
+        print "self.samples", self.samples.shape, self.samples.dtype
 
     def move_to(self, t, audio_queue, duration):
         if self.samples is None:
