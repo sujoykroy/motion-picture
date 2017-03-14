@@ -1,6 +1,6 @@
 from ..commons import *
 from rectangle_shape import RectangleShape, Shape
-from gi.repository import Gdk, GdkPixbuf, Gio
+from gi.repository import Gdk, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 from moviepy.editor import *
 import sys
@@ -85,7 +85,6 @@ class VideoShape(RectangleShape):
             self.video_clip = VideoFileClip(self.video_path)
         if time_pos>self.video_clip.duration:
             time_pos = self.video_clip.duration
-
         if time_pos>0:
             if self.process_thread is None:
                 self.frame_queue = Queue.Queue(1)
@@ -101,11 +100,20 @@ class VideoShape(RectangleShape):
                 pass
         else:
             frame = self.video_clip.get_frame(self.time_pos)
-            height, width, channels = frame.shape
-            rowstride = width*channels
-            image_data = frame.tobytes()
-            self.image_pixbuf = Pixbuf.new_from_data(
-                image_data, 0, False, 8, width, height, rowstride, None, None).copy()
+            self.image_pixbuf = self.get_pixbuf_from_frame(frame)
+
+    @staticmethod
+    def get_pixbuf_from_frame(frame):
+        height, width, channels = frame.shape
+        #rowstride = width*channels
+        header = b"P6 %d %d 255\n" % (width, height)
+
+        ploader = GdkPixbuf.PixbufLoader.new_with_type("pnm")
+        ploader.write(header)
+        ploader.write(bytearray(frame.tobytes()))
+        ploader.close()
+        pixbuf = ploader.get_pixbuf()
+        return pixbuf
 
     def draw_image(self, ctx):
         if self.process_thread:
@@ -114,12 +122,7 @@ class VideoShape(RectangleShape):
             except Queue.Empty as e:
                 frame = None
             if frame is not None:
-                height, width, channels =frame.shape
-                rowstride = width*channels
-                image_data = frame.tobytes()
-                self.image_pixbuf = Pixbuf.new_from_data(
-                    image_data, 0, False, 8, width, height, rowstride, None, None).copy()
-
+                self.image_pixbuf = self.get_pixbuf_from_frame(frame)
         if self.image_pixbuf:
             ctx.save()
             ctx.scale(self.width/float(self.image_pixbuf.get_width()),

@@ -421,7 +421,6 @@ class ShapeManager(object):
                    width=1, height=1, corner_radius=2)
         shape.set_video_path(filename)
         shape.set_time_pos(0)
-
         if shape.image_pixbuf:
             w = float(shape.image_pixbuf.get_width())
             h = float(shape.image_pixbuf.get_height())

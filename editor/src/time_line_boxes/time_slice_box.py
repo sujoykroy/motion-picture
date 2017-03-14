@@ -137,7 +137,6 @@ class TimeSliceBox(Box):
         ctx.scale(PIXEL_PER_SECOND, self.prop_time_line_box.y_per_value)
         ctx.translate(0, self.prop_time_line_box.max_value)
         ctx.scale(1, -1)
-        ctx.translate(-time_slice.start_value, 0)
         time_end = min(time_slice.duration, visible_time_span.end)
 
         t = visible_time_span.start
