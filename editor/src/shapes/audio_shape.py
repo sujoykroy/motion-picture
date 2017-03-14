@@ -16,6 +16,7 @@ class AudioProcessThread(threading.Thread):
         self.remove_audio_shape_queue = Queue.Queue()
 
         self.should_stop = False
+        self.started = False
         self.period = .1
         try:
             jack.attach(JACK_NAME)
@@ -32,8 +33,6 @@ class AudioProcessThread(threading.Thread):
 
         self.empty_data = numpy.zeros((2,5), dtype=numpy.float).astype('f')
         self.blank_data = numpy.zeros((2,self.buffer_size), dtype=numpy.float).astype('f')
-
-        self.started = False
 
     def attach_audio_shape(self, audio_shape):
         self.append_audio_shape_queue.put(audio_shape)

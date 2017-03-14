@@ -11,7 +11,6 @@ class MultiShapeTimeLine(object):
         self.name = name
         self.time_labels = []
         self.time_marker_list = TimeMarkerList()
-        self.audio_time_lines = OrderedDict()
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -75,11 +74,9 @@ class MultiShapeTimeLine(object):
     def remove_shape(self, shape):
         self.shape_time_lines.remove(shape)
 
-    def move_to(self, t, audio_queue, move_to_increment):
+    def move_to(self, t):
         for shape_time_line in self.shape_time_lines:
             shape_time_line.move_to(t)
-        for audio_time_line in self.audio_time_lines:
-            audio_time_line.move_to(t, audio_queue, move_to_increment)
 
     def get_duration(self):
         duration = 0

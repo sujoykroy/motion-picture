@@ -1,6 +1,6 @@
 from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
-from text_input_dialog import TextInputDialog
+from helper_dialogs import TextInputDialog
 
 class MultiShapeInternalPropBox(Gtk.VBox):
     def __init__(self, draw_callback, timeline_load_callback):

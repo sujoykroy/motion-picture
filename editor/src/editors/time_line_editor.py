@@ -4,7 +4,6 @@ import time
 from ..commons import *
 from ..commons.draw_utils import *
 from ..time_lines import MultiShapeTimeLine
-from ..time_lines import AudioTimeLine
 from ..time_line_boxes import *
 
 from ..gui_utils import buttons
@@ -130,13 +129,12 @@ class TimeRange(object):
 
 
 class TimeLineEditor(Gtk.VBox):
-    def __init__(self, play_head_callback, time_slice_box_select_callback, keyboard_object, audio_queue):
+    def __init__(self, play_head_callback, time_slice_box_select_callback, keyboard_object):
         Gtk.VBox.__init__(self)
 
         self.keyboard_object = keyboard_object
         self.play_head_callback = play_head_callback
         self.time_slice_box_select_callback = time_slice_box_select_callback
-        self.audio_queue = audio_queue
 
         info_hbox = Gtk.HBox()
         self.pack_start(info_hbox, expand=False, fill=False, padding=0)
@@ -235,12 +233,6 @@ class TimeLineEditor(Gtk.VBox):
             for at in time_marker_list.at_times():
                 self.time_marker_boxes.append(TimeMarkerBox(time_marker_list[at]))
 
-
-            if len(self.time_line.audio_time_lines) == 0:
-                filename = "/home/sujoy/Music/FromRahul/mi2.mp3"
-                filename = "/home/sujoy/Music/Paradise_Coldplay.wav"
-                #self.time_line.audio_time_lines.add(AudioTimeLine(filename, 0, -1))
-
             self.play_head_box = PlayHeadBox(self.on_play_head_move)
             self.play_button.show()
             self.pause_button.hide()
@@ -255,7 +247,7 @@ class TimeLineEditor(Gtk.VBox):
     def move_play_head_to_time(self, value):
         if value is not None:
             self.play_head_time = value
-            self.time_line.move_to(self.play_head_time, self.audio_queue, MOVE_TO_INCREMENT)
+            self.time_line.move_to(self.play_head_time)
         extra_x = self.time_range.get_extra_pixel_for_time(self.play_head_time)
         if self.play_head_box:
             self.play_head_box.set_center_x(TIME_SLICE_START_X + extra_x)
@@ -405,9 +397,6 @@ class TimeLineEditor(Gtk.VBox):
             for prop_line_box in shape_line_box.prop_time_line_boxes:
                 prop_line_box.set_time_multiplier(scale_x)
 
-        for audio_time_line_box in self.multi_shape_time_line_box.audio_time_line_boxes:
-            audio_time_line_box.set_time_multiplier(scale_x)
-
         self.update_time_marker_boxes()
 
     def zoom_vertical(self, value, point):
@@ -419,10 +408,6 @@ class TimeLineEditor(Gtk.VBox):
                 if prop_line_box.is_within(point):
                     prop_line_box.set_vertical_multiplier(scale_y)
                     break
-        for audio_time_line_box in self.multi_shape_time_line_box.audio_time_line_boxes:
-            if audio_time_line_box.is_within(point):
-                audio_time_line_box.set_vertical_multiplier(scale_y)
-                break
 
     def on_play_pause_button_click(self, widget, play):
         if self.time_line.duration == 0:
@@ -466,7 +451,7 @@ class TimeLineEditor(Gtk.VBox):
         if self.play_head_time<0:
             self.move_play_head_to_time(0)
         self.show_current_play_head_time()
-        self.time_line.move_to(self.play_head_time, self.audio_queue, MOVE_TO_INCREMENT)
+        self.time_line.move_to(self.play_head_time)
         self.play_head_callback()
 
     def on_move_to(self):
