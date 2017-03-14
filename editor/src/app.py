@@ -171,11 +171,11 @@ class ApplicationWindow(MasterEditor):
                 return
             if self.shape_manager.create_audio_shape(filename):
                 self.redraw()
-        elif shape_type == "movie":
+        elif shape_type == "video":
             filename = FileOp.choose_file(self, purpose="open", file_types=[["Video", "video/*"]])
             if not filename:
                 return
-            if self.shape_manager.create_movie_shape(filename):
+            if self.shape_manager.create_video_shape(filename):
                 self.redraw()
         else:
             self.set_shape_creation_mode(shape_type)

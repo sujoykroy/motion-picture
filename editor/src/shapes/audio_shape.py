@@ -153,10 +153,13 @@ class AudioShape(RectangleShape):
         shape = cls(*arr)
         shape.assign_params_from_xml_element(elm)
         shape.set_audio_path(elm.attrib.get("audio_path", ""))
+        self._load_samples()
         return shape
 
     def set_audio_path(self, audio_path):
         self.audio_path = audio_path
+        audioclip = AudioFileClip(self.audio_path)
+        self.duration = audioclip.duration
 
     def _load_samples(self):
         audioclip = AudioFileClip(self.audio_path)
@@ -171,7 +174,7 @@ class AudioShape(RectangleShape):
             self._load_samples()
 
         pos = int(at*self.audio_fps)
-        if pos<0 or pos>self.audio_samples.shape[1]:
+        if pos<0 or pos>=self.audio_samples.shape[1]:
             return None
         return self.audio_samples[:, pos]
 
@@ -180,7 +183,6 @@ class AudioShape(RectangleShape):
         if self.audio_queue is None:
             self._load_samples()
             self.audio_queue = Queue.Queue(1)
-            print "got"
             if AudioShape.AUDIO_PROCESS_THREAD is None:
                 AudioShape.AUDIO_PROCESS_THREAD = AudioProcessThread()
 
@@ -190,6 +192,7 @@ class AudioShape(RectangleShape):
             return
 
         s = int(self.time_pos*self.audio_fps)
+        st = time.time()
         samples = self.audio_samples[:, s: s+int(self.TIME_STEP*self.audio_fps)]
         try:
             self.audio_queue.put(samples, block=False)

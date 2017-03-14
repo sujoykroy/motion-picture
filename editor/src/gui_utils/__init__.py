@@ -8,8 +8,7 @@ from misc_prop_boxes import OvalShapePropBox
 from misc_prop_boxes import RingShapePropBox
 from misc_prop_boxes import MultiShapePropBox
 from misc_prop_boxes import TextShapePropBox
-from misc_prop_boxes import AudioShapePropBox
-from misc_prop_boxes import MovieShapePropBox
+from misc_prop_boxes import AudioVideoShapePropBox
 
 from curve_smooth_prop_box import CurveSmoothPropBox
 

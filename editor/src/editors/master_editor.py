@@ -96,8 +96,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_prop_box = MultiShapePropBox(self, self.redraw, self.insert_time_slice)
         self.curve_smooth_prop_box = CurveSmoothPropBox(
                             self.recreate_shape_editor, self.get_shape_manager)
-        self.audio_shape_prop_box = AudioShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.movie_shape_prop_box = MovieShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.audio_video_shape_prop_box = AudioVideoShapePropBox(self, self.redraw, self.insert_time_slice)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
@@ -122,8 +121,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         row_count = self.text_shape_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.shape_form_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.curve_smooth_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.audio_shape_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.movie_shape_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.audio_video_shape_prop_box.add_into_grid(prop_grid, row_count)
 
         self.left_prop_box.pack_start(prop_grid, expand=False, fill=False, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
@@ -259,9 +257,10 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.next_new_shape_type = shape_type
         self.state_mode = MODE_NEW_SHAPE_CREATE
 
-    def insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):
+    def insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None, duration=None):
         if not self.time_line_editor.time_line: return
-        duration = 5.
+        if duration is None:
+            duration = .5
         t = self.time_line_editor.get_play_head_time()
         time_line = self.time_line_editor.time_line
         time_slices = []
@@ -292,8 +291,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.shape_form_prop_box.hide()
         self.curve_smooth_prop_box.hide()
         self.text_shape_prop_box.hide()
-        self.audio_shape_prop_box.hide()
-        self.movie_shape_prop_box.hide()
+        self.audio_video_shape_prop_box.hide()
 
         if shape != None:
             if shape.linked_to:
@@ -308,12 +306,9 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.text_shape_prop_box.show()
                 self.text_shape_prop_box.set_prop_object(shape)
 
-            if isinstance(shape, AudioShape):
-                self.audio_shape_prop_box.show()
-                self.audio_shape_prop_box.set_prop_object(shape)
-            elif isinstance(shape, MovieShape):
-                self.movie_shape_prop_box.show()
-                self.movie_shape_prop_box.set_prop_object(shape)
+            if isinstance(shape, AudioShape) or isinstance(shape, VideoShape):
+                self.audio_video_shape_prop_box.show()
+                self.audio_video_shape_prop_box.set_prop_object(shape)
 
             if isinstance(shape, RectangleShape):
                 self.rectangle_shape_prop_box.show()

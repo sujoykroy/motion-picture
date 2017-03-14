@@ -7,7 +7,7 @@ import sys
 
 import threading, time, Queue
 
-class MovieProcessThread(threading.Thread):
+class VideoProcessThread(threading.Thread):
     def __init__(self, clip, frame_queue, time_queue):
         threading.Thread.__init__(self)
         self.frame_queue = frame_queue
@@ -34,30 +34,31 @@ class MovieProcessThread(threading.Thread):
             if diffTime>0:
                 time.sleep(diffTime)
 
-class MovieShape(RectangleShape):
-    TYPE_NAME = "Movie"
+class VideoShape(RectangleShape):
+    TYPE_NAME = "Video"
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius):
         RectangleShape.__init__(self, anchor_at, border_color, border_width,
                                 fill_color, width, height, corner_radius)
-        self.movie_path = None
+        self.video_path = None
         self.image_pixbuf = None
         self.alpha = 1.
         self.time_pos = 0.
-        self.movie_clip = None
+        self.video_clip = None
+        self.duration = 0
         self.process_thread = None
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = MovieShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
+        newob = VideoShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                         self.fill_color.copy(), self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
-        newob.set_movie_path(self.movie_path)
+        newob.set_video_path(self.video_path)
         newob.alpha = self.alpha
         return newob
 
     def get_xml_element(self):
-        elm = MovieShape.get_xml_element(self)
-        elm.attrib["movie_path"] = self.movie_path
+        elm = VideoShape.get_xml_element(self)
+        elm.attrib["video_path"] = self.video_path
         elm.attrib["alpha"] = "{0}".format(self.alpha)
         return elm
 
@@ -67,30 +68,31 @@ class MovieShape(RectangleShape):
         arr.append(float(elm.attrib.get("corner_radius", 0)))
         shape = cls(*arr)
         shape.assign_params_from_xml_element(elm)
-        shape.set_movie_path(elm.attrib.get("movie_path", ""))
+        shape.set_video_path(elm.attrib.get("video_path", ""))
         shape.alpha = float(elm.attrib.get("alpha", 1.))
         return shape
 
-    def set_movie_path(self, movie_path):
-        self.movie_path = movie_path
-        self.movie_clip = VideoFileClip(self.movie_path)
+    def set_video_path(self, video_path):
+        self.video_path = video_path
+        video_clip = VideoFileClip(self.video_path)
+        self.duration =  video_clip.duration
         self.image_pixbuf = None
-        self.set_time_pos(0)
 
     def set_time_pos(self, time_pos):
-        self.time_pos = time_pos
-        if self.movie_clip is None:
+        if time_pos<0:
             return
-        if time_pos>self.movie_clip.duration:
-            time_pos = self.movie_clip.duration
+        if self.video_clip is None:
+            self.video_clip = VideoFileClip(self.video_path)
+        if time_pos>self.video_clip.duration:
+            time_pos = self.video_clip.duration
+
         if time_pos>0:
             if self.process_thread is None:
                 self.frame_queue = Queue.Queue(1)
                 self.time_queue = Queue.Queue(1)
-                self.process_thread = MovieProcessThread(
-                    self.movie_clip, self.frame_queue, self.time_queue)
+                self.process_thread = VideoProcessThread(
+                    self.video_clip, self.frame_queue, self.time_queue)
                 self.process_thread.start()
-
 
         if self.process_thread is not None:
             try:
@@ -98,7 +100,7 @@ class MovieShape(RectangleShape):
             except Queue.Full as e:
                 pass
         else:
-            frame = self.movie_clip.get_frame(self.time_pos)
+            frame = self.video_clip.get_frame(self.time_pos)
             height, width, channels = frame.shape
             rowstride = width*channels
             image_data = frame.tobytes()

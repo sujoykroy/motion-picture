@@ -406,6 +406,7 @@ class ShapeManager(object):
                    border_width=1, fill_color="cccccc",
                    width=w, height=h, corner_radius=2)
         shape.set_audio_path(filename)
+        shape.set_time_pos(0)
 
         self.place_shape_at_zero_position(shape)
         self.add_shape(shape)
@@ -413,12 +414,13 @@ class ShapeManager(object):
         self.multi_shape.readjust_sizes()
         return True
 
-    def create_movie_shape(self, filename):
-        shape = MovieShape(anchor_at=Point(0, 0),
+    def create_video_shape(self, filename):
+        shape = VideoShape(anchor_at=Point(0, 0),
                    border_color="000000",
                    border_width=1, fill_color="cccccc",
                    width=1, height=1, corner_radius=2)
-        shape.set_movie_path(filename)
+        shape.set_video_path(filename)
+        shape.set_time_pos(0)
 
         if shape.image_pixbuf:
             w = float(shape.image_pixbuf.get_width())

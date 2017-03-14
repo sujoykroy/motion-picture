@@ -7,7 +7,7 @@ from polygon_shape import PolygonShape
 from multi_shape import MultiShape
 from image_shape import ImageShape
 from audio_shape import AudioShape
-from movie_shape import MovieShape
+from video_shape import VideoShape
 from multi_selection_shape import MultiSelectionShape
 from ring_shape import RingShape
 from text_shape import TextShape

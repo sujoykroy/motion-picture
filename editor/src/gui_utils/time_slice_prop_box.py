@@ -161,7 +161,6 @@ class TimeSlicePropBox(Gtk.Frame):
             entry = Gtk.Entry()
             entry.connect("changed", self.item_widget_changed)
             item_widget = entry
-            entry.props.max_length = 5
         elif item_type == self.BOOLEAN:
             checkbox = Gtk.CheckButton()
             checkbox.connect("toggled", self.item_widget_changed)

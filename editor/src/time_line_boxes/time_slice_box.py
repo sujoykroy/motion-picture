@@ -97,7 +97,6 @@ class TimeSliceBox(Box):
 
         change_type = self.time_slice.change_type
         time_slice = self.time_slice
-        t_step = 1./(visible_time_span.scale*PIXEL_PER_SECOND)
 
         #draw audio_shape wave
         prop_time_line = self.prop_time_line_box.prop_time_line
@@ -111,6 +110,7 @@ class TimeSliceBox(Box):
 
             time_start = time_slice.start_value + visible_time_span.start/slice_scale
             time_end = min(time_slice.end_value, (time_slice.start_value+visible_time_span.end/slice_scale))
+            t_step = 1./(slice_scale*visible_time_span.scale*PIXEL_PER_SECOND)
             t = time_start
 
             ctx.save()
@@ -141,6 +141,7 @@ class TimeSliceBox(Box):
         time_end = min(time_slice.duration, visible_time_span.end)
 
         t = visible_time_span.start
+        t_step = 1./(visible_time_span.scale*PIXEL_PER_SECOND)
         draw_started = False
         if isinstance(change_type, PeriodicChangeType):
             while t<time_end:

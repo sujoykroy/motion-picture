@@ -113,14 +113,19 @@ class MultiShapePropBox(ShapePropBox):
 
         self.insert_time_slice_callback(self.prop_object, "internal" , 0, 1, prop_data)
 
-class MovieShapePropBox(RectangleShapePropBox):
+class AudioVideoShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
-        RectangleShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
+        RectangleShapePropBox.__init__(self, parent_window, draw_callback, self.new_insert_time_slice)
         self.add_prop("time_pos", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
+                dict(value=0, lower=0, upper=3*60*60, step_increment=1, page_increment=1, page_size=1))
+        self.orig_insert_time_slice_callback = insert_time_slice_callback
 
-class AudioShapePropBox(RectangleShapePropBox):
-    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
-        RectangleShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
-        self.add_prop("time_pos", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
+
+    def new_insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):
+        if prop_name == "time_pos":
+            start_value = 0
+            end_value = self.prop_object.duration
+            duration = self.prop_object.duration
+        else:
+            duration = None
+        self.orig_insert_time_slice_callback(shape, prop_name, start_value, end_value, prop_data, duration)
