@@ -44,7 +44,7 @@ class ShapeTimeLineBox(Box):
         self.width = width
         self.height = height + SHAPE_LINE_BOTTOM_PADDING
 
-    def draw(self, ctx, selected):
+    def draw(self, ctx, selected, visible_time_span):
         if selected:
             text_color = "ffffff"
             back_color = "ff0000"
@@ -58,6 +58,6 @@ class ShapeTimeLineBox(Box):
             back_color = back_color, pre_draw=self.pre_draw)
         for prop_time_line_box in self.prop_time_line_boxes:
             ctx.save()
-            prop_time_line_box.draw(ctx)
+            prop_time_line_box.draw(ctx, visible_time_span)
             ctx.restore()
 

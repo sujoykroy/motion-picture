@@ -78,7 +78,7 @@ class TimeSliceBox(Box):
             (self.prop_time_line_box.max_value -
                 self.time_slice.end_value)*self.prop_time_line_box.y_per_value)
 
-    def draw(self, ctx):
+    def draw(self, ctx, visible_time_span):
         ctx.save()
         self.pre_draw(ctx)
         draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, 0)
@@ -97,23 +97,26 @@ class TimeSliceBox(Box):
 
         change_type = self.time_slice.change_type
         time_slice = self.time_slice
+        t_step = 1./(visible_time_span.scale*PIXEL_PER_SECOND)
 
         #draw audio_shape wave
         prop_time_line = self.prop_time_line_box.prop_time_line
         shape = prop_time_line.shape
         prop_name = prop_time_line.prop_name
         if isinstance(shape, AudioShape) and prop_name == "time_pos":
-            t_step = 1./(self.parent_box.scale_x*PIXEL_PER_SECOND)
-            t = time_slice.start_value
-            time_end = time_slice.end_value
+            diff_value = abs(time_slice.end_value - time_slice.start_value)
+            if diff_value ==0:
+                diff_value = 0.001
+            slice_scale = time_slice.duration/diff_value
+
+            time_start = time_slice.start_value + visible_time_span.start/slice_scale
+            time_end = min(time_slice.end_value, (time_slice.start_value+visible_time_span.end/slice_scale))
+            t = time_start
 
             ctx.save()
             self.pre_draw(ctx)
             ctx.scale(PIXEL_PER_SECOND, self.height)
-            diff_value = time_slice.end_value - time_slice.start_value
-            if diff_value <=0:
-                diff_value = 0.001
-            ctx.scale(time_slice.duration/diff_value, 1)
+            ctx.scale(slice_scale, 1)
             ctx.translate(-time_slice.start_value, 0)
             wave_started = False
             while t<time_end:
@@ -134,16 +137,20 @@ class TimeSliceBox(Box):
         ctx.scale(PIXEL_PER_SECOND, self.prop_time_line_box.y_per_value)
         ctx.translate(0, self.prop_time_line_box.max_value)
         ctx.scale(1, -1)
+        ctx.translate(-time_slice.start_value, 0)
+        time_end = min(time_slice.duration, visible_time_span.end)
 
+        t = visible_time_span.start
+        draw_started = False
         if isinstance(change_type, PeriodicChangeType):
-            total_steps = int(self.time_slice.duration*self.parent_box.scale_x*PIXEL_PER_SECOND)
-            for i in range(total_steps):
-                x = i*self.time_slice.duration/total_steps
-                y = self.time_slice.value_at(x)
-                if i == 0:
-                    ctx.move_to(x, y)
+            while t<time_end:
+                y = self.time_slice.value_at(t)
+                if not draw_started:
+                    ctx.move_to(t, y)
+                    draw_started = True
                 else:
-                    ctx.line_to(x, y)
+                    ctx.line_to(t, y)
+                t += t_step
         elif isinstance(self.time_slice.change_type, TimeChangeType):
             draw_straight_line(ctx, 0, self.time_slice.start_value,
                         self.time_slice.duration, self.time_slice.end_value)

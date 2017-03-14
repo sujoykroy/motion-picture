@@ -142,3 +142,9 @@ class TimeMarkerList(object):
     def at_times(self):
         for at in sorted(self.markers.keys()):
             yield at
+
+class Span(object):
+    def __init__(self, start, end, scale):
+        self.start = start
+        self.end = end
+        self.scale = scale

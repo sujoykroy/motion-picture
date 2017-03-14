@@ -78,18 +78,19 @@ class MultiShapeTimeLineBox(Box):
         self.width = width + SHAPE_LINE_LEFT_PADDING
         self.height = height
 
-    def draw(self, ctx, shape=None, time_start=0, time_end=0):
+    def draw(self, ctx, visible_time_span, shape=None):
         for shape_time_line_box in self.shape_time_line_boxes:
             selected = shape_time_line_box.shape_time_line.shape == shape
             ctx.save()
-            shape_time_line_box.draw(ctx, selected=selected)
+            shape_time_line_box.draw(ctx, selected=selected, visible_time_span=visible_time_span)
             ctx.restore()
 
+        """
         for audio_time_line_box in self.audio_time_line_boxes:
             ctx.save()
             audio_time_line_box.draw(ctx, time_start, time_end)
             ctx.restore()
-
+        """
     def update_slices_container_box_left(self, value):
         for shape_line_box in self.shape_time_line_boxes:
             for prop_line_box in shape_line_box.prop_time_line_boxes:

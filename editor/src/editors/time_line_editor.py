@@ -62,6 +62,7 @@ class TimeRange(object):
         self.scaled_full_length_pixel = 0
         self._scale = 1.
         self.pixel_per_second = PIXEL_PER_SECOND
+        self.visible_span = Span(0, 0, 1)
 
     def reset(self):
         self._scale = 1.
@@ -105,9 +106,10 @@ class TimeRange(object):
         self._start_pixel = excess_length*frac
 
     def get_start_end_time(self):
-        s = self._start_pixel/self.pixel_per_second
-        e = (self._start_pixel+self._visible_duration_pixel)/self.pixel_per_second
-        return (s, e)
+        self.visible_span.start = self._start_pixel/self.pixel_per_second
+        self.visible_span.end = (self._start_pixel+self._visible_duration_pixel)/self.pixel_per_second
+        self.visible_span.scale = self._scale
+        return self.visible_span
 
     def get_start_pixel(self):
         return self._start_pixel
@@ -486,13 +488,14 @@ class TimeLineEditor(Gtk.VBox):
         ctx.rectangle(0, 0, TIME_SLICE_START_X, widget.get_allocated_height())
         draw_fill(ctx, PROP_LEFT_BACK_COLOR)
 
-        visible_time_start, visible_time_end = self.time_range.get_start_end_time()
+        visible_time_span = self.time_range.get_start_end_time()
+        visible_time_start, visible_time_end = visible_time_span.start, visible_time_span.end
 
         if active:
             #draw time slices
             ctx.save()
             ctx.translate(0, TIME_STAMP_LABEL_HEIGHT)
-            self.multi_shape_time_line_box.draw(ctx, self.selected_shape, visible_time_start, visible_time_end)
+            self.multi_shape_time_line_box.draw(ctx, visible_time_span, self.selected_shape)
             ctx.restore()
 
         #left prop name vertical box, rework to unwind prop_line's back distortions

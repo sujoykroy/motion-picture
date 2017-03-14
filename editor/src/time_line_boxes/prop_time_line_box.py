@@ -66,7 +66,7 @@ class PropTimeLineBox(Box):
         self.width = width*self.slices_container_box.scale_x + self.slices_container_box.left
         self.height = height*self.slices_container_box.scale_y + PROP_TIME_LINE_VERTICAL_PADDING
 
-    def draw(self, ctx):
+    def draw(self, ctx, visible_time_span):
         ctx.save()
         self.pre_draw(ctx)
         ctx.rectangle(0, 0, 2000, self.height-PROP_TIME_LINE_VERTICAL_PADDING)
@@ -76,7 +76,7 @@ class PropTimeLineBox(Box):
         for time_slice in self.prop_time_line.time_slices:
             time_slice_box = self.time_slice_boxes[time_slice]
             ctx.save()
-            time_slice_box.draw(ctx)
+            time_slice_box.draw(ctx, visible_time_span)
             ctx.restore()
 
         ctx.save()
