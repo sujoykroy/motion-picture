@@ -158,6 +158,7 @@ class ApplicationWindow(MasterEditor):
         change_action_tool_buttons(action)
         shape_type = parameter.get_string()
         if not shape_type: return
+        shape_creartion_is_done = True
         if shape_type == "image":
             filename = FileOp.choose_file(self, purpose="open", file_types=[["Image", "image/*"]])
             if not filename:
@@ -178,7 +179,10 @@ class ApplicationWindow(MasterEditor):
             if self.shape_manager.create_video_shape(filename):
                 self.redraw()
         else:
+            shape_creartion_is_done = False
             self.set_shape_creation_mode(shape_type)
+        if shape_creartion_is_done:
+            self.lookup_action("create_new_shape").activate(GLib.Variant.new_string(""))
         #action.set_state(GLib.Variant.new_string(""))
         #change_action_tool_buttons(action)
 

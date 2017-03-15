@@ -593,6 +593,11 @@ class Shape(object):
     def rename(self, name):
         self._name = name
 
+
+    def place_anchor_at_center(self):
+        self.anchor_at.x = self.get_width()*.5
+        self.anchor_at.y = self.get_height()*.5
+
     NAME_SEED = 0
     _APP_EPOCH_TIME = time.mktime(time.strptime("1 Jan 2016", "%d %b %Y"))
 

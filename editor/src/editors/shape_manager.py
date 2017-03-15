@@ -404,9 +404,11 @@ class ShapeManager(object):
         shape = AudioShape(anchor_at=Point(w*.5, h*.5),
                    border_color="000000",
                    border_width=1, fill_color="cccccc",
-                   width=w, height=h, corner_radius=2)
+                   width=1, height=1, corner_radius=2)
+        shape.audio_icon = Document.get_icon_shape("audio", 20, 20)
         shape.set_audio_path(filename)
         shape.set_time_pos(0)
+        shape.place_anchor_at_center()
 
         self.place_shape_at_zero_position(shape)
         self.add_shape(shape)

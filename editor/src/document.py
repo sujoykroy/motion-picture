@@ -165,3 +165,23 @@ class Document(object):
         image = Gtk.Image.new_from_pixbuf(pixbuf)
         image.set_tooltip_text(get_displayble_prop_name(icon_name))
         return image
+
+    @staticmethod
+    def get_icon_shape(icon_name, width=None, height=None):
+        filename = os.path.join(Settings.ICONS_FOLDER, icon_name + ".xml")
+        doc = Document(filename=filename)
+        shape = doc.main_multi_shape
+
+        if width is not None and height is not None:
+            scale_x = width/shape.get_width()
+            scale_y = height/shape.get_height()
+
+            shape.anchor_at.x=0
+            shape.anchor_at.y=0
+
+            shape.scale_border_width(min(scale_x, scale_y))
+            shape.set_prop_value("scale_x", scale_x)
+            shape.set_prop_value("scale_y", scale_y)
+
+            shape.move_to(0,0)
+        return shape

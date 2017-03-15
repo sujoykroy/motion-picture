@@ -1,7 +1,7 @@
 from ..commons import *
-from rectangle_shape import RectangleShape, Shape
+from text_shape import TextShape, Shape
 from moviepy.editor import *
-import sys
+import sys, os
 import jack, numpy
 
 import threading, time, Queue
@@ -33,6 +33,7 @@ class AudioProcessThread(threading.Thread):
 
         self.empty_data = numpy.zeros((2,5), dtype=numpy.float).astype('f')
         self.blank_data = numpy.zeros((2,self.buffer_size), dtype=numpy.float).astype('f')
+        self.audio_icon = None
 
     def attach_audio_shape(self, audio_shape):
         self.append_audio_shape_queue.put(audio_shape)
@@ -120,13 +121,13 @@ class AudioProcessThread(threading.Thread):
                     time.sleep(diff_time)
         jack.detach()
 
-class AudioShape(RectangleShape):
+class AudioShape(TextShape):
     TYPE_NAME = "Audio"
     TIME_STEP = .1
     AUDIO_PROCESS_THREAD = None
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius):
-        RectangleShape.__init__(self, anchor_at, border_color, border_width,
+        TextShape.__init__(self, anchor_at, border_color, border_width,
                                 fill_color, width, height, corner_radius)
         self.audio_path = None
         self.audio_samples = None
@@ -160,6 +161,7 @@ class AudioShape(RectangleShape):
         self.audio_path = audio_path
         audioclip = AudioFileClip(self.audio_path)
         self.duration = audioclip.duration
+        self.set_text(os.path.basename(audio_path))
 
     def _load_samples(self):
         audioclip = AudioFileClip(self.audio_path)
@@ -199,8 +201,16 @@ class AudioShape(RectangleShape):
         except Queue.Full as e:
             pass
 
+    def draw_image(self, ctx):
+        if self.audio_icon is None:
+            return
+        ctx.save()
+        ctx.translate(0, -self.audio_icon.get_abs_outline(0).height*1.2)
+        self.audio_icon.draw(ctx)
+        ctx.restore()
+
     def cleanup(self):
-        RectangleShape.cleanup(self)
+        TextShape.cleanup(self)
         if AudioShape.AUDIO_PROCESS_THREAD is not None:
             AudioShape.AUDIO_PROCESS_THREAD.detach_audio_shape(self)
 

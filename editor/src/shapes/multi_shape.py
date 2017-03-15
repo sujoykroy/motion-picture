@@ -382,14 +382,16 @@ class MultiShape(Shape):
                 shape.draw_fill(ctx)
                 ctx.restore()
 
-                if isinstance(shape, ImageShape) or isinstance(shape, VideoShape):
+                if isinstance(shape, ImageShape) or \
+                   isinstance(shape, VideoShape) or \
+                   isinstance(shape, AudioShape):
                     ctx.save()
                     shape.pre_draw(ctx)
                     shape.draw_path(ctx)
                     shape.draw_image(ctx)
                     ctx.restore()
 
-                elif isinstance(shape, TextShape):
+                if isinstance(shape, TextShape):
                     ctx.save()
                     shape.pre_draw(ctx)
                     shape.draw_path(ctx)
