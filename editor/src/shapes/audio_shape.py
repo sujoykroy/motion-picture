@@ -1,5 +1,5 @@
 from ..commons import *
-from text_shape import TextShape, Shape
+from text_shape import *
 from moviepy.editor import *
 import sys, os
 import jack, numpy
@@ -33,7 +33,7 @@ class AudioProcessThread(threading.Thread):
 
         self.empty_data = numpy.zeros((2,5), dtype=numpy.float).astype('f')
         self.blank_data = numpy.zeros((2,self.buffer_size), dtype=numpy.float).astype('f')
-        self.audio_icon = None
+        self.AUDIO_ICON = None
 
     def attach_audio_shape(self, audio_shape):
         self.append_audio_shape_queue.put(audio_shape)
@@ -100,7 +100,6 @@ class AudioProcessThread(threading.Thread):
                     if self.blank_data.shape[1]<output.shape[1]:
                         extra_blank = numpy.array([[0], [0]]).repeat(
                                output.shape[1]-self.blank_data.shape[1], axis=1).astype('f')
-                        print extra_blank.shape
                         self.blank_data = numpy.concatenate((self.blank_data, extra_blank), axis=1)
                     output = numpy.concatenate((output, self.blank_data[:, 0:output.shape[1]]), axis=0)
 
@@ -125,10 +124,14 @@ class AudioShape(TextShape):
     TYPE_NAME = "Audio"
     TIME_STEP = .1
     AUDIO_PROCESS_THREAD = None
+    AUDIO_ICON = None
 
-    def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius):
+    def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius,
+                       x_align=X_ALIGN_CENTER, y_align=Y_ALIGN_MIDDLE, text="Sample",
+                       font="10", font_color=None, line_align = 1):
         TextShape.__init__(self, anchor_at, border_color, border_width,
-                                fill_color, width, height, corner_radius)
+                                fill_color, width, height, corner_radius,
+                                x_align, y_align, text, font, font_color, line_align)
         self.audio_path = None
         self.audio_samples = None
         self.duration = 0
@@ -138,23 +141,20 @@ class AudioShape(TextShape):
     def copy(self, copy_name=False, deep_copy=False):
         newob = AudioShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                         self.fill_color.copy(), self.width, self.height, self.corner_radius)
-        self.copy_into(newob, copy_name)
         newob.set_audio_path(self.audio_path)
+        self.copy_into(newob, copy_name)
         return newob
 
     def get_xml_element(self):
-        elm = AudioShape.get_xml_element(self)
+        elm = TextShape.get_xml_element(self)
         elm.attrib["audio_path"] = self.audio_path
         return elm
 
     @classmethod
     def create_from_xml_element(cls, elm):
-        arr = Shape.get_params_array_from_xml_element(elm)
-        arr.append(float(elm.attrib.get("corner_radius", 0)))
-        shape = cls(*arr)
-        shape.assign_params_from_xml_element(elm)
+        shape = super(AudioShape, cls).create_from_xml_element(elm)
         shape.set_audio_path(elm.attrib.get("audio_path", ""))
-        self._load_samples()
+        shape._load_samples()
         return shape
 
     def set_audio_path(self, audio_path):
@@ -202,11 +202,11 @@ class AudioShape(TextShape):
             pass
 
     def draw_image(self, ctx):
-        if self.audio_icon is None:
+        if self.AUDIO_ICON is None:
             return
         ctx.save()
-        ctx.translate(0, -self.audio_icon.get_abs_outline(0).height*1.2)
-        self.audio_icon.draw(ctx)
+        ctx.translate(0, -self.AUDIO_ICON.get_abs_outline(0).height*1.2)
+        self.AUDIO_ICON.draw(ctx)
         ctx.restore()
 
     def cleanup(self):

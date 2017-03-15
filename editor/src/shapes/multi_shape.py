@@ -98,6 +98,10 @@ class MultiShape(Shape):
                 child_shape = CurveShape.create_from_xml_element(shape_element)
             elif shape_type == PolygonShape.TYPE_NAME:
                 child_shape = PolygonShape.create_from_xml_element(shape_element)
+            elif shape_type == AudioShape.TYPE_NAME:
+                child_shape = AudioShape.create_from_xml_element(shape_element)
+            elif shape_type == VideoShape.TYPE_NAME:
+                child_shape = VideoShape.create_from_xml_element(shape_element)
             elif shape_type == MultiShape.TYPE_NAME:
                 child_shape = MultiShape.create_from_xml_element(shape_element)
             if child_shape is None: continue

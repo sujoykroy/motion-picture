@@ -57,17 +57,14 @@ class VideoShape(RectangleShape):
         return newob
 
     def get_xml_element(self):
-        elm = VideoShape.get_xml_element(self)
+        elm = RectangleShape.get_xml_element(self)
         elm.attrib["video_path"] = self.video_path
         elm.attrib["alpha"] = "{0}".format(self.alpha)
         return elm
 
     @classmethod
     def create_from_xml_element(cls, elm):
-        arr = Shape.get_params_array_from_xml_element(elm)
-        arr.append(float(elm.attrib.get("corner_radius", 0)))
-        shape = cls(*arr)
-        shape.assign_params_from_xml_element(elm)
+        shape = super(VideoShape, cls).create_from_xml_element(elm)
         shape.set_video_path(elm.attrib.get("video_path", ""))
         shape.alpha = float(elm.attrib.get("alpha", 1.))
         return shape

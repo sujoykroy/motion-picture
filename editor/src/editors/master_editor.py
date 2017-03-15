@@ -174,6 +174,9 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.time_slice_prop_box = TimeSlicePropBox(self.time_line_editor.update)
         self.right_prop_box.pack_start(self.time_slice_prop_box, expand=False, fill=False, padding=0)
 
+
+        AudioShape.AUDIO_ICON = Document.get_icon_shape("audio", 20, 20)
+
     def quit(self, widget, event):
         Gtk.main_quit()
         if self.shape_manager:

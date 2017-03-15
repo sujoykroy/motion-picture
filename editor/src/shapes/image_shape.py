@@ -29,10 +29,7 @@ class ImageShape(RectangleShape):
 
     @classmethod
     def create_from_xml_element(cls, elm):
-        arr = Shape.get_params_array_from_xml_element(elm)
-        arr.append(float(elm.attrib.get("corner_radius", 0)))
-        shape = cls(*arr)
-        shape.assign_params_from_xml_element(elm)
+        shape = super(ImageShape, cls).create_from_xml_element(elm)
         shape.set_image_path(elm.attrib.get("image_path", ""))
         shape.alpha = float(elm.attrib.get("alpha", 1.))
         return shape

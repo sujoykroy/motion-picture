@@ -67,6 +67,7 @@ class TextShape(RectangleShape):
         arr.append(int(elm.attrib.get("y_align", 0)))
         arr.append(elm.attrib.get("text", ""))
         arr.append(elm.attrib.get("font", ""))
+
         arr.append(color_from_text(elm.attrib.get("font_color", None)))
         arr.append(int(elm.attrib.get("line_align", 0)))
         shape = cls(*arr)
@@ -81,9 +82,12 @@ class TextShape(RectangleShape):
                             self.x_align, self.y_align, self.text, self.font, self.font_color,
                             self.line_align)
         self.copy_into(newob, copy_name, all_fields=True)
+        return newob
+
+    def copy_into(self, newob, copy_name=False, all_fields=False):
+        RectangleShape.copy_into(self, newob, copy_name=copy_name, all_fields=all_fields)
         newob.exposure = self.exposure
         newob.max_width_chars = self.max_width_chars
-        return newob
 
     def draw_text(self, ctx):
         ctx.save()
