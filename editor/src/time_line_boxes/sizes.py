@@ -3,6 +3,7 @@ from ..commons.colors import LinearGradientColor
 SHAPE_LABEL_WIDTH = 100
 HEIGHT_PER_TIME_SLICE = 30
 PIXEL_PER_SECOND= 100.
+TIME_MARKER_HIT_MULT = 20
 
 SHAPE_NAME_HEIGHT = 20
 

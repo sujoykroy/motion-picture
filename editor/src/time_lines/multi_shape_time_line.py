@@ -10,7 +10,29 @@ class MultiShapeTimeLine(object):
         self.duration = duration
         self.name = name
         self.time_labels = []
-        self.time_marker_list = TimeMarkerList()
+        self.time_markers = dict()
+
+    def add_time_marker(self, at, error_span):
+        if at in self.time_markers:
+            return None
+        for exist_at in sorted(self.time_markers.keys()):
+            if abs(exist_at-at)<=error_span:
+                return None
+        time_marker = TimeMarker(at, "{0:.02f}".format(at))
+        self.time_markers[time_marker.at] = time_marker
+        return time_marker
+
+    def delete_time_marker(self, at):
+        if at in self.time_markers:
+            del self.time_markers[at]
+
+    def move_time_marker(self, at, to):
+        if to in self.time_markers:
+            return False
+        self.time_markers[to] = self.time_markers[at]
+        self.time_markers[at].at = to
+        del self.time_markers[at]
+        return True
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
