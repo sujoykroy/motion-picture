@@ -113,6 +113,23 @@ class TimeMarker(object):
         self.at = at
         self.text = text
 
+    def set_text(self, text):
+        text = text.strip()
+        if text and len(text)>0:
+            self.text =text
+
+    def set_at(self, at):
+        at = at.strip()
+        if at and len(at)>0:
+            try:
+                at = float(at)
+            except ValueError:
+                return
+            self.at = at
+
+    def get_formatted_at(self):
+        return "{0:02}".format(self.at)
+
 class Span(object):
     def __init__(self, start, end, scale):
         self.start = start

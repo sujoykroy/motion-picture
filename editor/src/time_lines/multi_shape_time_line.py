@@ -15,9 +15,8 @@ class MultiShapeTimeLine(object):
     def add_time_marker(self, at, error_span):
         if at in self.time_markers:
             return None
-        for exist_at in sorted(self.time_markers.keys()):
-            if abs(exist_at-at)<=error_span:
-                return None
+        if self.get_closest_time_marker(at, error_span) is not None:
+            return None
         time_marker = TimeMarker(at, "{0:.02f}".format(at))
         self.time_markers[time_marker.at] = time_marker
         return time_marker
@@ -33,6 +32,12 @@ class MultiShapeTimeLine(object):
         self.time_markers[at].at = to
         del self.time_markers[at]
         return True
+
+    def get_closest_time_marker(self, at, error_span):
+        for exist_at in sorted(self.time_markers.keys()):
+            if abs(exist_at-at)<=error_span:
+                return self.time_markers[exist_at]
+        return None
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
