@@ -1,6 +1,7 @@
 from ..commons import *
 from xml.etree.ElementTree import Element as XmlElement
 from shape_time_line import ShapeTimeLine
+from time_marker import TimeMarker
 
 class MultiShapeTimeLine(object):
     TAG_NAME = "multi_shape_time_line"
@@ -44,6 +45,8 @@ class MultiShapeTimeLine(object):
         elm.attrib["name"] = self.name
         for shape_time_line in self.shape_time_lines:
             elm.append(shape_time_line.get_xml_element())
+        for time_marker in self.time_markers.values():
+            elm.append(time_marker.get_xml_element())
         return elm
 
     @classmethod
@@ -53,6 +56,11 @@ class MultiShapeTimeLine(object):
             shape_time_line = ShapeTimeLine.create_from_xml_element(shape_time_line_elm, multi_shape)
             if not shape_time_line: continue
             multi_shape_time_line.shape_time_lines.add(shape_time_line.shape, shape_time_line)
+        for time_marker_elm in elm.findall(TimeMarker.TAG_NAME):
+            time_marker = TimeMarker.create_from_xml_element(time_marker_elm)
+            if time_marker is None:
+                continue
+            multi_shape_time_line.time_markers[time_marker.at] = time_marker
         multi_shape_time_line.get_duration()
         return multi_shape_time_line
 

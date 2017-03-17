@@ -280,9 +280,8 @@ class TimeLineEditor(Gtk.VBox):
             self.time_line.get_duration()
             self.multi_shape_time_line_box = MultiShapeTimeLineBox(multi_shape_time_line)
 
-            time_markers = self.time_line.time_markers
-            for at in time_markers:
-                self.time_marker_boxes.append(TimeMarkerBox(time_markers[at]))
+            for time_marker in self.time_line.time_markers.values():
+                self.time_marker_boxes[time_marker.at]=TimeMarkerBox(time_marker)
 
             self.play_head_box = PlayHeadBox(self.on_play_head_move)
             self.play_button.show()
