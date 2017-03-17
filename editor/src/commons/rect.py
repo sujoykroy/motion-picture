@@ -26,6 +26,12 @@ class Rect(object):
         return "Rect(left={0}, top={1}, width={2}, height={3})".format(
                 self.left, self.top, self.width, self.height)
 
+    def scale(self, sx, sy):
+        self.left *= sx
+        self.top *= sy
+        self.width *= sx
+        self.height *= sy
+
     @classmethod
     def create_from_points(cls, *points):
         x0, y0 = points[0].x, points[0].y

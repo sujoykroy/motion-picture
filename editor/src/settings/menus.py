@@ -66,6 +66,8 @@ m.add(path="Edit/Points/Extend", icon="extend_point", desc="Extend point into ne
       action_name="win.extend_point_of_shape")
 m.add(path="Edit/Points/Center Anchor", icon="center_anchor",
       action_name="win.center_anchor", desc="Place anchor at center")
+m.add(path="Edit/Points/Group", icon="group_points", desc="Group points together",
+      action_name="win.group_points_of_shape")
 
 m.add(path="Edit/Document/Canvas Size", icon="canvas_size",
       action_name="win.change_canas_size", desc="Change canvas size")

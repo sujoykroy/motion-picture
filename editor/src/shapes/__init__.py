@@ -12,6 +12,7 @@ from multi_selection_shape import MultiSelectionShape
 from ring_shape import RingShape
 from text_shape import TextShape
 from edit_shapes import *
+from curve_point_group_shape import CurvePointGroupShape
 
 def get_hierarchy_names(shape):
     names = [shape.get_name()]

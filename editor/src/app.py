@@ -194,6 +194,10 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.join_points():
             self.redraw()
 
+    def group_points_of_shape(self, action, parameter):
+        if self.shape_manager.group_points():
+            self.redraw()
+
     def delete_point_of_shape(self, action, parameter):
         if self.shape_manager.delete_point():
             self.redraw()

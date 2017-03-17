@@ -13,6 +13,10 @@ class CurveShape(Shape, Mirror):
         self.curves = []
         self.forms = dict()
         self.show_points = True
+        self.point_groups = []
+
+    def add_point_group(self, point_group):
+        self.point_groups.append(point_group)
 
     def copy_data_from_linked(self):
         if not self.linked_to: return

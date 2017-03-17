@@ -73,6 +73,10 @@ class ShapeEditor(object):
 
         margin = MARGIN
         self.outline_edit_box = OutlineEditBox(self.shape)
+        outline_color = (0, 0, 0, 1)
+        if isinstance(self.shape, CurvePointGroupShape):
+            outline_color = Color.from_html("73D216")
+        self.outline_edit_box.border_color = outline_color
 
         self.new_edit_box(OvalEditBox(Point(0.0, 0.0), offset=Point(-margin, -margin)),
                     OUTER, ROTATION_TOP_LEFT, self.rotation_edit_boxes)
@@ -173,6 +177,10 @@ class ShapeEditor(object):
                     if not polygon.closed and (point_index == 0 or point_index==len(polygon.points)-1):
                         self.joinable_point_edit_boxes.append(point_eb)
                     self.deletable_point_edit_boxes.append(point_eb)
+
+    def update_edit_boxes(self):
+        for edit_box in self.moveable_point_edit_boxes:
+            edit_box.update()
 
     def has_selected_box(self):
         return len(self.selected_edit_boxes)>0
@@ -457,6 +465,26 @@ class ShapeEditor(object):
                 self.selected_edit_boxes[1].polygon_index,
                 self.selected_edit_boxes[1].is_start
             )
+
+    def group_points(self):
+        if not (isinstance(self.shape, CurveShape) or \
+                isinstance(self.shape, PolygonShape)): return False
+        if len(self.selected_edit_boxes) < 2: return False
+        if isinstance(self.shape, CurveShape):
+            curve_point_group = CurvePointGroup()
+            for edit_box in self.selected_edit_boxes:
+                if isinstance(edit_box, DestEditBox):
+                    point_type = CurvePoint.POINT_TYPE_DEST
+                elif isinstance(edit_box, ControlEditBox):
+                    if edit_box.control_index == 0:
+                        point_type = CurvePoint.POINT_TYPE_CONTROL_1
+                    elif edit_box.control_index == 1:
+                        point_type = CurvePoint.POINT_TYPE_CONTROL_2
+
+                curve_point = CurvePoint(edit_box.curve_index, edit_box.bezier_point_index, point_type)
+                curve_point_group.add_point(curve_point)
+
+            return self.shape.add_point_group(curve_point_group)
 
     def align_points(self, x_dir, y_dir):
         for i in range(1, len(self.selected_edit_boxes), 1):

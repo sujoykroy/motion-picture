@@ -6,6 +6,18 @@ def set_default_line_style(ctx):
     ctx.set_line_cap(cairo.LINE_CAP_ROUND)
     ctx.set_line_join(cairo.LINE_JOIN_ROUND)
 
+def set_ctx_color(ctx, color):
+    if isinstance(color, tuple):
+        ctx.set_source_rgba(*color)
+    elif isinstance(color, Color):
+        ctx.set_source_rgba(*color.get_array())
+    elif isinstance(color, str):
+        ctx.set_source_rgba(*Color.from_html(color).get_array())
+    elif isinstance(color, GradientColor):
+        ctx.set_source(color.get_pattern())
+    else:
+        ctx.set_source(color)
+
 def draw_stroke(ctx, line_width, color=Color(0,0,0,1)):
     ctx.save()
     if isinstance(color, Color):
@@ -20,9 +32,9 @@ def draw_stroke(ctx, line_width, color=Color(0,0,0,1)):
     ctx.stroke()
     ctx.restore()
 
-def draw_selection_border(ctx):
+def draw_selection_border(ctx, color=(0,0,0,1)):
     ctx.save()
-    ctx.set_source_rgb(0,0,0)
+    set_ctx_color(ctx, color)
     ctx.set_line_width(1)
     ctx.set_dash([5])
     ctx.stroke()

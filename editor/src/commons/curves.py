@@ -375,3 +375,30 @@ class Curve(object):
         inner_curve_origin_bzp.align_straight_with(inner_curve.bezier_points[-1].dest)
         inner_curve.closed = True
         return inner_curve
+
+class CurvePoint(object):
+    POINT_TYPE_CONTROL_1 = 0
+    POINT_TYPE_CONTROL_2 = 1
+    POINT_TYPE_DEST = -1
+
+    def __init__(self, curve_index, point_index, point_type):
+        self.curve_index = curve_index
+        self.point_index = point_index
+        self.point_type = point_type
+
+    def get_point(self, curve):
+        bezier_point = curve.bezier_points[self.point_index]
+        if self.point_type == CurvePoint.POINT_TYPE_DEST:
+            point = bezier_point.dest
+        elif self.point_type == CurvePoint.POINT_TYPE_CONTROL_1:
+            point = bezier_point.control_1
+        elif self.point_type == CurvePoint.POINT_TYPE_CONTROL_2:
+            point = bezier_point.control_2
+        return point
+
+class CurvePointGroup(object):
+    def __init__(self):
+        self.points = []
+
+    def add_point(self, curve_point):
+        self.points.append(curve_point)

@@ -142,7 +142,7 @@ class OutlineEditBox(RectEditBox):
                 ctx.line_to(points[i].x, points[i].y)
         ctx.close_path()
         ctx.restore()
-        draw_selection_border(ctx)
+        draw_selection_border(ctx, self.border_color)
 
 class EditLine(Shape):
     def __init__(self, point_1, point_2):
