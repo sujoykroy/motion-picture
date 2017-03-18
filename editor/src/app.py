@@ -197,6 +197,7 @@ class ApplicationWindow(MasterEditor):
     def create_point_group(self, action, parameter):
         if self.shape_manager.create_point_group():
             self.redraw()
+            self.lookup_action("show_point_groups").activate(GLib.Variant.new_boolean(True))
 
     def break_point_group(self, action, parameter):
         print "T1"

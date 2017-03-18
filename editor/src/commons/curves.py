@@ -377,6 +377,8 @@ class Curve(object):
         return inner_curve
 
 class CurvePoint(object):
+    TAG_NAME="curve_point"
+
     POINT_TYPE_CONTROL_1 = 0
     POINT_TYPE_CONTROL_2 = 1
     POINT_TYPE_DEST = -1
@@ -401,9 +403,44 @@ class CurvePoint(object):
                 self.point_index == other.point_index and \
                 self.point_type == other.point_type)
 
+    def get_xml_element(self):
+        elm = XmlElement(self.TAG_NAME)
+        elm.attrib["ci"] = "{0}".format(self.curve_index)
+        elm.attrib["pi"] = "{0}".format(self.point_index)
+        elm.attrib["pt"] = "{0}".format(self.point_type)
+        return elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        curve_index = int(elm.attrib.get("ci", -1))
+        point_index = int(elm.attrib.get("pi", -1))
+        point_type = int(elm.attrib.get("pt", -1))
+        if curve_index<0 or point_index<0:
+            return None
+        return cls(curve_index, point_index, point_type)
+
 class CurvePointGroup(object):
+    TAG_NAME = "curve_point_group"
+
     def __init__(self):
         self.points = []
 
     def add_point(self, curve_point):
         self.points.append(curve_point)
+
+    def get_xml_element(self):
+        elm = XmlElement(self.TAG_NAME)
+        for point in self.points:
+            elm.append(point.get_xml_element())
+        return elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        point_group = cls()
+        for point_elm in elm.findall(CurvePoint.TAG_NAME):
+            point = CurvePoint.create_from_xml_element(point_elm)
+            if point:
+                point_group.add_point(point)
+        if len(point_group.points) < 2:
+            return None
+        return point_group

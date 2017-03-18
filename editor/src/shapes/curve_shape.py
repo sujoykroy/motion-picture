@@ -182,6 +182,10 @@ class CurveShape(Shape, Mirror):
             for curve in form["curves"]:
                 form_elm.append(curve.get_xml_element())
             elm.append(form_elm)
+
+        for point_group in self.point_groups:
+            elm.append(point_group.get_xml_element())
+
         return elm
 
     @classmethod
@@ -204,6 +208,11 @@ class CurveShape(Shape, Mirror):
             for curve_elm in form_elm.findall(Curve.TAG_NAME):
                 curves.append(Curve.create_from_xml_element(curve_elm))
             shape.forms[form_name] = form_dict
+
+        for point_group_elm in elm.findall(CurvePointGroup.TAG_NAME):
+            point_group = CurvePointGroup.create_from_xml_element(point_group_elm)
+            if point_group:
+                shape.point_groups.append(point_group)
 
         shape.assign_params_from_xml_element(elm)
         return shape
