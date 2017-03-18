@@ -66,8 +66,6 @@ m.add(path="Edit/Points/Extend", icon="extend_point", desc="Extend point into ne
       action_name="win.extend_point_of_shape")
 m.add(path="Edit/Points/Center Anchor", icon="center_anchor",
       action_name="win.center_anchor", desc="Place anchor at center")
-m.add(path="Edit/Points/Group", icon="group_points", desc="Group points together",
-      action_name="win.group_points_of_shape")
 
 m.add(path="Edit/Document/Canvas Size", icon="canvas_size",
       action_name="win.change_canas_size", desc="Change canvas size")
@@ -116,6 +114,10 @@ m.add(path="Shapes/Group/Break", icon="break_shape_group", icon_scale=1.5,
       action_name="win.break_shape_group", desc="Break shape group")
 m.add(path="Shapes/Group/Merge", icon="merge_shapes", icon_scale=1.5,
       action_name="win.merge_shapes", desc="Merge shapes")
+m.add(path="Shapes/Group/Create Point Group", icon="create_point_group", desc="Group points together",
+      action_name="win.group_points_of_shape")
+m.add(path="Shapes/Group/Break Point Group", icon="break_point_group", desc="Break points together",
+      action_name="win.break_points_of_shape")
 
 m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert into Polygon",
       action_name="win.convert_shape_to", action_param="polygon", icon_scale=1.2)
@@ -136,7 +138,8 @@ m.add(path="Edit/Preferences/Hide Control Points", icon="hide_control_points",
       action_name="win.hide_control_points", action_state=False, icon_scale=2.)
 m.add(path="Edit/Preferences/Show All Time Lines", icon="show_all_time_lines",
       action_name="win.show_all_time_lines", action_state=True, icon_scale=1.2)
-
+m.add(path="Edit/Preferences/Show Point Groups", icon="show_point_groups",
+      action_name="win.show_point_groups", action_state=False, icon_scale=1.2)
 
 m.add(path="Edit/Preferences/Panel Layout/Drawing", icon="panel_drawing",
       desc = "Drawing Panel Layout",

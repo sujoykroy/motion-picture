@@ -28,6 +28,8 @@ class GradientColorEditor(object):
         self.build_edit_boxes()
 
     def build_edit_boxes(self):
+        if not self.gradient_color:
+            return
         del self.edit_boxes[:]
         full_distance = self.gradient_color.get_full_distance()
         for color_point_index in range(len(self.gradient_color.color_points)):
