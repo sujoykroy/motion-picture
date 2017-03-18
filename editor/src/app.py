@@ -194,8 +194,13 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.join_points():
             self.redraw()
 
-    def group_points_of_shape(self, action, parameter):
-        if self.shape_manager.group_points():
+    def create_point_group(self, action, parameter):
+        if self.shape_manager.create_point_group():
+            self.redraw()
+
+    def break_point_group(self, action, parameter):
+        print "T1"
+        if self.shape_manager.break_point_group():
             self.redraw()
 
     def delete_point_of_shape(self, action, parameter):
@@ -365,6 +370,13 @@ class ApplicationWindow(MasterEditor):
         action.set_state(parameter)
         EditingChoice.HIDE_AXIS = parameter.get_boolean()
         change_action_tool_buttons(action)
+        self.redraw()
+
+    def show_point_groups(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.SHOW_POINT_GROUPS = parameter.get_boolean()
+        change_action_tool_buttons(action)
+        self.shape_manager.show_hide_point_groups()
         self.redraw()
 
     def change_shape_depth(self, action, parameter):

@@ -17,6 +17,11 @@ class CurveShape(Shape, Mirror):
 
     def add_point_group(self, point_group):
         self.point_groups.append(point_group)
+        return point_group
+
+    def delete_point_group(self, point_group):
+        self.point_groups.remove(point_group)
+        return point_group
 
     def copy_data_from_linked(self):
         if not self.linked_to: return

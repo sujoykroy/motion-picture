@@ -24,6 +24,9 @@ class CurvePointGroupShape(RectangleShape):
         self.copy_into(newob, copy_name, all_fields=True)
         return newob
 
+    def get_point_group(self):
+        return self.curve_point_group
+
     def update(self):
         w = self.curve_shape.get_width()
         h = self.curve_shape.get_height()

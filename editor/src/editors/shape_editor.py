@@ -466,7 +466,7 @@ class ShapeEditor(object):
                 self.selected_edit_boxes[1].is_start
             )
 
-    def group_points(self):
+    def create_point_group(self):
         if not (isinstance(self.shape, CurveShape) or \
                 isinstance(self.shape, PolygonShape)): return False
         if len(self.selected_edit_boxes) < 2: return False
@@ -483,8 +483,9 @@ class ShapeEditor(object):
 
                 curve_point = CurvePoint(edit_box.curve_index, edit_box.bezier_point_index, point_type)
                 curve_point_group.add_point(curve_point)
-
+            del self.selected_edit_boxes[:]
             return self.shape.add_point_group(curve_point_group)
+        return False
 
     def align_points(self, x_dir, y_dir):
         for i in range(1, len(self.selected_edit_boxes), 1):

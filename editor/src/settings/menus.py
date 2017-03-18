@@ -115,9 +115,9 @@ m.add(path="Shapes/Group/Break", icon="break_shape_group", icon_scale=1.5,
 m.add(path="Shapes/Group/Merge", icon="merge_shapes", icon_scale=1.5,
       action_name="win.merge_shapes", desc="Merge shapes")
 m.add(path="Shapes/Group/Create Point Group", icon="create_point_group", desc="Group points together",
-      action_name="win.group_points_of_shape")
+      action_name="win.create_point_group")
 m.add(path="Shapes/Group/Break Point Group", icon="break_point_group", desc="Break points together",
-      action_name="win.break_points_of_shape")
+      action_name="win.break_point_group")
 
 m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert into Polygon",
       action_name="win.convert_shape_to", action_param="polygon", icon_scale=1.2)

@@ -396,6 +396,11 @@ class CurvePoint(object):
             point = bezier_point.control_2
         return point
 
+    def __eq__(self, other):
+        return (self.curve_index == other.curve_index and \
+                self.point_index == other.point_index and \
+                self.point_type == other.point_type)
+
 class CurvePointGroup(object):
     def __init__(self):
         self.points = []
