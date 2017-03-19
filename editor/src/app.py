@@ -128,8 +128,8 @@ class ApplicationWindow(MasterEditor):
                     elif action.get_state().equal(widget.action_variant_state_value):
                         action.activate(GLib.Variant.new_string(""))
 
-    def open_document(self, filename):
-        MasterEditor.open_document(self, filename)
+    def open_document(self, filename=None, width=400., height=400.):
+        MasterEditor.open_document(self, filename, width=width, height=height)
         border_fixed_action = self.lookup_action("border_fixed")
         border_fixed_parameter = GLib.Variant.new_boolean(self.doc.fixed_border)
         #border_fixed_action.activate(border_fixed_parameter)
@@ -430,8 +430,9 @@ class ApplicationWindow(MasterEditor):
             canvas_sizes = dialog.get_input_text().split("x")
             if len(canvas_sizes) >1:
                 width, height = float(canvas_sizes[0]), float(canvas_sizes[1])
-                self.doc.set_doc_size(width, height)
+                self.shape_manager.update_doc_size(width, height)
                 self.load_multi_shape(self.shape_manager.multi_shape)
+                self.fit_shape_manager_in_drawing_area()
         dialog.destroy()
 
     def change_panel_layout(self, action, parameter):

@@ -255,6 +255,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         del self.multi_shape_stack[:]
         self.load_multi_shape(self.doc.get_main_multi_shape(), recreate_shape_manager=True)
         self.show_filename()
+        self.fit_shape_manager_in_drawing_area()
 
     def set_shape_creation_mode(self, shape_type):
         self.next_new_shape_type = shape_type
@@ -468,7 +469,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         if self.shape_manager:
             self.shape_manager.fit_area_in_size(w, h)
             self.update_drawing_area_scrollbars()
-
 
     def on_configure_event(self, widget, event):
         self.fit_shape_manager_in_drawing_area()

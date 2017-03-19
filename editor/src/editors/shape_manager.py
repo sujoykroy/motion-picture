@@ -45,6 +45,12 @@ class ShapeManager(object):
 
         self.load_multi_shape(multi_shape)
 
+    def update_doc_size(self, width, height):
+        self.doc.set_doc_size(width, height)
+        self.document_area_box.width = width
+        self.document_area_box.height = height
+        self.document_area_box.place_anchor_at_center()
+
     def load_multi_shape(self, multi_shape):
         del self.point_group_shapes[:]
         self.point_group_shape_editor = None
@@ -358,7 +364,7 @@ class ShapeManager(object):
                 self.scrollable_area.offset_x = rect.left
             else:
                 extra_x = 50
-                self.scrollable_area.width = rect.width+2*extra_y
+                self.scrollable_area.width = rect.width+2*extra_x
                 self.scrollable_area.offset_x = extra_x
         elif rect.left>0:
             if out_width-(rect.left+rect.width)>rect.left:
@@ -369,7 +375,10 @@ class ShapeManager(object):
                 extra_x = rect.left-(out_width-(rect.left+rect.width))
                 self.scrollable_area.width = out_width+extra_x
                 self.scrollable_area.offset_x = rect.left
-
+        else:
+            extra_x = out_width-(rect.left+rect.width)
+            self.scrollable_area.width = out_width+2*extra_x
+            self.scrollable_area.offset_x = extra_x
         #self.scroll(y_pos, "vert", out_width, out_height)
         #self.scroll(x_pos, "horiz", out_width, out_height)
 
