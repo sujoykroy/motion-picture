@@ -473,6 +473,7 @@ class ShapeEditor(object):
         if isinstance(self.shape, CurveShape):
             curve_point_group = CurvePointGroup()
             for edit_box in self.selected_edit_boxes:
+                point_type = None
                 if isinstance(edit_box, DestEditBox):
                     point_type = CurvePoint.POINT_TYPE_DEST
                 elif isinstance(edit_box, ControlEditBox):
@@ -480,9 +481,9 @@ class ShapeEditor(object):
                         point_type = CurvePoint.POINT_TYPE_CONTROL_1
                     elif edit_box.control_index == 1:
                         point_type = CurvePoint.POINT_TYPE_CONTROL_2
-
-                curve_point = CurvePoint(edit_box.curve_index, edit_box.bezier_point_index, point_type)
-                curve_point_group.add_point(curve_point)
+                if point_type is not None:
+                    curve_point = CurvePoint(edit_box.curve_index, edit_box.bezier_point_index, point_type)
+                    curve_point_group.add_point(curve_point)
             del self.selected_edit_boxes[:]
             return self.shape.add_point_group(curve_point_group)
         return False

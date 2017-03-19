@@ -200,7 +200,6 @@ class ApplicationWindow(MasterEditor):
             self.lookup_action("show_point_groups").activate(GLib.Variant.new_boolean(True))
 
     def break_point_group(self, action, parameter):
-        print "T1"
         if self.shape_manager.break_point_group():
             self.redraw()
 

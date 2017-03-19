@@ -428,11 +428,48 @@ class CurvePointGroup(object):
     def add_point(self, curve_point):
         self.points.append(curve_point)
 
+    def remove_point(self, curve_point):
+        self.points.remove(curve_point)
+
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
         for point in self.points:
             elm.append(point.get_xml_element())
         return elm
+
+    def shift(self, curve_index, from_point_index=0,
+             point_index_shift=0, curve_index_shift=0):
+        for point in self.points:
+            if point.curve_index != curve_index:
+                continue
+            if point.point_index<from_point_index:
+                continue
+            point.point_index += point_index_shift
+            point.curve_index += curve_index_shift
+
+    def reverse_shift(self, curve_index, point_index_max):
+        for point in self.points:
+            if point.curve_index != curve_index:
+                continue
+            point.point_index = point_index_max-point.point_index
+
+    def delete_curve(self, curve_index):
+        i = 0
+        while i<len(self.points):
+            point = self.points[i]
+            if point.curve_index == curve_index:
+                del self.points[i]
+            else:
+                i += 1
+
+    def delete_point_index(self, curve_index, point_index):
+        i = 0
+        while i<len(self.points):
+            point = self.points[i]
+            if point.curve_index == curve_index and point.point_index == point_index:
+                del self.points[i]
+            else:
+                i += 1
 
     @classmethod
     def create_from_xml_element(cls, elm):

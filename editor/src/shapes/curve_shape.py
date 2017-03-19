@@ -330,6 +330,12 @@ class CurveShape(Shape, Mirror):
         curve_index, bezier_point_index, t = found
         curve = self.curves[curve_index]
         curve.insert_point_at(bezier_point_index, t)
+
+        for curve_point_group in self.point_groups:
+            curve_point_group.shift(
+                    curve_index=curve_index,
+                    from_point_index=bezier_point_index,
+                    point_index_shift=1)
         return True
 
     def insert_break_at(self, curve_index, bezier_point_index):
@@ -350,6 +356,17 @@ class CurveShape(Shape, Mirror):
         prev_curve.closed = False
 
         self.curves.insert(curve_index+1, new_curve)
+
+        for curve_point_group in self.point_groups:
+            curve_point_group.shift(
+                    curve_index=curve_index,
+                    from_point_index=bezier_point_index+1,
+                    curve_index_shift=1)
+            curve_point_group.shift(
+                    curve_index=curve_index+1,
+                    from_point_index=bezier_point_index+1,
+                    point_index_shift=-bezier_point_index-1)
+
         return True
 
     def join_points(self, curve_index_1, is_start_1, curve_index_2, is_start_2):
@@ -378,6 +395,10 @@ class CurveShape(Shape, Mirror):
                 curve_2.bezier_points[bpi].control_1.copy_from(rev_curve.bezier_points[bpi].control_1)
                 curve_2.bezier_points[bpi].control_2.copy_from(rev_curve.bezier_points[bpi].control_2)
                 curve_2.bezier_points[bpi].dest.copy_from(rev_curve.bezier_points[bpi].dest)
+            for point_group in self.point_groups:
+                point_group.reverse_shift(
+                    curve_index=curve_index_2,
+                    point_index_max=len(curve_2.bezier_points)-1)
 
         if is_start_1:#swap curves
             curve_1, curve_2 = curve_2, curve_1
@@ -387,9 +408,38 @@ class CurveShape(Shape, Mirror):
         curve_1.bezier_points[-1].dest.x = (curve_1.bezier_points[-1].dest.x +  curve_2.origin.x)*.5
         curve_1.bezier_points[-1].dest.y = (curve_1.bezier_points[-1].dest.y +  curve_2.origin.y)*.5
 
+        for point_group in self.point_groups:
+            point_group.shift(
+                curve_index=curve_index_2,
+                point_index_shift=len(curve_1.bezier_points))
+        for point_group in self.point_groups:
+            point_group.shift(
+                curve_index=curve_index_2,
+                curve_index_shift=curve_index_1-curve_index_2)
+
         curve_1.add_bezier_points(curve_2.bezier_points)
         del self.curves[curve_index_2]
+
         return True
+
+    def delete_point_group_curve(self, curve_index):
+        for point_group in self.point_groups:
+            point_group.delete_curve(curve_index)
+        self.cleanup_point_groups()
+
+    def delete_point_group_point(self, curve_index, point_index):
+        for point_group in self.point_groups:
+            point_group.delete_point_index(curve_index, point_index)
+        self.cleanup_point_groups()
+
+    def cleanup_point_groups(self):
+        i = 0
+        while i <len(self.point_groups):
+            if len(point_group.points)<2:
+                del self.point_groups[i]
+            else:
+                i += 1
+        self.cleanup_point_groups()
 
     def delete_point_at(self, curve_index, bezier_point_index, break_allowed=False):
         if curve_index>=len(self.curves): return False
@@ -402,6 +452,7 @@ class CurveShape(Shape, Mirror):
                 curve.origin.copy_from(curve.bezier_points[0].dest)
                 curve.update_origin()
                 curve.remove_bezier_point_index(0)
+                self.delete_point_group_point(curve_index, 0)
                 if curve.closed:
                     curve.bezier_points[-1].dest.copy_from(curve.origin)
                     curve.update_bezier_point_index(-1)#
@@ -411,8 +462,10 @@ class CurveShape(Shape, Mirror):
                     curve.bezier_points[-1].dest.copy_from(curve.origin)
                     curve.update_bezier_point_index(-1)#
                     curve.remove_bezier_point_index(0)
+                    self.delete_point_group_point(curve_index, 0)
                 else:
                     curve.remove_bezier_point_index(-1)
+                    self.delete_point_group_point(curve_index, len(curve.bezier_points)-1)
             else:
                 if break_allowed:
                     new_curve = Curve(origin=curve.bezier_points[bezier_point_index].dest.copy())
@@ -421,15 +474,17 @@ class CurveShape(Shape, Mirror):
                         bezier_point_index+1, len(curve.bezier_points))
                     self.curves.insert(curve_index+1, new_curve)
                 curve.remove_bezier_point_index(bezier_point_index)
+                self.delete_point_group_point(curve_index, bezier_point_index)
 
             if len(curve.bezier_points)<3:
                 curve.closed = False
             if len(self.curves)>1:
                 if (len(curve.bezier_points)<=1 and curve.closed) or len(curve.bezier_points)==0:
                     del self.curves[curve_index]
+                    self.delete_point_group_curve(curve_index)
         elif len(self.curves)>1:
             del self.curves[curve_index]
-
+            self.delete_point_group_curve(curve_index)
         return True
 
     def delete_dest_points_inside_rect(self, center, radius):
