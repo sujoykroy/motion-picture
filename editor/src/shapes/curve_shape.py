@@ -15,6 +15,13 @@ class CurveShape(Shape, Mirror):
         self.show_points = True
         self.point_groups = []
 
+    def replace_curves(self, curves):
+        del self.curves[:]
+        self.forms.clear()
+        self.show_points = True
+        del self.point_groups[:]
+        self.curves.extend(curves)
+
     def add_point_group(self, point_group):
         self.point_groups.append(point_group)
         return point_group
@@ -439,7 +446,6 @@ class CurveShape(Shape, Mirror):
                 del self.point_groups[i]
             else:
                 i += 1
-        self.cleanup_point_groups()
 
     def delete_point_at(self, curve_index, bezier_point_index, break_allowed=False):
         if curve_index>=len(self.curves): return False

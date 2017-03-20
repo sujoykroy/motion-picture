@@ -488,6 +488,37 @@ class ShapeEditor(object):
             return self.shape.add_point_group(curve_point_group)
         return False
 
+    def copy_points_as_shape(self):
+        if not (isinstance(self.shape, CurveShape) or \
+                isinstance(self.shape, PolygonShape)): return False
+        if len(self.selected_edit_boxes) < 2: return False
+        if isinstance(self.shape, CurveShape):
+
+            dict_curves = dict()
+            for edit_box in self.selected_edit_boxes:
+                point_type = None
+                if not isinstance(edit_box, DestEditBox):
+                    continue
+                curve_index = edit_box.curve_index
+                if curve_index not in dict_curves:
+                    dict_curves[curve_index] = dict()
+                point = self.shape.curves[curve_index].bezier_points[edit_box.bezier_point_index]
+                dict_curves[curve_index][edit_box.bezier_point_index] = point.copy()
+            del self.selected_edit_boxes[:]
+
+            curves = []
+            for ci in sorted(dict_curves.keys()):
+                points = []
+                for pi in sorted(dict_curves[ci].keys()):
+                    points.append(dict_curves[ci][pi])
+                if len(points)<2:
+                    continue
+                curves.append(Curve(origin=points[0].dest, bezier_points=points[1:]))
+            copied_shape = self.shape.copy()
+            copied_shape.replace_curves(curves)
+            return copied_shape
+        return False
+
     def align_points(self, x_dir, y_dir):
         for i in range(1, len(self.selected_edit_boxes), 1):
             edit_box = self.selected_edit_boxes[i]

@@ -185,6 +185,10 @@ class ShapeManager(object):
             shapes.append(self.shape_editor.shape.copy(deep_copy=True))
         return shapes
 
+    def copy_selected_points_as_shape(self):
+        if not self.shape_editor: return None
+        return self.shape_editor.copy_points_as_shape()
+
     def add_shape(self, shape):
         if not isinstance(shape, MultiSelectionShape):
             self.multi_shape.add_shape(shape)

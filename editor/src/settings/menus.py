@@ -66,6 +66,8 @@ m.add(path="Edit/Points/Extend", icon="extend_point", desc="Extend point into ne
       action_name="win.extend_point_of_shape")
 m.add(path="Edit/Points/Center Anchor", icon="center_anchor",
       action_name="win.center_anchor", desc="Place anchor at center")
+m.add(path="Edit/Points/Copy", icon="copy_shape",
+      action_name="win.copy_points_as_shape", desc="Copy Points As Shape")
 
 m.add(path="Edit/Document/Canvas Size", icon="canvas_size",
       action_name="win.change_canas_size", desc="Change canvas size")
@@ -151,8 +153,8 @@ m.add(path="Edit/Preferences/Panel Layout/Animation", icon="panel_animation",
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement",
      "Edit/TimeLine", "Edit/Preferences", "Edit/Shape/<Linked>",
-     "Edit/Preferences/Panel Layout", "Edit/Document"],
+     "Edit/Preferences/Panel Layout", "Edit/Document", "Shapes/Pre-Drawn"],
     ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>",
-     "Shapes/Align", "Shapes/Convert To", "Shapes/Pre-Drawn", "Edit/Points"],
+     "Shapes/Align", "Shapes/Convert To", "Edit/Points"],
     []
 ]

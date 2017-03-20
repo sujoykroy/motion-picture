@@ -383,10 +383,15 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.change_shape_depth(int(parameter.get_string())):
             self.redraw()
 
-    def copy_shape_action(self, action, paramter):
+    def copy_shape_action(self, action, parameter):
         shapes = self.shape_manager.copy_selected_shapes()
         if shapes:
             self.parent.copied_shapes = list(shapes)
+
+    def copy_points_as_shape(self, action, parameter):
+        shape = self.shape_manager.copy_selected_points_as_shape()
+        if shape:
+            self.parent.copied_shapes = [shape]
 
     def paste_shape_action(self, action, paramter):
         shapes = self.parent.copied_shapes
