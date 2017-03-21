@@ -700,6 +700,8 @@ class ShapeManager(object):
         elif self.color_editor and self.color_editor.selected_edit_box:
             self.color_editor.move_active_item(shape_start_point, shape_end_point)
         elif self.shape_editor is not None:
+            if self.current_task is None:
+                self.current_task = ShapeStateTask(self.doc, self.shape_editor.shape)
             selected_shape = self.shape_editor.shape
             if self.point_group_shape_editor is not None:
                 point_group_shape_start_point = selected_shape.transform_point(shape_start_point)
@@ -709,8 +711,6 @@ class ShapeManager(object):
                 self.point_group_shape_editor.shape.update_rel_points()
                 self.shape_editor.update_edit_boxes()
             else:
-                if self.current_task is None:
-                    self.current_task = ShapeStateTask(self.doc, self.shape_editor.shape)
                 if self.eraser_box is not None:
                     shape = self.shape_editor.shape
                     self.eraser_box.move_to(shape_end_point.x, shape_end_point.y)
@@ -784,9 +784,9 @@ class ShapeManager(object):
                         self.shape_editor.end_movement()
                         if self.point_group_shapes:
                             self.load_point_group_shapes()
-                    if self.current_task:
-                        self.current_task.save(self.doc, self.shape_editor.shape)
-                        self.current_task = None
+                if self.current_task:
+                    self.current_task.save(self.doc, self.shape_editor.shape)
+                    self.current_task = None
 
     def complete_shape_creation(self):
         if self.shape_creator is not None:

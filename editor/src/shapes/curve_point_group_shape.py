@@ -36,6 +36,8 @@ class CurvePointGroupShape(RectangleShape):
 
         for curve_point in self.curve_point_group.points:
             curve = self.curve_shape.curves[curve_point.curve_index]
+            if curve_point.point_index>= len(curve.bezier_points):
+                continue
             bezier_point = curve.bezier_points[curve_point.point_index]
             if curve_point.point_type == CurvePoint.POINT_TYPE_DEST:
                 point = bezier_point.dest
@@ -43,6 +45,8 @@ class CurvePointGroupShape(RectangleShape):
                 point = bezier_point.control_1
             elif curve_point.point_type == CurvePoint.POINT_TYPE_CONTROL_2:
                 point = bezier_point.control_2
+            elif curve_point.point_type == CurvePoint.POINT_TYPE_ORIGIN:
+                point = curve.origin
 
             curve_rel_point = CurveRelPoint(curve_point=curve_point, rel=point.copy())
             curve_rel_point.rel.scale(w, h)
@@ -73,3 +77,5 @@ class CurvePointGroupShape(RectangleShape):
             curve_point = curve_rel_point.curve_point
             curve = self.curve_shape.curves[curve_point.curve_index]
             curve_point.get_point(curve).copy_from(point)
+
+        self.curve_point_group.update_closed_curves(self.curve_shape.curves)

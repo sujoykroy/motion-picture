@@ -481,6 +481,8 @@ class ShapeEditor(object):
                         point_type = CurvePoint.POINT_TYPE_CONTROL_1
                     elif edit_box.control_index == 1:
                         point_type = CurvePoint.POINT_TYPE_CONTROL_2
+                elif isinstance(edit_box, OriginEditBox):
+                    point_type = CurvePoint.POINT_TYPE_ORIGIN
                 if point_type is not None:
                     curve_point = CurvePoint(edit_box.curve_index, edit_box.bezier_point_index, point_type)
                     curve_point_group.add_point(curve_point)
@@ -497,12 +499,16 @@ class ShapeEditor(object):
             dict_curves = dict()
             for edit_box in self.selected_edit_boxes:
                 point_type = None
-                if not isinstance(edit_box, DestEditBox):
+                if not isinstance(edit_box, DestEditBox) and not isinstance(edit_box, OriginEditBox):
                     continue
                 curve_index = edit_box.curve_index
                 if curve_index not in dict_curves:
                     dict_curves[curve_index] = dict()
-                point = self.shape.curves[curve_index].bezier_points[edit_box.bezier_point_index]
+                if isinstance(edit_box, DestEditBox):
+                    point = self.shape.curves[curve_index].bezier_points[edit_box.bezier_point_index]
+                elif isinstance(edit_box, OriginEditBox):
+                    point = self.shape.curves[curve_index].origin
+
                 dict_curves[curve_index][edit_box.bezier_point_index] = point.copy()
             del self.selected_edit_boxes[:]
 
@@ -513,7 +519,11 @@ class ShapeEditor(object):
                     points.append(dict_curves[ci][pi])
                 if len(points)<2:
                     continue
-                curves.append(Curve(origin=points[0].dest, bezier_points=points[1:]))
+                if isinstance(points[0], BezierPoint):
+                    origin = points[0].dest
+                else:
+                    origin=points[0]
+                curves.append(Curve(origin=origin, bezier_points=points[1:]))
             copied_shape = self.shape.copy()
             copied_shape.replace_curves(curves)
             return copied_shape

@@ -13,7 +13,7 @@ class Curve(object):
         #TODO
         # bare points are more easing the erasing of freely drawn curves.
         # for normal small curves, this element needs to be out of
-        # operation. some checks neceserray to implement it.
+        # operation. some checks necessary to implement it.
         self.bare_point_xys = numpy.array([(origin.x, origin.y)])
         if bezier_points is not None:
             self.add_bezier_points(bezier_points)
@@ -382,6 +382,7 @@ class CurvePoint(object):
     POINT_TYPE_CONTROL_1 = 0
     POINT_TYPE_CONTROL_2 = 1
     POINT_TYPE_DEST = -1
+    POINT_TYPE_ORIGIN = -2
 
     def __init__(self, curve_index, point_index, point_type):
         self.curve_index = curve_index
@@ -396,6 +397,8 @@ class CurvePoint(object):
             point = bezier_point.control_1
         elif self.point_type == CurvePoint.POINT_TYPE_CONTROL_2:
             point = bezier_point.control_2
+        elif self.point_type == CurvePoint.POINT_TYPE_ORIGIN:
+            point = curve.origin
         return point
 
     def __eq__(self, other):
@@ -424,12 +427,20 @@ class CurvePointGroup(object):
 
     def __init__(self):
         self.points = []
+        self.point_indices = dict()
 
     def add_point(self, curve_point):
         self.points.append(curve_point)
+        if curve_point.curve_index not in self.point_indices:
+            self.point_indices[curve_point.curve_index] = dict()
+        self.point_indices[curve_point.curve_index][curve_point.point_index] = curve_point
 
     def remove_point(self, curve_point):
         self.points.remove(curve_point)
+        if curve_point.curve_index not in self.point_indices:
+            self.point_indices[curve_point.curve_index] = dict()
+        if curve_point.point_index in self.point_indices[curve_point.curve_index]:
+            del self.point_indices[curve_point.curve_index][curve_point.point_index]
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -470,6 +481,17 @@ class CurvePointGroup(object):
                 del self.points[i]
             else:
                 i += 1
+
+    def update_closed_curves(self, curves):
+        for curve_index in self.point_indices:
+            curve = curves[curve_index]
+            if not curve.closed:
+                continue
+            last_index = len(curve.bezier_points)-1
+            point_indices = self.point_indices[curve_index]
+            if last_index in point_indices:
+                last_bezier_point = curve.bezier_points[last_index]
+                curve.origin.copy_from(last_bezier_point.dest)
 
     @classmethod
     def create_from_xml_element(cls, elm):
