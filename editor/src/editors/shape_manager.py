@@ -517,6 +517,7 @@ class ShapeManager(object):
 
     def create_point_group_shape_editor(self, point_group_shape):
         self.point_group_shape_editor = ShapeEditor(point_group_shape)
+        self.point_group_shape_editor.set_anchor_prop_value("fill_color", Color.from_html("97E122"))
 
     def select_document_area_box(self):
         self.document_area_box_selected = True
