@@ -36,6 +36,16 @@ class Shape(object):
         self.border_dashes = None
         self.border_dash_offset = 0
 
+    def reset_transformations(self):
+        self.scale_x = 1.
+        self.scale_y = 1.
+        self.post_scale_x = 1.
+        self.post_scale_y = 1.
+        self.translation = Point(0,0)
+        self.angle = 0
+        self.pre_matrix = None
+
+
     def cleanup(self):
         if self.linked_clones:
             for linked_clone in self.linked_clones:
@@ -346,6 +356,10 @@ class Shape(object):
     def set_anchor_y(self, value):
         self.anchor_at.y = value
 
+    def set_anchor_at(self, x, y):
+        self.anchor_at.x = x
+        self.anchor_at.y = y
+
     def move_x_to(self, x):
         self.move_to(x, self.get_abs_anchor_at().y)
 
@@ -396,6 +410,10 @@ class Shape(object):
         if self.parent_shape:
             xy.y += self.parent_shape.anchor_at.y
         self.move_to(xy.x, xy.y)
+
+    def translate(self, dx, dy):
+        self.translation.x += dx
+        self.translation.y += dy
 
     def prepend_pre_matrix(self, matrix):
         if not self.pre_matrix:

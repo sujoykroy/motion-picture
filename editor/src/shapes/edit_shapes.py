@@ -103,8 +103,8 @@ class AnchorEditBox(OvalEditBox):
 
     def move_offset(self, dx, dy):
         OvalEditBox.move_offset(self, dx ,dy)
-        self.shape.anchor_at.x = self.point.x
-        self.shape.anchor_at.y = self.point.y
+        self.shape.set_anchor_x(self.point.x)
+        self.shape.set_anchor_y(self.point.y)
 
 class OutlineEditBox(RectEditBox):
     def __init__(self, shape):

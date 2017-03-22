@@ -28,9 +28,12 @@ class CurvePointGroupShape(RectangleShape):
         return self.curve_point_group
 
     def update(self):
+        self.reset_transformations()
+        self.anchor_at.assign(0, 0)
+
         w = self.curve_shape.get_width()
         h = self.curve_shape.get_height()
-
+        refix_anchor = (len(self.curve_rel_points) != 0)
         points = []
         del self.curve_rel_points [:]
 
@@ -58,13 +61,34 @@ class CurvePointGroupShape(RectangleShape):
         self.move_to(outline.left, outline.top)
         self.width = outline.width
         self.height = outline.height
-        self.anchor_at.assign(self.width*.5, self.height*.5)
+        if self.curve_point_group.abs_anchor_at is None:
+            anchor_at = self.reverse_transform_point(Point(self.width*.5, self.height*.5))
+            self.curve_point_group.set_abs_anchor_at(anchor_at.x, anchor_at.y)
 
         sx = 1./self.width
         sy = 1./self.height
+
         for curve_rel_point in self.curve_rel_points:
             curve_rel_point.rel.translate(-outline.left, -outline.top)
             curve_rel_point.rel.scale(sx, sy)
+
+        anchor_at = self.transform_point(self.curve_point_group.abs_anchor_at)
+        super(CurvePointGroupShape, self).set_anchor_at(anchor_at.x, anchor_at.y)
+
+    def set_anchor_x(self, x):
+        super(CurvePointGroupShape, self).set_anchor_x(x)
+        self.update_group_anchor()
+
+    def set_anchor_y(self, y):
+        super(CurvePointGroupShape, self).set_anchor_y(y)
+        self.update_group_anchor()
+
+    def update_group_anchor(self):
+        anchor_at = self.get_abs_anchor_at()
+        self.curve_point_group.set_abs_anchor_at(anchor_at.x, anchor_at.y)
+
+    def translate_anchor(self, dx, dy):
+        self.curve_point_group.abs_anchor_at.translate(dx, dy)
 
     def update_rel_points(self):
         curve_sx = 1./self.curve_shape.get_width()

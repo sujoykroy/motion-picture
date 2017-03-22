@@ -11,4 +11,4 @@ class EditingChoice:
     SHOW_ALL_TIME_LINES = True
     FREE_ERASING = False
     TIME_STEP = .1
-    SHOW_POINT_GROUPS = False
+    SHOW_POINT_GROUPS = True

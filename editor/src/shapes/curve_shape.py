@@ -1,5 +1,6 @@
 from ..commons import *
 from shape import Shape
+from curve_point_group_shape import CurvePointGroupShape
 from xml.etree.ElementTree import Element as XmlElement
 from mirror import *
 
@@ -14,6 +15,7 @@ class CurveShape(Shape, Mirror):
         self.forms = dict()
         self.show_points = True
         self.point_groups = []
+        self.point_group_shapes = dict()
 
     def replace_curves(self, curves):
         del self.curves[:]
@@ -24,10 +26,12 @@ class CurveShape(Shape, Mirror):
 
     def add_point_group(self, point_group):
         self.point_groups.append(point_group)
+        self.point_group_shapes[point_group] = CurvePointGroupShape(self, point_group)
         return point_group
 
     def delete_point_group(self, point_group):
         self.point_groups.remove(point_group)
+        del self.point_group_shapes[point_group]
         return point_group
 
     def copy_data_from_linked(self):
@@ -219,7 +223,7 @@ class CurveShape(Shape, Mirror):
         for point_group_elm in elm.findall(CurvePointGroup.TAG_NAME):
             point_group = CurvePointGroup.create_from_xml_element(point_group_elm)
             if point_group:
-                shape.point_groups.append(point_group)
+                shape.add_point_group(point_group)
 
         shape.assign_params_from_xml_element(elm)
         return shape
@@ -301,7 +305,8 @@ class CurveShape(Shape, Mirror):
                 outline.expand_include(curve.get_outline())
         if not outline: return
         abs_anchor_at = self.get_abs_anchor_at()
-        self.anchor_at.translate(-self.width*outline.left, -self.height*outline.top)
+        shift_w, shift_h = -self.width*outline.left, -self.height*outline.top
+        self.anchor_at.translate(shift_w, shift_h)
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.set_width(outline.width*self.width)
         self.set_height(outline.height*self.height)
@@ -319,6 +324,9 @@ class CurveShape(Shape, Mirror):
             curve.translate(-outline.left, -outline.top)
             if sx is not None and sy is not None:
                 curve.scale(sx, sy)
+        for curve_point_group_shape in self.point_group_shapes.values():
+            curve_point_group_shape.translate_anchor(shift_w, shift_h)
+            curve_point_group_shape.update()
 
     def find_point_location(self, point):
         point = point.copy()
@@ -442,7 +450,7 @@ class CurveShape(Shape, Mirror):
     def cleanup_point_groups(self):
         i = 0
         while i <len(self.point_groups):
-            if len(point_group.points)<2:
+            if len(self.point_groups[i].points)<2:
                 del self.point_groups[i]
             else:
                 i += 1

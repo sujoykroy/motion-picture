@@ -22,7 +22,6 @@ m.add(path="Edit/<UndoRedo>/Undo", accel="<Control>z",
 m.add(path="Edit/<UndoRedo>/Redo", accel="<Control>Y",
       action_name="win.undo_redo", action_param="redo")
 
-
 m.add(path="Edit/Shape/Copy", icon="copy_shape", accel="<Control><Shift>c",
       action_name="win.copy_shape_action")
 m.add(path="Edit/Shape/Paste", icon="paste_shape", accel="<Control><Shift>v",
@@ -141,7 +140,7 @@ m.add(path="Edit/Preferences/Hide Control Points", icon="hide_control_points",
 m.add(path="Edit/Preferences/Show All Time Lines", icon="show_all_time_lines",
       action_name="win.show_all_time_lines", action_state=True, icon_scale=1.2)
 m.add(path="Edit/Preferences/Show Point Groups", icon="show_point_groups",
-      action_name="win.show_point_groups", action_state=False, icon_scale=1.2)
+      action_name="win.show_point_groups", action_state=True, icon_scale=1.2)
 
 m.add(path="Edit/Preferences/Panel Layout/Drawing", icon="panel_drawing",
       desc = "Drawing Panel Layout",

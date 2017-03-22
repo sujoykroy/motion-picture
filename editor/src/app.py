@@ -332,7 +332,7 @@ class ApplicationWindow(MasterEditor):
         if editing_shape_hierarchy:
             editing_shape = get_shape_at_hierarchy(self.doc.main_multi_shape, editing_shape_hierarchy)
             if editing_shape:
-                self.shape_manager.shape_editor = ShapeEditor(editing_shape)
+                self.shape_manager.create_shape_editor(editing_shape)
         self.redraw()
 
     def lock_shape_movement(self, action, parameter):
@@ -526,13 +526,16 @@ class Application(Gtk.Application):
             if not menu_item.is_window_action(): continue
             new_action(win, menu_item)
 
-        win.lookup_action("create_new_shape").set_state(GLib.Variant.new_string(""))
-        win.lookup_action("lock_xy_movement").set_state(GLib.Variant.new_string(""))
 
         win.build_toolbar(self.menubar)
         self.add_window(win)
         win.show_all()
         win.init_interface()
+
+        win.lookup_action("create_new_shape").set_state(GLib.Variant.new_string(""))
+        win.lookup_action("lock_xy_movement").set_state(GLib.Variant.new_string(""))
+        win.lookup_action("show_point_groups").set_state(GLib.Variant.new_boolean(True))
+
         return win
 
     def get_recent_files(self):
