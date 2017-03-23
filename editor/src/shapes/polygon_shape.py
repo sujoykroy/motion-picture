@@ -337,7 +337,7 @@ class PolygonShape(Shape, Mirror):
         self.fit_size_to_include_all()
         return True
 
-    def extend_point(self, polygon_index, is_start):
+    def extend_point(self, polygon_index, is_start, point_index):
         if polygon_index>=len(self.polygons): return False
         polygon = self.polygons[polygon_index]
         if polygon.closed: return False
@@ -345,7 +345,7 @@ class PolygonShape(Shape, Mirror):
         if is_start:
             polygon.points.insert(0, polygon.points[0].copy())
         else:
-            polygon.points.append(polygon.points[-1].copy())
+            polygon.points.insert(point_index, polygon.points[point_index].copy())
         return True
 
     @staticmethod

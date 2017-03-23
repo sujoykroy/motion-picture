@@ -382,7 +382,7 @@ class MultiShape(Shape):
             else:
                 ctx.save()
                 shape.pre_draw(ctx)
-                shape.draw_path(ctx)
+                shape.draw_path(ctx, for_fill=True)
                 shape.draw_fill(ctx)
                 ctx.restore()
 

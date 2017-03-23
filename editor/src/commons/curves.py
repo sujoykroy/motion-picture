@@ -64,6 +64,11 @@ class Curve(object):
         for bezier_point in bezier_points:
             self.add_bezier_point(bezier_point)
 
+    def insert_bezier_point(self, index, bezier_point):
+        self.bezier_points.insert(index, bezier_point)
+        self.bare_point_xys=numpy.insert(self.bare_point_xys, index+1,
+                 [(bezier_point.dest.x, bezier_point.dest.y)], axis=0)
+
     def remove_bezier_point_index(self, index):
         if index<0:
             index += len(self.bezier_points)
@@ -503,6 +508,8 @@ class CurvePointGroup(object):
 
     def update_closed_curves(self, curves):
         for curve_index in self.point_indices:
+            if curve_index>=len(curves):
+                continue
             curve = curves[curve_index]
             if not curve.closed:
                 continue

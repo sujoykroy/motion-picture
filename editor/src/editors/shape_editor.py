@@ -563,9 +563,12 @@ class ShapeEditor(object):
                 items[edit_box.curve_index][edit_box.bezier_point_index]=edit_box.bezier_point_index
             delete_count = 0
             for curve_index in reversed(sorted(items.keys())):
+                curves_count = len(self.shape.curves)
                 for bezier_point_index in reversed(sorted(items[curve_index].keys())):
                     if self.shape.delete_point_at(curve_index, bezier_point_index):
                         delete_count += 1
+                    if len(self.shape.curves)<curves_count:#a curve has been wiped out
+                        break
             return delete_count>0
 
         elif isinstance(self.shape, PolygonShape):
@@ -588,10 +591,21 @@ class ShapeEditor(object):
             return delete_count>0
 
     def extend_point(self):
-        if not isinstance(self.shape, PolygonShape): return None
+        if  not isinstance(self.shape, PolygonShape) and \
+            not isinstance(self.shape, CurveShape): return None
         if len(self.selected_edit_boxes) != 1: return None
-        if self.selected_edit_boxes[0] not in self.joinable_point_edit_boxes: return None
-        return self.shape.extend_point(
-            self.selected_edit_boxes[0].polygon_index,
-            self.selected_edit_boxes[0].is_start,
-        )
+        if self.selected_edit_boxes[0] not in self.moveable_point_edit_boxes: return None
+        if isinstance(self.shape, PolygonShape):
+            return self.shape.extend_point(
+                self.selected_edit_boxes[0].polygon_index,
+                self.selected_edit_boxes[0].is_start,
+                self.selected_edit_boxes[0].point_index
+            )
+        elif isinstance(self.shape, CurveShape) and \
+            not isinstance(self.selected_edit_boxes[0], ControlEditBox):
+            return self.shape.extend_point(
+                self.selected_edit_boxes[0].curve_index,
+                self.selected_edit_boxes[0].is_start,
+                self.selected_edit_boxes[0].bezier_point_index,
+            )
+        return None

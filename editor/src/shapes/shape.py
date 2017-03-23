@@ -584,7 +584,7 @@ class Shape(object):
 
         return Rect(min_x, min_y, max_x - min_x, max_y - min_y)
 
-    def is_within(self, point, margin=5):
+    def is_within(self, point, margin=0):
         point = self.transform_point(point)
         return point.x>=-margin and point.x<=self.width+margin and \
                point.y>=-margin and point.y<=self.height+margin

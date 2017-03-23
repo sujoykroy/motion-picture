@@ -38,6 +38,8 @@ class CurvePointGroupShape(RectangleShape):
         del self.curve_rel_points [:]
 
         for curve_point in self.curve_point_group.points:
+            if curve_point.curve_index>=len(self.curve_shape.curves):
+                continue
             curve = self.curve_shape.curves[curve_point.curve_index]
             if curve_point.point_index>= len(curve.bezier_points):
                 continue
@@ -57,6 +59,8 @@ class CurvePointGroupShape(RectangleShape):
             points.append(curve_rel_point.rel)
 
         outline = Polygon(points).get_outline()
+        if outline is None:
+            return
 
         self.move_to(outline.left, outline.top)
         self.width = outline.width

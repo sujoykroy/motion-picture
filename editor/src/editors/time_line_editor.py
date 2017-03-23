@@ -381,6 +381,7 @@ class TimeLineEditor(Gtk.VBox):
                         self.selected_time_slice_box.highlighted = True
                         break
         self.on_time_slice_box_select()
+        return self.selected_time_slice_box
 
     def end_movement(self):
         if not self.multi_shape_time_line_box: return

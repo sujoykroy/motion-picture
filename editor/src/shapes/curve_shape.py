@@ -437,6 +437,17 @@ class CurveShape(Shape, Mirror):
 
         return True
 
+    def extend_point(self, curve_index, is_start, point_index):
+        if curve_index>=len(self.curves): return False
+        curve = self.curves[curve_index]
+        #if curve.closed: return False
+
+        if is_start:
+            curve.insert_point_at(0, t=0.0)
+        else:
+            curve.insert_point_at(point_index, t=1.0)
+        return True
+
     def delete_point_group_curve(self, curve_index):
         for point_group in self.point_groups:
             point_group.delete_curve(curve_index)
