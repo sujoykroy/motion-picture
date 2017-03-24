@@ -78,20 +78,15 @@ class Shape(object):
     def get_pose_prop_names(cls):
         prop_names = ["anchor_at", "border_color", "border_width", "fill_color",
                       "width", "height", "scale_x", "scale_y", "translation",
-                      "angle", "pre_matrix", "post_scale_x", "post_scale_y"]
+                      "angle", "pre_matrix", "post_scale_x", "post_scale_y",
+                      "abs_anchor_at"]
         return prop_names
 
     def get_pose_prop_dict(self):
         prop_dict = dict()
         for prop_name in self.get_pose_prop_names():
-            value = getattr(self, prop_name)
-            if isinstance(value, Point):
-                value = value.copy()
-            elif isinstance(value, Color):
-                value = value.copy()
-            elif isinstance(value, GradientColor):
-                value = value.copy()
-            elif isinstance(value, cairo.Matrix):
+            value = self.get_prop_value(prop_name)
+            if isinstance(value, cairo.Matrix):
                 value = Matrix.copy(value) if value else None
             elif value and hasattr(value, "copy"):
                 value = value.copy()
@@ -102,20 +97,9 @@ class Shape(object):
         for prop_name in self.get_pose_prop_names():
             if prop_name in prop_dict:
                 value = prop_dict[prop_name]
-                if type(value) in (str, int, float):
-                    setattr(self, prop_name, value)
-                elif isinstance(value, Point):
-                    self_point = getattr(self, prop_name)
-                    self_point.copy_from(value)
-                elif isinstance(value, Color):
-                    self_color = getattr(self, prop_name)
-                    self_color.copy_from(value)
-                elif isinstance(value, GradientColor):
-                    self_color = getattr(self, prop_name)
-                    self_color.copy_from(value)
-                elif isinstance(value, cairo.Matrix):
+                if isinstance(value, cairo.Matrix):
                     value = Matrix.copy(value) if value else None
-                    setattr(self, prop_name, value)
+                self.set_prop_value(prop_name, value)
 
     def set_transition_pose_prop_from_dict(self, start_prop_dict, end_prop_dict, frac):
         for prop_name in self.get_pose_prop_names():
@@ -144,6 +128,7 @@ class Shape(object):
         elm = XmlElement(self.TAG_NAME)
         elm.attrib["type"] = self.TYPE_NAME
         elm.attrib["name"] = self._name
+        elm.attrib["moveable"] = ("1" if self.moveable else "0")
         elm.attrib["anchor_at"] = self.anchor_at.to_text()
         elm.attrib["border_color"] = self.border_color.to_text()
         elm.attrib["border_width"] = "{0}".format(self.border_width)
@@ -183,6 +168,7 @@ class Shape(object):
         return arr
 
     def assign_params_from_xml_element(self, elm, all_fields=False):
+        self.moveable = bool(int(elm.attrib.get("moveable", 1)))
         self.scale_x = float(elm.attrib.get("scale_x", 1))
         self.scale_y = float(elm.attrib.get("scale_y", 1))
 
@@ -356,7 +342,10 @@ class Shape(object):
     def set_anchor_y(self, value):
         self.anchor_at.y = value
 
-    def set_anchor_at(self, x, y):
+    def set_anchor_at(self, x, y=None):
+        if isinstance(x, Point):
+            self.anchor_at.copy_from(x)
+            return
         self.anchor_at.x = x
         self.anchor_at.y = y
 
@@ -442,6 +431,9 @@ class Shape(object):
             abs_anchor.transform(self.pre_matrix)
         abs_anchor.translate(self.translation.x, self.translation.y)
         return abs_anchor
+
+    def set_abs_anchor_at(self, point):
+        self.move_to(point.x, point.y)
 
     def move_to(self, x, y):
         point = Point(x,y)

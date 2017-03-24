@@ -16,6 +16,13 @@ class CurveShape(Shape, Mirror):
         self.show_points = True
         self.point_groups = []
         self.point_group_shapes = dict()
+        self.form_name = ""
+
+    @classmethod
+    def get_pose_prop_names(cls):
+        prop_names = super(CurveShape, cls).get_pose_prop_names()
+        prop_names.extend(["form_name"])
+        return prop_names
 
     def replace_curves(self, curves):
         del self.curves[:]
@@ -80,7 +87,13 @@ class CurveShape(Shape, Mirror):
         self.forms[form_name] = dict(form_dict)
         return form_name
 
+    def set_form_name(self, form_name):
+        self.set_form(form_name)
+
     def set_form(self, form_name):
+        if form_name not in self.forms:
+            return
+        self.form_name = form_name
         form_dict = self.forms[form_name]
 
         diff_width = form_dict["width"] - self.width

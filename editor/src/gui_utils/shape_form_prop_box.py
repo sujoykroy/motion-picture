@@ -56,6 +56,8 @@ class ShapeFormPropBox(object):
         self.rename_form_button.hide()
         self.save_form_button.hide()
         self.update()
+        if self.curve_shape:
+            self.forms_combo_box.set_value(self.curve_shape.get_prop_value("form_name"))
 
     def update(self):
         if self.curve_shape:
