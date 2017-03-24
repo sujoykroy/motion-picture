@@ -270,6 +270,7 @@ class TimeLineEditor(Gtk.VBox):
         self.selected_time_slice_box = None
         self.is_playing = False
         self.last_play_updated_at = 0
+        self.selected_shape = None
         if multi_shape_time_line == None:
             self.multi_shape_time_line_box = None
             self.time_range.reset()
@@ -308,21 +309,31 @@ class TimeLineEditor(Gtk.VBox):
         return self.play_head_time
 
     def set_selected_shape(self, shape):
-        if self.selected_shape and self.time_line and EditingChoice.SHOW_ALL_TIME_LINES:
+        if not self.time_line: return
+        load_single_shape = None
+        if self.time_line.shape_time_lines.key_exists(shape):
+            if self.multi_shape_time_line_box.shape_exists(shape):
+                if self.multi_shape_time_line_box.get_shape_count()>1:
+                    if EditingChoice.SHOW_ALL_TIME_LINES:
+                        load_single_shape = None
+                    else:
+                        load_single_shape = True
+            else:
+                if EditingChoice.SHOW_ALL_TIME_LINES:
+                    load_single_shape = False
+                else:
+                    load_single_shape = True
+        if load_single_shape is True:
+            multi_shape_time_line = MultiShapeTimeLine()
+            shape_time_line =  self.time_line.shape_time_lines[shape]
+            multi_shape_time_line.shape_time_lines.add(shape, shape_time_line)
+            self.multi_shape_time_line_box = MultiShapeTimeLineBox(multi_shape_time_line)
+            self.multi_shape_time_line_box.update()
+        elif load_single_shape is False:
             self.multi_shape_time_line_box = MultiShapeTimeLineBox(self.time_line)
 
         self.selected_shape = shape
-        if not self.time_line: return
-
-        if EditingChoice.SHOW_ALL_TIME_LINES:
-            self.update()
-            return
-
-        multi_shape_time_line = MultiShapeTimeLine()
-        if self.time_line.shape_time_lines.key_exists(shape):
-            shape_time_line =  self.time_line.shape_time_lines[shape]
-            multi_shape_time_line.shape_time_lines.add(shape, shape_time_line)
-        self.multi_shape_time_line_box = MultiShapeTimeLineBox(multi_shape_time_line)
+        self.update_prop_lines_time_scale()
         self.update()
 
     def redraw(self):
@@ -424,10 +435,17 @@ class TimeLineEditor(Gtk.VBox):
             self.multi_shape_time_line_box.update()
             self.time_range.set_non_scaled_full_length_pixel(self.multi_shape_time_line_box.width)
             self.play_head_box.height = self.drawing_area.get_allocated_height()
+
             self.update_time_marker_boxes()
 
         self.mouse_position_box.height = self.drawing_area.get_allocated_height()
         self.redraw()
+
+    def update_prop_lines_time_scale(self):
+        scale_x = self.time_range.get_scale()
+        for shape_line_box in self.multi_shape_time_line_box.shape_time_line_boxes:
+            for prop_line_box in shape_line_box.prop_time_line_boxes:
+                prop_line_box.set_time_multiplier(scale_x)
 
     def update_time_marker_boxes(self):
         for marker_at in self.time_line.time_markers:
@@ -453,12 +471,8 @@ class TimeLineEditor(Gtk.VBox):
         self.time_range.increse_scale(value, self.mouse_point)
         if not self.multi_shape_time_line_box:
             return
-        scale_x = self.time_range.get_scale()
 
-        for shape_line_box in self.multi_shape_time_line_box.shape_time_line_boxes:
-            for prop_line_box in shape_line_box.prop_time_line_boxes:
-                prop_line_box.set_time_multiplier(scale_x)
-
+        self.update_prop_lines_time_scale()
         self.update_time_marker_boxes()
 
     def zoom_vertical(self, value, point):

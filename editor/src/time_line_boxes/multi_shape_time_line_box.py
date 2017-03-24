@@ -9,6 +9,12 @@ class MultiShapeTimeLineBox(Box):
         self.multi_shape_time_line = multi_shape_time_line
         self.shape_time_line_boxes = OrderedDict()
 
+    def shape_exists(self, shape):
+        return self.shape_time_line_boxes.key_exists(shape)
+
+    def get_shape_count(self):
+        return len(self.shape_time_line_boxes)
+
     def print_index_data(self):
         shape_indices = []
         for shape_time_line_box in self.shape_time_line_boxes:

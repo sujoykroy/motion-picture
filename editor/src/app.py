@@ -403,6 +403,7 @@ class ApplicationWindow(MasterEditor):
 
     def delete_time_slice(self, action, parameter):
         self.time_line_editor.delete_time_slice()
+        self.show_time_slice_props(None)
 
     def export(self, action, parameter):
         export_type = parameter.get_string()
