@@ -78,8 +78,7 @@ class Shape(object):
     def get_pose_prop_names(cls):
         prop_names = ["anchor_at", "border_color", "border_width", "fill_color",
                       "width", "height", "scale_x", "scale_y", "translation",
-                      "angle", "pre_matrix", "post_scale_x", "post_scale_y",
-                      "abs_anchor_at"]
+                      "angle", "pre_matrix", "post_scale_x", "post_scale_y"]
         return prop_names
 
     def get_pose_prop_dict(self):
@@ -106,23 +105,33 @@ class Shape(object):
             if prop_name not in start_prop_dict or prop_name not in end_prop_dict: continue
             start_value = start_prop_dict[prop_name]
             end_value = end_prop_dict[prop_name]
-
-            if type(start_value) in (int, float):
-                setattr(self, prop_name, start_value+(end_value-start_value)*frac)
+            if prop_name == "form_raw":
+                prop_data=dict(start_form_raw=start_value, end_form_raw=end_value)
+                self.set_prop_value("internal", frac, prop_data)
+            elif prop_name == "form_name":
+                prop_data=dict(start_form=start_value, end_form=end_value)
+                self.set_prop_value("internal", frac, prop_data)
+            elif type(start_value) in (int, float):
+                self.set_prop_value(prop_name, start_value+(end_value-start_value)*frac)
             elif type(start_value) in (str, ):
-                setattr(self, prop_name, start_value)
+                self.set_prop_value(prop_name, start_value)
             elif isinstance(start_value, Point):
-                self_point = getattr(self, prop_name)
+                self_point = Point(0,0)
                 self_point.x = start_value.x + (end_value.x-start_value.x)*frac
                 self_point.y = start_value.y + (end_value.y-start_value.y)*frac
+                self.set_prop_value(prop_name, self_point)
             elif isinstance(start_value, Color) or isinstance(start_value, GradientColor):
-                self_color = getattr(self, prop_name)
-                self_color.set_inbetween(start_value, end_value, frac)
+                self_color = self.get_prop_value(prop_name)
+                if self_color:
+                    self_color = self_color.copy()
+                    self_color.set_inbetween(start_value, end_value, frac)
+                    self.set_prop_value(prop_name, self_color)
             elif isinstance(start_value, cairo.Matrix):
                 if start_value and end_value:
-                    setattr(self, prop_name, Matrix.interpolate(start_value, end_value, frac))
+                    current_value = Matrix.interpolate(start_value, end_value, frac)
                 else:
-                    setattr(self, prop_name, None)
+                    current_value = None
+                self.set_prop_value(prop_name, current_value)
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)

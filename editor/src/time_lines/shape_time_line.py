@@ -9,6 +9,7 @@ class ShapeTimeLine(object):
     def __init__(self, shape):
         self.shape = shape
         self.prop_time_lines = OrderedDict()
+        self._display_name = None
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -17,12 +18,25 @@ class ShapeTimeLine(object):
             elm.append(prop_time_line.get_xml_element())
         return elm
 
+    def get_display_name(self):
+        if self._display_name:
+            return self._display_name
+        return self.shape.get_name()
+
+    def set_display_name(self, display_name):
+        self._display_name = display_name
+
     @classmethod
     def create_from_xml_element(cls, elm, multi_shape):
-        shape_name = elm.attrib[cls.SHAPE_NAME]
-        if not multi_shape.shapes.contain(shape_name): return None
-        shape=multi_shape.shapes[shape_name]
+        shape_name = elm.attrib.get(cls.SHAPE_NAME, None)
+        if shape_name is None:
+            shape = multi_shape
+        else:
+            if not multi_shape.shapes.contain(shape_name): return None
+            shape=multi_shape.shapes[shape_name]
         shape_time_line = cls(shape)
+        if shape == multi_shape:
+            shape_time_line.set_display_name("self")
         for prop_time_line_elm in elm.findall(PropTimeLine.TAG_NAME):
             prop_time_line = PropTimeLine.create_from_xml_element(prop_time_line_elm, shape)
             shape_time_line.prop_time_lines.add(prop_time_line.prop_name, prop_time_line)

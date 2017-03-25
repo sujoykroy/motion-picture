@@ -3,13 +3,14 @@ from name_value_combo_box import NameValueComboBox
 from helper_dialogs import TextInputDialog
 
 class MultiShapeInternalPropBox(Gtk.VBox):
-    def __init__(self, draw_callback, timeline_load_callback):
+    def __init__(self, draw_callback, timeline_load_callback, insert_time_slice_callback):
         Gtk.VBox.__init__(self)
         self.set_margin_left(10)
         self.set_margin_right(10)
 
         self.draw_callback = draw_callback
         self.timeline_load_callback = timeline_load_callback
+        self.insert_time_slice_callback = insert_time_slice_callback
 
         pose_label = Gtk.Label("Poses")
         self.poses_combo_box = NameValueComboBox()
@@ -22,12 +23,15 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         self.rename_pose_button.connect("clicked", self.rename_pose_button_clicked)
         self.save_pose_button = Gtk.Button("Save")
         self.save_pose_button.connect("clicked", self.save_pose_button_clicked)
+        self.insert_slice_button = Gtk.Button("I+I")
+        self.insert_slice_button.connect("clicked", self.insert_slice_button_clicked, "pose")
 
         pose_button_box = Gtk.HBox()
         pose_button_box.pack_start(self.apply_pose_button, expand=False, fill=False, padding=0)
         pose_button_box.pack_start(self.save_pose_button, expand=False, fill=False, padding=0)
         pose_button_box.pack_start(self.rename_pose_button, expand=False, fill=False, padding=0)
         pose_button_box.pack_start(self.new_pose_button, expand=False, fill=False, padding=0)
+        pose_button_box.pack_start(self.insert_slice_button, expand=False, fill=False, padding=0)
 
         self.pack_start(pose_label, expand=False, fill=False, padding=0)
         self.pack_start(self.poses_combo_box, expand=False, fill=False, padding=0)
@@ -137,3 +141,8 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         if pose_name:
             self.multi_shape.save_pose(pose_name)
 
+    def insert_slice_button_clicked(self, widget, prop_name):
+        start_pose = self.poses_combo_box.get_value()
+        if start_pose:
+            prop_data = dict(start_pose=start_pose, end_pose=None, type="pose")
+            self.insert_time_slice_callback(self.multi_shape, "internal" , 0, 1, prop_data)

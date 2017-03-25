@@ -6,8 +6,9 @@ from time_marker import TimeMarker
 class MultiShapeTimeLine(object):
     TAG_NAME = "multi_shape_time_line"
 
-    def __init__(self, name=None, duration=0.):
+    def __init__(self, multi_shape, name=None, duration=0., ):
         self.shape_time_lines = OrderedDict()
+        self.multi_shape = multi_shape
         self.duration = duration
         self.name = name
         self.time_labels = []
@@ -44,14 +45,17 @@ class MultiShapeTimeLine(object):
         elm = XmlElement(self.TAG_NAME)
         elm.attrib["name"] = self.name
         for shape_time_line in self.shape_time_lines:
-            elm.append(shape_time_line.get_xml_element())
+            shape_time_elm = shape_time_line.get_xml_element()
+            if shape_time_line.shape == self:
+                del elm.attrib[ShapeTimeLine.SHAPE_NAME]
+            elm.append(shape_time_elm)
         for time_marker in self.time_markers.values():
             elm.append(time_marker.get_xml_element())
         return elm
 
     @classmethod
     def create_from_xml_element(cls, elm, multi_shape):
-        multi_shape_time_line = cls(name=elm.attrib["name"])
+        multi_shape_time_line = cls(name=elm.attrib["name"], multi_shape=multi_shape)
         for shape_time_line_elm in elm.findall(ShapeTimeLine.TAG_NAME):
             shape_time_line = ShapeTimeLine.create_from_xml_element(shape_time_line_elm, multi_shape)
             if not shape_time_line: continue
@@ -64,10 +68,10 @@ class MultiShapeTimeLine(object):
         multi_shape_time_line.get_duration()
         return multi_shape_time_line
 
-    def copy(self, shapes):
-        newob = MultiShapeTimeLine(name=self.name)
+    def copy(self):
+        newob = MultiShapeTimeLine(name=self.name, multi_shape=self.multi_shape)
         for orig_shape in self.shape_time_lines.keys:
-            new_shape = shapes[orig_shape.get_name()]
+            new_shape = self.multi_shape.shapes[orig_shape.get_name()]
             newob.shape_time_lines.add(
                 new_shape,
                 self.shape_time_lines[orig_shape].copy(new_shape))

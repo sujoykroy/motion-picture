@@ -3,6 +3,7 @@ from shape import Shape
 from curve_point_group_shape import CurvePointGroupShape
 from xml.etree.ElementTree import Element as XmlElement
 from mirror import *
+import time
 
 class CurveShape(Shape, Mirror):
     TYPE_NAME = "curve_shape"
@@ -21,7 +22,7 @@ class CurveShape(Shape, Mirror):
     @classmethod
     def get_pose_prop_names(cls):
         prop_names = super(CurveShape, cls).get_pose_prop_names()
-        prop_names.extend(["form_name"])
+        prop_names.extend(["form_raw"])
         return prop_names
 
     def replace_curves(self, curves):
@@ -61,14 +62,7 @@ class CurveShape(Shape, Mirror):
         self.fit_size_to_include_all()
         self.forms = copy_dict(self.linked_to.forms)
 
-    def save_form(self, form_name):
-        if form_name is None:
-            i = len(self.forms)
-            while True:
-                i += 1
-                form_name = "Form_{0}".format(i)
-                if form_name not in self.forms:
-                    break
+    def get_form_raw(self):
         curves = []
         anchor_at = self.anchor_at.copy()
         anchor_at.scale(1./self.width, 1./self.height)
@@ -84,18 +78,20 @@ class CurveShape(Shape, Mirror):
         form_dict["curves"] = curves
         form_dict["width"] = self.width
         form_dict["height"] = self.height
-        self.forms[form_name] = dict(form_dict)
+        return form_dict
+
+    def save_form(self, form_name):
+        if form_name is None:
+            i = len(self.forms)
+            while True:
+                i += 1
+                form_name = "Form_{0}".format(i)
+                if form_name not in self.forms:
+                    break
+        self.forms[form_name] = self.get_form_raw()
         return form_name
 
-    def set_form_name(self, form_name):
-        self.set_form(form_name)
-
-    def set_form(self, form_name):
-        if form_name not in self.forms:
-            return
-        self.form_name = form_name
-        form_dict = self.forms[form_name]
-
+    def set_form_raw(self, form_dict):
         diff_width = form_dict["width"] - self.width
         diff_height = form_dict["height"] - self.height
         abs_anchor_at = self.get_abs_anchor_at()
@@ -127,18 +123,31 @@ class CurveShape(Shape, Mirror):
         self.fit_size_to_include_all()
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
+    def set_form(self, form_name):
+        if form_name not in self.forms:
+            return
+        self.form_name = form_name
+        form_dict = self.forms[form_name]
+        self.set_form_raw(form_dict)
+
+    def set_form_name(self, form_name):
+        self.set_form(form_name)
 
     def set_prop_value(self, prop_name, value, prop_data=None):
         if prop_name == "internal":
-            start_form = prop_data["start_form"]
-            end_form = prop_data["end_form"]
+            if "start_form" in prop_data:
+                start_form = prop_data["start_form"]
+                end_form = prop_data["end_form"]
 
-            if end_form is None or end_form not in self.forms:
-                self.set_form(start_form)
-                return
+                if end_form is None or end_form not in self.forms:
+                    self.set_form(start_form)
+                    return
 
-            start_form_dict = self.forms[start_form]
-            end_form_dict = self.forms[end_form]
+                start_form_dict = self.forms[start_form]
+                end_form_dict = self.forms[end_form]
+            else:
+                start_form_dict = prop_data["start_form_raw"]
+                end_form_dict = prop_data["end_form_raw"]
 
             new_width = start_form_dict["width"] + (end_form_dict["width"]-start_form_dict["width"])*value
             new_height = start_form_dict["height"] + (end_form_dict["height"]-start_form_dict["height"])*value

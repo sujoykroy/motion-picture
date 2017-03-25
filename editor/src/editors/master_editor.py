@@ -166,7 +166,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.paned_box_3.pack2(right_prop_box_container, resize=True, shrink=True)
 
         self.multi_shape_internal_prop_box = MultiShapeInternalPropBox(
-                            self.redraw, self.load_multi_shape_time_line)
+                            self.redraw, self.load_multi_shape_time_line, self.insert_time_slice)
         self.right_prop_box.pack_start(
                 self.multi_shape_internal_prop_box, expand=False, fill=False, padding=0)
         self.multi_shape_internal_prop_box.parent_window = self

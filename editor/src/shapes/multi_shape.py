@@ -212,8 +212,12 @@ class MultiShape(Shape):
             shape = self.shapes[shape_name]
             end_prop_dict = end_pose[shape_name]
             shape.set_transition_pose_prop_from_dict(start_prop_dict, end_prop_dict, frac=value)
-            tpoint = shape.translation
-            tpoint.translate(anchor_at.x, anchor_at.y)
+            start_rel_abs_anchor_at = start_prop_dict["rel_abs_anchor_at"].copy()
+            end_rel_abs_anchor_at = end_prop_dict["rel_abs_anchor_at"].copy()
+            abs_anchor_at = Point(0, 0)
+            abs_anchor_at.set_inbetween(start_rel_abs_anchor_at, end_rel_abs_anchor_at, value)
+            abs_anchor_at.translate(anchor_at.x, anchor_at.y)
+            shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.readjust_sizes()
 
     def get_new_timeline(self):
@@ -223,7 +227,7 @@ class MultiShape(Shape):
             time_line_name = "TimeLine_{0:03}".format(i)
             if time_line_name not in self.timelines:
                 break
-        time_line = MultiShapeTimeLine(name=time_line_name)
+        time_line = MultiShapeTimeLine(name=time_line_name, multi_shape=self)
         self.timelines[time_line_name] = time_line
         return time_line
 
@@ -346,7 +350,15 @@ class MultiShape(Shape):
         return shapes
 
     def rename_shape(self, shape, name):
-        return self.shapes.rename(shape.get_name(), name)
+        if name in ("self",):
+            return False
+        old_name = shape.get_name()
+        if self.shapes.rename(old_name, name):
+            for pose in self.poses:
+                if old_name in pose:
+                    pose[name] = pose[old_name]
+                    del pose[old_name]
+        return True
 
     def draw(self, ctx, drawing_size=None, fixed_border=True):
         if self.masked and len(self.shapes)>1:

@@ -52,7 +52,7 @@ class ShapeTimeLineBox(Box):
             text_color = SHAPE_NAME_TEXT_COLOR
             back_color = SHAPE_NAME_BACK_COLOR
         draw_text(ctx,
-            self.shape_time_line.shape.get_name(), 0, 0, font_name=settings.TIME_LINE_FONT,
+            self.shape_time_line.get_display_name(), 0, 0, font_name=settings.TIME_LINE_FONT,
             text_color = text_color, padding=2,
             border_color = SHAPE_NAME_BORDER_COLOR, border_width=1,
             back_color = back_color, pre_draw=self.pre_draw)
