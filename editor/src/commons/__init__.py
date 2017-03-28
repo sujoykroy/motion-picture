@@ -1,6 +1,6 @@
 from point import Point
 from colors import *
-from curves import Curve, CurvePoint, CurvePointGroup
+from curves import Curve, CurvePoint, CurvePointGroup, CurvesForm
 from polygon import Polygon
 from bezier_point import BezierPoint
 from rect import Rect

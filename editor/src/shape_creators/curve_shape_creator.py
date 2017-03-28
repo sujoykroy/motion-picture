@@ -107,8 +107,9 @@ class CurveShapeCreator(object):
             last_point = self.curve.origin
         else:
             last_point = self.bezier_point.dest
-        self.bezier_point = BezierPoint(last_point.copy(), last_point.copy(), last_point.copy())
-        self.curve.add_bezier_point(self.bezier_point)
+        bezier_point = BezierPoint(last_point.copy(), last_point.copy(), last_point.copy())
+        self.curve.add_bezier_point(bezier_point)
+        self.bezier_point = self.curve.bezier_points[-1]
         self.move_dest = True
         return False
 

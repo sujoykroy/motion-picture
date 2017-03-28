@@ -3,11 +3,10 @@ from shape import Shape
 from curve_point_group_shape import CurvePointGroupShape
 from xml.etree.ElementTree import Element as XmlElement
 from mirror import *
-import time
 
 class CurveShape(Shape, Mirror):
     TYPE_NAME = "curve_shape"
-    FORM_TAG_NAME = "form"
+
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height):
         Shape.__init__(self, anchor_at, border_color, border_width, fill_color, width, height)
@@ -60,7 +59,7 @@ class CurveShape(Shape, Mirror):
             curve.translate(diff_x, diff_y)
             self.curves.append(curve)
         self.fit_size_to_include_all()
-        self.forms = copy_dict(self.linked_to.forms)
+        self.forms = copy_list(self.linked_to.forms)
 
     def get_form_raw(self):
         curves = []
@@ -68,17 +67,15 @@ class CurveShape(Shape, Mirror):
         anchor_at.scale(1./self.width, 1./self.height)
         for curve in self.curves:
             curve = curve.copy()
-            curve.origin.translate(-anchor_at.x, -anchor_at.y)
-            for bzpoint in curve.bezier_points:
-                bzpoint.control_1.translate(-anchor_at.x, -anchor_at.y)
-                bzpoint.control_2.translate(-anchor_at.x, -anchor_at.y)
-                bzpoint.dest.translate(-anchor_at.x, -anchor_at.y)
+            curve.translate(-anchor_at.x, -anchor_at.y)
             curves.append(curve)
-        form_dict = dict()
+        form = CurvesForm(width=self.width, height=self.height, curves=curves)
+        """
         form_dict["curves"] = curves
         form_dict["width"] = self.width
         form_dict["height"] = self.height
-        return form_dict
+        """
+        return form
 
     def save_form(self, form_name):
         if form_name is None:
@@ -88,17 +85,19 @@ class CurveShape(Shape, Mirror):
                 form_name = "Form_{0}".format(i)
                 if form_name not in self.forms:
                     break
-        self.forms[form_name] = self.get_form_raw()
+        form = self.get_form_raw()
+        form.set_name(form_name)
+        self.forms[form_name] = form
         return form_name
 
-    def set_form_raw(self, form_dict):
-        diff_width = form_dict["width"] - self.width
-        diff_height = form_dict["height"] - self.height
+    def set_form_raw(self, form):
+        diff_width = form.width - self.width
+        diff_height = form.height - self.height
         abs_anchor_at = self.get_abs_anchor_at()
 
-        self.width = form_dict["width"]
-        self.height = form_dict["height"]
-        form_curves = form_dict["curves"]
+        self.width = form.width
+        self.height = form.height
+        form_curves = form.curves
 
         anchor_at = self.anchor_at.copy()
         anchor_at.scale(1./self.width, 1./self.height)
@@ -106,19 +105,9 @@ class CurveShape(Shape, Mirror):
         for i in range(min(len(form_curves), len(self.curves))):
             self_curve = self.curves[i]
             form_curve = form_curves[i]
-            self_curve.origin.copy_from(form_curve.origin)
-            self_curve.origin.translate(anchor_at.x, anchor_at.y)
-            for j in range(min(len(self_curve.bezier_points), len(form_curve.bezier_points))):
-                self_bzpoint = self_curve.bezier_points[j]
-                form_bzpoint = form_curve.bezier_points[j]
-                self_bzpoint.control_1.copy_from(form_bzpoint.control_1)
-                self_bzpoint.control_2.copy_from(form_bzpoint.control_2)
-                self_bzpoint.dest.copy_from(form_bzpoint.dest)
 
-                self_bzpoint.control_1.translate(anchor_at.x, anchor_at.y)
-                self_bzpoint.control_2.translate(anchor_at.x, anchor_at.y)
-                self_bzpoint.dest.translate(anchor_at.x, anchor_at.y)
-
+            self_curve.copy_from(form_curve)
+            self_curve.translate(anchor_at.x, anchor_at.y)
         #self.anchor_at.translate(diff_width, diff_height)
         self.fit_size_to_include_all()
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
@@ -127,8 +116,8 @@ class CurveShape(Shape, Mirror):
         if form_name not in self.forms:
             return
         self.form_name = form_name
-        form_dict = self.forms[form_name]
-        self.set_form_raw(form_dict)
+        form = self.forms[form_name]
+        self.set_form_raw(form)
 
     def set_form_name(self, form_name):
         self.set_form(form_name)
@@ -136,21 +125,20 @@ class CurveShape(Shape, Mirror):
     def set_prop_value(self, prop_name, value, prop_data=None):
         if prop_name == "internal":
             if "start_form" in prop_data:
-                start_form = prop_data["start_form"]
-                end_form = prop_data["end_form"]
+                start_form_name = prop_data["start_form"]
+                end_form_name = prop_data["end_form"]
 
-                if end_form is None or end_form not in self.forms:
-                    self.set_form(start_form)
+                if end_form_name is None or end_form_name not in self.forms:
+                    self.set_form(start_form_name)
                     return
 
-                start_form_dict = self.forms[start_form]
-                end_form_dict = self.forms[end_form]
+                start_form = self.forms[start_form_name]
+                end_form = self.forms[end_form_name]
             else:
-                start_form_dict = prop_data["start_form_raw"]
-                end_form_dict = prop_data["end_form_raw"]
-
-            new_width = start_form_dict["width"] + (end_form_dict["width"]-start_form_dict["width"])*value
-            new_height = start_form_dict["height"] + (end_form_dict["height"]-start_form_dict["height"])*value
+                start_form = prop_data["start_form_raw"]
+                end_form = prop_data["end_form_raw"]
+            new_width = start_form.width + (end_form.width-start_form.width)*value
+            new_height = start_form.height + (end_form.height-start_form.height)*value
 
             diff_width = new_width - self.width
             diff_height = new_height - self.height
@@ -159,37 +147,25 @@ class CurveShape(Shape, Mirror):
 
             self.width = new_width
             self.height = new_height
-            start_form_curves = start_form_dict["curves"]
-            end_form_curves = end_form_dict["curves"]
+            start_form_curves = start_form.curves
+            end_form_curves = end_form.curves
 
             anchor_at = self.anchor_at.copy()
             anchor_at.scale(1./self.width, 1./self.height)
 
-            for i in range(min(len(start_form_curves), len(end_form_curves), len(self.curves))):
+            minc = min(len(start_form_curves), len(end_form_curves), len(self.curves))
+            i = 0
+            start_curves = []
+            end_curves = []
+            while i<minc:
                 self_curve = self.curves[i]
                 start_form_curve = start_form_curves[i]
                 end_form_curve = end_form_curves[i]
+                i += 1
 
-                self_curve.origin.set_inbetween(start_form_curve.origin, end_form_curve.origin, value)
-                self_curve.origin.translate(anchor_at.x, anchor_at.y)
-                for j in range(min(len(self_curve.bezier_points), len(start_form_curve.bezier_points), \
-                                   len(end_form_curve.bezier_points) )):
-                    self_bzpoint = self_curve.bezier_points[j]
-                    start_form_bzpoint = start_form_curve.bezier_points[j]
-                    end_form_bzpoint = end_form_curve.bezier_points[j]
+                self_curve.set_inbetween(start_form_curve, end_form_curve, value)
+                self_curve.translate(anchor_at.x, anchor_at.y)
 
-                    self_bzpoint.control_1.set_inbetween(
-                        start_form_bzpoint.control_1, end_form_bzpoint.control_1, value)
-                    self_bzpoint.control_2.set_inbetween(
-                        start_form_bzpoint.control_2, end_form_bzpoint.control_2, value)
-                    self_bzpoint.dest.set_inbetween(
-                        start_form_bzpoint.dest, end_form_bzpoint.dest, value)
-
-                    self_bzpoint.control_1.translate(anchor_at.x, anchor_at.y)
-                    self_bzpoint.control_2.translate(anchor_at.x, anchor_at.y)
-                    self_bzpoint.dest.translate(anchor_at.x, anchor_at.y)
-
-            #self.anchor_at.translate(diff_width, diff_height)
             self.fit_size_to_include_all()
             self.move_to(abs_anchor_at.x, abs_anchor_at.y)
         else:
@@ -198,6 +174,7 @@ class CurveShape(Shape, Mirror):
     def rename_form(self, old_form, new_form):
         if new_form in self.forms: return
         self.forms[new_form] = self.forms[old_form]
+        self.forms[new_form].set_name(new_form)
         del self.forms[old_form]
 
     def get_xml_element(self):
@@ -208,13 +185,15 @@ class CurveShape(Shape, Mirror):
             elm.attrib["show_points"] = "False"
 
         for form_name, form in self.forms.items():
+            """
             form_elm = XmlElement(self.FORM_TAG_NAME)
             form_elm.attrib["name"] = form_name
             form_elm.attrib["width"] = "{0}".format(form["width"])
             form_elm.attrib["height"] = "{0}".format(form["height"])
             for curve in form["curves"]:
                 form_elm.append(curve.get_xml_element())
-            elm.append(form_elm)
+            """
+            elm.append(form.get_xml_element())
 
         for point_group in self.point_groups:
             elm.append(point_group.get_xml_element())
@@ -232,7 +211,8 @@ class CurveShape(Shape, Mirror):
             curve = Curve.create_from_xml_element(curve_elm)
             shape.curves.append(curve)
 
-        for form_elm in elm.findall(cls.FORM_TAG_NAME):
+        for form_elm in elm.findall(CurvesForm.TAG_NAME):
+            """
             form_name = form_elm.attrib["name"]
             form_dict = dict()
             form_dict["width"] = float(form_elm.attrib["width"])
@@ -240,7 +220,9 @@ class CurveShape(Shape, Mirror):
             form_dict["curves"] = curves = []
             for curve_elm in form_elm.findall(Curve.TAG_NAME):
                 curves.append(Curve.create_from_xml_element(curve_elm))
-            shape.forms[form_name] = form_dict
+            """
+            form = CurvesForm.create_from_xml_element(form_elm)
+            shape.forms[form.name] = form
 
         for point_group_elm in elm.findall(CurvePointGroup.TAG_NAME):
             point_group = CurvePointGroup.create_from_xml_element(point_group_elm)
@@ -257,7 +239,7 @@ class CurveShape(Shape, Mirror):
         for curve in self.curves:
             newob.curves.append(curve.copy())
         if deep_copy:
-            newob.forms = copy_dict(self.forms)
+            newob.forms = copy_list(self.forms)
         newob.show_points = self.show_points
         return newob
 
@@ -283,15 +265,7 @@ class CurveShape(Shape, Mirror):
             elif scale[0] == -1 and scale[1] == -1:
                 ctx.translate(2*self.anchor_at.x/self.width, 2*self.anchor_at.y/self.height)
             ctx.scale(*scale)
-        ctx.new_path()
-        ctx.move_to(curve.origin.x, curve.origin.y)
-        for bezier_point in curve.bezier_points:
-            ctx.curve_to(
-                bezier_point.control_1.x, bezier_point.control_1.y,
-                bezier_point.control_2.x, bezier_point.control_2.y,
-                bezier_point.dest.x, bezier_point.dest.y)
-        if len(curve.bezier_points) > 1 and curve.closed:
-            ctx.close_path()
+        curve.draw_path(ctx)
         ctx.restore()
 
     def draw_path(self, ctx, for_fill=False):

@@ -65,9 +65,12 @@ class MultiShape(Shape):
                 pose_shape_elm = XmlElement(self.POSE_SHAPE_TAG_NAME)
                 pose_shape_elm.attrib["name"] = shape_name
                 for prop_name, value in prop_dict.items():
-                    if hasattr(value, "to_text"):
-                        value = value.to_text()
-                    pose_shape_elm.attrib[prop_name] = "{0}".format(value)
+                    if prop_name in ("form_raw",):
+                        pose_shape_elm.append(value.get_xml_element())
+                    else:
+                        if hasattr(value, "to_text"):
+                            value = value.to_text()
+                        pose_shape_elm.attrib[prop_name] = "{0}".format(value)
                 pose_elm.append(pose_shape_elm)
             elm.append(pose_elm)
 
@@ -124,11 +127,15 @@ class MultiShape(Shape):
                         value = color_from_text(value)
                     elif prop_name == "pre_matrix":
                         value = Matrix.from_text(value)
-                    elif prop_name == "form":
-                        value = value
                     else:
-                        value = float(value)
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            continue
                     prop_dict[prop_name] = value
+                form = pose_shape_elm.find(CurvesForm.TAG_NAME)
+                if form:
+                    prop_dict["form_raw"] = CurvesForm.create_from_xml_element(form)
                 if shape_name:
                     pose[shape_name] = prop_dict
             shape.poses[pose_name] = pose

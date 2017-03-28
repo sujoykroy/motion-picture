@@ -34,6 +34,22 @@ class Document(object):
     def get_main_multi_shape(self):
         return self.main_multi_shape
 
+    def get_shape_at_hierarchy(self, names):
+        multi_shape = self.main_multi_shape
+        shape = None
+        for i in range(len(names)):
+            name = names[i]
+            if i == 0:
+                 if multi_shape.get_name() == name:
+                    shape = multi_shape
+                 else:
+                    break
+            else:
+                shape = shape.shapes.get_item_by_name(name)
+                if not shape:
+                    break
+        return shape
+
     def set_doc_size(self, width, height):
         self.width = width
         self.height = height
@@ -93,14 +109,19 @@ class Document(object):
         self.add_linked_clone_elements(self.main_multi_shape, root)
 
         backup_file = None
+        if filename is None:
+            filename = self.filename
+
         if filename is not None:
             self.filename = filename
             if os.path.isfile(filename):
                 backup_file = filename + ".bk"
                 os.rename(filename, backup_file)
+
+        #tree.write(self.filename)
         try:
             tree.write(self.filename)
-        except:
+        except TypeError as e:
             if backup_file:
                 os.rename(backup_file, filename)
                 backup_file = None

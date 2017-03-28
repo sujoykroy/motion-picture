@@ -1,10 +1,11 @@
 from bezier_point import BezierPoint
 from point import Point, RAD_PER_DEG
+from rect import Rect
 from xml.etree.ElementTree import Element as XmlElement
 import numpy, math
 from scipy.spatial import distance
 
-class Curve(object):
+class NaturalCurve(object):
     TAG_NAME = "curve"
 
     def __init__(self, origin, bezier_points=None, closed=False):
@@ -15,6 +16,7 @@ class Curve(object):
         # for normal small curves, this element needs to be out of
         # operation. some checks necessary to implement it.
         self.bare_point_xys = numpy.array([(origin.x, origin.y)])
+        self.all_points = numpy.array([(origin.x, origin.y)])
         if bezier_points is not None:
             self.add_bezier_points(bezier_points)
         self.closed = closed
@@ -40,7 +42,32 @@ class Curve(object):
         newob = Curve(self.origin.copy(), closed=self.closed)
         for bezier_point in self.bezier_points:
             newob.add_bezier_point(bezier_point.copy())
+        newob.all_points = self.all_points.copy()
         return newob
+
+    def copy_from(self, other_curve):
+        self.origin.copy_from(other_curve.origin)
+        for i in range(min(len(self.bezier_points), len(other_curve.bezier_points))):
+            self_bzpoint = self.bezier_points[i]
+            other_bzpoint = other_curve.bezier_points[i]
+            self_bzpoint.control_1.copy_from(other_bzpoint.control_1)
+            self_bzpoint.control_2.copy_from(other_bzpoint.control_2)
+            self_bzpoint.dest.copy_from(other_bzpoint.dest)
+
+    def set_inbetween(self, start_curve, end_curve, frac):
+        self.origin.set_inbetween(start_curve.origin, end_curve.origin, frac)
+        minp = min(len(self.bezier_points), \
+                        len(start_curve.bezier_points), \
+                               len(end_curve.bezier_points))
+        i = 0
+        while i<minp:
+            self_bzpoint = self.bezier_points[i]
+            start_bzpoint = start_curve.bezier_points[i]
+            end_bzpoint = end_curve.bezier_points[i]
+            i +=1
+            self_bzpoint.control_1.set_inbetween( start_bzpoint.control_1, end_bzpoint.control_1, frac)
+            self_bzpoint.control_2.set_inbetween(start_bzpoint.control_2, end_bzpoint.control_2, frac)
+            self_bzpoint.dest.set_inbetween(start_bzpoint.dest, end_bzpoint.dest, frac)
 
     def reverse_copy(self):
         newob = Curve(self.bezier_points[-1].dest.copy(), closed=self.closed)
@@ -139,6 +166,7 @@ class Curve(object):
             self.update_bezier_point_index(index)
 
     def draw_path(self, ctx):
+        ctx.new_path()
         ctx.move_to(self.origin.x, self.origin.y)
         for bezier_point in self.bezier_points:
             ctx.curve_to(
@@ -252,6 +280,7 @@ class Curve(object):
         if bezier_point_index == len(self.bezier_points)-1:
             self.add_bezier_point(post_bzp)
         else:
+            print "ggg"
             self.bezier_points.insert(bezier_point_index+1, post_bzp)
             self.bare_point_xys=numpy.insert(self.bare_point_xys, bezier_point_index+1,
                     [(post_bzp.dest.x, post_bzp.dest.y)], axis=0)
@@ -380,6 +409,164 @@ class Curve(object):
         inner_curve_origin_bzp.align_straight_with(inner_curve.bezier_points[-1].dest)
         inner_curve.closed = True
         return inner_curve
+
+class PseudoPoint(Point):
+    def __init__(self, curve, index):
+        self.curve = curve
+        self.index = index
+
+    def __getattr__(self, name):
+        if name == "x":
+            return self.curve.all_points[self.index][0]
+        elif name == "y":
+            return self.curve.all_points[self.index][1]
+        else:
+            raise AttributeError
+
+    def __setattr__(self, name, value):
+        if name == "x":
+            self.curve.all_points[self.index][0] = value
+        elif name == "y":
+            self.curve.all_points[self.index][1] = value
+        else:
+            super(PseudoPoint, self).__setattr__(name, value)
+
+    def copy(self):
+        return Point(self.x, self.y)
+
+class PseudoBezierPoint(BezierPoint):
+    def __init__(self, curve, index):
+        self.curve = curve
+        self.index = index
+
+    def __getattr__(self, name):
+        if name == "control_1":
+            return PseudoPoint(self.curve, self.index*3+0+1)
+        elif name == "control_2":
+            return PseudoPoint(self.curve, self.index*3+1+1)
+        elif name == "dest":
+            return PseudoPoint(self.curve, self.index*3+2+1)
+        else:
+            raise AttributeError
+
+    def copy(self):
+        return BezierPoint(self.control_1.copy(), self.control_2.copy(), self.dest.copy())
+
+class PseudoBezierPoints(object):
+    def __init__(self, curve):
+        self.curve = curve
+
+    def __getitem__(self, index):
+        if index<0:
+            index += len(self)
+        return PseudoBezierPoint(self.curve, index)
+
+    def __len__(self):
+        return (len(self.curve.all_points)-1)/3
+
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
+
+    def __delitem__(self, index):
+        indices = []
+        if isinstance(index, slice):
+            start = index.start
+            step = 1 if index.step is None else index.step
+            stop = len(self)+1 if index.stop is None else index.stop
+            for i in range(start, stop, step):
+                indices.extend([i*3+0+1, i*3+1+1, i*3+2+1])
+        else:
+            indices.extend([index*3+0+1, index*3+1+1, index*3+2+1])
+        self.curve.all_points = numpy.delete(self.curve.all_points,indices, axis=0)
+
+    def extend(self, bezier_points):
+        for bezier_point in bezier_points:
+            self.curve.add_bezier_point(bezier_point)
+
+#to use normal pythonian curve
+class Curve(NaturalCurve):
+    pass
+
+#this is numpy-ian curve
+class Curve(NaturalCurve):
+    def __init__(self, origin, bezier_points=None, closed=False):
+        self.all_points = numpy.array([(origin.x, origin.y)])
+        if bezier_points is not None:
+            self.add_bezier_points(bezier_points)
+        self.closed = closed
+        self.origin = PseudoPoint(self, 0)
+        self.bezier_points = PseudoBezierPoints(self)
+
+    def copy(self):
+        newob = Curve(self.origin.copy(), closed=self.closed)
+        newob.all_points = self.all_points.copy()
+        return newob
+
+    def reverse_copy(self):
+        newob = Curve(self.bezier_points[-1].dest.copy(), closed=self.closed)
+        newob.all_points = self.all_points[::-1].copy()
+        return newob
+
+    def copy_from(self, other_curve):
+        self.all_points = other_curve.all_points.copy()
+        self.closed = other_curve.closed
+
+    def add_bezier_point(self, bezier_point):
+        self.all_points=numpy.append(self.all_points,
+            [(bezier_point.control_1.x, bezier_point.control_1.y),
+             (bezier_point.control_2.x, bezier_point.control_2.y),
+             (bezier_point.dest.x, bezier_point.dest.y)], axis=0)
+
+    def insert_bezier_point(self, index, bezier_point):
+        self.all_points=numpy.insert(self.all_points, index*3+1
+            [(bezier_point.control_1.x, bezier_point.control_1.y),
+             (bezier_point.control_2.x, bezier_point.control_2.y),
+             (bezier_point.dest.x, bezier_point.dest.y)], axis=0)
+
+    def remove_bezier_point_index(self, index):
+        if index<0:
+            index += len(self.bezier_points)
+        self.all_points=numpy.delete(self.all_points,
+            [index*3+0+1, index*3+1+1, index*3+2+1], axis=0)
+
+    def remove_bezier_point_indices(self, start_index, end_index):
+        for i in range(end_index-1, start_index-1, -1):
+            self.all_points=numpy.delete(self.all_points, [i*3+0+1, i*3+1+1, i*3+2+1], axis=0)
+
+    def update_bezier_point_index(self, index):
+        pass
+
+    def update_origin(self):
+        pass
+
+    def get_outline(self):
+        outline = None
+        if len(self.all_points)==1:
+            return outline
+        left, top = numpy.min(self.all_points, axis=0)
+        right, bottom = numpy.max(self.all_points, axis=0)
+        return Rect(left, top, right-left, bottom-top)
+
+    def translate(self, dx, dy):
+        self.all_points = self.all_points + numpy.array([(dx, dy)])
+
+    def scale(self, sx ,sy):
+        self.all_points = numpy.multiply(self.all_points, [sx, sy])
+
+    def set_inbetween(self, start_curve, end_curve, frac):
+        self.all_points = start_curve.all_points*(1-frac) + end_curve.all_points*frac
+
+    def draw_path(self, ctx):
+        ctx.new_path()
+        ctx.move_to(self.all_points[0][0], self.all_points[0][1])
+        for i in range(1, len(self.all_points), 3):
+            ctx.curve_to(
+                self.all_points[i][0], self.all_points[i][1],
+                self.all_points[i+1][0], self.all_points[i+1][1],
+                self.all_points[i+2][0], self.all_points[i+2][1])
+        if len(self.all_points) > 2 and self.closed:
+            ctx.close_path()
 
 class CurvePoint(object):
     TAG_NAME="curve_point"
@@ -532,3 +719,35 @@ class CurvePointGroup(object):
         if len(point_group.points) < 2:
             return None
         return point_group
+
+class CurvesForm(object):
+    TAG_NAME = "form"
+
+    def __init__(self, width, height, curves, name=None):
+        self.width = width
+        self.height = height
+        self.curves = curves
+        self.name = name
+
+    def set_name(self, name):
+        self.name = name
+
+    def get_xml_element(self):
+        form_elm = XmlElement(self.TAG_NAME)
+        if self.name:
+            form_elm.attrib["name"] = self.name
+        form_elm.attrib["width"] = "{0}".format(self.width)
+        form_elm.attrib["height"] = "{0}".format(self.height)
+        for curve in self.curves:
+            form_elm.append(curve.get_xml_element())
+        return form_elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        name = elm.attrib.get("name", None)
+        width = float(elm.attrib["width"])
+        height = float(elm.attrib["height"])
+        curves = []
+        for curve_elm in elm.findall(Curve.TAG_NAME):
+            curves.append(Curve.create_from_xml_element(curve_elm))
+        return CurvesForm(name=name, width=width, height=height, curves=curves)
