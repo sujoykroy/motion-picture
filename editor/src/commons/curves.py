@@ -729,6 +729,13 @@ class CurvesForm(object):
         self.curves = curves
         self.name = name
 
+    def copy(self):
+        curves = []
+        for curve in self.curves:
+            curves.append(curve.copy())
+        newob = CurvesForm(self.width, self.height, self.curves, self.name)
+        return newob
+
     def set_name(self, name):
         self.name = name
 

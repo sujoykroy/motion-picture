@@ -4,6 +4,25 @@ from curve_point_group_shape import CurvePointGroupShape
 from xml.etree.ElementTree import Element as XmlElement
 from mirror import *
 
+class CurveFormRenderer(object):
+    def __init__(self, curve_shape, form_name):
+        self.curve_shape = curve_shape
+        self.form_name = form_name
+
+    def get_name(self):
+        return self.form_name
+
+    def get_id(self):
+        return self.form_name
+
+    def get_pixbuf(self):
+        curve_shape = self.curve_shape.copy()
+        curve_shape.set_form_raw(self.curve_shape.get_form_by_name(self.form_name))
+        curve_shape.reset_transformations()
+        curve_shape.parent_shape = None
+        pixbuf = curve_shape.get_pixbuf(64, 64)
+        return pixbuf
+
 class CurveShape(Shape, Mirror):
     TYPE_NAME = "curve_shape"
 
@@ -60,6 +79,11 @@ class CurveShape(Shape, Mirror):
             self.curves.append(curve)
         self.fit_size_to_include_all()
         self.forms = copy_list(self.linked_to.forms)
+
+    def get_form_by_name(self, form):
+        if form in self.forms:
+            return self.forms[form]
+        return None
 
     def get_form_raw(self):
         curves = []
@@ -121,6 +145,12 @@ class CurveShape(Shape, Mirror):
 
     def set_form_name(self, form_name):
         self.set_form(form_name)
+
+    def get_form_list(self):
+        forms = []
+        for form_name in sorted(self.forms.keys()):
+            forms.append(CurveFormRenderer(self, form_name))
+        return forms
 
     def set_prop_value(self, prop_name, value, prop_data=None):
         if prop_name == "internal":

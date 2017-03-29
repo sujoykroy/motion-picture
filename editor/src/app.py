@@ -416,6 +416,12 @@ class ApplicationWindow(MasterEditor):
                 pixbuf = self.doc.get_pixbuf(self.doc.width, self.doc.height)
                 self.doc.main_multi_shape.parent_shape = parent_shape
                 pixbuf.savev(filename, "png", [], [])
+        elif export_type == "movie":
+            filename = "/home/sujoy/mpmovie.ogv"
+            parent_shape = self.doc.main_multi_shape.parent_shape
+            self.doc.main_multi_shape.parent_shape = None
+            self.doc.make_movie(filename, self.time_line_editor.time_line)
+            self.doc.main_multi_shape.parent_shape = parent_shape
 
     def center_anchor(self, action, parameter):
         if self.shape_manager.place_anchor_at_center_of_shape():

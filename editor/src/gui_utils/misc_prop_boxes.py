@@ -87,12 +87,12 @@ class TextShapePropBox(OvalShapePropBox):
 class MultiShapePropBox(ShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
-        self.poses_combo_box= self.add_prop("pose", PROP_TYPE_TEXT_LIST, None)
+        self.poses_combo_box= self.add_prop("pose", PROP_TYPE_IMAGE_LIST, None)
         self.timelines_combo_box= self.add_prop("timeline", PROP_TYPE_TEXT_LIST, None)
 
     def set_prop_object(self, prop_object):
         ShapePropBox.set_prop_object(self, prop_object)
-        self.poses_combo_box.build_and_set_model(sorted(prop_object.poses.keys()))
+        self.poses_combo_box.build_and_set_model(prop_object.get_pose_list())
         self.timelines_combo_box.build_and_set_model(sorted(prop_object.timelines.keys()))
 
     def has_prop(self, prop_name):

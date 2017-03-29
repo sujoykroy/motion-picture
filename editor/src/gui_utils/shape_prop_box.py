@@ -1,5 +1,6 @@
 from gi.repository import Gtk, Gdk
 from name_value_combo_box import NameValueComboBox
+from image_combo_box import ImageComboBox
 from buttons import ColorButton
 from ..commons import Point, Color, get_displayble_prop_name
 from ..commons import LinearGradientColor, RadialGradientColor
@@ -13,6 +14,7 @@ PROP_TYPE_CHECK_BUTTON = 5
 PROP_TYPE_LONG_TEXT = 6
 PROP_TYPE_TEXT = 7
 PROP_TYPE_FONT = 8
+PROP_TYPE_IMAGE_LIST = 9
 
 class ShapePropBox(object):
     def __init__(self, parent_window, draw_callback, shape_name_checker, insert_time_slice_callback):
@@ -122,6 +124,10 @@ class ShapePropBox(object):
             prop_widget = entry
         elif value_type == PROP_TYPE_TEXT_LIST:
             combo_box= NameValueComboBox()
+            combo_box.connect("changed", self.combo_box_changed, prop_name)
+            prop_widget = combo_box
+        elif value_type == PROP_TYPE_IMAGE_LIST:
+            combo_box= ImageComboBox()
             combo_box.connect("changed", self.combo_box_changed, prop_name)
             prop_widget = combo_box
         elif value_type == PROP_TYPE_CHECK_BUTTON:

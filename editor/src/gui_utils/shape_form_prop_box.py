@@ -1,5 +1,5 @@
 from gi.repository import Gtk
-from name_value_combo_box import NameValueComboBox
+from image_combo_box import ImageComboBox
 from helper_dialogs import TextInputDialog
 
 class ShapeFormPropBox(object):
@@ -7,7 +7,7 @@ class ShapeFormPropBox(object):
         self.draw_callback = draw_callback
         self.insert_time_slice_callback = insert_time_slice_callback
         self.form_label = Gtk.Label("Forms")
-        self.forms_combo_box = NameValueComboBox()
+        self.forms_combo_box = ImageComboBox()
         self.forms_combo_box.connect("changed", self.forms_combo_box_changed)
         self.apply_form_button = Gtk.Button("Apply")
         self.apply_form_button.connect("clicked", self.apply_form_button_clicked)
@@ -61,7 +61,7 @@ class ShapeFormPropBox(object):
 
     def update(self):
         if self.curve_shape:
-            values = sorted(self.curve_shape.forms.keys())
+            values = self.curve_shape.get_form_list()
         else:
             values = None
         self.forms_combo_box.build_and_set_model(values)

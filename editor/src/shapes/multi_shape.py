@@ -13,9 +13,25 @@ from text_shape import TextShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 
-class ShapePose(object):
-    def __init__(self):
-        self.params = dict()
+
+class MultiShapePoseRenderer(object):
+    def __init__(self, multi_shape, pose_name):
+        self.multi_shape = multi_shape
+        self.pose_name = pose_name
+
+    def get_name(self):
+        return self.pose_name
+
+    def get_id(self):
+        return self.pose_name
+
+    def get_pixbuf(self):
+        multi_shape = self.multi_shape.copy(deep_copy=True)
+        multi_shape.set_pose_raw(multi_shape.get_pose_by_name(self.pose_name))
+        multi_shape.reset_transformations()
+        multi_shape.parent_shape = None
+        pixbuf = multi_shape.get_pixbuf(64, 64)
+        return pixbuf
 
 class MultiShape(Shape):
     TYPE_NAME = "multi_shape"
@@ -148,7 +164,7 @@ class MultiShape(Shape):
     def copy(self, copy_name=False, copy_shapes=True, deep_copy=False):
         newob = MultiShape(anchor_at=self.anchor_at.copy(), width=self.width, height=self.height)
         Shape.copy_into(self, newob, copy_name=copy_name)
-        if copy_shapes:
+        if copy_shapes or deep_copy:
             for shape in self.shapes:
                 child_shape = shape.copy(copy_name=True, deep_copy=deep_copy)
                 child_shape.parent_shape = newob
@@ -156,7 +172,7 @@ class MultiShape(Shape):
         if deep_copy:
             newob.poses = copy_dict(self.poses)
             for key, timeline in self.timelines.items():
-                newob.timelines[key] = timeline.copy(newob.shapes)
+                newob.timelines[key] = timeline.copy()
         newob.masked = self.masked
         return newob
 
@@ -169,6 +185,15 @@ class MultiShape(Shape):
                 if pose_name not in self.poses:
                     break
 
+        self.poses[pose_name] = self.get_pose_raw()
+        return pose_name
+
+    def get_pose_by_name(self, pose):
+        if pose in self.poses:
+            return self.poses[pose]
+        return None
+
+    def get_pose_raw(self):
         pose = dict()
         anchor_at = self.anchor_at
         for shape in self.shapes:
@@ -177,9 +202,7 @@ class MultiShape(Shape):
             rel_abs_anchor_at = shape.get_abs_anchor_at()
             rel_abs_anchor_at.translate(-anchor_at.x, -anchor_at.y)
             prop_dict["rel_abs_anchor_at"] = rel_abs_anchor_at
-
-        self.poses[pose_name] = pose
-        return pose_name
+        return pose
 
     def rename_pose(self, old_pose_name, new_pose_name):
         if new_pose_name in self.poses: return False
@@ -193,7 +216,9 @@ class MultiShape(Shape):
 
     def set_pose(self, pose_name):
         if pose_name not in self.poses: return
-        pose = self.poses[pose_name]
+        self.set_pose_raw(self.poses[pose_name])
+
+    def set_pose_raw(self, pose):
         anchor_at = self.anchor_at.copy()
         for shape_name, prop_dict in pose.items():
             shape = self.shapes[shape_name]
@@ -226,6 +251,13 @@ class MultiShape(Shape):
             abs_anchor_at.translate(anchor_at.x, anchor_at.y)
             shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.readjust_sizes()
+
+    def get_pose_list(self):
+        poses = []
+        for pose_name in sorted(self.poses.keys()):
+            pose = MultiShapePoseRenderer(self, pose_name)
+            poses.append(pose)
+        return poses
 
     def get_new_timeline(self):
         i = len(self.timelines)

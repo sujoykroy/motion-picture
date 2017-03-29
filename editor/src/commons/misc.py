@@ -48,6 +48,8 @@ def copy_list(arr):
             val = copy_list(val)
         elif hasattr(val, "copy"):
             val = val.copy()
+        elif type(val) not in (int, str, float) and val is not None:
+            raise Exception("Don't know how to copy item of type {0}".format(type(val)))
         copied_list.append(val)
     return copied_list
 
@@ -62,6 +64,8 @@ def copy_dict(dicto):
             val = copy_list(val)
         elif hasattr(val, "copy"):
             val = val.copy()
+        elif type(val) not in (int, str, float) and val is not None:
+            raise Exception("Don't know how to copy item of type {0}".format(type(val)))
         copied_dict[key] = val
     return copied_dict
 

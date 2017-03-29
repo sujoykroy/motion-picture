@@ -1,5 +1,7 @@
 from ..commons import *
 from ..commons.draw_utils import *
+from gi.repository import Gdk, GdkPixbuf
+from gi.repository.GdkPixbuf import Pixbuf
 import time, cairo
 from xml.etree.ElementTree import Element as XmlElement
 from mirror import Mirror
@@ -45,7 +47,6 @@ class Shape(object):
         self.angle = 0
         self.pre_matrix = None
 
-
     def cleanup(self):
         if self.linked_clones:
             for linked_clone in self.linked_clones:
@@ -89,6 +90,8 @@ class Shape(object):
                 value = Matrix.copy(value) if value else None
             elif value and hasattr(value, "copy"):
                 value = value.copy()
+            elif type(value) not in (int, float, str) and value is not None:
+                raise Exception("Don't know how to copy {0} of type {1}".format(prop_name, type(value)))
             prop_dict[prop_name] = value
         return prop_dict
 
@@ -573,7 +576,7 @@ class Shape(object):
         points.append(Point(outline.left + outline.width, outline.top + outline.height))
         points.append(Point(outline.left, outline.top + outline.height))
 
-        abs_anchor_at = self.get_abs_anchor_at()
+        #abs_anchor_at = self.get_abs_anchor_at()
         min_x = max_x = min_y = max_y =  None
         for point in points:
             point = self.reverse_transform_point(point)
@@ -616,6 +619,29 @@ class Shape(object):
     def place_anchor_at_center(self):
         self.anchor_at.x = self.get_width()*.5
         self.anchor_at.y = self.get_height()*.5
+
+    def get_surface(self, width, height, padding=5):
+        pixbuf = Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width, height)
+
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, pixbuf.get_width(), pixbuf.get_height())
+        ctx = cairo.Context(surface)
+        Gdk.cairo_set_source_pixbuf(ctx, pixbuf, 0, 0)
+        ctx.set_antialias(cairo.ANTIALIAS_DEFAULT)
+
+        eff_width = width-2*padding
+        eff_height = height-2*padding
+        scale = min(eff_width*1./self.width, eff_height*1./self.height)
+        ctx.translate((width-scale*self.width)*.5, (height-scale*self.height)*.5)
+        ctx.scale(scale, scale)
+        ctx.translate(-self.translation.x, -self.translation.y)
+        set_default_line_style(ctx)
+        self.draw(ctx, Point(self.width, self.height))
+        return ctx.get_target()
+
+    def get_pixbuf(self, width, height):
+        surface= self.get_surface(width, height)
+        pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
+        return pixbuf
 
     NAME_SEED = 0
     _APP_EPOCH_TIME = time.mktime(time.strptime("1 Jan 2016", "%d %b %Y"))

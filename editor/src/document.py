@@ -13,6 +13,9 @@ from shapes import *
 from editors.guides import Guide
 from tasks import TaskManager
 
+import moviepy.editor as movie_editor
+import numpy
+
 class Document(object):
     def __init__(self, filename=None, width=400., height=300.):
         self.filename = filename
@@ -156,7 +159,7 @@ class Document(object):
                 linked_shape.set_linked_to(source_shape)
                 linked_shape.copy_data_from_linked()
 
-    def get_pixbuf(self, width, height):
+    def get_surface(self, width, height):
         pixbuf = Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width, height)
 
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, pixbuf.get_width(), pixbuf.get_height())
@@ -170,11 +173,29 @@ class Document(object):
         ctx.scale(scale, scale)
         set_default_line_style(ctx)
         shape.draw(ctx, Point(self.width, self.height), self.fixed_border)
+        return ctx.get_target()
 
-        surface= ctx.get_target()
+    def get_pixbuf(self, width, height):
+        surface= self.get_surface(width, height)
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
-
         return pixbuf
+
+    def get_rgb_array(self):
+        surface= self.get_surface(self.width, self.height)
+        data = surface.get_data()
+        rgb_array = 0+numpy.frombuffer(surface.get_data(), numpy.uint8)
+        rgb_array.shape = (self.height, self.width, 4)
+        rgb_array = rgb_array[:,:,[2,1,0,3]]
+        rgb_array = rgb_array[:,:, :3]
+        return rgb_array
+
+    def make_movie(self, filename, time_line, start_time=0, end_time=None, fps=24):
+        if end_time is None:
+            end_time = time_line.duration
+        frame_maker = FrameMaker(self, time_line, start_time, end_time)
+        clip = movie_editor.VideoClip(frame_maker.make_frame, duration=frame_maker.get_duration())
+        clip.write_videofile(filename, fps=fps,
+                ffmpeg_params=[])
 
     @staticmethod
     def create_image(icon_name, scale=None):
@@ -206,3 +227,17 @@ class Document(object):
 
             shape.move_to(0,0)
         return shape
+
+class FrameMaker(object):
+    def __init__(self, doc, time_line, start_time, end_time):
+        self.doc = doc
+        self.time_line = time_line
+        self.start_time = start_time
+        self.end_time = end_time
+
+    def get_duration(self):
+        return self.end_time-self.start_time
+
+    def make_frame(self, t):
+        self.time_line.move_to(t+self.start_time)
+        return self.doc.get_rgb_array()

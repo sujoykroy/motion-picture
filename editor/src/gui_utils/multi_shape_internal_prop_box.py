@@ -1,5 +1,6 @@
 from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
+from image_combo_box import ImageComboBox
 from helper_dialogs import TextInputDialog
 
 class MultiShapeInternalPropBox(Gtk.VBox):
@@ -13,7 +14,7 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         self.insert_time_slice_callback = insert_time_slice_callback
 
         pose_label = Gtk.Label("Poses")
-        self.poses_combo_box = NameValueComboBox()
+        self.poses_combo_box = ImageComboBox()
         self.poses_combo_box.connect("changed", self.poses_combo_box_changed)
         self.apply_pose_button = Gtk.Button("Apply")
         self.apply_pose_button.connect("clicked", self.apply_pose_button_clicked)
@@ -69,7 +70,7 @@ class MultiShapeInternalPropBox(Gtk.VBox):
 
     def update(self, poses=False, timelines=False):
         if poses:
-            self.poses_combo_box.build_and_set_model(sorted(self.multi_shape.poses.keys()))
+            self.poses_combo_box.build_and_set_model(self.multi_shape.get_pose_list())
         if timelines:
             self.timelines_combo_box.build_and_set_model(sorted(self.multi_shape.timelines.keys()))
 
