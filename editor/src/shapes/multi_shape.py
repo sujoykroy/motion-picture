@@ -10,6 +10,7 @@ from image_shape import ImageShape
 from video_shape import VideoShape
 from audio_shape import AudioShape
 from text_shape import TextShape
+from camera_shape import CameraShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 
@@ -121,6 +122,8 @@ class MultiShape(Shape):
                 child_shape = AudioShape.create_from_xml_element(shape_element)
             elif shape_type == VideoShape.TYPE_NAME:
                 child_shape = VideoShape.create_from_xml_element(shape_element)
+            elif shape_type == CameraShape.TYPE_NAME:
+                child_shape = CameraShape.create_from_xml_element(shape_element)
             elif shape_type == MultiShape.TYPE_NAME:
                 child_shape = MultiShape.create_from_xml_element(shape_element)
             if child_shape is None: continue
@@ -399,7 +402,7 @@ class MultiShape(Shape):
                     del pose[old_name]
         return True
 
-    def draw(self, ctx, drawing_size=None, fixed_border=True):
+    def draw(self, ctx, drawing_size=None, fixed_border=True, exclude_camera=True):
         if self.masked and len(self.shapes)>1:
             last_shape = self.shapes.get_at_index(-1)
             if not isinstance(last_shape, MultiShape):
@@ -433,6 +436,8 @@ class MultiShape(Shape):
                 return
 
         for shape in self.shapes:
+            if isinstance(shape, CameraShape) and exclude_camera:
+                continue
             if isinstance(shape, MultiShape):
                 shape.draw(ctx, drawing_size, fixed_border)
             else:
@@ -444,7 +449,8 @@ class MultiShape(Shape):
 
                 if isinstance(shape, ImageShape) or \
                    isinstance(shape, VideoShape) or \
-                   isinstance(shape, AudioShape):
+                   isinstance(shape, AudioShape) or \
+                   isinstance(shape, CameraShape):
                     ctx.save()
                     shape.pre_draw(ctx)
                     shape.draw_path(ctx)

@@ -8,6 +8,7 @@ from multi_shape import MultiShape
 from image_shape import ImageShape
 from audio_shape import AudioShape
 from video_shape import VideoShape
+from camera_shape import CameraShape
 from multi_selection_shape import MultiSelectionShape
 from ring_shape import RingShape
 from text_shape import TextShape

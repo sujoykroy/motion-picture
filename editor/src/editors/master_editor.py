@@ -97,6 +97,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.curve_smooth_prop_box = CurveSmoothPropBox(
                             self.recreate_shape_editor, self.get_shape_manager)
         self.audio_video_shape_prop_box = AudioVideoShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.camera_shape_prop_box = CameraShapePropBox(self, self.redraw, self.insert_time_slice)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
@@ -122,6 +123,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         row_count = self.shape_form_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.curve_smooth_prop_box.add_into_grid(prop_grid, row_count)
         row_count = self.audio_video_shape_prop_box.add_into_grid(prop_grid, row_count)
+        row_count = self.camera_shape_prop_box.add_into_grid(prop_grid, row_count)
 
         self.left_prop_box.pack_start(prop_grid, expand=False, fill=False, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
@@ -176,6 +178,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
 
         AudioShape.AUDIO_ICON = Document.get_icon_shape("audio", 20, 20)
+        CameraShape.CAMERA_ICON = Document.get_icon_shape("audio", 20, 20)
 
     def quit(self, widget, event):
         Gtk.main_quit()
@@ -260,6 +263,7 @@ class MasterEditor(Gtk.ApplicationWindow):
     def set_shape_creation_mode(self, shape_type):
         self.next_new_shape_type = shape_type
         self.state_mode = MODE_NEW_SHAPE_CREATE
+        return True
 
     def insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None, duration=None):
         if not self.time_line_editor.time_line: return
@@ -296,6 +300,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.curve_smooth_prop_box.hide()
         self.text_shape_prop_box.hide()
         self.audio_video_shape_prop_box.hide()
+        self.camera_shape_prop_box.hide()
 
         if shape != None:
             if shape.linked_to:
@@ -313,6 +318,10 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, AudioShape) or isinstance(shape, VideoShape):
                 self.audio_video_shape_prop_box.show()
                 self.audio_video_shape_prop_box.set_prop_object(shape)
+
+            if isinstance(shape, CameraShape):
+                self.camera_shape_prop_box.show()
+                self.camera_shape_prop_box.set_prop_object(shape)
 
             if isinstance(shape, RectangleShape):
                 self.rectangle_shape_prop_box.show()

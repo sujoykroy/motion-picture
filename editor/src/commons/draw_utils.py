@@ -201,3 +201,17 @@ def draw_sine_wave(ctx, period, amplitude, phase, duration):
     ctx.translate(-period*.75-period*phase/360., 0)
     curve.draw_path(ctx)
     ctx.restore()
+
+def draw_oval(self, ctx, width, height, sweep_angle=360.):
+    ctx.new_path()
+    ctx.save()
+    ctx.translate(width*.5, height*.5)
+    ctx.scale(width, height)
+
+    if sweep_angle != 360:
+        ctx.move_to(0,0)
+    else:
+        ctx.move_to(.5,0)
+    ctx.arc(0,0,.5,0, sweep_angle*math.pi/180.)
+    ctx.close_path()
+    ctx.restore()

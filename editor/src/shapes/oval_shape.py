@@ -35,18 +35,7 @@ class OvalShape(Shape):
         return newob
 
     def draw_path(self, ctx, for_fill=False):
-        ctx.new_path()
-        ctx.save()
-        ctx.translate(self.width*.5, self.height*.5)
-        ctx.scale(self.width, self.height)
-
-        if self.sweep_angle != 360:
-            ctx.move_to(0,0)
-        else:
-            ctx.move_to(.5,0)
-        ctx.arc(0,0,.5,0,self.sweep_angle*RAD_PER_DEG)
-        ctx.close_path()
-        ctx.restore()
+        draw_oval(self, ctx, self.width, self.height, self.sweep_angle)
 
     def is_within(self, point):
         point = self.transform_point(point)

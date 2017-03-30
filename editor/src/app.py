@@ -179,9 +179,9 @@ class ApplicationWindow(MasterEditor):
             if self.shape_manager.create_video_shape(filename):
                 self.redraw()
         else:
-            shape_creartion_is_done = False
+            shape_creation_is_done = False
             self.set_shape_creation_mode(shape_type)
-        if shape_creartion_is_done:
+        if shape_creation_is_done:
             self.lookup_action("create_new_shape").activate(GLib.Variant.new_string(""))
         #action.set_state(GLib.Variant.new_string(""))
         #change_action_tool_buttons(action)

@@ -9,6 +9,7 @@ from misc_prop_boxes import RingShapePropBox
 from misc_prop_boxes import MultiShapePropBox
 from misc_prop_boxes import TextShapePropBox
 from misc_prop_boxes import AudioVideoShapePropBox
+from misc_prop_boxes import CameraShapePropBox
 
 from curve_smooth_prop_box import CurveSmoothPropBox
 

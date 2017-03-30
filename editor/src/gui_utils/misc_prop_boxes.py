@@ -66,6 +66,14 @@ class RingShapePropBox(OvalShapePropBox):
                 dict(value=0, lower=0, upper=1.01,
                      step_increment=.01, page_increment=.01, page_size=.01))
 
+class CameraShapePropBox(ShapePropBox):
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
+        aspect_ratio_combobox = self.add_prop("aspect_ratio", PROP_TYPE_TEXT_LIST, None)
+        aspect_ratio_combobox.build_and_set_model(["16:9", "4:3", "16:10", "1:1"])
+        eye_type_combobox = self.add_prop("eye_type", PROP_TYPE_TEXT_LIST, None)
+        eye_type_combobox.build_and_set_model([["Rectangle", 0], ["Oval", 1]])
+
 class TextShapePropBox(OvalShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         OvalShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)

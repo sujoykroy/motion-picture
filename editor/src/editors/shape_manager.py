@@ -234,7 +234,7 @@ class ShapeManager(object):
         self.document_area_box.draw_axis(ctx)
 
         ctx.save()
-        self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border)
+        self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border, exclude_camera=False)
         ctx.restore()
         if not EditingChoice.HIDE_AXIS:
             self.multi_shape.draw_axis(ctx)
@@ -418,6 +418,10 @@ class ShapeManager(object):
             self.shape_creator = RingShapeCreator(point)
         elif shape_type == "text":
             self.shape_creator = TextShapeCreator(point)
+        elif shape_type == "camera":
+            if self.doc.main_multi_shape != self.multi_shape:
+                return False
+            self.shape_creator = CameraShapeCreator(point)
         else:
             filename = os.path.join(settings.PREDRAWN_SHAPE_FOLDER, shape_type)
             if os.path.exists(filename):
@@ -434,6 +438,7 @@ class ShapeManager(object):
                 self.add_shape(self.shape_creator.get_shape())
                 #task.save(self.doc, self.shape_creator.shape)
             self.shape_creator.begin_movement(point)
+        return True
 
     def create_image_shape(self, filename):
         image_pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename)
@@ -985,7 +990,8 @@ class ShapeManager(object):
             old_shape.copy_into(new_shape)
             if linked and (isinstance(new_shape, PolygonShape) or \
                            isinstance(new_shape, CurveShape) or \
-                           isinstance(new_shape, MultiShape)):
+                           isinstance(new_shape, MultiShape) or \
+                           isinstance(new_shape, CameraShape)):
                 new_shape.set_linked_to(exist_shape)
 
         self.multi_shape.readjust_sizes()

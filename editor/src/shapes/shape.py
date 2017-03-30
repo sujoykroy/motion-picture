@@ -71,7 +71,6 @@ class Shape(object):
         if self.linked_clones and linked_clone in self.linked_clones:
             self.linked_clones.remove(linked_clone)
 
-
     def copy_data_from_linked(self):
         pass
 
