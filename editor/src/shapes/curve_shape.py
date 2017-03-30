@@ -35,7 +35,6 @@ class CurveShape(Shape, Mirror):
         self.show_points = True
         self.point_groups = []
         self.point_group_shapes = dict()
-        self.form_name = ""
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -94,11 +93,6 @@ class CurveShape(Shape, Mirror):
             curve.translate(-anchor_at.x, -anchor_at.y)
             curves.append(curve)
         form = CurvesForm(width=self.width, height=self.height, curves=curves)
-        """
-        form_dict["curves"] = curves
-        form_dict["width"] = self.width
-        form_dict["height"] = self.height
-        """
         return form
 
     def save_form(self, form_name):
@@ -139,7 +133,6 @@ class CurveShape(Shape, Mirror):
     def set_form(self, form_name):
         if form_name not in self.forms:
             return
-        self.form_name = form_name
         form = self.forms[form_name]
         self.set_form_raw(form)
 
@@ -215,14 +208,6 @@ class CurveShape(Shape, Mirror):
             elm.attrib["show_points"] = "False"
 
         for form_name, form in self.forms.items():
-            """
-            form_elm = XmlElement(self.FORM_TAG_NAME)
-            form_elm.attrib["name"] = form_name
-            form_elm.attrib["width"] = "{0}".format(form["width"])
-            form_elm.attrib["height"] = "{0}".format(form["height"])
-            for curve in form["curves"]:
-                form_elm.append(curve.get_xml_element())
-            """
             elm.append(form.get_xml_element())
 
         for point_group in self.point_groups:
@@ -242,15 +227,6 @@ class CurveShape(Shape, Mirror):
             shape.curves.append(curve)
 
         for form_elm in elm.findall(CurvesForm.TAG_NAME):
-            """
-            form_name = form_elm.attrib["name"]
-            form_dict = dict()
-            form_dict["width"] = float(form_elm.attrib["width"])
-            form_dict["height"] = float(form_elm.attrib["height"])
-            form_dict["curves"] = curves = []
-            for curve_elm in form_elm.findall(Curve.TAG_NAME):
-                curves.append(Curve.create_from_xml_element(curve_elm))
-            """
             form = CurvesForm.create_from_xml_element(form_elm)
             shape.forms[form.name] = form
 

@@ -1,7 +1,7 @@
 from point import Point
 from colors import *
 from curves import Curve, CurvePoint, CurvePointGroup, CurvesForm
-from polygon import Polygon
+from polygon import Polygon, PolygonsForm
 from bezier_point import BezierPoint
 from rect import Rect
 from ordered_dict import OrderedDict

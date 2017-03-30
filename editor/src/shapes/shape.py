@@ -513,6 +513,8 @@ class Shape(object):
         if self.border_color is None: return
         if self.border_dashes:
             ctx.set_dash(self.border_dashes, self.border_dash_offset)
+        else:
+            ctx.set_dash([])
         draw_stroke(ctx, self.border_width, self.border_color)
 
     def draw_fill(self, ctx):

@@ -138,3 +138,42 @@ class Polygon(object):
 
         self.points.insert(point_index+1, Point(tx, ty))
         return True
+
+class PolygonsForm(object):
+    TAG_NAME = "form"
+
+    def __init__(self, width, height, polygons, name=None):
+        self.width = width
+        self.height = height
+        self.polygons = polygons
+        self.name = name
+
+    def copy(self):
+        polygons = []
+        for polygon in self.polygons:
+            polygons.append(polygon.copy())
+        newob = PolygonsForm(self.width, self.height, self.curves, self.name)
+        return newob
+
+    def set_name(self, name):
+        self.name = name
+
+    def get_xml_element(self):
+        form_elm = XmlElement(self.TAG_NAME)
+        if self.name:
+            form_elm.attrib["name"] = self.name
+        form_elm.attrib["width"] = "{0}".format(self.width)
+        form_elm.attrib["height"] = "{0}".format(self.height)
+        for polygon in self.polygons:
+            form_elm.append(polygon.get_xml_element())
+        return form_elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        name = elm.attrib.get("name", None)
+        width = float(elm.attrib["width"])
+        height = float(elm.attrib["height"])
+        polygons = []
+        for polygon_elm in elm.findall(Polygon.TAG_NAME):
+            polygons.append(Polygon.create_from_xml_element(polygon_elm))
+        return PolygonsForm(name=name, width=width, height=height, polygons=polygons)

@@ -178,7 +178,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
 
         AudioShape.AUDIO_ICON = Document.get_icon_shape("audio", 20, 20)
-        CameraShape.CAMERA_ICON = Document.get_icon_shape("audio", 20, 20)
+        CameraShape.CAMERA_ICON = Document.get_icon_shape("camera", 20, 20)
 
     def quit(self, widget, event):
         Gtk.main_quit()

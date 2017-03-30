@@ -3,9 +3,27 @@ from shape import Shape
 from xml.etree.ElementTree import Element as XmlElement
 from mirror import *
 
+class PolygonFormRenderer(object):
+    def __init__(self, polygon_shape, form_name):
+        self.polygon_shape = polygon_shape
+        self.form_name = form_name
+
+    def get_name(self):
+        return self.form_name
+
+    def get_id(self):
+        return self.form_name
+
+    def get_pixbuf(self):
+        polygon_shape = self.polygon_shape.copy()
+        polygon_shape.set_form_raw(self.polygon_shape.get_form_by_name(self.form_name))
+        polygon_shape.reset_transformations()
+        polygon_shape.parent_shape = None
+        pixbuf = polygon_shape.get_pixbuf(64, 64)
+        return pixbuf
+
 class PolygonShape(Shape, Mirror):
     TYPE_NAME = "polygon_shape"
-    FORM_TAG_NAME = "form"
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height):
         Shape.__init__(self, anchor_at, border_color, border_width, fill_color, width, height)
@@ -21,6 +39,12 @@ class PolygonShape(Shape, Mirror):
                 form_name = "Form_{0}".format(i)
                 if form_name not in self.forms:
                     break
+        form = self.get_form_raw()
+        form.set_name(form_name)
+        self.forms[form_name] = form
+        return form_name
+
+    def get_form_raw(self):
         polygons = []
         anchor_at = self.anchor_at.copy()
         anchor_at.scale(1./self.width, 1./self.height)
@@ -29,23 +53,28 @@ class PolygonShape(Shape, Mirror):
             for point in polygon.points:
                 point.translate(-anchor_at.x, -anchor_at.y)
             polygons.append(polygon)
-        form_dict = dict()
-        form_dict["polygons"] = polygons
-        form_dict["width"] = self.width
-        form_dict["height"] = self.height
-        self.forms[form_name] = dict(form_dict)
-        return form_name
+        form = PolygonsForm(width=self.width, height=self.height, polygons=polygons)
+        return form
+
+    def get_form_by_name(self, form):
+        if form in self.forms:
+            return self.forms[form]
+        return None
 
     def set_form(self, form_name):
-        form_dict = self.forms[form_name]
+        if form_name not in self.forms:
+            return
+        form = self.forms[form_name]
+        self.set_form_raw(form)
 
-        diff_width = form_dict["width"] - self.width
-        diff_height = form_dict["height"] - self.height
+    def set_form_raw(self, form):
+        diff_width = form.width - self.width
+        diff_height = form.height - self.height
         abs_anchor_at = self.get_abs_anchor_at()
 
-        self.width = form_dict["width"]
-        self.height = form_dict["height"]
-        form_polygons = form_dict["polygons"]
+        self.width = form.width
+        self.height = form.height
+        form_polygons = form.polygons
 
         anchor_at = self.anchor_at.copy()
         anchor_at.scale(1./self.width, 1./self.height)
@@ -61,6 +90,12 @@ class PolygonShape(Shape, Mirror):
 
         self.fit_size_to_include_all()
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+
+    def get_form_list(self):
+        forms = []
+        for form_name in sorted(self.forms.keys()):
+            forms.append(PolygonFormRenderer(self, form_name))
+        return forms
 
     def set_prop_value(self, prop_name, value, prop_data=None):
         if prop_name == "internal":
@@ -122,13 +157,7 @@ class PolygonShape(Shape, Mirror):
             elm.append(polygon.get_xml_element())
 
         for form_name, form in self.forms.items():
-            form_elm = XmlElement(self.FORM_TAG_NAME)
-            form_elm.attrib["name"] = form_name
-            form_elm.attrib["width"] = "{0}".format(form["width"])
-            form_elm.attrib["height"] = "{0}".format(form["height"])
-            for polygon in form["polygons"]:
-                form_elm.append(polygon.get_xml_element())
-            elm.append(form_elm)
+            elm.append(form.get_xml_element())
         return elm
 
     @classmethod
@@ -141,15 +170,9 @@ class PolygonShape(Shape, Mirror):
             polygon = Polygon.create_from_xml_element(polygon_elm)
             shape.polygons.append(polygon)
 
-        for form_elm in elm.findall(cls.FORM_TAG_NAME):
-            form_name = form_elm.attrib["name"]
-            form_dict = dict()
-            form_dict["width"] = float(form_elm.attrib["width"])
-            form_dict["height"] = float(form_elm.attrib["height"])
-            form_dict["polygons"] = polygons = []
-            for polygon_elm in form_elm.findall(Polygon.TAG_NAME):
-                polygons.append(Polygon.create_from_xml_element(polygon_elm))
-            shape.forms[form_name] = form_dict
+        for form_elm in elm.findall(PolygonsForm.TAG_NAME):
+            form = PolygonsForm.create_from_xml_element(form_elm)
+            shape.forms[form.name] = form
 
         shape.assign_params_from_xml_element(elm)
         return shape
