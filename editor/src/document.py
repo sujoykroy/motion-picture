@@ -37,6 +37,16 @@ class Document(object):
     def get_main_multi_shape(self):
         return self.main_multi_shape
 
+    def get_shape_by_name(self, name):
+        return self.main_multi_shape.shapes.get_item_by_name(name)
+
+    def get_camera_names(self):
+        names= []
+        for shape in self.main_multi_shape.shapes:
+            if isinstance(shape, CameraShape):
+                names.append(shape.get_name())
+        return names
+
     def get_shape_at_hierarchy(self, names):
         multi_shape = self.main_multi_shape
         shape = None

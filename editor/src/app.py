@@ -464,6 +464,14 @@ class ApplicationWindow(MasterEditor):
             self.shape_manager.reload_shapes()
             self.redraw()
 
+    def toggle_camera_viewer(self, action, parameter):
+        action.set_state(parameter)
+        change_action_tool_buttons(action)
+        if parameter.get_boolean():
+            self.show_camera_viewer()
+        else:
+            self.hide_camera_viewer()
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,

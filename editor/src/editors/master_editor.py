@@ -12,6 +12,7 @@ from time_line_editor import TimeLineEditor
 
 from .. import settings as Settings
 from ..settings import EditingChoice
+from camera_viewer import CamerViewerBox, CameraViewerDialog
 
 MODE_NEW_SHAPE_CREATE = "MODE_NEW_SHAPE_CREATE"
 SHIFT_KEY_CODES = (65505, 65506)
@@ -176,7 +177,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.time_slice_prop_box = TimeSlicePropBox(self.time_line_editor.update)
         self.right_prop_box.pack_start(self.time_slice_prop_box, expand=False, fill=False, padding=0)
 
-
+        self.camera_viewer_dialog = None
         AudioShape.AUDIO_ICON = Document.get_icon_shape("audio", 20, 20)
         CameraShape.CAMERA_ICON = Document.get_icon_shape("camera", 20, 20)
 
@@ -184,6 +185,20 @@ class MasterEditor(Gtk.ApplicationWindow):
         Gtk.main_quit()
         if self.shape_manager:
             self.shape_manager.cleanup()
+        self.hide_camera_viewer()
+
+    def on_quit_camera_view(self):
+        self.lookup_action("toggle_camera_viewer").activate(GLib.Variant.new_boolean(False))
+
+    def show_camera_viewer(self):
+        if not self.camera_viewer_dialog:
+            self.camera_viewer_dialog = CameraViewerDialog(self)
+            self.camera_viewer_dialog.set_modal(False)
+
+    def hide_camera_viewer(self):
+        if self.camera_viewer_dialog:
+            self.camera_viewer_dialog.destroy()
+            self.camera_viewer_dialog = None
 
     def init_interface(self):
         self.show_prop_of(None)
@@ -367,6 +382,8 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def redraw(self):
         self.drawing_area.queue_draw()
+        if self.camera_viewer_dialog:
+            self.camera_viewer_dialog.redraw()
         return self.playing
 
     def on_drawing_area_key_press(self, widget, event):

@@ -40,7 +40,6 @@ class CameraShape(Shape):
             cam_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(self.width), int(self.height))
             cam_ctx = cairo.Context(cam_surface)
 
-            outline = self.linked_to.get_abs_outline(0)
             sx = self.width/self.linked_to.width
             sy = self.height/self.linked_to.height
             cam_ctx.scale(sx, sy)
@@ -64,6 +63,30 @@ class CameraShape(Shape):
         ctx.save()
         ctx.translate(0, -self.CAMERA_ICON.get_abs_outline(0).height*1.2)
         self.CAMERA_ICON.draw(ctx)
+        ctx.restore()
+
+    def paint_screen(self, ctx, screen_width, screen_height, cam_scale):
+        cam_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                    int(self.width*cam_scale), int(self.height*cam_scale))
+        cam_ctx = cairo.Context(cam_surface)
+        cam_ctx.scale(cam_scale, cam_scale)
+
+        parent_shape = self.parent_shape
+        self.reverse_pre_draw(cam_ctx, root_shape=parent_shape)
+        parent_shape.draw(cam_ctx, root_shape=parent_shape)
+
+        ctx.save()
+        sx = screen_width/self.width
+        sy = screen_height/self.height
+        scale = min(sx, sy)
+        ctx.translate((screen_width-scale*self.width)*.5, (screen_height-scale*self.height)*.5)
+        ctx.scale(scale, scale)
+
+        self.draw_path(ctx)
+        ctx.scale(1/cam_scale, 1/cam_scale)
+        ctx.set_source_surface(cam_surface)
+        ctx.clip()
+        ctx.paint()
         ctx.restore()
 
     def draw_path(self, ctx, for_fill=False):

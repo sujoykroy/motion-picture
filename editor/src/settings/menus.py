@@ -152,11 +152,13 @@ m.add(path="Edit/Preferences/Panel Layout/Drawing", icon="panel_drawing",
 m.add(path="Edit/Preferences/Panel Layout/Animation", icon="panel_animation",
       desc = "Animation Panel Layout",
       action_name="win.change_panel_layout", action_param="294/679/444", icon_scale=3)
+m.add(path="Windows/Camera Viewer", icon="panel_drawing", desc = "Camera Viewer",
+      action_name="win.toggle_camera_viewer", action_state=False)
 
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement",
      "Edit/TimeLine", "Edit/Preferences", "Edit/Shape/<Linked>",
-     "Edit/Preferences/Panel Layout", "Edit/Document", "Shapes/Pre-Drawn"],
+     "Edit/Preferences/Panel Layout", "Edit/Document", "Shapes/Pre-Drawn", "Windows"],
     ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>",
      "Shapes/Align", "Shapes/Convert To", "Edit/Points"],
     []

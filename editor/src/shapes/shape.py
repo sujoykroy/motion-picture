@@ -494,15 +494,26 @@ class Shape(object):
         point = points[1].diff(points[0])
         return math.atan2(point.y, point.x)/RAD_PER_DEG
 
-    def pre_draw(self, ctx):
-        if self.parent_shape:
-            self.parent_shape.pre_draw(ctx)
+    def pre_draw(self, ctx, root_shape=None):
+        if self.parent_shape and self != root_shape:
+            self.parent_shape.pre_draw(ctx, root_shape=root_shape)
         ctx.translate(self.translation.x, self.translation.y)
         if self.pre_matrix:
             ctx.set_matrix(self.pre_matrix*ctx.get_matrix())
         ctx.scale(self.scale_x, self.scale_y)
         ctx.rotate(self.angle*RAD_PER_DEG)
         ctx.scale(self.post_scale_x, self.post_scale_y)
+
+    def reverse_pre_draw(self, ctx, root_shape=None):
+        ctx.scale(1./self.post_scale_x, 1./self.post_scale_y)
+        ctx.rotate(-self.angle*RAD_PER_DEG)
+        ctx.scale(1./self.scale_x, 1./self.scale_y)
+        if self.pre_matrix:
+            ctx.set_matrix(ctx.get_matrix()*self.pre_matrix)
+        ctx.translate(-self.translation.x, -self.translation.y)
+        if self.parent_shape and self != root_shape:
+            self.parent_shape.reverse_pre_draw(ctx, root_shape=root_shape)
+
 
     def draw_anchor(self, ctx):
         ctx.translate(self.anchor_at.x, self.anchor_at.y)

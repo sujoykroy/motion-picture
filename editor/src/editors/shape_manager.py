@@ -633,7 +633,6 @@ class ShapeManager(object):
                 else:
                     self.delete_shape_editor()
                     self.shape_editor = ShapeEditor(shape)
-
         if self.shape_editor is None:
             if doc_point.x<0 or doc_point.x>self.document_area_box.width:
                 if 0<=doc_point.y<=self.document_area_box.height:
@@ -796,6 +795,7 @@ class ShapeManager(object):
                     else:
                         self.shape_editor.end_movement()
                         self.multi_shape.readjust_sizes()
+                        self.shape_editor.reinit_shape()
                         if self.point_group_shapes:
                             self.load_point_group_shapes()
                 if self.current_task:

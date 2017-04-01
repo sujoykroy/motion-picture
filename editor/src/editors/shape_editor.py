@@ -432,6 +432,9 @@ class ShapeEditor(object):
         for edit_box in self.all_edit_box_list:
             edit_box.update()
 
+    def reinit_shape(self):
+        self.init_shape = self.shape.copy()
+
     def insert_break(self):
         if not (isinstance(self.shape, CurveShape) or \
                 isinstance(self.shape, PolygonShape)): return False

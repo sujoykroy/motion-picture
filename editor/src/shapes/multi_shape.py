@@ -402,7 +402,9 @@ class MultiShape(Shape):
                     del pose[old_name]
         return True
 
-    def draw(self, ctx, drawing_size=None, fixed_border=True, exclude_camera=True):
+    def draw(self, ctx, drawing_size=None,
+                        fixed_border=True, exclude_camera=True,
+                        root_shape=None):
         if self.masked and len(self.shapes)>1:
             last_shape = self.shapes.get_at_index(-1)
             if not isinstance(last_shape, MultiShape):
@@ -418,14 +420,14 @@ class MultiShape(Shape):
 
                     ctx.set_source_surface(masked_surface)
                     ctx.save()
-                    last_shape.pre_draw(ctx)
+                    last_shape.pre_draw(ctx, root_shape=root_shape)
                     last_shape.draw_path(ctx)
                     ctx.clip()
                     ctx.paint()
                     ctx.restore()
 
                 ctx.save()
-                last_shape.pre_draw(ctx)
+                last_shape.pre_draw(ctx, root_shape=root_shape)
                 last_shape.draw_path(ctx)
                 if fixed_border:
                     ctx.restore()
@@ -439,10 +441,10 @@ class MultiShape(Shape):
             if isinstance(shape, CameraShape) and exclude_camera:
                 continue
             if isinstance(shape, MultiShape):
-                shape.draw(ctx, drawing_size, fixed_border)
+                shape.draw(ctx, drawing_size, fixed_border, root_shape=root_shape)
             else:
                 ctx.save()
-                shape.pre_draw(ctx)
+                shape.pre_draw(ctx, root_shape=root_shape)
                 shape.draw_path(ctx, for_fill=True)
                 shape.draw_fill(ctx)
                 ctx.restore()
@@ -452,20 +454,20 @@ class MultiShape(Shape):
                    isinstance(shape, AudioShape) or \
                    isinstance(shape, CameraShape):
                     ctx.save()
-                    shape.pre_draw(ctx)
+                    shape.pre_draw(ctx, root_shape=root_shape)
                     shape.draw_path(ctx)
                     shape.draw_image(ctx)
                     ctx.restore()
 
                 if isinstance(shape, TextShape):
                     ctx.save()
-                    shape.pre_draw(ctx)
+                    shape.pre_draw(ctx, root_shape=root_shape)
                     shape.draw_path(ctx)
                     shape.draw_text(ctx)
                     ctx.restore()
 
                 ctx.save()
-                shape.pre_draw(ctx)
+                shape.pre_draw(ctx, root_shape=root_shape)
                 shape.draw_path(ctx)
                 if fixed_border:
                     ctx.restore()
