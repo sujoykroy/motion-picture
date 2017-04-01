@@ -234,7 +234,7 @@ class ShapeManager(object):
         self.document_area_box.draw_axis(ctx)
 
         ctx.save()
-        self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border, exclude_camera=False)
+        self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border, no_camera=False)
         ctx.restore()
         if not EditingChoice.HIDE_AXIS:
             self.multi_shape.draw_axis(ctx)

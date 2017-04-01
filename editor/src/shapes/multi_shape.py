@@ -403,8 +403,8 @@ class MultiShape(Shape):
         return True
 
     def draw(self, ctx, drawing_size=None,
-                        fixed_border=True, exclude_camera=True,
-                        root_shape=None):
+                        fixed_border=True, no_camera=True,
+                        root_shape=None, exclude_camera_list=None):
         if self.masked and len(self.shapes)>1:
             last_shape = self.shapes.get_at_index(-1)
             if not isinstance(last_shape, MultiShape):
@@ -438,7 +438,8 @@ class MultiShape(Shape):
                 return
 
         for shape in self.shapes:
-            if isinstance(shape, CameraShape) and exclude_camera:
+            if isinstance(shape, CameraShape) and \
+                (no_camera or (exclude_camera_list and shape in exclude_camera_list)):
                 continue
             if isinstance(shape, MultiShape):
                 shape.draw(ctx, drawing_size, fixed_border, root_shape=root_shape)
@@ -456,7 +457,11 @@ class MultiShape(Shape):
                     ctx.save()
                     shape.pre_draw(ctx, root_shape=root_shape)
                     shape.draw_path(ctx)
-                    shape.draw_image(ctx)
+                    if isinstance(shape, CameraShape):
+                        shape.draw_image(ctx, fixed_border=fixed_border,
+                                              exclude_camera_list=exclude_camera_list)
+                    else:
+                        shape.draw_image(ctx)
                     ctx.restore()
 
                 if isinstance(shape, TextShape):

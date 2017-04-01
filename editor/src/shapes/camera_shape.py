@@ -35,37 +35,28 @@ class CameraShape(Shape):
         self.copy_into(newob, copy_name)
         return newob
 
-    def draw_image(self, ctx):
+    def draw_image(self, ctx, fixed_border=True, exclude_camera_list=None):
         if self.linked_to:
-            cam_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(self.width), int(self.height))
-            cam_ctx = cairo.Context(cam_surface)
-
             sx = self.width/self.linked_to.width
             sy = self.height/self.linked_to.height
-            cam_ctx.scale(sx, sy)
-
-            translation = self.linked_to.parent_shape.translation
-            cam_ctx.translate(-translation.x, -translation.y)
-
-            translation = self.linked_to.translation
-            cam_ctx.translate(-translation.x, -translation.y)
-
-            parent_shape = self.linked_to.parent_shape
-            parent_parent_shape = parent_shape.parent_shape
-            parent_shape.parent_shape = None
-            parent_shape.draw(cam_ctx)
-            parent_shape.parent_shape = parent_parent_shape
-
-            ctx.set_source_surface(cam_surface)
-            ctx.clip()
-            ctx.paint()
+            ctx.scale(sx, sy)
+            cam_scale = max(self.parent_shape.width/self.width, self.parent_shape.height/self.height)
+            if exclude_camera_list:
+               exclude_camera_list = exclude_camera_list + [self]
+            else:
+                exclude_camera_list = [self]
+            self.linked_to.paint_screen(ctx,
+                      screen_width=self.linked_to.width, screen_height=self.linked_to.height,
+                      cam_scale=cam_scale, fixed_border=fixed_border,
+                      exclude_camera_list=exclude_camera_list)
             return
         ctx.save()
         ctx.translate(0, -self.CAMERA_ICON.get_abs_outline(0).height*1.2)
         self.CAMERA_ICON.draw(ctx)
         ctx.restore()
 
-    def paint_screen(self, ctx, screen_width, screen_height, cam_scale):
+    def paint_screen(self, ctx, screen_width, screen_height, cam_scale, fixed_border=True,
+                                exclude_camera_list=None):
         cam_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                     int(self.width*cam_scale), int(self.height*cam_scale))
         cam_ctx = cairo.Context(cam_surface)
@@ -73,7 +64,12 @@ class CameraShape(Shape):
 
         parent_shape = self.parent_shape
         self.reverse_pre_draw(cam_ctx, root_shape=parent_shape)
-        parent_shape.draw(cam_ctx, root_shape=parent_shape)
+        if exclude_camera_list:
+            exclude_camera_list = exclude_camera_list + [self]
+        else:
+            exclude_camera_list = [self]
+        parent_shape.draw(cam_ctx, root_shape=parent_shape, fixed_border=fixed_border,
+                          no_camera=False, exclude_camera_list=exclude_camera_list)
 
         ctx.save()
         sx = screen_width/self.width
