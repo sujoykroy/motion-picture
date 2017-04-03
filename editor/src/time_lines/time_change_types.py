@@ -17,10 +17,32 @@ class TimeChangeType(object):
         return TimeChangeType()
 
     def value_at(self, start_value, end_value, t, duration):
-        return start_value + (end_value - start_value)*t/float(duration)
+        if isinstance(start_value, list):
+            value = []
+            for i in range(len(start_value)):
+                value.append(start_value[i] + (end_value[i] - start_value[i])*t/float(duration))
+            return value
+        else:
+            return start_value + (end_value - start_value)*t/float(duration)
 
     def get_min_max_value(self, start_value, end_value, duration):
-        return min(start_value, end_value), max(start_value, end_value)
+        if isinstance(start_value, list):
+            minv = None
+            maxv = None
+            for i in range(len(start_value)):
+                minvl = min(start_value[i], end_value[i])
+                maxvl = max(start_value[i], end_value[i])
+                if minv is not  None:
+                    minv = min(minvl, minv)
+                else:
+                    minv = minvl
+                if minv is not  None:
+                    maxv = max(maxvl, maxv)
+                else:
+                    maxv = maxvl
+            return minv, maxv
+        else:
+            return min(start_value, end_value), max(start_value, end_value)
 
 class PeriodicChangeType(TimeChangeType):
     PHASE_NAME = "phase"
@@ -63,8 +85,24 @@ class PeriodicChangeType(TimeChangeType):
         return value
 
     def get_min_max_value(self, start_value, end_value, duration):
-        minv = min(start_value-self.amplitude, end_value-self.amplitude)
-        maxv = max(start_value+self.amplitude, end_value+self.amplitude)
+        if isinstance(start_value, list):
+            minv = None
+            maxv = None
+            for i in range(len(start_value)):
+                minvl = min(start_value[i]-self.amplitude, end_value[i]-self.amplitude)
+                maxvl = max(start_value[i]+self.amplitude, end_value[i]+self.amplitude)
+                if minv is not  None:
+                    minv = min(minvl, minv)
+                else:
+                    minv = minvl
+                if minv is not  None:
+                    maxv = max(maxvl, maxv)
+                else:
+                    maxv = maxvl
+            return minv, maxv
+        else:
+            minv = min(start_value-self.amplitude, end_value-self.amplitude)
+            maxv = max(start_value+self.amplitude, end_value+self.amplitude)
         return minv, maxv
 
 class SineChangeType(PeriodicChangeType):

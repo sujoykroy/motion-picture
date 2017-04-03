@@ -405,7 +405,7 @@ class MultiShape(Shape):
     def draw(self, ctx, drawing_size=None,
                         fixed_border=True, no_camera=True,
                         root_shape=None, exclude_camera_list=None):
-        if self.masked and len(self.shapes)>1:
+        if self.masked and len(self.shapes)>1:#masking feature needs to be revisited.
             last_shape = self.shapes.get_at_index(-1)
             if not isinstance(last_shape, MultiShape):
                 for i in range(len(self.shapes)-1):

@@ -1,4 +1,5 @@
 from ..commons.draw_utils import *
+from ..commons import copy_value
 from sizes import *
 from box import Box
 from edit_boxes import *
@@ -12,16 +13,20 @@ class TimeSliceBox(Box):
         self.time_slice = time_slice
         self.edit_boxes = []
 
-        self.left_point_box = PointBox(self, self.left_point_move_to_callback)
-        self.right_point_box = PointBox(self, self.right_point_move_to_callback)
         self.right_expand_box = ExpandBox(self, self.right_expand_move_to_callback)
         self.right_expand_box.is_height_fixed = False
         self.right_expand_box.corner_radius = 0.
-
         self.edit_boxes.append(self.right_expand_box)
-        self.edit_boxes.append(self.left_point_box)
-        self.edit_boxes.append(self.right_point_box)
 
+        if not time_slice.has_multiple_prop():
+            self.left_point_box = PointBox(self, self.left_point_move_to_callback)
+            self.right_point_box = PointBox(self, self.right_point_move_to_callback)
+
+            self.edit_boxes.append(self.left_point_box)
+            self.edit_boxes.append(self.right_point_box)
+        else:
+            self.left_point_box = None
+            self.right_point_box = None
         self.highlighted = False
 
     def get_next_time_slice_box(self):
@@ -33,28 +38,28 @@ class TimeSliceBox(Box):
     def update_prev_linked_box(self):
         prev_time_slice_box = self.get_prev_time_slice_box()
         if prev_time_slice_box and prev_time_slice_box.time_slice.linked_to_next:
-            prev_time_slice_box.time_slice.end_value = self.time_slice.start_value
+            prev_time_slice_box.time_slice.end_value = copy_value(self.time_slice.start_value)
             prev_time_slice_box.update()
 
     def update_next_linked_box(self):
         if self.time_slice.linked_to_next:
             next_time_slice_box = self.get_next_time_slice_box()
             if next_time_slice_box:
-                next_time_slice_box.time_slice.start_value = self.time_slice.end_value
+                next_time_slice_box.time_slice.start_value = copy_value(self.time_slice.end_value)
                 next_time_slice_box.update()
 
     def left_point_move_to_callback(self, point_box, point):
         y = point.y
         value = y/self.prop_time_line_box.y_per_value
         value = self.prop_time_line_box.max_value-value
-        self.time_slice.start_value = value
+        self.time_slice.start_value = copy_value(value)
         self.update_prev_linked_box()
 
     def right_point_move_to_callback(self, point_box, point):
         y = point.y
         value = y/self.prop_time_line_box.y_per_value
         value = self.prop_time_line_box.max_value-value
-        self.time_slice.end_value = value
+        self.time_slice.end_value = copy_value(value)
         self.update_next_linked_box()
 
     def right_expand_move_to_callback(self, expand_box, point):
@@ -68,15 +73,17 @@ class TimeSliceBox(Box):
         self.height = HEIGHT_PER_TIME_SLICE
         self.right_expand_box.set_right(self.width)
 
-        self.left_point_box.set_left(0)
-        self.left_point_box.set_vert_center(
-         (self.prop_time_line_box.max_value -
-                self.time_slice.start_value)*self.prop_time_line_box.y_per_value)
+        if self.left_point_box:
+            self.left_point_box.set_left(0)
+            self.left_point_box.set_vert_center(
+             (self.prop_time_line_box.max_value -
+                    self.time_slice.start_value)*self.prop_time_line_box.y_per_value)
 
-        self.right_point_box.set_right(self.width)
-        self.right_point_box.set_vert_center(
-            (self.prop_time_line_box.max_value -
-                self.time_slice.end_value)*self.prop_time_line_box.y_per_value)
+        if self.right_point_box:
+            self.right_point_box.set_right(self.width)
+            self.right_point_box.set_vert_center(
+                (self.prop_time_line_box.max_value -
+                    self.time_slice.end_value)*self.prop_time_line_box.y_per_value)
 
     def draw(self, ctx, visible_time_span):
         ctx.save()
@@ -142,9 +149,15 @@ class TimeSliceBox(Box):
         t = visible_time_span.start
         t_step = 1./(visible_time_span.scale*PIXEL_PER_SECOND)
         draw_started = False
+        paths = []
         if isinstance(change_type, PeriodicChangeType):
             while t<time_end:
                 y = self.time_slice.value_at(t)
+                if self.time_slice.has_multiple_prop():
+                    for i in range(y):
+                        if len(paths)<=i:
+                            paths.append([])
+                        paths[i].append((t, y))
                 if not draw_started:
                     ctx.move_to(t, y)
                     draw_started = True
@@ -152,9 +165,30 @@ class TimeSliceBox(Box):
                     ctx.line_to(t, y)
                 t += t_step
         elif isinstance(self.time_slice.change_type, TimeChangeType):
-            draw_straight_line(ctx, 0, self.time_slice.start_value,
-                        self.time_slice.duration, self.time_slice.end_value)
+            if self.time_slice.has_multiple_prop():
+                for i in range(len(self.time_slice.start_value)):
+                    if len(paths)<=i:
+                        paths.append([])
+                    paths[i].append((0, self.time_slice.start_value[i]))
+                    paths[i].append((self.time_slice.duration, self.time_slice.end_value[i]))
+            else:
+                draw_straight_line(ctx, 0, self.time_slice.start_value,
+                            self.time_slice.duration, self.time_slice.end_value)
 
+
+        if paths:
+            for p in range(len(paths)):
+                path = paths[p]
+                ctx.new_path()
+                for i in range(len(path)):
+                    if i == 0:
+                        ctx.move_to(path[i][0], path[i][1])
+                    else:
+                        ctx.line_to(path[i][0], path[i][1])
+                paths[p] = ctx.copy_path()
+            ctx.new_path()
+            for path in paths:
+                ctx.append_path(path)
         ctx.restore()
         draw_stroke(ctx, 1, "000000")
 

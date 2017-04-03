@@ -1,6 +1,6 @@
 from xml.etree.ElementTree import Element as XmlElement
 from time_change_types import *
-from ..commons import copy_dict
+from ..commons import copy_dict, copy_list, Text
 
 class TimeSlice(object):
     TAG_NAME = "time_slice"
@@ -10,9 +10,20 @@ class TimeSlice(object):
     PROP_DATA_TAG_NAME = "prop_data"
     LINKED_TO_NEXT_NAME = "linked"
     ID_SEED = 0
+
+    @classmethod
+    def copy_value(cls, value):
+        if hasattr(value, "to_array"):
+            value = value.to_array()
+        elif isinstance(value, list):
+            value = copy_list(value)
+        elif type(value) not in (int, float):
+            raise Exception("Unknonw type[{0}] of value to copy".format(type(value)))
+        return value
+
     def __init__(self,  start_value, end_value, duration, change_type=None, prop_data=None):
-        self.start_value = start_value
-        self.end_value = end_value
+        self.start_value = self.copy_value(start_value)
+        self.end_value = self.copy_value(end_value)
         self.duration = duration
         if change_type is None:
             change_type = TimeChangeType()
@@ -21,6 +32,15 @@ class TimeSlice(object):
         self.id_num = TimeSlice.ID_SEED
         self.linked_to_next = False
         TimeSlice.ID_SEED += 1
+
+    def set_start_value(self, value):
+        self.start_value = self.copy_value(value)
+
+    def set_end_value(self, value):
+        self.end_value = self.copy_value(value)
+
+    def has_multiple_prop(self):
+        return isinstance(self.start_value, list)
 
     def __str__(self):
         return "TimeSlice[{3}], sv={0}, ev={1}, dur={2}".format(
@@ -45,9 +65,17 @@ class TimeSlice(object):
         return elm
 
     @classmethod
+    def get_prop_value_from_xml_element(self, elm, tag_name):
+        value = Text.parse_number_list(elm.attrib.get(tag_name, ""))
+        if len(value)==1:
+            return value[0]
+        return value
+
+    @classmethod
     def create_from_xml_element(cls, elm):
-        start_value = float(elm.attrib.get(cls.START_VALUE_NAME, 0.))
-        end_value = float(elm.attrib.get(cls.END_VALUE_NAME, 1.))
+        start_value = cls.get_prop_value_from_xml_element(elm, cls.START_VALUE_NAME)
+        end_value = cls.get_prop_value_from_xml_element(elm, cls.END_VALUE_NAME)
+
         duration = float(elm.attrib.get(cls.DURATION_NAME, 1.))
         linked_to_next = elm.attrib.get(cls.LINKED_TO_NEXT_NAME, False)
         if linked_to_next == "True":
@@ -111,9 +139,12 @@ class TimeSlice(object):
         if change_type_class and change_type_class.TYPE_NAME == self.change_type.TYPE_NAME:
             return #don't change if already of this type
         if change_type_class in (SineChangeType, TriangleChangeType, LoopChangeType):
+            if self.has_multiple_prop():
+                amplitude=0
+            else:
+                amplitude = self.end_value-self.start_value
             self.change_type = change_type_class(
-                    amplitude=self.end_value-self.start_value,
-                    phase=0, period=self.duration)
+                    amplitude=amplitude, phase=0, period=self.duration)
         else:
             self.change_type = TimeChangeType()
 

@@ -1,4 +1,4 @@
-import cairo
+import cairo, re
 from gi.repository import Gtk
 
 class Keyboard(object):
@@ -24,6 +24,27 @@ class Text(object):
         label.set_markup(Text.markup(text, **params))
         return label
 
+    @classmethod
+    def parse_number(cls, text):
+        try:
+            value = float(text)
+        except ValueError as e:
+            value = None
+        return value
+
+
+    @classmethod
+    def parse_number_list(cls, text):
+        text = re.sub(r'[\[\]]+', "", text)
+        str_arr = text.split(",")
+        num_arr = []
+        for item in str_arr:
+            num = cls.parse_number(item)
+            if num is not None:
+                num_arr.append(num)
+        return num_arr
+
+
 def format_time(value):
     hour = int(math.floor(value / 3600.))
     value -= hour*60
@@ -42,15 +63,7 @@ def copy_list(arr):
         return None
     copied_list = []
     for val in arr:
-        if isinstance(val, dict):
-            val = copy_dict(val)
-        elif isinstance(val, list):
-            val = copy_list(val)
-        elif hasattr(val, "copy"):
-            val = val.copy()
-        elif type(val) not in (int, str, float) and val is not None:
-            raise Exception("Don't know how to copy item of type {0}".format(type(val)))
-        copied_list.append(val)
+        copied_list.append(copy_value(val))
     return copied_list
 
 def copy_dict(dicto):
@@ -58,16 +71,19 @@ def copy_dict(dicto):
         return None
     copied_dict = dict()
     for key, val in dicto.items():
-        if isinstance(val, dict):
-            val = copy_dict(val)
-        elif isinstance(val, list):
-            val = copy_list(val)
-        elif hasattr(val, "copy"):
-            val = val.copy()
-        elif type(val) not in (int, str, float) and val is not None:
-            raise Exception("Don't know how to copy item of type {0}".format(type(val)))
-        copied_dict[key] = val
+        copied_dict[key] = copy_value(val)
     return copied_dict
+
+def copy_value(val):
+    if isinstance(val, dict):
+        val = copy_dict(val)
+    elif isinstance(val, list):
+        val = copy_list(val)
+    elif hasattr(val, "copy"):
+        val = val.copy()
+    elif type(val) not in (int, str, float) and val is not None:
+        raise Exception("Don't know how to copy item of type {0}".format(type(val)))
+    return val
 
 class Matrix(object):
     @staticmethod

@@ -225,7 +225,7 @@ class ShapePropBox(object):
 
     def insert_slice_button_clicked(self, widget, prop_name):
         if self.prop_object != None:
-            value = self.prop_object.get_prop_value(prop_name)
+            value = self.prop_object.get_prop_value_for_time_slice(prop_name)
             self.insert_time_slice_callback(self.prop_object, prop_name, value)
 
     def apply_on_poses_button_clicked(self, widget, prop_name):

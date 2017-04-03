@@ -47,6 +47,11 @@ class Shape(object):
         self.angle = 0
         self.pre_matrix = None
 
+    def get_prop_type(self, prop_name):
+        if prop_name == "xy":
+            return "number_list"
+        return "number"
+
     def cleanup(self):
         if self.linked_clones:
             for linked_clone in self.linked_clones:
@@ -266,6 +271,12 @@ class Shape(object):
             return getattr(self, prop_name)
         return None
 
+    def get_prop_value_for_time_slice(self, prop_name):
+        prop_value = self.get_prop_value(prop_name)
+        if hasattr(prop_value, "to_array"):
+            return prop_value.to_array()
+        return prop_value
+
     def has_prop(self, prop_name):
         get_attr_name = "get_" + prop_name
         if hasattr(self, get_attr_name):
@@ -367,16 +378,39 @@ class Shape(object):
         self.move_to(self.get_abs_anchor_at().x, y)
 
     def set_x(self, x):
-        self.move_to(x, self.get_abs_anchor_at().y)
+        xy = self.get_xy()
+        xy.x = x
+        self.set_xy(xy)
 
     def set_y(self, y):
-        self.move_to(self.get_abs_anchor_at().x, y)
+        xy = self.get_xy()
+        xy.y = y
+        self.set_xy(xy)
 
     def get_x(self):
-        return self.get_abs_anchor_at().x
+        return self.get_xy().x
 
     def get_y(self):
-        return self.get_abs_anchor_at().y
+        return self.get_xy().y
+
+    def get_xy(self):
+        xy = self.get_abs_anchor_at()
+        if self.parent_shape:
+            xy.x -= self.parent_shape.anchor_at.x
+            xy.y -= self.parent_shape.anchor_at.y
+        return xy
+
+    def set_xy(self, xy):
+        if isinstance(xy, list):
+            if self.parent_shape:
+                self.move_to(xy[0]+self.parent_shape.anchor_at.x, xy[1]+self.parent_shape.anchor_at.y)
+            else:
+                self.move_to(xy[0], xy[1])
+        else:
+            if self.parent_shape:
+                self.move_to(xy.x+self.parent_shape.anchor_at.x, xy.y+self.parent_shape.anchor_at.y)
+            else:
+                self.move_to(xy.x, xy.y)
 
     def get_stage_xy(self):
         xy = self.get_abs_anchor_at()

@@ -81,6 +81,9 @@ class Point(object):
         matrix.invert()
         self.x, self.y = matrix.transform_point(self.x, self.y)
 
+    def to_array(self):
+        return [self.x, self.y]
+
     @classmethod
     def from_text(cls, text):
         try:

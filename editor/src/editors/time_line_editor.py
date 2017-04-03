@@ -324,7 +324,7 @@ class TimeLineEditor(Gtk.VBox):
                 else:
                     load_single_shape = True
         if load_single_shape is True:
-            multi_shape_time_line = MultiShapeTimeLine()
+            multi_shape_time_line = MultiShapeTimeLine(self.time_line.multi_shape)
             shape_time_line =  self.time_line.shape_time_lines[shape]
             multi_shape_time_line.shape_time_lines.add(shape, shape_time_line)
             self.multi_shape_time_line_box = MultiShapeTimeLineBox(multi_shape_time_line)
