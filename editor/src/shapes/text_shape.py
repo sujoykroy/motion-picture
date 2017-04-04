@@ -154,6 +154,11 @@ class TextShape(RectangleShape):
         length = abs(int(math.floor(len(self.text)*fraction)))
         self.display_text = self.text[0: length]
 
+    def set_prop_value(self, prop_name, value, prop_data=None):
+        if prop_name == "exposure" and prop_data and "text" in prop_data:
+            self.set_text(prop_data["text"])
+        super(TextShape, self).set_prop_value(prop_name, value, prop_data)
+
     def set_text(self, text):
         self.text = text
         self.set_exposure(self.exposure)

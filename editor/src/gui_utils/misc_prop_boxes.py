@@ -93,6 +93,16 @@ class TextShapePropBox(OvalShapePropBox):
         yalign_combobox.build_and_set_model([["Top", 0], ["Middle", 1], ["Bottom", 2]])
         linenalign_combobox.build_and_set_model([["Left", 0], ["Center", 1], ["Right", 2]])
 
+    def insert_slice_button_clicked(self, widget, prop_name):
+        if prop_name == "exposure":
+            if self.prop_object != None:
+                value = self.prop_object.get_prop_value_for_time_slice(prop_name)
+                prop_data = dict(text="")
+                self.insert_time_slice_callback(self.prop_object, prop_name, value, value, prop_data)
+        else:
+            super(TextShapePropBox, self).insert_slice_button_clicked(widget, prop_name)
+
+
 class MultiShapePropBox(ShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)

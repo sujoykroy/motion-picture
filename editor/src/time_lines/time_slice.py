@@ -18,7 +18,7 @@ class TimeSlice(object):
         elif isinstance(value, list):
             value = copy_list(value)
         elif type(value) not in (int, float):
-            raise Exception("Unknonw type[{0}] of value to copy".format(type(value)))
+            raise Exception("Unknown type[{0}] of value to copy".format(type(value)))
         return value
 
     def __init__(self,  start_value, end_value, duration, change_type=None, prop_data=None):

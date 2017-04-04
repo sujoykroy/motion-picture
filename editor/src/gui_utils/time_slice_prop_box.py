@@ -39,6 +39,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "timeline", self.LIST)
         self.add_editable_item("prop_data", "start_form", self.LIST)
         self.add_editable_item("prop_data", "end_form", self.LIST)
+        self.add_editable_item("prop_data", "text", self.TEXT)
 
         self.add_editable_item("attrib", "start_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "end_value", self.NUMBERS, syncable=True)
@@ -170,6 +171,10 @@ class TimeSlicePropBox(Gtk.Frame):
             combobox = NameValueComboBox()
             combobox.connect("changed", self.item_widget_changed)
             item_widget = combobox
+        elif item_type == self.TEXT:
+            entry = Gtk.Entry()
+            entry.connect("changed", self.item_widget_changed)
+            item_widget = entry
 
         item_widget.item_type = item_type
         item_widget.item_name = item_name
