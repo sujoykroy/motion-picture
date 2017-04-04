@@ -158,7 +158,7 @@ class ApplicationWindow(MasterEditor):
         change_action_tool_buttons(action)
         shape_type = parameter.get_string()
         if not shape_type: return
-        shape_creartion_is_done = True
+        shape_creation_is_done = True
         if shape_type == "image":
             filename = FileOp.choose_file(self, purpose="open", file_types=[["Image", "image/*"]])
             if not filename:
@@ -416,12 +416,6 @@ class ApplicationWindow(MasterEditor):
                 pixbuf = self.doc.get_pixbuf(self.doc.width, self.doc.height)
                 self.doc.main_multi_shape.parent_shape = parent_shape
                 pixbuf.savev(filename, "png", [], [])
-        elif export_type == "movie":
-            filename = "/home/sujoy/mpmovie.ogv"
-            parent_shape = self.doc.main_multi_shape.parent_shape
-            self.doc.main_multi_shape.parent_shape = None
-            self.doc.make_movie(filename, self.time_line_editor.time_line)
-            self.doc.main_multi_shape.parent_shape = parent_shape
 
     def center_anchor(self, action, parameter):
         if self.shape_manager.place_anchor_at_center_of_shape():

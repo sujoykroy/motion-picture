@@ -2,6 +2,7 @@ from ..commons import *
 from xml.etree.ElementTree import Element as XmlElement
 from shape_time_line import ShapeTimeLine
 from time_marker import TimeMarker
+from ..shapes.audio_shape import AudioShape
 
 class MultiShapeTimeLine(object):
     TAG_NAME = "multi_shape_time_line"
@@ -130,3 +131,19 @@ class MultiShapeTimeLine(object):
         for shape_time_line in self.shape_time_lines:
             shape_time_line.expand_duration(self.duration)
 
+    def get_audio_clips(self):
+        audio_clips = []
+        for shape_line in self.shape_time_lines:
+            shape = shape_line.shape
+            if not isinstance(shape, AudioShape):
+                continue
+            for prop_line in shape_line.prop_time_lines:
+                if prop_line.prop_name != "time_pos":
+                    continue
+                t = 0
+                for time_slice in prop_line.time_slices:
+                    clip = time_slice.get_audio_clip(shape)
+                    clip = clip.set_start(t)
+                    audio_clips.append(clip)
+                    t += time_slice.duration
+        return audio_clips

@@ -170,11 +170,11 @@ class Document(object):
                 linked_shape.copy_data_from_linked()
 
     def get_surface(self, width, height):
-        pixbuf = Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width, height)
-
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, pixbuf.get_width(), pixbuf.get_height())
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(width), int(height))
         ctx = cairo.Context(surface)
-        Gdk.cairo_set_source_pixbuf(ctx, pixbuf, 0, 0)
+        ctx.rectangle(0, 0, width, height)
+        ctx.set_source_rgb(1,1,1)
+        ctx.fill()
         ctx.set_antialias(cairo.ANTIALIAS_DEFAULT)
 
         shape = self.main_multi_shape
@@ -190,22 +190,58 @@ class Document(object):
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
         return pixbuf
 
-    def get_rgb_array(self):
-        surface= self.get_surface(self.width, self.height)
+    def get_rgb_array(self, camera):
+        if camera:
+            width, height = camera.width, camera.height
+            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(camera.width), int(camera.height))
+            ctx = cairo.Context(surface)
+            ctx.set_antialias(cairo.ANTIALIAS_DEFAULT)
+            ctx.rectangle(0, 0, width, height)
+            ctx.set_source_rgb(1,1,1)
+            ctx.fill()
+            camera.paint_screen(ctx, camera.width, camera.height, cam_scale=1.)
+        else:
+            width, height = self.width, self.height
+            surface= self.get_surface(width, height)
         data = surface.get_data()
         rgb_array = 0+numpy.frombuffer(surface.get_data(), numpy.uint8)
-        rgb_array.shape = (self.height, self.width, 4)
+        rgb_array.shape = (height, width, 4)
         rgb_array = rgb_array[:,:,[2,1,0,3]]
         rgb_array = rgb_array[:,:, :3]
         return rgb_array
 
-    def make_movie(self, filename, time_line, start_time=0, end_time=None, fps=24):
+    def make_movie(self, filename, time_line, start_time=0, end_time=None,
+                         fps=24, camera=None, ffmpeg_params=None, codec=None, audio=True):
+        timelines = self.main_multi_shape.timelines
+        if not timelines:
+            return
+        if time_line is None:
+            time_line = timelines.values()[0]
+
+        elif not isinstance(time_line, MultiShapeTimeLine):
+            if time_line in timelines:
+                time_line = timelines[time_line]
+
+        if not time_line:
+            return
+
         if end_time is None:
             end_time = time_line.duration
-        frame_maker = FrameMaker(self, time_line, start_time, end_time)
-        clip = movie_editor.VideoClip(frame_maker.make_frame, duration=frame_maker.get_duration())
-        clip.write_videofile(filename, fps=fps,
-                ffmpeg_params=[])
+
+        if camera:
+            camera = self.get_shape_by_name(camera)
+
+        frame_maker = FrameMaker(self, time_line, start_time, end_time, camera)
+        video_clip = movie_editor.VideoClip(frame_maker.make_frame, duration=frame_maker.get_duration())
+
+        if audio:
+            audio_clips = time_line.get_audio_clips()
+            if audio_clips:
+                audio_clip = movie_editor.CompositeAudioClip(audio_clips)
+                video_clip = video_clip.set_audio(audio_clip)
+        video_clip.write_videofile(
+            filename, fps=fps, codec=codec, preset="superslow", ffmpeg_params=ffmpeg_params,
+            bitrate="320k")
 
     @staticmethod
     def create_image(icon_name, scale=None):
@@ -239,15 +275,16 @@ class Document(object):
         return shape
 
 class FrameMaker(object):
-    def __init__(self, doc, time_line, start_time, end_time):
+    def __init__(self, doc, time_line, start_time, end_time, camera):
         self.doc = doc
         self.time_line = time_line
         self.start_time = start_time
         self.end_time = end_time
+        self.camera = camera
 
     def get_duration(self):
         return self.end_time-self.start_time
 
     def make_frame(self, t):
         self.time_line.move_to(t+self.start_time)
-        return self.doc.get_rgb_array()
+        return self.doc.get_rgb_array(self.camera)

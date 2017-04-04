@@ -1,6 +1,8 @@
 from xml.etree.ElementTree import Element as XmlElement
 from time_change_types import *
 from ..commons import copy_dict, copy_list, Text
+import moviepy.editor as movie_editor
+import numpy
 
 class TimeSlice(object):
     TAG_NAME = "time_slice"
@@ -45,6 +47,24 @@ class TimeSlice(object):
     def __str__(self):
         return "TimeSlice[{3}], sv={0}, ev={1}, dur={2}".format(
                 self.start_value, self.end_value, self.duration, self.id_num)
+
+    def get_audio_clip(self, audio_shape):
+        #crude technique. time_slice doesn't generally knows about its associated shape
+        self.shape = audio_shape
+
+        clip = movie_editor.AudioClip(make_frame=self.make_audio_frame, duration=self.duration)
+        clip.nchannels=2
+        return clip
+
+    def make_audio_frame(self, t):
+        scale = (self.end_value-self.start_value)/self.duration
+        samples = []
+        if isinstance(t, int):
+            samples.append(self.shape.get_sample(at=self.start_value+t*scale))
+        else:
+            for ti in t:
+                samples.append(self.shape.get_sample(at=self.start_value+ti*scale))
+        return numpy.array(samples)
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)

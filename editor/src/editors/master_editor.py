@@ -179,6 +179,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.camera_viewer_dialog = None
         AudioShape.AUDIO_ICON = Document.get_icon_shape("audio", 20, 20)
+        AudioShape.DONT_PLAY = False
         CameraShape.CAMERA_ICON = Document.get_icon_shape("camera", 20, 20)
 
     def quit(self, widget, event):

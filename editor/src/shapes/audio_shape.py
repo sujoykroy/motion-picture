@@ -125,6 +125,7 @@ class AudioShape(TextShape):
     TIME_STEP = .1
     AUDIO_PROCESS_THREAD = None
     AUDIO_ICON = None
+    DONT_PLAY = True
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius,
                        x_align=X_ALIGN_CENTER, y_align=Y_ALIGN_MIDDLE, text="Sample",
@@ -169,6 +170,7 @@ class AudioShape(TextShape):
         self.audio_samples = audioclip.to_soundarray(buffersize=buffersize)\
                                       .transpose().astype(numpy.float32)
         self.audio_fps = audioclip.fps
+        print self.audio_fps
         self.duration = audioclip.duration
 
     def get_sample(self, at):
@@ -181,7 +183,11 @@ class AudioShape(TextShape):
         return self.audio_samples[:, pos]
 
     def set_time_pos(self, time_pos):
+        if time_pos<0 or time_pos>self.duration:
+            return
         self.time_pos = time_pos
+        if AudioShape.DONT_PLAY:
+            return
         if self.audio_queue is None:
             self._load_samples()
             self.audio_queue = Queue.Queue(1)
@@ -189,9 +195,6 @@ class AudioShape(TextShape):
                 AudioShape.AUDIO_PROCESS_THREAD = AudioProcessThread()
 
             AudioShape.AUDIO_PROCESS_THREAD.attach_audio_shape(self)
-
-        if time_pos<0 or time_pos>self.duration:
-            return
 
         s = int(self.time_pos*self.audio_fps)
         st = time.time()

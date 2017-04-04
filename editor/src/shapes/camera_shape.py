@@ -6,6 +6,7 @@ class CameraShape(Shape):
     TYPE_NAME = "camera"
     EYE_TYPE_RECTANGLE = 0
     EYE_TYPE_OVAL = 1
+    CAMERA_ICON = None
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height,
                        aspect_ratio, eye_type):
@@ -50,10 +51,11 @@ class CameraShape(Shape):
                       cam_scale=cam_scale, fixed_border=fixed_border,
                       exclude_camera_list=exclude_camera_list)
             return
-        ctx.save()
-        ctx.translate(0, -self.CAMERA_ICON.get_abs_outline(0).height*1.2)
-        self.CAMERA_ICON.draw(ctx)
-        ctx.restore()
+        if self.CAMERA_ICON:
+            ctx.save()
+            ctx.translate(0, -self.CAMERA_ICON.get_abs_outline(0).height*1.2)
+            self.CAMERA_ICON.draw(ctx)
+            ctx.restore()
 
     def paint_screen(self, ctx, screen_width, screen_height, cam_scale, fixed_border=True,
                                 exclude_camera_list=None):
