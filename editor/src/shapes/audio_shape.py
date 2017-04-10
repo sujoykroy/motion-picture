@@ -170,7 +170,6 @@ class AudioShape(TextShape):
         self.audio_samples = audioclip.to_soundarray(buffersize=buffersize)\
                                       .transpose().astype(numpy.float32)
         self.audio_fps = audioclip.fps
-        print self.audio_fps
         self.duration = audioclip.duration
 
     def get_sample(self, at):
