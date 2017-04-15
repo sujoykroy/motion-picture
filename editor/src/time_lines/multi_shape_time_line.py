@@ -3,6 +3,7 @@ from xml.etree.ElementTree import Element as XmlElement
 from shape_time_line import ShapeTimeLine
 from time_marker import TimeMarker
 from ..shapes.audio_shape import AudioShape
+from audio_clip_generator import AudioClipGenerator
 
 class MultiShapeTimeLine(object):
     TAG_NAME = "multi_shape_time_line"
@@ -142,7 +143,7 @@ class MultiShapeTimeLine(object):
                     continue
                 t = 0
                 for time_slice in prop_line.time_slices:
-                    clip = time_slice.get_audio_clip(shape)
+                    clip = AudioClipGenerator(shape, time_slice)
                     clip = clip.set_start(t)
                     audio_clips.append(clip)
                     t += time_slice.duration

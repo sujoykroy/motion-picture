@@ -73,14 +73,23 @@ class PropTimeLineBox(Box):
         ctx.restore()
         draw_stroke(ctx, 1, "aaaaaa")
 
-        rel_visible_time_span = visible_time_span.copy()
         rel_visible_time_duration = visible_time_span.end-visible_time_span.start
+        time_elapsed = 0
         for time_slice in self.prop_time_line.time_slices:
+            if time_elapsed>visible_time_span.end:
+                break
+            if time_elapsed+time_slice.duration<visible_time_span.start:
+                continue
             time_slice_box = self.time_slice_boxes[time_slice]
             ctx.save()
+            rel_visible_time_span = visible_time_span.copy()
+            rel_visible_time_span.start-= time_elapsed
+            rel_visible_time_span.end -= time_elapsed
+            start_diff = visible_time_span.start - time_elapsed
+            if start_diff<0:
+                rel_visible_time_span.start =0
+                rel_visible_time_span.end += start_diff
             time_slice_box.draw(ctx, rel_visible_time_span)
-            rel_visible_time_span.start-= time_slice.duration
-            rel_visible_time_span.end = rel_visible_time_span.start+rel_visible_time_duration
             ctx.restore()
 
         ctx.save()

@@ -3,7 +3,6 @@ from ..audio_tools import *
 from text_shape import *
 import sys, os
 import jack, numpy
-
 import threading, time, Queue
 
 JACK_NAME = "mpa"
@@ -153,11 +152,11 @@ class AudioShape(TextShape):
     def create_from_xml_element(cls, elm):
         shape = super(AudioShape, cls).create_from_xml_element(elm)
         shape.set_audio_path(elm.attrib.get("audio_path", ""))
-        print "shape.audio_path", shape.audio_path
         return shape
 
     def set_audio_path(self, audio_path):
-        self.audio_path = audio_path
+        if audio_path:
+            self.audio_path = audio_path
 
     def set_av_filename(self, filename):
         self.set_audio_path(filename)
@@ -262,4 +261,3 @@ class AudioShape(TextShape):
             AudioShape.AUDIO_PROCESS_THREAD.should_stop = True
             AudioShape.AUDIO_PROCESS_THREAD.join()
             AudioShape.AUDIO_PROCESS_THREAD = None
-

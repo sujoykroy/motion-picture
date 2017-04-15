@@ -1,7 +1,7 @@
 import MotionPicture, sys, os, subprocess
 
-doc_filename = "/home/sujoy/Pictures/MotionPictureFiles/man.xml"
-movie_filename = "/home/sujoy/Pictures/MotionPictureFiles/man.webm"
+doc_filename = "/home/sujoy/Pictures/MotionPictureFiles/test.xml"
+movie_filename = "/home/sujoy/Pictures/MotionPictureFiles/test.webm"
 time_line = None
 camera = "cam3"
 

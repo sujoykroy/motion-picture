@@ -71,4 +71,3 @@ class MultiShapeTimeLineBox(Box):
         for shape_line_box in self.shape_time_line_boxes:
             for prop_line_box in shape_line_box.prop_time_line_boxes:
                 prop_line_box.slices_container_box.left = value
-
