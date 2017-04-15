@@ -109,35 +109,10 @@ class TimeSliceBox(Box):
         prop_time_line = self.prop_time_line_box.prop_time_line
         shape = prop_time_line.shape
         prop_name = prop_time_line.prop_name
-        if isinstance(shape, AudioShape) and prop_name == "time_pos":
-            diff_value = abs(time_slice.end_value - time_slice.start_value)
-            if diff_value ==0:
-                diff_value = 0.001
-            slice_scale = time_slice.duration/diff_value
-
-            time_start = time_slice.start_value + visible_time_span.start/slice_scale
-            time_end = min(time_slice.end_value, (time_slice.start_value+visible_time_span.end/slice_scale))
-            t_step = 1./(slice_scale*visible_time_span.scale*PIXEL_PER_SECOND)
-            t = time_start
-
-            ctx.save()
-            self.pre_draw(ctx)
-            ctx.scale(PIXEL_PER_SECOND, self.height)
-            ctx.scale(slice_scale, 1)
-            ctx.translate(-time_slice.start_value, 0)
-            wave_started = False
-            while t<time_end:
-                sample = shape.get_sample(t)
-                if sample is None:
-                    break
-                if not wave_started:
-                    wave_started = True
-                    ctx.move_to(t, .5-sample[0]/2)
-                else:
-                    ctx.line_to(t, .5-sample[0]/2)
-                t += t_step
-            ctx.restore()
-            draw_stroke(ctx, 1, "000000")
+        if shape.can_draw_time_slice_for(prop_name):
+            shape.draw_for_time_slice(
+                    ctx, prop_name, self.time_slice.prop_data, visible_time_span,
+                    self.time_slice, self, PIXEL_PER_SECOND)
 
         ctx.save()
         self.pre_draw(ctx)

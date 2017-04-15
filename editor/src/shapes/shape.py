@@ -256,6 +256,9 @@ class Shape(object):
     def get_name(self):
         return self._name
 
+    def can_draw_time_slice_for(self, prop_name):
+        return False
+
     def set_prop_value(self, prop_name, value, prop_data=None):
         set_attr_name = "set_" + prop_name
         if hasattr(self, set_attr_name):

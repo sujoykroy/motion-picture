@@ -1,6 +1,6 @@
 from ..commons import *
+from ..audio_tools import *
 from text_shape import *
-from moviepy.editor import *
 import sys, os
 import jack, numpy
 
@@ -134,15 +134,13 @@ class AudioShape(TextShape):
                                 fill_color, width, height, corner_radius,
                                 x_align, y_align, text, font, font_color, line_align)
         self.audio_path = None
-        self.audio_samples = None
-        self.duration = 0
         self.time_pos = 0.
         self.audio_queue = None
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = AudioShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                         self.fill_color.copy(), self.width, self.height, self.corner_radius)
-        newob.set_audio_path(self.audio_path)
+        newob.audio_path = self.audio_path
         self.copy_into(newob, copy_name)
         return newob
 
@@ -155,49 +153,51 @@ class AudioShape(TextShape):
     def create_from_xml_element(cls, elm):
         shape = super(AudioShape, cls).create_from_xml_element(elm)
         shape.set_audio_path(elm.attrib.get("audio_path", ""))
-        shape._load_samples()
+        print "shape.audio_path", shape.audio_path
         return shape
 
     def set_audio_path(self, audio_path):
         self.audio_path = audio_path
-        audioclip = AudioFileClip(self.audio_path)
-        self.duration = audioclip.duration
-        self.set_text(os.path.basename(audio_path))
 
-    def _load_samples(self):
-        audioclip = AudioFileClip(self.audio_path)
-        buffersize = 1000
-        self.audio_samples = audioclip.to_soundarray(buffersize=buffersize)\
-                                      .transpose().astype(numpy.float32)
-        self.audio_fps = audioclip.fps
-        self.duration = audioclip.duration
+    def set_av_filename(self, filename):
+        self.set_audio_path(filename)
+
+    def get_av_filename(self):
+        return self.audio_path
+
+    def can_draw_time_slice_for(self, prop_name):
+        return True if prop_name == "time_pos" else False
+
+    def get_duration(self):
+        audio_file = AudioFileCache.get_file(self.audio_path)
+        return audio_file.duration
 
     def get_sample(self, at):
-        if self.audio_samples is None:
-            self._load_samples()
+        audio_file = AudioFileCache.get_file(self.audio_path)
+        return audio_file.get_sample_at(at)
 
-        pos = int(at*self.audio_fps)
-        if pos<0 or pos>=self.audio_samples.shape[1]:
-            return None
-        return self.audio_samples[:, pos]
+    def set_prop_value(self, prop_name, prop_value, prop_data=None):
+        if prop_name == "time_pos":
+            self.set_time_pos(prop_value, prop_data)
+        else:
+            super(AudioShape, self).set_prop_value(prop_name, prop_value, prop_data)
 
-    def set_time_pos(self, time_pos):
-        if time_pos<0 or time_pos>self.duration:
-            return
+    def set_time_pos(self, time_pos, prop_data=None):
+        if prop_data:
+            self.set_av_filename(prop_data["av_filename"])
         self.time_pos = time_pos
         if AudioShape.DONT_PLAY:
             return
         if self.audio_queue is None:
-            self._load_samples()
             self.audio_queue = Queue.Queue(1)
             if AudioShape.AUDIO_PROCESS_THREAD is None:
                 AudioShape.AUDIO_PROCESS_THREAD = AudioProcessThread()
-
             AudioShape.AUDIO_PROCESS_THREAD.attach_audio_shape(self)
 
-        s = int(self.time_pos*self.audio_fps)
-        st = time.time()
-        samples = self.audio_samples[:, s: s+int(self.TIME_STEP*self.audio_fps)]
+        audio_file = AudioFileCache.get_file(self.audio_path)
+        start_at = self.time_pos
+        end_at = self.time_pos + self.TIME_STEP
+        samples = audio_file.get_samples_in_between(start_at, end_at)
         try:
             self.audio_queue.put(samples, block=False)
         except Queue.Full as e:
@@ -211,11 +211,50 @@ class AudioShape(TextShape):
         self.AUDIO_ICON.draw(ctx)
         ctx.restore()
 
+    def draw_for_time_slice(self, ctx, prop_name, prop_data, visible_time_span,
+                                 time_slice, time_slice_box, pixel_per_second):
+        if prop_name != "time_pos":
+            return
+        filename = prop_data["av_filename"]
+        if not filename:
+            filename = self.audio_path
+        wave_file = AudioFileCache.get_file(filename)
+
+        diff_value = abs(time_slice.end_value - time_slice.start_value)
+        if diff_value ==0:
+            diff_value = 0.001
+        slice_scale = time_slice.duration/diff_value
+
+        time_start = time_slice.start_value + visible_time_span.start/slice_scale
+        time_end = min(time_slice.end_value, (time_slice.start_value+visible_time_span.end/slice_scale))
+        t_step = 1./(slice_scale*visible_time_span.scale*pixel_per_second)
+        t = time_start
+
+        ctx.save()
+        time_slice_box.pre_draw(ctx)
+        ctx.scale(pixel_per_second, time_slice_box.height)
+        ctx.scale(slice_scale, 1)
+        ctx.translate(-time_slice.start_value, 0)
+
+        wave_started = False
+        while t<time_end:
+            sample = wave_file.get_sample_at(t)
+            if sample is None:
+                break
+            if not wave_started:
+                wave_started = True
+                ctx.move_to(t, .5-sample[0]/2)
+            else:
+                ctx.line_to(t, .5-sample[0]/2)
+            t += t_step
+
+        ctx.restore()
+        draw_stroke(ctx, 1, "000000")
+
     def cleanup(self):
         TextShape.cleanup(self)
         if AudioShape.AUDIO_PROCESS_THREAD is not None:
             AudioShape.AUDIO_PROCESS_THREAD.detach_audio_shape(self)
-
 
     @classmethod
     def cleanup_threads(cls):

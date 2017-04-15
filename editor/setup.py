@@ -5,6 +5,7 @@ setup(
     package_dir = {'MotionPicture': 'src'},
     packages = ['MotionPicture',
                 'MotionPicture.commons',
+                'MotionPicture.audio_tools',
                 'MotionPicture.editors',
                 'MotionPicture.gui_utils',
                 'MotionPicture.settings',

@@ -169,12 +169,13 @@ class Document(object):
                 linked_shape.set_linked_to(source_shape)
                 linked_shape.copy_data_from_linked()
 
-    def get_surface(self, width, height):
+    def get_surface(self, width, height, bg_color=True):
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(width), int(height))
         ctx = cairo.Context(surface)
-        ctx.rectangle(0, 0, width, height)
-        ctx.set_source_rgb(1,1,1)
-        ctx.fill()
+        if bg_color:
+            ctx.rectangle(0, 0, width, height)
+            ctx.set_source_rgb(1,1,1)
+            ctx.fill()
         ctx.set_antialias(cairo.ANTIALIAS_DEFAULT)
 
         shape = self.main_multi_shape
@@ -185,8 +186,8 @@ class Document(object):
         shape.draw(ctx, Point(self.width, self.height), self.fixed_border)
         return ctx.get_target()
 
-    def get_pixbuf(self, width, height):
-        surface= self.get_surface(width, height)
+    def get_pixbuf(self, width, height, bg_color=True):
+        surface= self.get_surface(width, height, bg_color)
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
         return pixbuf
 
@@ -249,7 +250,7 @@ class Document(object):
         doc = Document(filename=filename)
         if scale:
             doc.main_multi_shape.scale_border_width(scale)
-        pixbuf = doc.get_pixbuf(width=20, height=20)
+        pixbuf = doc.get_pixbuf(width=20, height=20, bg_color=False)
         image = Gtk.Image.new_from_pixbuf(pixbuf)
         image.set_tooltip_text(get_displayble_prop_name(icon_name))
         return image

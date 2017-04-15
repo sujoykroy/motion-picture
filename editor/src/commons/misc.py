@@ -133,3 +133,7 @@ class Span(object):
         self.start = start
         self.end = end
         self.scale = scale
+
+    def copy(self):
+        newob = Span(self.start, self.end, self.scale)
+        return newob

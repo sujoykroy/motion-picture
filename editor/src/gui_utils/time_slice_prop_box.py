@@ -2,6 +2,7 @@ from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
 from ..time_lines.time_change_types import *
 from ..commons import get_displayble_prop_name, Text
+from file_op import *
 
 class TimeSlicePropBox(Gtk.Frame):
     NUMBER = 0
@@ -9,6 +10,7 @@ class TimeSlicePropBox(Gtk.Frame):
     TEXT = 2
     LIST = 3
     NUMBERS = 4
+    AUDIO_FILE = 5
 
     def __init__(self, draw_callback):
         Gtk.Frame.__init__(self)
@@ -40,6 +42,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "start_form", self.LIST)
         self.add_editable_item("prop_data", "end_form", self.LIST)
         self.add_editable_item("prop_data", "text", self.TEXT)
+        self.add_editable_item("prop_data", "av_filename", self.AUDIO_FILE)
 
         self.add_editable_item("attrib", "start_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "end_value", self.NUMBERS, syncable=True)
@@ -110,6 +113,8 @@ class TimeSlicePropBox(Gtk.Frame):
                     widget.label.show()
                     if isinstance(widget, NameValueComboBox):
                         widget.set_value(prop_data[key])
+                    elif isinstance(widget, FileSelect):
+                        widget.set_filename(prop_data[key])
 
     def show_widgets(self, widgets, visible):
         for key, widget in widgets.items():
@@ -131,6 +136,8 @@ class TimeSlicePropBox(Gtk.Frame):
                 widget.set_active(bool(value))
             elif isinstance(widget, NameValueComboBox):
                 widget.set_value(value)
+            elif isinstance(widget, FileSelect):
+                widget.set_filename(value)
 
     def get_item_value(self, obj, name):
         if hasattr(obj, "get_prop_value"):
@@ -175,6 +182,10 @@ class TimeSlicePropBox(Gtk.Frame):
             entry = Gtk.Entry()
             entry.connect("changed", self.item_widget_changed)
             item_widget = entry
+        elif item_type == self.AUDIO_FILE:
+            file_chooser = FileSelect(file_types="audio")
+            file_chooser.connect("file-selected", self.item_widget_changed)
+            item_widget = file_chooser
 
         item_widget.item_type = item_type
         item_widget.item_name = item_name
@@ -256,6 +267,8 @@ class TimeSlicePropBox(Gtk.Frame):
             value = widget.get_active()
         elif isinstance(widget, NameValueComboBox):
             value = widget.get_value()
+        elif isinstance(widget, FileSelect):
+            value = widget.get_filename()
 
         self.set_item_value_for_widget(widget, value, parse=True)
 
