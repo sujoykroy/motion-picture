@@ -6,6 +6,7 @@ from shape_time_line_box import ShapeTimeLineBox
 class MultiShapeTimeLineBox(Box):
     def __init__(self, multi_shape_time_line):
         Box.__init__(self)
+        self.time_line_width = 0
         self.multi_shape_time_line = multi_shape_time_line
         self.shape_time_line_boxes = OrderedDict()
 
@@ -38,6 +39,7 @@ class MultiShapeTimeLineBox(Box):
 
         width = height = 0
         vert_index = 0
+        self.time_line_width = 0
         for shape_time_line in self.multi_shape_time_line.shape_time_lines:
             shape = shape_time_line.shape
             if not self.shape_time_line_boxes.key_exists(shape):
@@ -56,6 +58,8 @@ class MultiShapeTimeLineBox(Box):
             if width<outline.width:
                 width = outline.width
             vert_index += 1
+            if self.time_line_width<shape_time_line_box.time_line_width:
+                self.time_line_width = shape_time_line_box.time_line_width
 
         self.width = width + SHAPE_LINE_LEFT_PADDING
         self.height = height

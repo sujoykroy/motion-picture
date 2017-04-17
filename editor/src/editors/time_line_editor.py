@@ -433,7 +433,8 @@ class TimeLineEditor(Gtk.VBox):
     def update(self):
         if self.multi_shape_time_line_box:
             self.multi_shape_time_line_box.update()
-            self.time_range.set_non_scaled_full_length_pixel(self.multi_shape_time_line_box.width)
+            self.time_range.set_non_scaled_full_length_pixel(
+                        self.multi_shape_time_line_box.time_line_width)
             self.play_head_box.height = self.drawing_area.get_allocated_height()
 
             self.update_time_marker_boxes()

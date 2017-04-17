@@ -101,7 +101,6 @@ class AudioShape(TextShape):
         if not filename:
             filename = self.audio_path
         wave_file = AudioFileCache.get_file(filename)
-
         diff_value = abs(time_slice.end_value - time_slice.start_value)
         if diff_value ==0:
             diff_value = 0.001
@@ -110,6 +109,8 @@ class AudioShape(TextShape):
         time_start = time_slice.start_value + visible_time_span.start/slice_scale
         time_end = min(time_slice.end_value, (time_slice.start_value+visible_time_span.end/slice_scale))
         t_step = 1./(slice_scale*visible_time_span.scale*pixel_per_second)
+        t_step = max((time_end-time_start)/1000., t_step)
+
         t = time_start
 
         ctx.save()
@@ -129,7 +130,6 @@ class AudioShape(TextShape):
             else:
                 ctx.line_to(t, .5-sample[0]/2)
             t += t_step
-
         ctx.restore()
         draw_stroke(ctx, 1, "000000")
 

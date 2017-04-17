@@ -18,6 +18,7 @@ class PropTimeLineBox(Box):
         self.slices_container_box = Box(self)
         self.slices_container_box.left = self.TOTAL_LABEL_WIDTH
         self.vertical_zoom = 1.
+        self.time_line_width = 0.
         self.update()
 
     def get_time_slice_box_at_index(self, index):
@@ -68,6 +69,7 @@ class PropTimeLineBox(Box):
 
         self.width = width*self.slices_container_box.scale_x + self.slices_container_box.left
         self.height = height*self.slices_container_box.scale_y + PROP_TIME_LINE_VERTICAL_PADDING
+        self.time_line_width = width
 
     def draw(self, ctx, visible_time_span):
         ctx.save()

@@ -8,6 +8,7 @@ from .. import settings
 class ShapeTimeLineBox(Box):
     def __init__(self, shape_time_line, multi_shape_time_line_box):
         Box.__init__(self, multi_shape_time_line_box)
+        self.time_line_width = 0
         self.shape_time_line = shape_time_line
         self.prop_time_line_boxes = OrderedDict()
         self.update()
@@ -20,6 +21,7 @@ class ShapeTimeLineBox(Box):
         height = SHAPE_NAME_HEIGHT
         width = 0
         vert_index = 0
+        self.time_line_width = 0
         for prop_time_line in self.shape_time_line.prop_time_lines:
             prop_name = prop_time_line.prop_name
             if not self.prop_time_line_boxes.key_exists(prop_name):
@@ -40,6 +42,8 @@ class ShapeTimeLineBox(Box):
             if width<prop_time_line_box.width:
                 width = prop_time_line_box.width
             vert_index += 1
+            if self.time_line_width<prop_time_line_box.time_line_width:
+                self.time_line_width = prop_time_line_box.time_line_width
 
         self.width = width
         self.height = height + SHAPE_LINE_BOTTOM_PADDING
