@@ -1,4 +1,6 @@
 from gi.repository import Gtk, GObject
+import Queue
+from ..audio_tools import *
 
 class FileOp(object):
     @staticmethod
@@ -16,16 +18,18 @@ class FileOp(object):
             action = Gtk.FileChooserAction.OPEN
             ok_key = Gtk.STOCK_OPEN
 
-        dialog = Gtk.FileChooserDialog(title, parent, action,
+        dialog = FileChooserDialog(title, parent, action,
                 (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, ok_key, Gtk.ResponseType.OK))
         if filename:
             dialog.set_filename(filename)
         if purpose in ("save", "save_as"):
             dialog.props.do_overwrite_confirmation = True
-
         if file_types == "audio":
             file_types = [["Audio", "audio/*"]]
+            dialog.set_preview_audio(True)
         for file_name, mime_type in file_types:
+            if file_name == "Audio":
+                dialog.set_preview_audio(True)
             filter_text = Gtk.FileFilter()
             filter_text.set_name("{0} files".format(file_name))
             filter_text.add_mime_type(mime_type)
@@ -38,6 +42,7 @@ class FileOp(object):
             filename = None
         dialog.destroy()
         return filename
+
 
 class FileSelect(Gtk.HBox):
     __gsignals__ = {
@@ -72,3 +77,39 @@ class FileSelect(Gtk.HBox):
         if filename:
             self.set_filename(filename)
             self.emit("file-selected")
+
+class FileChooserDialog(Gtk.FileChooserDialog):
+    def __init__(self, *args, **kwargs):
+        Gtk.FileChooserDialog.__init__(self, *args, **kwargs)
+        self.connect("update-preview", self.file_selection_changed)
+        self.file_type = None
+        self.audio_player = None
+        self.audio_jack = None
+        self.audio_file_segment = None
+
+    def set_preview_audio(self, value):
+        self.preview_audio = value
+
+    def file_selection_changed(self, widget):
+        if self.preview_audio:
+            audio_jack = AudioJack.get_thread()
+            audio_jack.clear_all_audio_queues()
+            if not self.audio_player:
+                self.audio_player = AudioPlayer(10)
+                self.audio_player.start()
+            if self.audio_file_segment:
+                self.audio_player.remove_segment(self.audio_file_segment)
+                self.audio_file_segment = None
+            filename = self.get_filename()
+            self.audio_player.reset_time()
+            if filename:
+                self.audio_file_segment = AudioFileSegment(filename)
+                self.audio_player.add_segment(self.audio_file_segment)
+
+    def destroy(self):
+        if self.audio_player:
+            self.audio_player.should_stop = True
+            if self.audio_player.is_alive():
+                self.audio_player.join()
+            self.audio_player = None
+        super(FileChooserDialog, self).destroy()

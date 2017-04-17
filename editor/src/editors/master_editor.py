@@ -5,6 +5,8 @@ from ..shapes import *
 from ..gui_utils import *
 from ..time_lines import *
 
+from ..audio_tools import AudioJack
+
 from ..document import Document
 from shape_manager import ShapeManager
 from shape_editor import ShapeEditor
@@ -186,6 +188,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         Gtk.main_quit()
         if self.shape_manager:
             self.shape_manager.cleanup()
+        AudioJack.close_thread()
         self.hide_camera_viewer()
 
     def on_quit_camera_view(self):

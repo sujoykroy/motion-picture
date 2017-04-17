@@ -869,7 +869,6 @@ class ShapeManager(object):
     def cleanup(self):
         for shape in self.shapes:
             shape.cleanup()
-        AudioShape.cleanup_threads()
 
     def insert_point_in_shape_at(self, point):
         if not self.selected_shape_supports_point_insert(): return False

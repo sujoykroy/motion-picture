@@ -11,6 +11,7 @@ class AudioFileCache(object):
         self.filename = filename
         self.last_access_at = None
         self.samples = None
+        self.duration = 0.0
 
     def load_samples(self):
         self.last_access_at = time.time()
@@ -45,14 +46,14 @@ class AudioFileCache(object):
             pre_samples = None
         if end_at> self.samples.shape[1]:
             post_samples = numpy.zeros(
-                (self.samples.shape[0], self.samples.shape[1]-end_at), dtype="f")
+                (self.samples.shape[0], end_at-self.samples.shape[1]), dtype="f")
             end_at = self.samples.shape[1]
         else:
             post_samples = None
         samples = self.samples[:, start_at:end_at]
-        if pre_samples:
+        if pre_samples is not None:
             samples = numpy.concatenate((pre_samples, samples), axis=1)
-        if post_samples:
+        if post_samples is not None:
             samples = numpy.concatenate((samples, post_samples), axis=1)
         return samples
 
