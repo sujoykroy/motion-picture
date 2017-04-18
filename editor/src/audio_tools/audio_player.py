@@ -34,6 +34,9 @@ class AudioPlayer(threading.Thread):
                 duration = spread
         self.duration = duration
 
+    def clear_queue(self):
+        AudioJack.get_thread().clear_audio_queue(self.audio_queue)
+
     def reset_time(self):
         self.t = 0
 
@@ -101,3 +104,8 @@ class AudioPlayer(threading.Thread):
         audio_jack = AudioJack.get_thread()
         audio_jack.remove_audio_queue(self.audio_queue)
         self.audio_queue = None
+
+    def close(self):
+        self.should_stop = True
+        if self.is_alive():
+            self.join()

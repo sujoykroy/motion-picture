@@ -8,6 +8,8 @@ from ordered_dict import OrderedDict
 from misc import *
 from draw_utils import *
 import math
+from threshold import Threshold
+from timer_clock import TimerClock
 
 RAD_PER_DEG = math.pi/180.
 

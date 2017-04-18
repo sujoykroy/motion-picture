@@ -1,8 +1,10 @@
 import moviepy.editor as movie_editor
 import numpy
+from audio_segment import AudioSegment
 
-class AudioFileSegment(object):
+class AudioFileSegment(AudioSegment):
     def __init__(self, filename):
+        AudioSegment.__init__(self, start_at=0, duration=0)
         self.filename = filename
         self.start_at = 0
         self.audio_clip = movie_editor.AudioFileClip(self.filename)

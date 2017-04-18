@@ -17,8 +17,6 @@ from ..settings import EditingChoice
 from camera_viewer import CamerViewerBox, CameraViewerDialog
 
 MODE_NEW_SHAPE_CREATE = "MODE_NEW_SHAPE_CREATE"
-SHIFT_KEY_CODES = (65505, 65506)
-CTRL_KEY_CODES = (65507, 65508)
 
 class MasterEditor(Gtk.ApplicationWindow):
     def __init__(self, width=800, height=300, title="MotionPicture"):
@@ -391,16 +389,10 @@ class MasterEditor(Gtk.ApplicationWindow):
         return self.playing
 
     def on_drawing_area_key_press(self, widget, event):
-        if event.keyval in SHIFT_KEY_CODES:
-            self.keyboard_object.shift_key_pressed = True
-        elif event.keyval in CTRL_KEY_CODES:
-            self.keyboard_object.control_key_pressed = True
+        self.keyboard_object.set_keypress(event.keyval, pressed=True)
 
     def on_drawing_area_key_release(self, widget, event):
-        if event.keyval in SHIFT_KEY_CODES:
-            self.keyboard_object.shift_key_pressed = False
-        elif event.keyval in CTRL_KEY_CODES:
-            self.keyboard_object.control_key_pressed = False
+        self.keyboard_object.set_keypress(event.keyval, pressed=False)
 
     def on_drawing_area_mouse_press(self, widget, event):
         self.mouse_init_point.x = self.mouse_point.x

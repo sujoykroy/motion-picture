@@ -20,3 +20,6 @@ from time_slice_prop_box import TimeSlicePropBox
 from menu_builder import MenuBar
 from recent_files_manager import RecentFilesManager
 from file_list_preview import FileListPreview
+
+from array_viewer import ArrayViewer
+from meter_bar import MeterBar

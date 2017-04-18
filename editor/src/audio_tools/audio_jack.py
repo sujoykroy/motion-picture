@@ -1,4 +1,5 @@
-import threading, jack, numpy,Queue, time
+import threading, jack, numpy,Queue, time, tempfile, shutil
+from audio_file_writer  import *
 
 class AudioJack(threading.Thread):
     _running_thread = None
@@ -29,7 +30,7 @@ class AudioJack(threading.Thread):
         self.audio_queues = []
         self.record = False
         self.wave_file = None
-
+        self.record_lock = threading.RLock()
         try:
             jack.attach(jack_name)
             jack.activate()
@@ -60,6 +61,8 @@ class AudioJack(threading.Thread):
         self.blank_data = numpy.zeros((2, self.buffer_size), dtype=numpy.float).astype('f')
         self.empty_data = numpy.zeros((2, self.buffer_size), dtype=numpy.float).astype('f')
 
+        self.record_amplitude = 0
+
     def get_new_audio_queue(self):
         queue = Queue.Queue()
         self.audio_queues.append(queue)
@@ -81,7 +84,30 @@ class AudioJack(threading.Thread):
             self.clear_audio_queue(queue)
 
     def set_record_file(self, filename):
-        self.wave_file = WaveFile(filename, self.sample_rate)
+        self.wave_file = WaveFileWriter(filename=filename, fileob=None, sample_rate=self.sample_rate)
+
+    def save_record_file_as(self, filename):
+        src_obj = self.wave_file.get_fileobject()
+        if not src_obj:
+            return False
+        try:
+            dest_obj = open(filename, "wb")
+        except:
+            return False
+        self.record_lock.acquire()
+        src_obj.seek(0)
+        shutil.copyfileobj(src_obj, dest_obj)
+        dest_obj.close()
+        self.record_lock.release()
+        return True
+
+    def create_temp_record_file(self):
+        self.record_lock.acquire()
+        if self.wave_file:
+            self.wave_file.close()
+        fileob = tempfile.TemporaryFile(mode="w+b")
+        self.wave_file = WaveFileWriter(filename=None, fileob=fileob, sample_rate=self.sample_rate)
+        self.record_lock.release()
 
     def get_buffer_times(self):
         return numpy.arange(self.buffer_size)*1.0/self.sample_rate
@@ -123,7 +149,10 @@ class AudioJack(threading.Thread):
                         input_data = self.empty_data
                     jack.process(output_data, input_data)
                     if self.record and self.wave_file:
+                        self.record_lock.acquire()
                         self.wave_file.write(input_data)
+                        self.record_lock.release()
+                        self.record_amplitude = numpy.amax(input_data)
                     i += self.buffer_size
                 except jack.InputSyncError:
                     pass
@@ -136,7 +165,14 @@ class AudioJack(threading.Thread):
             if delay==0:
                 time.sleep(self.period)
         jack.detach()
+        self.record_lock.acquire()
         if self.wave_file:
             self.wave_file.close()
         self.wave_file = None
+        self.record_lock.release()
         AudioJack._running_thread = None
+
+    def close(self):
+        self.should_stop = True
+        if self.is_alive():
+            self.join()
