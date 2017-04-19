@@ -1,5 +1,7 @@
 import threading, numpy, time
 from audio_jack import AudioJack
+from audio_fft import AudioFFT
+from freq_band import FreqBand
 
 class AudioPlayer(threading.Thread):
     def __init__(self, buffer_mult):
@@ -10,13 +12,17 @@ class AudioPlayer(threading.Thread):
         self.audio_queue = audio_jack.get_new_audio_queue()
         self.audio_segments = []
         self.duration = 0
-        self.t = 0
+        self.t = 0.
+        self.last_t = 0.
         self.buffer_size = audio_jack.buffer_size*buffer_mult
         self.sample_rate = audio_jack.sample_rate
         self.buffer_time = self.buffer_size*1.0/self.sample_rate
 
         self.sample_times = numpy.arange(0, self.buffer_size)*1.0/self.sample_rate
         self.sample_times = self.sample_times[:self.buffer_size]
+        self.freq_bands = []
+        self.audio_fft = None
+        self.store_fft = False
 
     def add_segment(self, segment):
         self.audio_segments.append(segment)
@@ -96,6 +102,28 @@ class AudioPlayer(threading.Thread):
                 max_amp = numpy.amax(final_samples)
                 if max_amp>1.0:
                     final_samples = final_samples/max_amp
+
+                if self.freq_bands:
+                    audio_fft = None
+                    modified = False
+                    for band in self.freq_bands:
+                        if band.mult==1:
+                            continue
+                        if audio_fft is None:
+                            audio_fft = AudioFFT(final_samples, self.sample_rate)
+                        audio_fft.apply_freq_band(band)
+                        modified = True
+
+                    if modified:
+                        final_samples = audio_fft.get_reconstructed_samples()
+                    if self.store_fft:
+                        self.audio_fft = audio_fft
+                    audio_fft = None
+                else:
+                    if self.store_fft:
+                        self.audio_fft = AudioFFT(final_samples, self.sample_rate)
+                        self.last_t = self.t
+
                 try:
                     self.audio_queue.put(final_samples.astype(numpy.float32), block=False)
                 except Queue.Full:

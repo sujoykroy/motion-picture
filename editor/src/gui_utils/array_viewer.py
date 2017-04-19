@@ -2,6 +2,7 @@ import numpy
 import cairo
 from gi.repository import Gdk
 from ..commons import *
+import cairo
 
 class ArrayViewer(object):
     def __init__(self, keyboard):
@@ -66,8 +67,12 @@ class ArrayViewer(object):
         self.threshold_entry = Gtk.Entry()
         self.threshold_entry.set_text("<|Value|")
 
-        self.position_label = Gtk.CheckButton.new_with_label("")
-        self.move_control_box.pack_start(self.position_label, expand=False,  fill=False, padding=0)
+        self.position_checkbutton = Gtk.CheckButton("")
+        self.position_entry = Gtk.Entry()
+        self.position_entry.set_editable(False)
+
+        self.move_control_box.pack_start(self.position_checkbutton, expand=False,  fill=False, padding=0)
+        self.move_control_box.pack_start(self.position_entry, expand=False,  fill=False, padding=0)
         self.move_control_box.pack_end(self.reset_dimension_button, expand=False,  fill=False, padding=0)
         self.move_control_box.pack_end(self.move_forward_button, expand=False,  fill=False, padding=0)
         self.move_control_box.pack_end(self.move_backward_button, expand=False,  fill=False, padding=0)
@@ -86,6 +91,13 @@ class ArrayViewer(object):
         self.mouse_pressed = False
         self.graph_colors = [Color.parse("da2daf"), Color.parse("FF0000")]
         self.reset_dimensions()
+        self.playhead = None
+        self.canvas = None
+        self.selection_width = None
+
+    def set_playhead(self, playhead):
+        self.playhead = playhead
+        self.redraw(clear_cache=False)
 
     def reset_dimensions(self, redraw=False):
         self.x_shift = 0.0
@@ -114,10 +126,12 @@ class ArrayViewer(object):
             if selection[0]>selection[1]:
                 selection[0], selection[1] = selection[1], selection[0]
             return selection
+        else:
+            return self.samples.get_x_min_max()
         return None
 
     def set_samples(self, samples):
-        self.reset_dimensions()
+        #self.reset_dimensions()
         self.samples = samples
         self.update_scrollbars()
         self.redraw()
@@ -134,7 +148,9 @@ class ArrayViewer(object):
     def set_x_shift_incre(self, x_shift):
         self.set_x_shift(self.x_shift+x_shift)
 
-    def redraw(self):
+    def redraw(self, clear_cache=True):
+        #if clear_cache:
+        #    #self.build_canvas()
         self.drawing_area.queue_draw()
 
     def exact_selection_button_clicked(self, widget):
@@ -229,6 +245,15 @@ class ArrayViewer(object):
             draw_fill(ctx, "00FF00")
             ctx.restore()
 
+        if self.playhead is not None:
+            ctx.save()
+            self.pre_draw(-1, ctx)
+            ctx.new_path()
+            ph = self.playhead
+            ctx.move_to(ph, 0.)
+            ctx.line_to(ph, 1.)
+            ctx.restore()
+            draw_stroke(ctx, 2, "000000")
 
         for segment_index in range(y_segment_count):
             ctx.save()
@@ -276,7 +301,7 @@ class ArrayViewer(object):
                     width=50, fit_width=True,
                     text="{0:.3f}".format(x))
 
-            text_height = 50
+            text_height = 80
             segment_height = widget_height*self.y_mult/y_segment_count
             for pixel in range(0, int(segment_height)-text_height, text_height):
                 x = self.x_shift
@@ -336,6 +361,14 @@ class ArrayViewer(object):
             self.y_shift += diff_graph_point.y
             self.update_scrollbars()
             self.redraw()
+        else:
+            if event.direction == Gdk.ScrollDirection.UP:
+                direction = -1.
+            elif event.direction == Gdk.ScrollDirection.DOWN:
+                direction = 1.
+            value = self.drawing_area_vscrollbar.get_value()*(1+.1*direction/self.y_mult)
+            self.drawing_area_vscrollbar.set_value(value)
+            self.redraw()
 
     def on_drawing_area_mouse_press(self, widget, event):
         self.mouse_pressed = True
@@ -361,11 +394,14 @@ class ArrayViewer(object):
     def on_drawing_area_mouse_move(self, widget, event):
         self.mouse_point.copy_from(event)
         if self.mouse_pressed and self.selection:
-            self.selection[1]  = self.screen2graph(self.mouse_point, all_segments=True).x
+            if self.selection_width is not None:
+                self.selection[1] = self.selection[0]+self.selection_width
+            else:
+                self.selection[1]  = self.screen2graph(self.mouse_point, all_segments=True).x
             self.redraw()
-        if self.samples and self.position_label.get_active():
+        if self.samples and self.position_checkbutton.get_active():
             si, graph_point = self.screen2graph(self.mouse_point)
-            self.position_label.set_label("[{0:.2f}, {1:.2f}]".format(graph_point.x, graph_point.y))
+            self.position_entry.set_text("[{0:.2f}, {1:.2f}]".format(graph_point.x, graph_point.y))
 
     def update_scrollbars(self):
         if self.y_mult>1:
@@ -417,6 +453,10 @@ class ArrayViewer(object):
         return segment_index, p
 
     def graph2screen(self, segment_index, point):
+        matrix = self.get_matrix(segment_index)
+        p = Point(*matrix.transform_point(point.x, point.y))
+        return p
+        """
         p = point.copy()
         p.x -= self.x_shift
         p.x *= self.x_mult
@@ -434,6 +474,7 @@ class ArrayViewer(object):
         p.y *= self.y_mult
         p.y *= self.drawing_area.get_allocated_height()
         return p
+        """
 
     def get_matrix(self, segment_index):
         xmin, xmax = self.samples.get_x_min_max()

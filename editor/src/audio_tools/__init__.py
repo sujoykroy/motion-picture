@@ -5,3 +5,4 @@ from audio_player import AudioPlayer
 from audio_file_samples import AudioFileSamples
 from audio_fft import AudioFFT
 from audio_raw_samples import AudioRawSamples
+from freq_band import FreqBand
