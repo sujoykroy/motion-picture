@@ -34,11 +34,11 @@ class Text(object):
         return label
 
     @classmethod
-    def parse_number(cls, text):
+    def parse_number(cls, text, default=0.):
         try:
             value = float(text)
         except ValueError as e:
-            value = None
+            value = default
         return value
 
 

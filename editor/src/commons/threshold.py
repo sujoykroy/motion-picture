@@ -1,5 +1,5 @@
 from ..commons import Text
-import re
+import re, numpy
 
 class Threshold(object):
     def __init__(self, condition_type, threshold_value,
@@ -42,10 +42,10 @@ class Threshold(object):
                 if threshold_type in ("<", ">"):
                     if item[1] == "|" and item[-1] == "|":
                         abs_threshold = True
-                        threshold_value = Text.parse_number(item[2:-1])
+                        threshold_value = Text.parse_number(item[2:-1], default=None)
                     else:
                         abs_threshold = False
-                        threshold_value = Text.parse_number(item[1:])
+                        threshold_value = Text.parse_number(item[1:], default=None)
             if threshold_value is None:
                 continue
             threshold = Threshold(condition_type, threshold_value,
@@ -53,4 +53,59 @@ class Threshold(object):
             thresholds.append(threshold)
         return thresholds
 
+    @classmethod
+    def get_condition(cls, samples, thresholds):
+        final_condition = None
+        for threshold in thresholds:
+            if threshold.threshold_type == ">":
+                if threshold.abs_threshold:
+                    condition = (samples>abs(threshold.threshold_value)) | \
+                                (samples<-abs(threshold.threshold_value))
+                else:
+                    condition = (samples>threshold.threshold_value)
+            elif threshold.threshold_type == "<":
+                if threshold.abs_threshold:
+                    condition = (samples<abs(threshold.threshold_value)) & \
+                                (samples>-abs(threshold.threshold_value))
+                else:
+                    condition = (samples<threshold.threshold_value)
+            if final_condition is None:
+                final_condition = condition
+            else:
+                if threshold.condition_type == "and":
+                    final_condition = final_condition & condition
+                elif threshold.condition_type == "or":
+                    final_condition = final_condition | condition
+            condition = None
+        return final_condition
 
+    @classmethod
+    def check_application(cls, samples, thresholds):
+        maxv = numpy.amax(samples)
+        minv = numpy.amin(samples)
+
+        final_condition = True
+        for threshold in thresholds:
+            if threshold.threshold_type == ">":
+                if threshold.abs_threshold:
+                    condition = (maxv>abs(threshold.threshold_value)) and \
+                                (minv<-abs(threshold.threshold_value))
+                elif threshold.value_type == "max":
+                    condition = (maxv>threshold.threshold_value)
+                else:
+                    condition = (minv>threshold.threshold_value)
+
+            elif threshold.threshold_type == "<":
+                if threshold.abs_threshold:
+                    condition = (maxv<abs(threshold.threshold_value)) and \
+                                (minv>-abs(threshold.threshold_value))
+                elif threshold.value_type == "min":
+                    condition = (minv<threshold.threshold_value)
+                else:
+                    condition = (maxv<threshold.threshold_value)
+
+            if threshold.condition_type == "and":
+                final_condition = final_condition and condition
+            elif threshold.condition_type == "or":
+                final_condition = final_condition or condition
+        return final_condition

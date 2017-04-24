@@ -122,8 +122,7 @@ class AudioPlayer(threading.Thread):
                 else:
                     if self.store_fft:
                         self.audio_fft = AudioFFT(final_samples, self.sample_rate)
-                        self.last_t = self.t
-
+                self.last_t = self.t
                 try:
                     self.audio_queue.put(final_samples.astype(numpy.float32), block=False)
                 except Queue.Full:

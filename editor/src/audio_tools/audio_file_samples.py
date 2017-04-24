@@ -24,7 +24,11 @@ class AudioFileSamples(object):
         self.sample_rate = audioclip.fps
         self.duration = audioclip.duration
         self.channels = audioclip.nchannels
-        self.duration = audioclip.duration
+
+
+    def set_samples(self, samples):
+        self.samples = samples
+        self.duration = samples.shape[1]*1.0/self.sample_rate
 
     def get_x_min_max(self):
         return [0, self.duration]
@@ -44,11 +48,18 @@ class AudioFileSamples(object):
             return None
         return self.samples[segment_index, sample_index]
 
-    def get_samples_in_between(self, start_x=None, end_x=None):
+    def get_samples_in_between(self, start_x=None, end_x=None, padded=False):
         if start_x is not None and end_x is not None:
             st = max(0, int(start_x*self.sample_rate))
             et = min(int(end_x*self.sample_rate), self.samples.shape[1])
             samples = self.samples[:, st:et]
+            if padded:
+                if st>0:
+                    samples = numpy.concatenate(
+                                (numpy.zeros((samples.shape[0], st), dtype="f"), samples), axis=1)
+                if et<self.samples.shape[1]:
+                    samples = numpy.concatenate((samples, numpy.zeros(
+                        (samples.shape[0], self.samples.shape[1]-et), dtype="f")), axis=1)
         else:
             samples = self.samples[:, :]
         return samples

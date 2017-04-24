@@ -110,12 +110,12 @@ class ArrayViewer(object):
     def get_container_box(self):
         return self.drawing_area_container_vbox
 
-    def get_selected_samples(self):
+    def get_selected_samples(self, padded=False):
         if self.selection:
             start_x, end_x = self.selection[:]
             if start_x>end_x:
                 start_x, end_x = end_x, start_x
-            samples = self.samples.get_samples_in_between(start_x, end_x)
+            samples = self.samples.get_samples_in_between(start_x, end_x, padded=padded)
         else:
             samples = self.samples.get_samples_in_between()
         return samples
@@ -154,6 +154,8 @@ class ArrayViewer(object):
         self.drawing_area.queue_draw()
 
     def exact_selection_button_clicked(self, widget):
+        if not self.samples:
+            return
         text = self.exact_selection_entry.get_text()
         xmin, xmax = self.samples.get_x_min_max()
         arr = text.split("-")
@@ -301,7 +303,7 @@ class ArrayViewer(object):
                     width=50, fit_width=True,
                     text="{0:.3f}".format(x))
 
-            text_height = 80
+            text_height = 50
             segment_height = widget_height*self.y_mult/y_segment_count
             for pixel in range(0, int(segment_height)-text_height, text_height):
                 x = self.x_shift
@@ -316,7 +318,7 @@ class ArrayViewer(object):
 
                 point = self.graph2screen(segment_index, Point(x, y))
                 draw_text(ctx, x=0, y=point.y+3,
-                    height=10, fit_height=True,
+                    height=text_height, fit_height=True,
                     width=50, fit_width=True,
                     text="{0:.2f}".format(y))
 

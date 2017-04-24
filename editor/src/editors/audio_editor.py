@@ -4,7 +4,7 @@ from ..commons import *
 from ..gui_utils import ArrayViewer, FileOp, MeterBar
 from moviepy.audio.AudioClip import AudioArrayClip
 from moviepy.editor import AudioFileClip
-import time, os, threading
+import time, os, threading, numpy
 
 class UpdaterThread(threading.Thread):
     def __init__(self, editor):
@@ -19,11 +19,12 @@ class UpdaterThread(threading.Thread):
                 self.editor.set_record_amplitude(audio_jack.record_amplitude)
             audio_player = self.editor.audio_player
             audio_fft = audio_player.audio_fft
-            if audio_fft and False:
-                self.editor.fft_viewer.set_samples(audio_fft)
+            if audio_fft and self.editor.original_audio_raw_segment:
                 t = audio_player.last_t % self.editor.original_audio_raw_segment.get_duration()
+                self.editor.fft_viewer.set_samples(audio_fft)
                 t += self.editor.playing_segment_start_time
-                self.editor.wave_viewer.set_playhead(t)
+                self.editor.play_time_entry.set_text("{0:.02f}".format(t))
+                #self.editor.wave_viewer.set_playhead(t)
             time.sleep(.1)
 
 class FreqBandSlider(Gtk.HBox):
@@ -175,6 +176,9 @@ class AudioEditor(Gtk.Window):
         self.apply_inverse_fft_button = Gtk.Button("Apply Inverse FFT")
         self.apply_inverse_fft_button.connect("clicked", self.apply_inverse_fft_button_clicked)
 
+        self.play_time_entry = Gtk.Entry()
+        self.play_time_entry.set_editable(False)
+
         self.play_control_box.pack_start(
                 self.play_start_original_button, expand=False,  fill=False, padding=0)
         self.play_control_box.pack_start(
@@ -190,6 +194,9 @@ class AudioEditor(Gtk.Window):
 
         self.play_control_box.pack_start(
                 self.apply_inverse_fft_button, expand=False,  fill=False, padding=0)
+        self.play_control_box.pack_start(
+                self.play_time_entry, expand=False,  fill=False, padding=0)
+
 
         self.play_control_box.show_all()
         self.play_stop_original_button.hide()
@@ -233,7 +240,7 @@ class AudioEditor(Gtk.Window):
         self.audio_player.store_fft = True
         AudioJack.get_thread().create_temp_record_file()
         self.audio_player.start()
-        self.wave_viewer.selection_width = self.audio_player.buffer_time
+
 
         """
         self.slider_scrolled_window = Gtk.ScrolledWindow()
@@ -251,9 +258,13 @@ class AudioEditor(Gtk.Window):
 
         self.freq_control_box = Gtk.HBox()
         self.root_box.pack_start(self.freq_control_box, expand=False,  fill=False, padding=0)
-        self.apply_freq_bands_button = Gtk.Button("Apply Freq Bands")
-        self.apply_freq_bands_button.connect("clicked", self.apply_freq_bands_button_clicked)
-        self.freq_control_box.pack_end(self.apply_freq_bands_button, expand=False,  fill=False, padding=0)
+
+        for button_name in ["Player", "FFT", "Wave"]:
+            apply_freq_bands_button = Gtk.Button("Apply Freq Bands in " + button_name)
+            apply_freq_bands_button.connect("clicked", self.apply_freq_bands_button_clicked, button_name)
+            self.freq_control_box.pack_end(apply_freq_bands_button, expand=False,  fill=False, padding=0)
+
+
         self.freq_control_box.show_all()
 
         self.filename = filename
@@ -279,7 +290,7 @@ class AudioEditor(Gtk.Window):
     def set_freq_band_code_text(self, text):
         self.freq_band_editor.get_buffer().set_text(text)
 
-    def apply_freq_bands_button_clicked(self, widget):
+    def apply_freq_bands_button_clicked(self, widget, apply_in):
         tbuffer = self.freq_band_editor.get_buffer()
         text = tbuffer.get_text(tbuffer.get_start_iter(), tbuffer.get_end_iter(), False)
         text = text.strip()
@@ -287,9 +298,32 @@ class AudioEditor(Gtk.Window):
             return
         bands = eval(text)
         if isinstance(bands, list):
-            del self.audio_player.freq_bands[:]
-            self.audio_player.freq_bands.extend(bands)
-            self.audio_player.clear_queue()
+            if apply_in == "Player":
+                del self.audio_player.freq_bands[:]
+                self.audio_player.freq_bands.extend(bands)
+                self.audio_player.clear_queue()
+            elif apply_in == "FFT"and self.fft_samples:
+                self.fft_samples.apply_freq_bands(bands)
+                self.fft_viewer.redraw()
+            elif apply_in == "Wave" and self.audio_samples:
+                buffer_size = self.audio_player.buffer_size
+                orig_samples = self.audio_samples.samples
+                new_samples = None
+                for si in range(0, orig_samples.shape[1], buffer_size):
+                    segment_size = min(buffer_size, orig_samples.shape[1]-si)
+                    segment_samples = orig_samples[:, si:si+segment_size]
+                    fft_analyser = AudioFFT(segment_samples, self.audio_samples.sample_rate)
+                    segment_samples = None
+                    fft_analyser.apply_freq_bands(bands)
+                    constructed_samples = fft_analyser.get_reconstructed_samples()
+                    if new_samples is None:
+                        new_samples = constructed_samples
+                    else:
+                        new_samples = numpy.concatenate((new_samples, constructed_samples), axis=1)
+                    constructed_samples = None
+                    fft_analyser = None
+                self.audio_samples.set_samples(new_samples)
+                self.wave_viewer.redraw()
 
     def load_audio_samples(self, filename):
         if not filename:
@@ -331,13 +365,13 @@ class AudioEditor(Gtk.Window):
             text += "({0:.2f}-{1:.2f})".format(*selection)
         self.fft_label.set_text(text)
         self.fft_samples = AudioFFT(
-            self.wave_viewer.get_selected_samples(), self.audio_samples.sample_rate)
+            self.wave_viewer.get_selected_samples(padded=False),
+            self.audio_samples.sample_rate)
         self.fft_viewer.set_samples(self.fft_samples)
 
     def apply_inverse_fft_button_clicked(self, widget):
         if self.fft_samples is None:
             return
-
         self.audio_samples.replace_samples(
             self.ffted_audio_selection,
             self.fft_samples.get_reconstructed_samples()
@@ -426,6 +460,43 @@ class AudioEditor(Gtk.Window):
 
     def on_drawing_area_key_release(self, widget, event):
         self.keyboard.set_keypress(event.keyval, pressed=False)
+        if event.string == "a":
+            self.wave_viewer.selection_width = self.audio_player.buffer_time
+        elif event.string == "s":
+            self.wave_viewer.selection_width = None
+        elif event.string == "d":
+            full_fft = AudioFFT(self.audio_samples.samples, self.audio_samples.sample_rate)
+            full_fft.fft_values = full_fft.fft_values - self.fft_samples.fft_values
+            self.audio_samples.set_samples(full_fft.get_reconstructed_samples())
+            self.wave_viewer.redraw()
+        elif event.string == "f":
+            buffer_size = self.audio_player.buffer_size
+            buffer_size = self.fft_samples.get_reconstructed_samples().shape[1]
+            orig_samples = self.audio_samples.samples
+            new_samples = None
+            for si in range(0, orig_samples.shape[1], buffer_size):
+                segment_size = min(buffer_size, orig_samples.shape[1]-si)
+                segment_samples = orig_samples[:, si:si+segment_size]
+                if segment_size<buffer_size:
+                    segment_samples  = numpy.concatenate(
+                        (segment_samples,
+                        numpy.zeros((orig_samples.shape[0], buffer_size-segment_size), dtype="f")),
+                        axis=1
+                    )
+                fft_analyser = AudioFFT(segment_samples, self.audio_samples.sample_rate)
+
+                fft_analyser.fft_values = fft_analyser.fft_values - self.fft_samples.fft_values
+                constructed_samples = fft_analyser.get_reconstructed_samples()
+                if new_samples is None:
+                    new_samples = constructed_samples
+                else:
+                    new_samples = numpy.concatenate((new_samples, constructed_samples), axis=1)
+                constructed_samples = None
+                fft_analyser = None
+            new_samples = new_samples[:, :orig_samples.shape[1]]
+            orig_samples = None
+            self.audio_samples.set_samples(new_samples)
+            self.wave_viewer.redraw()
 
     def quit(self, widget, event):
         if self.updater:

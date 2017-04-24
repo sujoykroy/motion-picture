@@ -1,31 +1,11 @@
 import numpy
+from ..commons import Threshold
 
 def sample_segment_mult_replace(samples, start_index, end_index, mult, thresholds):
     new_samples = samples[:, :start_index]
     sliced_samples = samples[:, start_index:end_index+1]
     if thresholds:
-        final_condition = None
-        for threshold in thresholds:
-            if threshold.threshold_type == ">":
-                if threshold.abs_threshold:
-                    condition = (sliced_samples>abs(threshold.threshold_value)) | \
-                                (sliced_samples<-abs(threshold.threshold_value))
-                else:
-                    condition = (sliced_samples>threshold.threshold_value)
-            elif threshold.threshold_type == "<":
-                if threshold.abs_threshold:
-                    condition = (sliced_samples<abs(threshold.threshold_value)) & \
-                                (sliced_samples>-abs(threshold.threshold_value))
-                else:
-                    condition = (sliced_samples<threshold.threshold_value)
-            if final_condition is None:
-                final_condition = condition
-            else:
-                if threshold.condition_type == "and":
-                    final_condition = final_condition & condition
-                elif threshold.condition_type == "or":
-                    final_condition = final_condition | condition
-            condition = None
+        final_condition = Threshold.get_condition(sliced_samples, thresholds)
         desired_samples = numpy.where(final_condition,
                             sliced_samples, numpy.zeros(sliced_samples.shape, dtype="f"))
         desired_samples = desired_samples* mult
