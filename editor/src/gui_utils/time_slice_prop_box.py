@@ -22,6 +22,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.draw_callback = draw_callback
         self.attrib_widgets = dict()
         self.periodic_widgets = dict()
+        self.loop_widgets = dict()
         self.prop_data_widgets = dict()
 
         self.time_slice = None
@@ -54,6 +55,8 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("periodic", "phase", self.NUMBER)
         self.add_editable_item("periodic", "amplitude",self.NUMBER)
 
+        self.add_editable_item("loop", "loop_count",self.NUMBER)
+
         combo = self.attrib_widgets["change_type_class"]
         combo.build_and_set_model([
             ["Linear", TimeChangeType],
@@ -80,9 +83,15 @@ class TimeSlicePropBox(Gtk.Frame):
 
         if widget is None or widget.item_name == "change_type_class":
             if isinstance(self.time_slice.change_type, PeriodicChangeType):
+                self.show_widgets(self.loop_widgets, False)
                 self.show_widgets(self.periodic_widgets, True)
                 self.show_values(self.periodic_widgets, self.time_slice.change_type)
+            elif isinstance(self.time_slice.change_type, LoopChangeType):
+                self.show_widgets(self.loop_widgets, True)
+                self.show_widgets(self.periodic_widgets, False)
+                self.show_values(self.loop_widgets, self.time_slice.change_type)
             else:
+                self.show_widgets(self.loop_widgets, False)
                 self.show_widgets(self.periodic_widgets, False)
         if widget is None:
             self.show_values(self.attrib_widgets, self.time_slice)
@@ -196,6 +205,8 @@ class TimeSlicePropBox(Gtk.Frame):
             widgets_dict = self.attrib_widgets
         elif source_name == "periodic":
             widgets_dict = self.periodic_widgets
+        elif source_name == "loop":
+            widgets_dict = self.loop_widgets
         elif source_name == "prop_data":
             widgets_dict = self.prop_data_widgets
 
@@ -228,6 +239,8 @@ class TimeSlicePropBox(Gtk.Frame):
 
     def set_item_value_for_widget(self, item_widget, value, parse):
         if item_widget.source_name == "periodic":
+            source_object = self.time_slice.change_type
+        if item_widget.source_name == "loop":
             source_object = self.time_slice.change_type
         elif item_widget.source_name == "prop_data":
             source_object = self.time_slice.prop_data

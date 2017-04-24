@@ -141,7 +141,7 @@ class TimeSlice(object):
     def set_change_type_class(self, change_type_class):
         if change_type_class and change_type_class.TYPE_NAME == self.change_type.TYPE_NAME:
             return #don't change if already of this type
-        if change_type_class in (SineChangeType, TriangleChangeType, LoopChangeType):
+        if change_type_class in (SineChangeType, TriangleChangeType):
             if self.has_multiple_prop():
                 amplitude=0
             else:
@@ -149,5 +149,5 @@ class TimeSlice(object):
             self.change_type = change_type_class(
                     amplitude=amplitude, phase=0, period=self.duration)
         else:
-            self.change_type = TimeChangeType()
+            self.change_type = change_type_class()
 

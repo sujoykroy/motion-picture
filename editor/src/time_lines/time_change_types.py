@@ -124,12 +124,28 @@ class TriangleChangeType(PeriodicChangeType):
         frac *= 2
         return self.amplitude*frac
 
-class LoopChangeType(PeriodicChangeType):
+class LoopChangeType(TimeChangeType):
     TYPE_NAME = "loop"
+    LOOP_COUNT_NAME = "count"
 
-    def self_value_at(self, t):
-        frac = t/self.period
-        frac += self.phase/360.
-        frac %= 1
-        return self.amplitude*frac
+    def __init__(self, loop_count=1.0):
+        self.loop_count = loop_count
 
+    def value_at(self, start_value, end_value, t, duration):
+        loop_duration = duration/(1.0*self.loop_count)
+        t %= loop_duration
+        return super(LoopChangeType, self).value_at(start_value, end_value, t, loop_duration)
+
+    def get_xml_element(self):
+        elm = super(LoopChangeType, self).get_xml_element()
+        elm.attrib[self.LOOP_COUNT_NAME] = "{0}".format(self.loop_count)
+        return elm
+
+    def copy(self):
+        return LoopChangeType(self.loop_count)
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        loop_count = float(elm.attrib.get(cls.LOOP_COUNT_NAME, 1.))
+        change_type = cls(loop_count)
+        return change_type

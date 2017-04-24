@@ -8,6 +8,7 @@ from ..time_line_boxes import *
 
 from ..gui_utils import buttons, YesNoDialog
 from ..settings import EditingChoice
+from .. import settings as Settings
 
 EDITOR_LINE_COLOR = "ff0000"
 TIME_SLICE_START_X = PropTimeLineBox.TOTAL_LABEL_WIDTH + SHAPE_LINE_LEFT_PADDING
@@ -224,6 +225,9 @@ class TimeLineEditor(Gtk.VBox):
         self.drawing_area.connect("motion-notify-event", self.on_drawing_area_mouse_move)
         self.drawing_area.connect("scroll-event", self.on_drawing_area_mouse_scroll)
 
+        self.time_line_name_label = Gtk.Label()
+        info_hbox.pack_start(self.time_line_name_label, expand=False, fill=False, padding=5)
+
         self.play_head_time_label = Gtk.Label()
         self.play_head_time_label.set_size_request(100, -1)
         info_hbox.pack_end(self.play_head_time_label, expand=False, fill=False, padding=5)
@@ -272,12 +276,16 @@ class TimeLineEditor(Gtk.VBox):
         self.last_play_updated_at = 0
         self.selected_shape = None
         if multi_shape_time_line == None:
+            self.time_line_name_label.set_text("")
             self.multi_shape_time_line_box = None
             self.time_range.reset()
             self.play_button.hide()
             self.pause_button.hide()
             self.update()
         else:
+            self.time_line_name_label.set_text(self.time_line.name)
+            self.time_line_name_label.set_markup(Text.markup(self.time_line.name,
+                    color=Settings.TOP_INFO_BAR_TEXT_COLOR, weight="bold"))
             self.time_line.get_duration()
             self.multi_shape_time_line_box = MultiShapeTimeLineBox(multi_shape_time_line)
 

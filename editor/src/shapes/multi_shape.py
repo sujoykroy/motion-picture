@@ -281,6 +281,12 @@ class MultiShape(Shape):
         return True
 
     def set_prop_value(self, prop_name, value, prop_data=None):
+        if prop_name.find("tm_") == 0:
+            timeline_name = prop_name[3:]
+            if timeline_name in self.timelines:
+                timeline = self.timelines[timeline_name]
+                timeline.move_to(timeline.duration*value)
+            return
         if prop_name == "internal":
             if prop_data["type"] == "pose":
                 start_pose = prop_data["start_pose"]
@@ -290,11 +296,13 @@ class MultiShape(Shape):
                 else:
                     self.set_pose(start_pose)
             elif prop_data["type"] == "timeline":
-                pose = prop_data["pose"]
+                if "pose" in prop_data:
+                    pose = prop_data["pose"]
+                    self.set_pose(pose)
                 timeline_name = prop_data["timeline"]
-                timeline = self.timelines[timeline_name]
-                self.set_pose(pose)
-                timeline.move_to(timeline.duration*value)
+                if timeline_name in self.timelines:
+                    timeline = self.timelines[timeline_name]
+                    timeline.move_to(timeline.duration*value)
             return
         set_attr_name = "set_" + prop_name
         if hasattr(self, set_attr_name):

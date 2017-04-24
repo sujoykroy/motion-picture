@@ -125,7 +125,8 @@ class TimeSliceBox(Box):
         t_step = 1./(visible_time_span.scale*PIXEL_PER_SECOND)
         draw_started = False
         paths = []
-        if isinstance(change_type, PeriodicChangeType):
+        if isinstance(change_type, PeriodicChangeType) or \
+           isinstance(change_type, LoopChangeType):
             while t<time_end:
                 y = self.time_slice.value_at(t)
                 if self.time_slice.has_multiple_prop():

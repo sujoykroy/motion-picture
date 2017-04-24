@@ -61,6 +61,8 @@ class MultiShapeTimeLine(object):
         for shape_time_line_elm in elm.findall(ShapeTimeLine.TAG_NAME):
             shape_time_line = ShapeTimeLine.create_from_xml_element(shape_time_line_elm, multi_shape)
             if not shape_time_line: continue
+            if shape_time_line.shape == multi_shape:
+                shape_time_line.set_display_name("self")
             multi_shape_time_line.shape_time_lines.add(shape_time_line.shape, shape_time_line)
         for time_marker_elm in elm.findall(TimeMarker.TAG_NAME):
             time_marker = TimeMarker.create_from_xml_element(time_marker_elm)
@@ -90,6 +92,8 @@ class MultiShapeTimeLine(object):
         return prop_count
 
     def add_shape_prop_time_slice(self, shape, prop_name, time_slice):
+        if not self.is_safe_to_add(shape, prop_name, time_slice):
+            return
         if not self.shape_time_lines.key_exists(shape):
             shape_time_line = ShapeTimeLine(shape)
             self.shape_time_lines.add(shape, shape_time_line)
@@ -107,13 +111,23 @@ class MultiShapeTimeLine(object):
         self.get_duration()
 
     def insert_shape_prop_time_slice_at(self, t, shape, prop_name, time_slice):
+        if not self.is_safe_to_add(shape, prop_name, time_slice):
+            return
         if not self.shape_time_lines.key_exists(shape):
             shape_time_line = ShapeTimeLine(shape)
             self.shape_time_lines.add(shape, shape_time_line)
         else:
             shape_time_line = self.shape_time_lines[shape]
+        if shape_time_line.shape == self.multi_shape:
+            shape_time_line.set_display_name("self")
         shape_time_line.insert_prop_time_slice_at(t, prop_name, time_slice)
         self.get_duration()
+
+    def is_safe_to_add(self, shape, prop_name, time_slice):
+        if prop_name.find("tm_") ==0 and shape == self.multi_shape:
+            if prop_name[3:] == self.name:
+                return False
+        return True
 
     def remove_shape(self, shape):
         self.shape_time_lines.remove(shape)
