@@ -52,6 +52,10 @@ m.add(path="Edit/<Layer>/Layer Bottom", icon="layer_bottom", desc="Move shape la
 
 m.add(path="Edit/TimeLine/Delete Slice", icon="delete_time_slice",
       action_name="win.delete_time_slice", desc="Delete Time Slice")
+m.add(path="Edit/TimeLine/Move Prop Line Up", icon="move_prop_line_up",
+      action_name="win.move_prop_time_line", desc="Move Prop Line Up", action_param="-1")
+m.add(path="Edit/TimeLine/Move Prop Line Down", icon="move_prop_line_down",
+      action_name="win.move_prop_time_line", desc="Move Prop Line Down", action_param="1")
 
 m.add(path="Edit/Points/Join", icon="join_points", desc="Join points together",
       action_name="win.join_points_of_shape")
@@ -150,7 +154,7 @@ m.add(path="Edit/Preferences/Panel Layout/Drawing", icon="panel_drawing",
 m.add(path="Edit/Preferences/Panel Layout/Animation", icon="panel_animation",
       desc = "Animation Panel Layout",
       action_name="win.change_panel_layout", action_param="294/679/444", icon_scale=3)
-m.add(path="Windows/Camera Viewer", icon="panel_drawing", desc = "Camera Viewer",
+m.add(path="Windows/Camera Viewer", icon="camera_viewer", desc = "Camera Viewer",
       action_name="win.toggle_camera_viewer", action_state=False)
 
 m.tool_rows = [

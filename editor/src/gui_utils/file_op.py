@@ -86,6 +86,7 @@ class FileChooserDialog(Gtk.FileChooserDialog):
         self.audio_player = None
         self.audio_jack = None
         self.audio_file_segment = None
+        self.preview_audio = False
 
     def set_preview_audio(self, value):
         self.preview_audio = value

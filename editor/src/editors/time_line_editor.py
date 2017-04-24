@@ -434,6 +434,18 @@ class TimeLineEditor(Gtk.VBox):
             self.time_marker_boxes[new_at] = self.time_marker_boxes[old_at]
             del self.time_marker_boxes[old_at]
 
+    def move_prop_line(self, direction):
+        if not self.selected_time_slice_box:
+            return
+        prop_time_line_box = self.selected_time_slice_box.prop_time_line_box
+        prop_name = prop_time_line_box.prop_time_line.prop_name
+
+        shape_time_line_box = prop_time_line_box.parent_box
+        shape_time_line = shape_time_line_box.shape_time_line
+
+        shape_time_line.prop_time_lines.change_index(prop_name, direction)
+        self.update()
+
     def delete_time_marker(self, time_marker):
         if self.time_line.delete_time_marker(time_marker.at):
             del self.time_marker_boxes[time_marker.at]

@@ -466,6 +466,9 @@ class ApplicationWindow(MasterEditor):
         else:
             self.hide_camera_viewer()
 
+    def move_prop_time_line(self, action, parameter):
+        self.time_line_editor.move_prop_line(int(parameter.get_string()))
+
 class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self,
