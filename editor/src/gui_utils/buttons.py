@@ -24,7 +24,7 @@ def create_new_image_widget(icon_name, border_scale=1.):
     if os.path.isfile(filename):
         doc = Document(filename=filename)
         doc.main_multi_shape.scale_border_width(border_scale)
-        pixbuf = doc.get_pixbuf(width=20, height=20)
+        pixbuf = doc.get_pixbuf(width=20, height=20, bg_color=False)
         return Gtk.Image.new_from_pixbuf(pixbuf)
     return None
 

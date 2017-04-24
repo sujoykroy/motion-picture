@@ -72,8 +72,11 @@ class AudioShape(TextShape):
         self.time_pos = time_pos
         if AudioShape.DONT_PLAY:
             return
+        audio_jack = AudioJack.get_thread()
+        if not audio_jack:
+            return
         if self.audio_queue is None:
-            self.audio_queue = AudioJack.get_thread().get_new_audio_queue()
+            self.audio_queue = audio_jack.get_new_audio_queue()
 
         audio_file = AudioFileCache.get_file(self.audio_path)
         start_at = self.time_pos
@@ -97,7 +100,7 @@ class AudioShape(TextShape):
                                  time_slice, time_slice_box, pixel_per_second):
         if prop_name != "time_pos":
             return
-        filename = prop_data["av_filename"]
+        filename = prop_data["av_filename"] if prop_data else None
         if not filename:
             filename = self.audio_path
         wave_file = AudioFileCache.get_file(filename)
@@ -135,5 +138,8 @@ class AudioShape(TextShape):
 
     def cleanup(self):
         TextShape.cleanup(self)
-        AudioJack.get_thread().remove_audio_queue(self.audio_queue)
+        if self.audio_queue:
+            audio_jack = AudioJack.get_thread()
+            if audio_jack:
+                audio_jack.remove_audio_queue(self.audio_queue)
         self.audio_queue = None

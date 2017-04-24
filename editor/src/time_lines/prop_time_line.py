@@ -27,7 +27,8 @@ class PropTimeLine(object):
         prop_time_line = cls(shape, prop_name)
         for time_slice_elm in elm.findall(TimeSlice.TAG_NAME):
             time_slice = TimeSlice.create_from_xml_element(time_slice_elm)
-            prop_time_line.time_slices.add(time_slice, time_slice)
+            if time_slice:
+                prop_time_line.time_slices.add(time_slice, time_slice)
         return prop_time_line
 
     def copy(self, shape):

@@ -1,6 +1,7 @@
 from xml.etree.ElementTree import Element as XmlElement
 from time_change_types import *
 from ..commons import copy_dict, copy_list, Text
+import numpy
 
 class TimeSlice(object):
     TAG_NAME = "time_slice"
@@ -17,7 +18,7 @@ class TimeSlice(object):
             value = value.to_array()
         elif isinstance(value, list):
             value = copy_list(value)
-        elif type(value) not in (int, float):
+        elif type(value) not in (int, float, numpy.float64):
             raise Exception("Unknown type[{0}] of value to copy".format(type(value)))
         return value
 
@@ -77,6 +78,8 @@ class TimeSlice(object):
         end_value = cls.get_prop_value_from_xml_element(elm, cls.END_VALUE_NAME)
 
         duration = float(elm.attrib.get(cls.DURATION_NAME, 1.))
+        if duration==0:
+            return None
         linked_to_next = elm.attrib.get(cls.LINKED_TO_NEXT_NAME, False)
         if linked_to_next == "True":
             linked_to_next = True

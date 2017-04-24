@@ -48,8 +48,8 @@ class MultiShapeTimeLine(object):
         elm.attrib["name"] = self.name
         for shape_time_line in self.shape_time_lines:
             shape_time_elm = shape_time_line.get_xml_element()
-            if shape_time_line.shape == self:
-                del elm.attrib[ShapeTimeLine.SHAPE_NAME]
+            if shape_time_line.shape == self.multi_shape:
+                del shape_time_elm.attrib[ShapeTimeLine.SHAPE_NAME]
             elm.append(shape_time_elm)
         for time_marker in self.time_markers.values():
             elm.append(time_marker.get_xml_element())
@@ -73,7 +73,10 @@ class MultiShapeTimeLine(object):
     def copy(self):
         newob = MultiShapeTimeLine(name=self.name, multi_shape=self.multi_shape)
         for orig_shape in self.shape_time_lines.keys:
-            new_shape = self.multi_shape.shapes[orig_shape.get_name()]
+            if orig_shape == self.multi_shape:
+                new_shape = orig_shape
+            else:
+                new_shape = self.multi_shape.shapes[orig_shape.get_name()]
             newob.shape_time_lines.add(
                 new_shape,
                 self.shape_time_lines[orig_shape].copy(new_shape))
