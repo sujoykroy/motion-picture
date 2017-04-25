@@ -32,9 +32,9 @@ class ShapeList(object):
                 break
 
     def rename(self, old_name, new_name):
+        shape = self.items[old_name]
         if new_name not in self.names:
             self.names[self.names.index(old_name)] = new_name
-            shape = self.items[old_name]
             del self.items[old_name]
             self.items[new_name] = shape
             shape._name = new_name

@@ -404,7 +404,7 @@ class MultiShape(Shape):
             return False
         old_name = shape.get_name()
         if self.shapes.rename(old_name, name):
-            for pose in self.poses:
+            for pose in self.poses.values():
                 if old_name in pose:
                     pose[name] = pose[old_name]
                     del pose[old_name]
