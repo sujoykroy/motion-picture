@@ -81,6 +81,9 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.paned_box_3 = Gtk.HPaned()
         self.paned_box_2.pack2(self.paned_box_3, resize=True, shrink=True)
 
+        self.paned_box_4 = Gtk.VPaned()
+        self.paned_box_3.pack2(self.paned_box_4, resize=True, shrink=True)
+
         self.time_line_editor = TimeLineEditor(self.update_shape_manager,
                                 self.show_time_slice_props, self.keyboard_object, self)
         self.paned_box_1.pack2(self.time_line_editor, resize=True, shrink=True)
@@ -166,7 +169,13 @@ class MasterEditor(Gtk.ApplicationWindow):
         right_prop_box_container = Gtk.ScrolledWindow()
         right_prop_box_container.set_name("rightpropbox")
         right_prop_box_container.add_with_viewport(self.right_prop_box)
-        self.paned_box_3.pack2(right_prop_box_container, resize=True, shrink=True)
+        self.paned_box_4.pack2(right_prop_box_container, resize=True, shrink=True)
+
+        self.multi_shape_tree_container = Gtk.ScrolledWindow()
+        self.multi_shape_tree_view = MultiShapeTreeView(self.select_shape, self.redraw)
+        self.multi_shape_tree_container.add_with_viewport(self.multi_shape_tree_view)
+        self.paned_box_4.pack1(self.multi_shape_tree_container, resize=True, shrink=True)
+        self.multi_shape_tree_container.set_size_request(-1, 50)
 
         self.multi_shape_internal_prop_box = MultiShapeInternalPropBox(
                             self.redraw, self.load_multi_shape_time_line, self.insert_time_slice)
@@ -209,6 +218,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.paned_box_2.set_position(180)
         self.paned_box_3.set_position(75)
         self.paned_box_1.set_position(180)
+        self.paned_box_4.set_position(20)
 
         self.open_document(None)
 
@@ -261,6 +271,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_name_label.set_markup(
             Text.markup(shape_info, color=Settings.TOP_INFO_BAR_TEXT_COLOR, weight="bold")
         )
+        self.multi_shape_tree_view.set_multi_shape(multi_shape)
         self.multi_shape_internal_prop_box.set_multi_shape(multi_shape)
         if multi_shape.timelines:
             timeline_name = sorted(multi_shape.timelines.keys())[0]
@@ -362,6 +373,15 @@ class MasterEditor(Gtk.ApplicationWindow):
         else:
             self.linked_to_hbox.hide()
             self.shape_form_prop_box.set_curve_shape(None)
+
+
+    def select_shape(self, shape, double_clicked=False):
+        if double_clicked and isinstance(shape, MultiShape):
+            self.load_multi_shape(shape)
+        elif not self.shape_manager.select_shape(shape) and double_clicked:
+            self.load_multi_shape(shape.parent_shape)
+            self.shape_manager.select_shape(shape)
+        self.redraw()
 
     def update_drawing_area_scrollbars(self):
         w, h = self.get_drawing_area_size()

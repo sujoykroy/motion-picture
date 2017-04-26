@@ -643,6 +643,14 @@ class ShapeManager(object):
                     self.selected_guide = HorizontalGuide(doc_point.y, self.document_area_box)
                     self.guides.append(self.selected_guide)
 
+
+    def select_shape(self, shape):
+        if shape.parent_shape == self.multi_shape:
+            self.delete_shape_editor()
+            self.shape_editor = ShapeEditor(shape)
+            return True
+        return False
+
     def move_active_item(self, mouse_start_point, mouse_end_point):
         doc_start_point = self.get_doc_point(mouse_start_point)
         doc_end_point = self.get_doc_point(mouse_end_point)

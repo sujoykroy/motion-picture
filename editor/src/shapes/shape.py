@@ -25,6 +25,7 @@ class Shape(object):
         self.translation = Point(0,0)
         self.angle = 0
         self.pre_matrix = None
+        self.visible = True
 
         self.id_num = Shape.ID_SEED
         Shape.ID_SEED += 1
@@ -145,6 +146,8 @@ class Shape(object):
         elm.attrib["type"] = self.TYPE_NAME
         elm.attrib["name"] = self._name
         elm.attrib["moveable"] = ("1" if self.moveable else "0")
+        if not self.visible:
+            elm.attrib["visible"] = "0"
         elm.attrib["anchor_at"] = self.anchor_at.to_text()
         elm.attrib["border_color"] = self.border_color.to_text()
         elm.attrib["border_width"] = "{0}".format(self.border_width)
@@ -185,6 +188,7 @@ class Shape(object):
 
     def assign_params_from_xml_element(self, elm, all_fields=False):
         self.moveable = bool(int(elm.attrib.get("moveable", 1)))
+        self.visible = bool(int(elm.attrib.get("visible", 1)))
         self.scale_x = float(elm.attrib.get("scale_x", 1))
         self.scale_y = float(elm.attrib.get("scale_y", 1))
 
@@ -569,17 +573,17 @@ class Shape(object):
         if self.fill_color is None: return
         draw_fill(ctx, self.fill_color)
 
-    def draw(self, ctx, fixed_border=True):
+    def draw(self, ctx, fixed_border=True, root_shape=None):
         if self.fill_color is not None:
             ctx.save()
-            self.pre_draw(ctx)
+            self.pre_draw(ctx, root_shape=root_shape)
             self.draw_path(ctx, for_fill=True)
             self.draw_fill(ctx)
             ctx.restore()
 
         if self.border_color is not None:
             ctx.save()
-            self.pre_draw(ctx)
+            self.pre_draw(ctx, root_shape=root_shape)
             self.draw_path(ctx, for_fill=False)
             if fixed_border:
                 ctx.restore()
@@ -684,7 +688,7 @@ class Shape(object):
         ctx.scale(scale, scale)
         ctx.translate(-self.translation.x, -self.translation.y)
         set_default_line_style(ctx)
-        self.draw(ctx, Point(self.width, self.height))
+        self.draw(ctx, Point(self.width, self.height), root_shape=self)
         return ctx.get_target()
 
     def get_pixbuf(self, width, height):

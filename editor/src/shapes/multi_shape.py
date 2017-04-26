@@ -446,6 +446,8 @@ class MultiShape(Shape):
                 return
 
         for shape in self.shapes:
+            if not shape.visible:
+                continue
             if isinstance(shape, CameraShape) and \
                 (no_camera or (exclude_camera_list and shape in exclude_camera_list)):
                 continue
