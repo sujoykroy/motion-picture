@@ -28,13 +28,6 @@ class CurveSmoothPropBox(object):
         self.spin_button.show()
         self.apply_button.show()
 
-    def add_into_grid(self, grid, start_row):
-        r = start_row
-        grid.attach(self.heading, left=0, top=r, width=3, height=1)
-        grid.attach(self.spin_button, left=0, top=r+1, width=3, height=1)
-        grid.attach(self.apply_button, left=0, top=r+2, width=1, height=1)
-        return r+3
-
     def set_curve_shape(self, curve_shape):
         self.curve_shape = curve_shape
 

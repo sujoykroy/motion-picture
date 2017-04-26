@@ -25,3 +25,4 @@ from array_viewer import ArrayViewer
 from meter_bar import MeterBar
 
 from multi_shape_tree_view import MultiShapeTreeView
+from prop_grid import PropGrid

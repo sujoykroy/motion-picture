@@ -40,20 +40,6 @@ class ShapePropBox(object):
                 else:
                     widget.hide()
 
-    def add_into_grid(self, grid, start_row):
-        r = start_row
-        for widget_row in self.widget_rows:
-            c = 0
-            for widget in widget_row:
-                if len(widget_row) == 2 and c == 1:
-                    width=4
-                else:
-                    width = 1
-                grid.attach(widget, left=c, top=r, width=width, height=1)
-                c += 1
-            r += 1
-        return r
-
     def has_prop(self, prop_name):
         return self.prop_object.has_prop(prop_name)
 

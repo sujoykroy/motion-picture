@@ -41,14 +41,6 @@ class ShapeFormPropBox(object):
         self.forms_combo_box.show()
         self.form_button_box.show()
 
-    def add_into_grid(self, grid, start_row):
-        r = start_row
-        grid.attach(self.form_label, left=0, top=r, width=3, height=1)
-        grid.attach(self.forms_combo_box, left=0, top=r+1, width=3, height=1)
-        grid.attach(self.form_button_box, left=0, top=r+2, width=3, height=1)
-        r += 3
-        return r
-
     def set_curve_shape(self, curve_shape):
         if self.curve_shape == curve_shape: return
         self.curve_shape = curve_shape

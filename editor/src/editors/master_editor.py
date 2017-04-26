@@ -106,7 +106,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
 
-        prop_grid = Gtk.Grid()
+        prop_grid = PropGrid()
         prop_grid.set_margin_left(10)
         prop_grid.set_margin_right(10)
 
@@ -116,19 +116,19 @@ class MasterEditor(Gtk.ApplicationWindow):
                 Document.create_image("linked_to"),
                 expand=False, fill=False, padding=0)
         self.linked_to_hbox.pack_start(self.linked_to_label, expand=False, fill=False, padding=10)
-        prop_grid.attach(self.linked_to_hbox, left=0, top=0, width=3, height=1)
-        row_count = 1
-        row_count = self.common_shape_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.rectangle_shape_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.oval_shape_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.ring_shape_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.multi_shape_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.text_shape_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.shape_form_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.curve_smooth_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.audio_video_shape_prop_box.add_into_grid(prop_grid, row_count)
-        row_count = self.camera_shape_prop_box.add_into_grid(prop_grid, row_count)
-
+        prop_grid.add(self.linked_to_hbox)
+        prop_grid.add_all(
+            self.common_shape_prop_box,
+            self.rectangle_shape_prop_box,
+            self.oval_shape_prop_box,
+            self.ring_shape_prop_box,
+            self.multi_shape_prop_box,
+            self.text_shape_prop_box,
+            self.shape_form_prop_box,
+            self.curve_smooth_prop_box,
+            self.audio_video_shape_prop_box,
+            self.camera_shape_prop_box
+        )
         self.left_prop_box.pack_start(prop_grid, expand=False, fill=False, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
 
