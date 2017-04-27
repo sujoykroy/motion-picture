@@ -17,8 +17,12 @@ class ImageComboBox(Gtk.ComboBox):
         store = Gtk.ListStore(Pixbuf, str)
         if values:
             for value in values:
-                store.append([value.get_pixbuf(), value.get_name()])
-                self.values_dict[value.get_id()] = value
+                if isinstance(value, list):
+                    store.append([value[0], value[1]])
+                    self.values_dict[value[1]] = value[1]
+                else:
+                    store.append([value.get_pixbuf(), value.get_name()])
+                    self.values_dict[value.get_id()] = value
         self.set_model(store)
         self.set_id_column(1)
 
@@ -29,6 +33,9 @@ class ImageComboBox(Gtk.ComboBox):
     def get_value(self, default=None):
         active_id = self.get_active_id()
         if active_id is not None:
-            return self.values_dict[active_id].get_id()
+            value_ob = self.values_dict[active_id]
+            if hasattr(value_ob, "get_id"):
+                return value_ob.get_id()
+            return value_ob
         return default
 

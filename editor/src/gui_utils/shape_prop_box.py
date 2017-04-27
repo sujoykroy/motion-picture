@@ -17,6 +17,8 @@ PROP_TYPE_FONT = 8
 PROP_TYPE_IMAGE_LIST = 9
 
 class ShapePropBox(object):
+    IdSeed = 0
+
     def __init__(self, parent_window, draw_callback, shape_name_checker, insert_time_slice_callback):
         self.parent_window = parent_window
         self.prop_boxes = dict()
@@ -25,6 +27,11 @@ class ShapePropBox(object):
         self.shape_name_checker = shape_name_checker
         self.insert_time_slice_callback = insert_time_slice_callback
         self.widget_rows = []
+        self.id_num = ShapePropBox.IdSeed
+        ShapePropBox.IdSeed += 1
+
+    def __eq__(self, other):
+        return isinstance(other, ShapePropBox) and self.id_num == other.id_num
 
     def hide(self):
         self.show_widgets(False)

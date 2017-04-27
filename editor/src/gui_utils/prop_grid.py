@@ -2,13 +2,23 @@ from gi.repository import Gtk
 from shape_prop_box import ShapePropBox
 from  shape_form_prop_box import ShapeFormPropBox
 from curve_smooth_prop_box import CurveSmoothPropBox
+from misc_prop_boxes import CustomPropsBox
 
 class PropGrid(Gtk.Grid):
     def __init__(self):
         Gtk.Grid.__init__(self)
         self.row_count = 0
+        self.added_items = []
+        self.added_sub_items = []
+        self.newly_children = []
+
+    def attach(self, child, left, top, width, height):
+        super(PropGrid, self).attach(child, left, top, width, height)
+        self.newly_children.append(child)
 
     def add(self, item):
+        del self.newly_children[:]
+
         if isinstance(item, ShapePropBox):
             prop_box = item
             r = self.row_count
@@ -20,6 +30,7 @@ class PropGrid(Gtk.Grid):
                     else:
                         width = 1
                     self.attach(widget, left=c, top=r, width=width, height=1)
+                    widget.show_all()
                     c += 1
                 r += 1
             self.row_count = r
@@ -41,7 +52,19 @@ class PropGrid(Gtk.Grid):
             self.attach(item, left=0, top=self.row_count, width=3, height=1)
             self.row_count += 1
 
+        self.added_items.append(item)
+        self.added_sub_items.append(self.newly_children[:])
+        del self.newly_children[:]
+
     def add_all(self, *items):
         for item in items:
             self.add(item)
+
+    def remove_item(self, item):
+        if item in self.added_items:
+            index = self.added_items.index(item)
+            for sub_item in self.added_sub_items[index]:
+                self.remove(sub_item)
+            del self.added_items[index]
+            del self.added_sub_items[index]
 

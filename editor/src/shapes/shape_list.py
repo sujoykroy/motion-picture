@@ -80,3 +80,6 @@ class ShapeList(object):
         self.names[index], self.names[index+index_offset] = \
                     self.names[index+index_offset], self.names[index]
         return True
+
+    def key_exists(self, key):
+        return key in self.names

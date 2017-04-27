@@ -10,6 +10,7 @@ from misc_prop_boxes import MultiShapePropBox
 from misc_prop_boxes import TextShapePropBox
 from misc_prop_boxes import AudioVideoShapePropBox
 from misc_prop_boxes import CameraShapePropBox
+from misc_prop_boxes import CustomPropsBox
 
 from curve_smooth_prop_box import CurveSmoothPropBox
 
@@ -26,3 +27,4 @@ from meter_bar import MeterBar
 
 from multi_shape_tree_view import MultiShapeTreeView
 from prop_grid import PropGrid
+from image_combo_box import ImageComboBox

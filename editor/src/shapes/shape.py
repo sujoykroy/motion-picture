@@ -691,7 +691,9 @@ class Shape(object):
         self.draw(ctx, Point(self.width, self.height), root_shape=self)
         return ctx.get_target()
 
-    def get_pixbuf(self, width, height):
+    def get_pixbuf(self, width, height=None):
+        if height is None:
+            height = width
         surface= self.get_surface(width, height)
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
         return pixbuf

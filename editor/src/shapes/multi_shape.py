@@ -13,7 +13,7 @@ from text_shape import TextShape
 from camera_shape import CameraShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
-
+from custom_props import *
 
 class MultiShapePoseRenderer(object):
     def __init__(self, multi_shape, pose_name):
@@ -48,6 +48,7 @@ class MultiShape(Shape):
         self.poses = dict()
         self.timelines = dict()
         self.masked = False
+        self.custom_props = None
 
     def copy_data_from_linked(self):
         if not self.linked_to: return
@@ -177,6 +178,8 @@ class MultiShape(Shape):
             for key, timeline in self.timelines.items():
                 newob.timelines[key] = timeline.copy()
         newob.masked = self.masked
+        if self.custom_props:
+            newob.custom_props = self.custom_props.copy()
         return newob
 
     def save_pose(self, pose_name):
@@ -280,6 +283,47 @@ class MultiShape(Shape):
         del self.timelines[old_timeline_name]
         return True
 
+    def add_custom_prop(self, prop_name, prop_type):
+        if hasattr(self, prop_name):
+            return False
+        if hasattr(self, "get_" + prop_name):
+            return False
+        if hasattr(self, "set_" + prop_name):
+            return False
+        if prop_name.find("tm_") == 0:
+            return False
+        if prop_name == "internal":
+            return False
+        if self.custom_props is None:
+            self.custom_props = CustomProps()
+        self.custom_props.add_prop(prop_name, prop_type)
+        return True
+
+    def remove_custom_prop(self, prop_name):
+        if self.custom_props is None:
+            return
+        self.custom_props.remove_prop(prop_name)
+
+    def get_custom_prop(self, prop_name):
+        if not self.custom_props:
+            return None
+        return self.custom_props.get_prop(prop_name)
+
+    def has_prop(self, prop_name):
+        if not super(MultiShape, self).has_prop(prop_name):
+            return self.custom_props and self.custom_props.get_prop(prop_name) is not None
+        return True
+
+    def get_prop_value(self, prop_name):
+        get_attr_name = "get_" + prop_name
+        if hasattr(self, get_attr_name):
+            return getattr(self, get_attr_name)()
+        elif hasattr(self, prop_name):
+            return getattr(self, prop_name)
+        elif self.custom_props:
+            return self.custom_props.get_prop_value(prop_name)
+        return None
+
     def set_prop_value(self, prop_name, value, prop_data=None):
         if prop_name.find("tm_") == 0:
             timeline_name = prop_name[3:]
@@ -309,6 +353,8 @@ class MultiShape(Shape):
             getattr(self, set_attr_name)(value)
         elif hasattr(self, prop_name):
             setattr(self, prop_name, value)
+        elif self.custom_props:
+            self.custom_props.set_prop_value(prop_name, value)
 
     def add_shape(self, shape, transform=True, resize=True):
         if self.shapes.contain(shape): return

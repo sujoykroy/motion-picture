@@ -11,6 +11,7 @@ from ..document import Document
 from shape_manager import ShapeManager
 from shape_editor import ShapeEditor
 from time_line_editor import TimeLineEditor
+from custom_prop_editor import CustomPropEditor
 
 from .. import settings as Settings
 from ..settings import EditingChoice
@@ -105,10 +106,16 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
+        self.custom_props_box = None
 
-        prop_grid = PropGrid()
-        prop_grid.set_margin_left(10)
-        prop_grid.set_margin_right(10)
+        self.prop_grid = PropGrid()
+        self.prop_grid.set_margin_left(10)
+        self.prop_grid.set_margin_right(10)
+
+
+        self.new_custom_prop_button = Gtk.Button("Add Custom Prop")
+        self.new_custom_prop_button.connect("clicked", self.new_custom_prop_button_clicked)
+        self.prop_grid.add(self.new_custom_prop_button)
 
         self.linked_to_label = Gtk.Label()
         self.linked_to_hbox = Gtk.HBox()
@@ -116,8 +123,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                 Document.create_image("linked_to"),
                 expand=False, fill=False, padding=0)
         self.linked_to_hbox.pack_start(self.linked_to_label, expand=False, fill=False, padding=10)
-        prop_grid.add(self.linked_to_hbox)
-        prop_grid.add_all(
+        self.prop_grid.add(self.linked_to_hbox)
+        self.prop_grid.add_all(
             self.common_shape_prop_box,
             self.rectangle_shape_prop_box,
             self.oval_shape_prop_box,
@@ -129,7 +136,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.audio_video_shape_prop_box,
             self.camera_shape_prop_box
         )
-        self.left_prop_box.pack_start(prop_grid, expand=False, fill=False, padding=0)
+        self.left_prop_box.pack_start(self.prop_grid, expand=False, fill=False, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
 
         self.drawing_area = Gtk.DrawingArea()
@@ -318,6 +325,29 @@ class MasterEditor(Gtk.ApplicationWindow):
     def set_shape_name(self, shape, name):
         return self.shape_manager.rename_shape(shape, name)
 
+    def new_custom_prop_button_clicked(self, widget):
+        prop_editor = CustomPropEditor(parent=self, shape=self.shape_manager.multi_shape)
+        prop_editor.run()
+        prop_editor.destroy()
+        if self.custom_props_box:
+            self.prop_grid.remove_item(self.custom_props_box)
+            self.custom_props_box = None
+        self.show_prop_of(None)
+
+    def edit_custom_prop(self, prop_name):
+        multi_shape = self.shape_manager.multi_shape
+        custom_prop = multi_shape.get_custom_prop(prop_name)
+        if not custom_prop:
+            return
+        prop_editor = CustomPropEditor(parent=self, shape=multi_shape)
+        prop_editor.set_custom_prop(custom_prop)
+        prop_editor.run()
+        prop_editor.destroy()
+        if self.custom_props_box:
+            self.prop_grid.remove_item(self.custom_props_box)
+            self.custom_props_box = None
+        self.show_prop_of(None)
+
     def show_prop_of(self, shape):
         self.common_shape_prop_box.hide()
         self.rectangle_shape_prop_box.hide()
@@ -329,8 +359,13 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.text_shape_prop_box.hide()
         self.audio_video_shape_prop_box.hide()
         self.camera_shape_prop_box.hide()
+        self.new_custom_prop_button.hide()
 
         if shape != None:
+            if self.custom_props_box:
+                self.prop_grid.remove_item(self.custom_props_box)
+                self.custom_props_box = None
+
             if shape.linked_to:
                 self.linked_to_label.set_text(".".join(get_hierarchy_names(shape.linked_to)))
                 self.linked_to_hbox.show()
@@ -373,7 +408,18 @@ class MasterEditor(Gtk.ApplicationWindow):
         else:
             self.linked_to_hbox.hide()
             self.shape_form_prop_box.set_curve_shape(None)
+            self.new_custom_prop_button.show()
 
+            if not self.custom_props_box and self.shape_manager:
+                multi_shape = self.shape_manager.multi_shape
+                if multi_shape.custom_props:
+                    self.custom_props_box = CustomPropsBox(
+                            self, self.redraw,
+                            self.insert_time_slice,
+                            self.edit_custom_prop,
+                            shape=multi_shape)
+                    self.prop_grid.add(self.custom_props_box)
+                    #self.custom_props_box.set_prop_object(multi_shape)
 
     def select_shape(self, shape, double_clicked=False):
         if double_clicked and isinstance(shape, MultiShape):

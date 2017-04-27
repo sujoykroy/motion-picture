@@ -148,3 +148,40 @@ class AudioVideoShapePropBox(RectangleShapePropBox):
         else:
             duration = None
         self.orig_insert_time_slice_callback(shape, prop_name, start_value, end_value, prop_data, duration)
+
+class CustomPropsBox(ShapePropBox):
+    def __init__(self, parent_window, draw_callback,
+                       insert_time_slice_callback, edit_callback, shape):
+        ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
+        self.edit_callback = edit_callback
+        if not shape.custom_props:
+            return
+        for custom_prop in shape.custom_props.props:
+            prop_name = custom_prop.prop_name
+            prop_type_name = custom_prop.get_prop_type_name()
+            if prop_type_name == "number":
+                self.add_prop(
+                    prop_name, PROP_TYPE_NUMBER_ENTRY,
+                    dict(value=0, lower=-1000., upper=1000.,
+                        step_increment=.1, page_increment=.1, page_size=.1))
+            elif prop_type_name == "point":
+                self.add_prop(prop_name, PROP_TYPE_POINT, None)
+            elif prop_type_name == "text":
+                self.add_prop(prop_name, PROP_TYPE_TEXT, None, can_insert_slice=False)
+            elif prop_type_name == "font":
+                self.add_prop(prop_name, PROP_TYPE_FONT, None, can_insert_slice=False)
+            elif prop_type_name == "color":
+                self.add_prop(prop_name, PROP_TYPE_COLOR, None, can_insert_slice=False)
+
+        self.set_prop_object(shape)
+
+    def add_prop(self, prop_name, value_type, values, can_insert_slice = True):
+        prop_widget = super(CustomPropsBox, self).add_prop(
+                prop_name, value_type, values, can_insert_slice)
+        edit_button = Gtk.Button("E")
+        edit_button.connect("clicked", self.edit_button_clicked, prop_name)
+        widgets = self.widget_rows[-1]
+        widgets.append(edit_button)
+
+    def edit_button_clicked(self, widget, prop_name):
+        self.edit_callback(prop_name)

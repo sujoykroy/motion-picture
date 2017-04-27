@@ -44,6 +44,7 @@ class ColorButton(Gtk.HBox):
 
         self.color_types_combobox =  NameValueComboBox()
         self.color_types_combobox.build_and_set_model(["Flat", "Linear", "Radial"])
+        self.color_types_combobox.set_value("Flat")
         self.color_types_combobox.connect("changed", self.color_types_combobox_changed)
 
         self.pack_start(self.color_types_combobox, expand=False, fill=False, padding = 0)
