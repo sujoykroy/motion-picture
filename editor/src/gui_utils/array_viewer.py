@@ -283,7 +283,7 @@ class ArrayViewer(object):
                 else:
                     ctx.line_to(x, y)
             ctx.restore()
-            draw_stroke(ctx, 1, self.graph_colors[segment_index])
+            draw_stroke(ctx, 5, self.graph_colors[segment_index])
 
             text_width = 100
             for pixel in range(text_width, widget_width, text_width):

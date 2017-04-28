@@ -9,7 +9,8 @@ class AudioPlayer(threading.Thread):
         self.should_stop = False
         self.period = .1
         audio_jack = AudioJack.get_thread()
-        self.audio_queue = audio_jack.get_new_audio_queue()
+        if audio_jack:
+            self.audio_queue = audio_jack.get_new_audio_queue()
         self.audio_segments = []
         self.duration = 0
         self.t = 0.
