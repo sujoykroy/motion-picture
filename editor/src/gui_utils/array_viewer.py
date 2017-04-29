@@ -78,9 +78,11 @@ class ArrayViewer(object):
         self.move_control_box.pack_end(self.move_backward_button, expand=False,  fill=False, padding=0)
         self.move_control_box.pack_end(self.yvalue_apply_button, expand=False,  fill=False, padding=5)
         self.move_control_box.pack_end(self.threshold_entry, expand=False,  fill=False, padding=0)
-        self.move_control_box.pack_end(Gtk.Label("Threhsold"), expand=False,  fill=False, padding=5)
+        self.threshold_label = Gtk.Label("Threhsold")
+        self.move_control_box.pack_end(self.threshold_label, expand=False,  fill=False, padding=5)
         self.move_control_box.pack_end(self.yvalue_adjust_button, expand=False,  fill=False, padding=0)
-        self.move_control_box.pack_end(Gtk.Label("Multiply"), expand=False,  fill=False, padding=5)
+        self.multiply_label = Gtk.Label("Multiply")
+        self.move_control_box.pack_end(self.multiply_label, expand=False,  fill=False, padding=5)
 
         self.move_control_box.pack_end(self.exact_selection_button, expand=False,  fill=False, padding=5)
         self.move_control_box.pack_end(self.exact_selection_entry, expand=False,  fill=False, padding=0)
