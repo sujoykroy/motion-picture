@@ -4,11 +4,15 @@ from MotionPicture.commons import *
 from MotionPicture.audio_tools import *
 import numpy, scipy, os, parser
 from scipy import interpolate
-
+from moviepy.audio.AudioClip import AudioArrayClip
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import dump as XmlDump
 from xml.etree.ElementTree import ElementTree as XmlTree
 from xml.etree.ElementTree import Element as XmlElement
+
+
+import numpy as np
+
 
 class PianoKey(object):
     KEYS = OrderedDict()
@@ -64,12 +68,12 @@ class Document(object):
         self.build_interpolators()
 
     def new_polygon(self, name=None):
-        i = 1
+        i = 2
         if not name:
             name = "p"
         orig_name = name
         while name in self.polygons:
-            name = orig_name + "_{0:03d}".format(i)
+            name = orig_name + "{0}".format(i)
             i += 2
         polygon = Polygon(points=[Point(0,0), Point(1,0)])
         self.polygons[name] = polygon
@@ -368,9 +372,19 @@ class SoundCurveViewer(ArrayViewer):
         if self.selection:
             if self.selection[0] == self.selection[1]:
                 self.selection = None
+        self.rebuild_formulas()
+
+    def rebuild_formulas(self):
         if self.polygons:
             self.samples.build_formulas_from_polygons(self.polygons)
         self.redraw()
+
+    def delete_selected_point(self):
+        if self.selected_point:
+            pi, point = self.selected_point
+            self.polygons[pi].remove_point(point)
+            self.selected_point = None
+            self.rebuild_formulas()
 
     def on_drawing_area_mouse_move(self, widget, event):
         self.mouse_point.copy_from(event)
@@ -474,8 +488,13 @@ class SoundGeneratorEditor(Gtk.Window):
         self.polygon_names_combo_box.set_value(polygon_name)
 
     def on_mix_viewer_play_started(self):
-        self.samples_viewer.set_samples(self.mix_viewer.curve_audio_raw_segment)
+        audio_segment = self.mix_viewer.curve_audio_raw_segment
+        self.samples_viewer.set_samples(audio_segment)
         self.samples_viewer.redraw()
+
+        if False:
+            clip = AudioArrayClip(audio_segment.samples.T, fps=audio_segment.sample_rate)
+            clip.write_audiofile("/home/sujoy/Temporary/mix_viewer.wav")
 
     def on_drawing_area_key_press(self, widget, event):
         self.keyboard.set_keypress(event.keyval, pressed=True)
@@ -484,6 +503,8 @@ class SoundGeneratorEditor(Gtk.Window):
         self.keyboard.set_keypress(event.keyval, pressed=False)
         if event.string == "s":
             self.doc.save()
+        if event.string == "x":
+            self.curve_viewer.delete_selected_point()
 
     def quit(self, widget, event):
         if self.audio_player:

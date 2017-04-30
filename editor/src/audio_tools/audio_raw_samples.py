@@ -9,7 +9,7 @@ class AudioRawSamples(AudioSegment):
 
     def get_samples_in_between(self, start_time, end_time):
         st = int(start_time*self.sample_rate)
-        et = min(end_time*self.sample_rate, self.samples.shape[1])
+        et = min((end_time*self.sample_rate)+1, self.samples.shape[1])
         return self.samples[:, st:et]
 
     def get_x_min_max(self):

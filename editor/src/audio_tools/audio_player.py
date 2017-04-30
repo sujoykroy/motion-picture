@@ -1,4 +1,4 @@
-import threading, numpy, time
+import threading, numpy, time, Queue
 from audio_jack import AudioJack
 from audio_fft import AudioFFT
 from freq_band import FreqBand
@@ -12,6 +12,7 @@ class AudioPlayer(threading.Thread):
         if audio_jack:
             self.audio_queue = audio_jack.get_new_audio_queue()
         self.audio_segments = []
+        self.segment_lock = threading.RLock()
         self.duration = 0
         self.t = 0.
         self.last_t = 0.
@@ -26,12 +27,16 @@ class AudioPlayer(threading.Thread):
         self.store_fft = False
 
     def add_segment(self, segment):
+        self.segment_lock.acquire()
         self.audio_segments.append(segment)
         self.compute_duration()
+        self.segment_lock.release()
 
     def remove_segment(self, segment):
+        self.segment_lock.acquire()
         self.audio_segments.remove(segment)
         self.compute_duration()
+        self.segment_lock.release()
 
     def compute_duration(self):
         duration = 0
@@ -51,7 +56,7 @@ class AudioPlayer(threading.Thread):
         while not self.should_stop:
             full_buffer_size = self.buffer_size
             final_samples = None
-
+            st = time.time()
             while (final_samples is None or \
                    final_samples.shape[1]<full_buffer_size) \
                                             and self.audio_segments:
@@ -59,7 +64,15 @@ class AudioPlayer(threading.Thread):
                 buffer_time = min(self.buffer_time, self.duration-self.t)
                 buffer_size = int(buffer_time*self.sample_rate)
 
-                for audio_segment in self.audio_segments:
+                for s in range(len(self.audio_segments)):
+                    self.segment_lock.acquire()
+                    if s<len(self.audio_segments):
+                        audio_segment = self.audio_segments[s]
+                    else:
+                        audio_segment = None
+                    self.segment_lock.release()
+                    if audio_segment is None:
+                        continue
                     start_at = audio_segment.get_start_at()
                     duration = audio_segment.get_duration()
                     if self.t+buffer_time<start_at or self.t>start_at+duration:
@@ -85,20 +98,23 @@ class AudioPlayer(threading.Thread):
                         post_blank = numpy.zeros((channels, post_blank_sample_count), dtype=numpy.float32)
                         post_blank = post_blank.reshape(channels, -1).astype(numpy.float64)
                         samples = numpy.concatenate((samples, post_blank), axis=1)
-
                     samples = samples[:, :buffer_size]
                     if joined_samples is None:
                         joined_samples = samples
                     else:
                         joined_samples += samples
+                    #time.sleep(.01)
                 if final_samples is None:
                     final_samples = joined_samples
                 else:
-                    final_samples = numpy.concatenate((final_samples, joined_samples), axis=1)
+                    try:
+                        final_samples = numpy.concatenate((final_samples, joined_samples), axis=1)
+                    except ValueError as e:
+                        print e
 
                 self.t += buffer_time
-                if self.t>=self.duration:
-                    self.t = 0
+                while self.t>=self.duration:
+                    self.t -= self.duration
             if final_samples is not None and final_samples.shape[1]>1:
                 max_amp = numpy.amax(final_samples)
                 if max_amp>1.0:
@@ -128,7 +144,7 @@ class AudioPlayer(threading.Thread):
                     self.audio_queue.put(final_samples.astype(numpy.float32), block=False)
                 except Queue.Full:
                     pass
-            time.sleep(self.period)
+            time.sleep(max(.01, self.period-(time.time()-st)))
         audio_jack = AudioJack.get_thread()
         audio_jack.remove_audio_queue(self.audio_queue)
         self.audio_queue = None

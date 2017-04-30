@@ -28,9 +28,13 @@ class AudioJack(threading.Thread):
         self.started = False
         self.period = .01
         self.audio_queues = []
+        self.queue_lock = threading.RLock()
         self.record = False
         self.wave_file = None
         self.record_lock = threading.RLock()
+        self.play_lock = threading.RLock()
+        self.should_stop_playing_now = False
+
         try:
             jack.attach(jack_name)
             jack.activate()
@@ -63,21 +67,34 @@ class AudioJack(threading.Thread):
 
         self.record_amplitude = 0
 
+    def stop_playing_now(self):
+        self.play_lock.acquire()
+        self.should_stop_playing_now = True
+        self.play_lock.release()
+
     def get_new_audio_queue(self):
-        queue = Queue.Queue()
+        self.queue_lock.acquire()
+        queue = Queue.Queue(50)
         self.audio_queues.append(queue)
+        self.queue_lock.release()
         return queue
 
     def remove_audio_queue(self, queue):
+        self.queue_lock.acquire()
         if queue in self.audio_queues:
             self.audio_queues.remove(queue)
+        self.queue_lock.release()
+        self.stop_playing_now()
 
     def clear_audio_queue(self, queue):
+        self.queue_lock.acquire()
         try:
             while(queue.get(block=False) is not None):
-                pass
+                queue.task_done()
         except Queue.Empty as e:
             pass
+        self.queue_lock.release()
+        self.stop_playing_now()
 
     def clear_all_audio_queues(self):
         for queue in self.audio_queues:
@@ -113,13 +130,17 @@ class AudioJack(threading.Thread):
         return numpy.arange(self.buffer_size)*1.0/self.sample_rate
 
     def run(self):
+        leftover = None
         while not self.should_stop:
             output = None
             for audio_queue in self.audio_queues:
+                self.queue_lock.acquire()
                 try:
                     queue_output = audio_queue.get(block=False)
+                    audio_queue.task_done()
                 except Queue.Empty as e:
                     queue_output = None
+                self.queue_lock.release()
                 if queue_output is None:
                     continue
                 if output is None:
@@ -137,9 +158,21 @@ class AudioJack(threading.Thread):
 
             if output is None:
                 output = self.blank_data
+            if leftover is not None:
+                output = numpy.concatenate((leftover, output), axis=1)
             i = 0
             delay = 0
+            should_exit = False
             while i<=output.shape[1]-self.buffer_size:
+                self.play_lock.acquire()
+                if self.should_stop_playing_now:
+                    should_exit = True
+                    self.should_stop_playing_now = False
+                else:
+                    should_exit = False
+                self.play_lock.release()
+                if should_exit:
+                    break
                 st = time.time()
                 try:
                     output_data = output[:, i:i+self.buffer_size]
@@ -159,9 +192,16 @@ class AudioJack(threading.Thread):
                 except jack.OutputSyncError:
                     pass
                 delay = self.period-(time.time()-st)
-                if delay<=0:
+                if True or delay<=0.01:
                     delay = self.period
                 time.sleep(delay)
+            if not should_exit:
+                if output.shape[1]-i>0:
+                    leftover = output[:, i:]
+                else:
+                    leftover = None
+            else:
+                leftover = None
             if delay==0:
                 time.sleep(self.period)
         jack.detach()
