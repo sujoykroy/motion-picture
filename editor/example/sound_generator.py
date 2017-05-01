@@ -2,6 +2,8 @@ from gi.repository import Gtk, Gdk
 from MotionPicture.gui_utils import *
 from MotionPicture.commons import *
 from MotionPicture.audio_tools import *
+from MotionPicture.shapes import *
+
 import numpy, scipy, os, parser
 from scipy import interpolate
 from moviepy.audio.AudioClip import AudioArrayClip
@@ -12,7 +14,175 @@ from xml.etree.ElementTree import Element as XmlElement
 
 
 import numpy as np
+BASE_FREQUENCY = 440.
 
+class PianoKeyBoardKey(TextShape):
+    def __init__(self, board_key_name, piano_key_name, piano_key_scale):
+        border_color = "000000"
+        fill_color = "FFFFFF"
+        super(PianoKeyBoardKey, self).__init__(
+            anchor_at=Point(0, 0), border_color=border_color,
+            border_width=2, fill_color=fill_color, width=10, height=20, corner_radius=0)
+        self.board_key_name = board_key_name
+        self.piano_key_name = piano_key_name
+        self.piano_key = PianoKey.get_key("{0}{1}".format(piano_key_name, piano_key_scale))
+        text = self.board_key_name  + "\n" + self.piano_key.name
+        self.set_text(text)
+        self.px = 0.
+        self.py = 0.
+        self.font = " 8"
+
+    def set_pressed(self, pressed):
+        self.pressed= pressed
+        if pressed:
+            fill_color = "cccccc"
+        else:
+            fill_color = "ffffff"
+        self.fill_color = fill_color
+
+class PianoKeyboard(Gtk.DrawingArea):
+    BOARD_KEY_NAMES = ["z s x d c v g b h n j m , l. ; /".split(),
+                  "q 2 w 3 e r 5 t 6 y 7 u i 9 o 0 p [ = ] \\".split()
+                 ]
+
+    BOARD_KEYS = dict()
+
+    def __init__(self, on_piano_board_key_press):
+        super(PianoKeyboard, self).__init__()
+        self.set_events(
+            Gdk.EventMask.POINTER_MOTION_MASK|Gdk.EventMask.BUTTON_PRESS_MASK|\
+            Gdk.EventMask.BUTTON_RELEASE_MASK|Gdk.EventMask.SCROLL_MASK)
+        self.connect("draw", self.on_draw)
+        self.connect("button-press-event", self.on_mouse_press)
+        self.connect("button-release-event", self.on_mouse_release)
+        self.piano_board_keys = []
+        self.on_piano_board_key_press = on_piano_board_key_press
+        self.normal_key_count = 0
+        self.normal_key_counts = []
+        for s in range(len(self.BOARD_KEY_NAMES)):
+            board_key_names=self.BOARD_KEY_NAMES[s]
+
+            normal_key_count = 0
+            for k in range(len(board_key_names)):
+                piano_key_name = PianoKey.KEY_SINGLE_NAMES[k%12]
+                if piano_key_name[-1] == "#":
+                    continue
+                normal_key_count +=1
+            self.normal_key_counts.append(normal_key_count)
+            if normal_key_count>self.normal_key_count:
+                self.normal_key_count = normal_key_count
+        self.normal_key_count += 1
+        piano_scale_start = 2
+        self.piano_container_box = Shape(
+            anchor_at=Point(0, 0), border_color=None, border_width=0, fill_color=None,
+            width=500., height=100.)
+
+        self.piano_key_width = self.piano_container_box.width/self.normal_key_count
+        self.piano_key_height = self.piano_container_box.height*.5/len(self.BOARD_KEY_NAMES)
+
+        for s in range(len(self.BOARD_KEY_NAMES)):
+            board_key_names=self.BOARD_KEY_NAMES[s]
+            x = (self.normal_key_count-self.normal_key_counts[s])*.5*self.piano_key_width
+            offset_y = ((len(self.BOARD_KEY_NAMES)-s)*2-1)*self.piano_key_height
+            for k in range(len(board_key_names)):
+                mod_k = k%12
+                board_key_name = self.BOARD_KEY_NAMES[s][k]
+                piano_key_scale = piano_scale_start + s + int(math.floor(k/12.))
+                piano_key_name = PianoKey.KEY_SINGLE_NAMES[mod_k]
+                piano_board_key = PianoKeyBoardKey(
+                    board_key_name, piano_key_name, piano_key_scale)
+                PianoKeyboard.BOARD_KEYS[board_key_name] = piano_board_key
+                piano_board_key.width = self.piano_key_width
+                piano_board_key.height = self.piano_key_height
+                px = x
+                py = offset_y
+                self.piano_board_keys.append(piano_board_key)
+                if piano_key_name[-1] == "#":
+                    px  -= self.piano_key_width*.5
+                    py -= self.piano_key_height
+                    x -= self.piano_key_width
+                x += self.piano_key_width
+                piano_board_key.px = px
+                piano_board_key.py = py
+                piano_board_key.move_to(px, py)
+                piano_board_key.parent_shape = self.piano_container_box
+
+        self.mouse_point = Point(0, 0)
+        self.pressed_piano_board_key = None
+
+    def on_mouse_press(self, widget, event):
+        self.mouse_point.copy_from(event)
+        if self.pressed_piano_board_key:
+            self.pressed_piano_board_key.set_pressed(False)
+            self.pressed_piano_board_key = None
+        point = self.piano_container_box.transform_point(self.mouse_point)
+        for piano_board_key in self.piano_board_keys:
+            if piano_board_key.is_within(point):
+                self.pressed_piano_board_key = piano_board_key
+                piano_board_key.set_pressed(True)
+                self.on_piano_board_key_press(piano_board_key.piano_key)
+                break
+        self.queue_draw()
+
+    def press_piano_board_key(self, board_key):
+        ret = False
+        if self.pressed_piano_board_key:
+            self.pressed_piano_board_key.set_pressed(False)
+            self.pressed_piano_board_key = None
+        if board_key in PianoKeyboard.BOARD_KEYS:
+            self.pressed_piano_board_key = piano_board_key = PianoKeyboard.BOARD_KEYS[board_key]
+            piano_board_key.set_pressed(True)
+            self.on_piano_board_key_press(piano_board_key.piano_key)
+            ret = True
+        self.queue_draw()
+        return ret
+
+    def release_piano_board_key(self, board_key):
+        ret = False
+        if self.pressed_piano_board_key:
+            self.pressed_piano_board_key.set_pressed(False)
+            self.pressed_piano_board_key = None
+            ret = True
+        self.queue_draw()
+        return ret
+
+    def on_mouse_release(self, widget, event):
+        if self.pressed_piano_board_key:
+            self.pressed_piano_board_key.set_pressed(False)
+        self.pressed_piano_board_key = None
+        self.queue_draw()
+
+    def on_draw(self, widget, ctx):
+        ww = widget.get_allocated_width()
+        wh = widget.get_allocated_height()
+
+        cbxw = self.piano_container_box.width
+        cbxh = self.piano_container_box.height
+        scale_x = ww/cbxw
+        scale_y = wh/cbxh
+        #scale_x = scale_y = scale = min(scale_x, scale_y)
+
+        self.piano_container_box.scale_x = scale_x
+        self.piano_container_box.scale_y = scale_y
+        self.piano_container_box.move_to((ww-cbxw*scale_x)*.5, (wh-cbxh*scale_y)*.5)
+
+        for piano_board_key in self.piano_board_keys:
+            ctx.save()
+            piano_board_key.pre_draw(ctx)
+            piano_board_key.draw_path(ctx)
+            ctx.restore()
+            piano_board_key.draw_fill(ctx)
+
+            ctx.save()
+            piano_board_key.pre_draw(ctx)
+            piano_board_key.draw_text(ctx)
+            ctx.restore()
+
+            ctx.save()
+            piano_board_key.pre_draw(ctx)
+            piano_board_key.draw_path(ctx)
+            ctx.restore()
+            piano_board_key.draw_border(ctx)
 
 class PianoKey(object):
     KEYS = OrderedDict()
@@ -35,19 +205,21 @@ class PianoKey(object):
             return "A0"
         if index == 1:
             return "B0"
-        key_index = index%12
+        if index == 2:
+            return "B#0"
+        key_index = (index-3)%12
         scale = ((index-key_index)/12) +1
         return "{0}{1}".format(cls.KEY_SINGLE_NAMES[key_index], scale)
 
     @classmethod
     def get_key_frequency(cls, index):
-        return 2**((index-49)/12.)*440
+        return 2**((index+1-49)/12.)*440
 
     @classmethod
     def build_keys(cls):
         PianoKey.KEYS.clear()
         for i in range(88):
-            key = cls(i+1)
+            key = cls(i)
             PianoKey.KEYS.add(key.name, key)
 
 PianoKey.build_keys()
@@ -146,19 +318,22 @@ class DocFormula(object):
         self.doc_inpt = InterpolatorContainer(doc)
         self.formula = formula
 
-    def get_value_at(self, t):
-        return self.formula(self.doc_inpt, t)
+    def get_value_at(self, t, base_t):
+        return self.formula(self.doc_inpt, t, base_t)
 
 class Interpolator(object):
     def __init__(self, xs, ys):
         self.formula = interpolate.PchipInterpolator(numpy.array(xs), numpy.array(ys))
 
-    def get_value_at(self, t):
+    def get_value_at(self, t, base_t):
         t %= 1
-        return self.formula(t)
+        base_t %= 1
+        return self.formula(base_t)
 
-    def __call__(self, t):
-        return self.get_value_at(t)
+    def __call__(self, t, base_t=None):
+        if base_t is None:
+            base_t = t
+        return self.get_value_at(t, base_t)
 
 def get_interpolator_for_polygon(polygon):
     xs = []
@@ -174,8 +349,10 @@ class CurveSamples(object):
         self.xmax =  1.
         self.ymin = -1.
         self.ymax = 1.
-
+        self.sample_rate = 44100
         self.formulas = None
+        self.set_duration(0)
+        self.set_cycles(1)
 
     def get_x_min_max(self):
         return [self.xmin, self.xmax]
@@ -191,26 +368,51 @@ class CurveSamples(object):
             return 1
         return len(self.formulas)
 
+    def set_cycles(self, cycles):
+        self.cycles = int(cycles)
+
+    def set_duration(self, duration):
+        self.duration = duration
+        self.period_sample_count = self.sample_rate*self.duration
+        if self.period_sample_count != 0:
+            self.step_duration = 1.0/self.period_sample_count
+            self.step_values = numpy.arange(0, 1, self.step_duration)
+        else:
+            self.step_values = numpy.array([1.])
+
     def get_sample_at_x(self, segment_index, x):
         if not self.formulas:
             return None
+        if self.duration>0:
+            base_x = x*self.duration*BASE_FREQUENCY
+            base_x %= 1
+        else:
+            base_x = x
         formula = self.formulas[segment_index]
-        return formula.get_value_at(x)
+        return formula.get_value_at(x, base_x)
 
-    def get_audio_samples(self, sample_rate, time_period, cycles):
+    def get_audio_samples(self, frequency):
         if len(self.formulas)==0:
             return None
 
-        period_sample_count = sample_rate*time_period
-        step_duration = 1.0/period_sample_count
-        step_values = numpy.arange(0, 1, step_duration)
+        base_period = 1.0/frequency
+        base_period_sample_count = self.sample_rate*base_period
+        base_step_duration = 1.0/base_period_sample_count
+        base_step_values = numpy.arange(0, 1, base_step_duration)
+
+        if self.duration>0:
+            base_step_values = numpy.tile(base_step_values, int(math.ceil(self.duration*frequency)))
+            step_values = self.step_values
+            base_step_values = base_step_values[:step_values.shape[0]]
+        else:
+            step_values = base_step_values
 
         total_samples = None
         for si in range(len(self.formulas)):
             formula = self.formulas[si]
-            samples = formula.get_value_at(step_values)
+            samples = formula.get_value_at(self.step_values, base_step_values)
 
-            for i in range(cycles):
+            for i in range(self.cycles):
                 samples = numpy.concatenate((samples, samples[:len(step_values)]))
 
             if total_samples is None:
@@ -262,8 +464,10 @@ class SoundCurveViewer(ArrayViewer):
         self.piano_key_combo_box.set_value("C4")
         self.segment_cycle_entry = Gtk.Entry()
         self.segment_cycle_entry.set_text("10")
+        self.segment_cycle_entry.connect("changed", self.segment_cycle_entry_changed)
         self.segment_duration_entry = Gtk.Entry()
         self.segment_duration_entry.set_text("0")
+        self.segment_duration_entry.connect("changed", self.segment_duration_entry_changed)
 
         self.move_control_box.pack_start(
                 self.piano_key_combo_box, expand=False,  fill=False, padding=0)
@@ -283,8 +487,17 @@ class SoundCurveViewer(ArrayViewer):
         self.curve_audio_raw_segment = None
         self.sample_stroke_width = 5
 
+    def segment_cycle_entry_changed(self, widget):
+        self.samples.set_cycles(Text.parse_number(widget.get_text()))
+
+    def segment_duration_entry_changed(self, widget):
+        self.samples.set_duration(Text.parse_number(widget.get_text()))
+        self.redraw()
+
     def set_samples(self, samples):
         super(SoundCurveViewer, self).set_samples(samples)
+        self.segment_cycle_entry.set_text("{0}".format(samples.cycles))
+        self.segment_duration_entry.set_text("{0}".format(samples.duration))
 
     def set_polygons(self, *polygons):
         del self.polygons[:]
@@ -299,13 +512,8 @@ class SoundCurveViewer(ArrayViewer):
         if mode == "start":
             if self.polygons:
                 self.samples.build_formulas_from_polygons(self.polygons)
-            cycles = int(Text.parse_number(self.segment_cycle_entry.get_text()))
-            period = Text.parse_number(self.segment_duration_entry.get_text())
             piano_key = PianoKey.get_key(name=self.piano_key_combo_box.get_value())
-            if period <=0:
-                period = 1./piano_key.frequency
-            samples = self.samples.get_audio_samples(
-                self.audio_player.sample_rate, period, cycles)
+            samples = self.samples.get_audio_samples(piano_key.frequency)
             if samples is None:
                 return
             self.curve_audio_raw_segment = AudioRawSamples(samples, self.audio_player.sample_rate)
@@ -401,7 +609,7 @@ class SoundCurveViewer(ArrayViewer):
             super(SoundCurveViewer, self).on_drawing_area_mouse_move(widget, event)
 
 class SoundGeneratorEditor(Gtk.Window):
-    def __init__(self, filename=None, quit_callback=None, width=200, height=200):
+    def __init__(self, filename=None, quit_callback=None, width=100, height=200):
         Gtk.Window.__init__(self)
         self.doc = Document(filename)
         self.quit_callback = quit_callback
@@ -459,14 +667,35 @@ class SoundGeneratorEditor(Gtk.Window):
         self.root_box.pack_start(
             self.samples_viewer.get_container_box(), expand=True,  fill=True, padding=0)
 
+        self.piano_keyboard_hbox = Gtk.HBox()
+        self.root_box.pack_start(
+            self.piano_keyboard_hbox, expand=False, fill=False, padding=0)
+
+        self.piano_keyboard = PianoKeyboard(self.on_piano_board_key_press)
+        self.piano_keyboard_hbox.pack_start(
+            self.piano_keyboard, expand=False,  fill=False, padding=0)
+        self.piano_keyboard.set_size_request(500, 100)
+
         self.curve_audio_raw_segment = None
         self.show_all()
 
         self.audio_player = AudioPlayer(10)
         self.audio_player.start()
 
+        self.live_audio_player = AudioPlayer(5)
+        self.live_audio_player.set_loop(False)
+        self.live_audio_player.start()
+
         self.curve_viewer.audio_player = self.audio_player
         self.mix_viewer.audio_player = self.audio_player
+        self.piano_mode = False
+
+    def on_piano_board_key_press(self, piano_key):
+        samples = self.mix_viewer.samples.get_audio_samples(piano_key.frequency)
+        audio_raw_segment = AudioRawSamples(samples, self.live_audio_player.sample_rate)
+        audio_raw_segment.set_loop(False)
+        self.live_audio_player.clear_queue()
+        self.live_audio_player.add_segment(audio_raw_segment, current_time_at=False)
 
     def load_formula_button_clicked(self, widget):
         formula_filename = os.path.join(os.path.dirname(__file__), "formula_sample.py")
@@ -498,25 +727,40 @@ class SoundGeneratorEditor(Gtk.Window):
 
     def on_drawing_area_key_press(self, widget, event):
         self.keyboard.set_keypress(event.keyval, pressed=True)
+        if self.piano_mode and not self.keyboard.is_control_shift_pressed():
+            if self.piano_keyboard.press_piano_board_key(event.string):
+                return True
 
     def on_drawing_area_key_release(self, widget, event):
         self.keyboard.set_keypress(event.keyval, pressed=False)
-        if event.string == "s":
-            self.doc.save()
-        if event.string == "x":
-            self.curve_viewer.delete_selected_point()
+        if self.keyboard.control_key_pressed:
+            if event.string == "s":
+                self.doc.save()
+            if event.string == "x":
+                self.curve_viewer.delete_selected_point()
+            if event.string == "p":
+                self.piano_mode = not self.piano_mode
+
+        if  self.piano_mode and not self.keyboard.is_control_shift_pressed():
+            if self.piano_keyboard.release_piano_board_key(event.string):
+                return True
 
     def quit(self, widget, event):
         if self.audio_player:
             self.audio_player.close()
             self.audio_player = None
+        if self.live_audio_player:
+            self.live_audio_player.close()
+            self.live_audio_player = None
         if self.quit_callback:
             self.quit_callback()
 
 
 def on_quit():
     Gtk.main_quit()
-    AudioJack.get_thread().close()
+    audio_jack = AudioJack.get_thread()
+    if audio_jack:
+        audio_jack.close()
 
 sound_gn_editor = SoundGeneratorEditor(quit_callback=on_quit,
         filename="/home/sujoy/Temporary/sd.xml")

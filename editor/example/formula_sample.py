@@ -1,4 +1,4 @@
 [
-    lambda d, t:
-        d.p(d.p(d.p(t)*1.2)*50)
+    lambda d, t, bt:
+        d.p(3*t)*d.p2(t+d.p2(d.p4(bt)))
 ]

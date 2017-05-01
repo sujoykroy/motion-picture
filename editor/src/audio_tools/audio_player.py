@@ -11,13 +11,16 @@ class AudioPlayer(threading.Thread):
         audio_jack = AudioJack.get_thread()
         if audio_jack:
             self.audio_queue = audio_jack.get_new_audio_queue()
+            self.buffer_size = audio_jack.buffer_size*buffer_mult
+            self.sample_rate = audio_jack.sample_rate
+        else:
+            self.buffer_size = 10
+            self.sample_rate = 44100.
         self.audio_segments = []
         self.segment_lock = threading.RLock()
         self.duration = 0
         self.t = 0.
         self.last_t = 0.
-        self.buffer_size = audio_jack.buffer_size*buffer_mult
-        self.sample_rate = audio_jack.sample_rate
         self.buffer_time = self.buffer_size*1.0/self.sample_rate
 
         self.sample_times = numpy.arange(0, self.buffer_size)*1.0/self.sample_rate
@@ -25,9 +28,15 @@ class AudioPlayer(threading.Thread):
         self.freq_bands = []
         self.audio_fft = None
         self.store_fft = False
+        self.loop = True
 
-    def add_segment(self, segment):
+    def set_loop(self, bool_value):
+        self.loop = bool_value
+
+    def add_segment(self, segment, current_time_at=False):
         self.segment_lock.acquire()
+        if current_time_at:
+            segment.start_at = self.duration
         self.audio_segments.append(segment)
         self.compute_duration()
         self.segment_lock.release()
@@ -57,7 +66,8 @@ class AudioPlayer(threading.Thread):
             full_buffer_size = self.buffer_size
             final_samples = None
             st = time.time()
-            while (final_samples is None or \
+            while not self.should_stop and \
+                 (final_samples is None or \
                    final_samples.shape[1]<full_buffer_size) \
                                             and self.audio_segments:
                 joined_samples = None
@@ -113,7 +123,7 @@ class AudioPlayer(threading.Thread):
                         print e
 
                 self.t += buffer_time
-                while self.t>=self.duration:
+                while self.loop and self.t>=self.duration:
                     self.t -= self.duration
             if final_samples is not None and final_samples.shape[1]>1:
                 max_amp = numpy.amax(final_samples)
@@ -144,9 +154,23 @@ class AudioPlayer(threading.Thread):
                     self.audio_queue.put(final_samples.astype(numpy.float32), block=False)
                 except Queue.Full:
                     pass
+
+            if not self.loop:
+                s = 0
+                self.segment_lock.acquire()
+                while s<len(self.audio_segments):
+                    audio_segment = self.audio_segments[s]
+                    if self.t>audio_segment.start_at+audio_segment.duration:
+                        self.audio_segments.remove(audio_segment)
+                        self.compute_duration()
+                        s -= 1
+                    s += 1
+                self.segment_lock.release()
+
             time.sleep(max(.01, self.period-(time.time()-st)))
         audio_jack = AudioJack.get_thread()
-        audio_jack.remove_audio_queue(self.audio_queue)
+        if audio_jack:
+            audio_jack.remove_audio_queue(self.audio_queue)
         self.audio_queue = None
 
     def close(self):

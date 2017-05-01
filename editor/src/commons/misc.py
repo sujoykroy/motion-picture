@@ -15,6 +15,9 @@ class Keyboard(object):
         elif keyval in self.CTRL_KEY_CODES:
             self.control_key_pressed = pressed
 
+    def is_control_shift_pressed(self):
+        return self.shift_key_pressed or self.control_key_pressed
+
 class Text(object):
     @staticmethod
     def markup(text, **params):
