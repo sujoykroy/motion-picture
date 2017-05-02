@@ -74,7 +74,7 @@ class AudioJack(threading.Thread):
 
     def get_new_audio_queue(self):
         self.queue_lock.acquire()
-        queue = Queue.Queue(50)
+        queue = Queue.Queue()
         self.audio_queues.append(queue)
         self.queue_lock.release()
         return queue
@@ -196,7 +196,7 @@ class AudioJack(threading.Thread):
                     delay = self.period
                 time.sleep(delay)
             if not should_exit:
-                if output.shape[1]-i>0:
+                if i<output.shape[1]:
                     leftover = output[:, i:]
                 else:
                     leftover = None

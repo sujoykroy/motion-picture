@@ -30,7 +30,7 @@ class PianoKeyBoardKey(TextShape):
         self.set_text(text)
         self.px = 0.
         self.py = 0.
-        self.font = " 8"
+        self.font = "8"
 
     def set_pressed(self, pressed):
         self.pressed= pressed
@@ -695,7 +695,7 @@ class SoundGeneratorEditor(Gtk.Window):
         audio_raw_segment = AudioRawSamples(samples, self.live_audio_player.sample_rate)
         audio_raw_segment.set_loop(False)
         self.live_audio_player.clear_queue()
-        self.live_audio_player.add_segment(audio_raw_segment, current_time_at=False)
+        self.live_audio_player.add_segment(audio_raw_segment, current_time_at=True)
 
     def load_formula_button_clicked(self, widget):
         formula_filename = os.path.join(os.path.dirname(__file__), "formula_sample.py")
@@ -732,18 +732,19 @@ class SoundGeneratorEditor(Gtk.Window):
                 return True
 
     def on_drawing_area_key_release(self, widget, event):
-        self.keyboard.set_keypress(event.keyval, pressed=False)
+        ret = False
         if self.keyboard.control_key_pressed:
             if event.string == "s":
                 self.doc.save()
             if event.string == "x":
                 self.curve_viewer.delete_selected_point()
-            if event.string == "p":
+            if event.keyval == Gdk.KEY_p:
                 self.piano_mode = not self.piano_mode
-
         if  self.piano_mode and not self.keyboard.is_control_shift_pressed():
             if self.piano_keyboard.release_piano_board_key(event.string):
-                return True
+                ret = True
+        self.keyboard.set_keypress(event.keyval, pressed=False)
+        return ret
 
     def quit(self, widget, event):
         if self.audio_player:

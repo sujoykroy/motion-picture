@@ -36,7 +36,7 @@ class AudioPlayer(threading.Thread):
     def add_segment(self, segment, current_time_at=False):
         self.segment_lock.acquire()
         if current_time_at:
-            segment.start_at = self.duration
+            segment.start_at = self.t
         self.audio_segments.append(segment)
         self.compute_duration()
         self.segment_lock.release()
