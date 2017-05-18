@@ -102,6 +102,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.curve_smooth_prop_box = CurveSmoothPropBox(
                             self.recreate_shape_editor, self.get_shape_manager)
         self.audio_video_shape_prop_box = AudioVideoShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.threed_shape_prop_box = ThreeDShapePropBox(self, self.redraw, self.insert_time_slice)
         self.camera_shape_prop_box = CameraShapePropBox(self, self.redraw, self.insert_time_slice)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
@@ -134,6 +135,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.shape_form_prop_box,
             self.curve_smooth_prop_box,
             self.audio_video_shape_prop_box,
+            self.threed_shape_prop_box,
             self.camera_shape_prop_box
         )
         self.left_prop_box.pack_start(self.prop_grid, expand=False, fill=False, padding=0)
@@ -359,6 +361,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.text_shape_prop_box.hide()
         self.audio_video_shape_prop_box.hide()
         self.camera_shape_prop_box.hide()
+        self.threed_shape_prop_box.hide()
         self.new_custom_prop_button.hide()
 
         if shape != None:
@@ -385,6 +388,10 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, CameraShape):
                 self.camera_shape_prop_box.show()
                 self.camera_shape_prop_box.set_prop_object(shape)
+
+            if isinstance(shape, ThreeDShape):
+                self.threed_shape_prop_box.show()
+                self.threed_shape_prop_box.set_prop_object(shape)
 
             if isinstance(shape, RectangleShape):
                 self.rectangle_shape_prop_box.show()

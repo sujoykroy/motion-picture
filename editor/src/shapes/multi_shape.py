@@ -11,6 +11,7 @@ from video_shape import VideoShape
 from audio_shape import AudioShape
 from text_shape import TextShape
 from camera_shape import CameraShape
+from threed_shape import ThreeDShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 from custom_props import *
@@ -509,7 +510,8 @@ class MultiShape(Shape):
                 if isinstance(shape, ImageShape) or \
                    isinstance(shape, VideoShape) or \
                    isinstance(shape, AudioShape) or \
-                   isinstance(shape, CameraShape):
+                   isinstance(shape, CameraShape) or \
+                   isinstance(shape, ThreeDShape):
                     ctx.save()
                     shape.pre_draw(ctx, root_shape=root_shape)
                     shape.draw_path(ctx)

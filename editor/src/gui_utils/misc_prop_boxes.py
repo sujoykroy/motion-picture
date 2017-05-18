@@ -149,6 +149,29 @@ class AudioVideoShapePropBox(RectangleShapePropBox):
             duration = None
         self.orig_insert_time_slice_callback(shape, prop_name, start_value, end_value, prop_data, duration)
 
+class ThreeDShapePropBox(RectangleShapePropBox):
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        RectangleShapePropBox.__init__(self, parent_window, draw_callback, self.new_insert_time_slice)
+        self.add_prop("camera_rotate_x", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=-3*60*6, upper=3*60*60, step_increment=1, page_increment=1, page_size=1))
+        self.add_prop("camera_rotate_y", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=-3*60*6, upper=3*60*60, step_increment=1, page_increment=1, page_size=1))
+        self.add_prop("camera_rotate_z", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=-3*60*6, upper=3*60*60, step_increment=1, page_increment=1, page_size=1))
+        self.add_prop("object_scale", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=.001, upper=100000, step_increment=1, page_increment=1, page_size=1))
+        self.orig_insert_time_slice_callback = insert_time_slice_callback
+
+    def new_insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):
+        if prop_name == "time_pos":
+            start_value = 0
+            end_value = self.prop_object.get_duration()
+            duration = self.prop_object.get_duration()
+            prop_data = dict(av_filename=self.prop_object.get_av_filename())
+        else:
+            duration = None
+        self.orig_insert_time_slice_callback(shape, prop_name, start_value, end_value, prop_data, duration)
+
 class CustomPropsBox(ShapePropBox):
     def __init__(self, parent_window, draw_callback,
                        insert_time_slice_callback, edit_callback, shape):

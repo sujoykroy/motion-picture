@@ -8,6 +8,14 @@ class Point3d(object):
         self.id_num = Point3d.IdSeed
         Point3d.IdSeed += 1
 
+    def get_average(self):
+        return (self.values[0]+self.values[1]+self.values[2])/3.
+
+    def set_average(self, value):
+        self.values[0] = value
+        self.values[1] = value
+        self.values[2] = value
+
     def __eq__(self, other):
         return isinstance(other, Point3d) and other.id_num == self.id_num
 

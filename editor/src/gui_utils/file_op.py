@@ -32,7 +32,10 @@ class FileOp(object):
                 dialog.set_preview_audio(True)
             filter_text = Gtk.FileFilter()
             filter_text.set_name("{0} files".format(file_name))
-            filter_text.add_mime_type(mime_type)
+            if mime_type.find("/")>0:
+                filter_text.add_mime_type(mime_type)
+            else:
+                filter_text.add_pattern(mime_type)
             dialog.add_filter(filter_text)
 
         response = dialog.run()

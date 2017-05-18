@@ -504,6 +504,19 @@ class ShapeManager(object):
         self.multi_shape.readjust_sizes()
         return True
 
+    def create_threed_shape(self, filename):
+        shape = ThreeDShape(anchor_at=Point(self.doc.width*.5, self.doc.height*.5),
+                   border_color="00000000",
+                   border_width=0, fill_color="ffffff00",
+                   width=self.doc.width, height=self.doc.height, corner_radius=0)
+        shape.set_filepath(filename)
+        shape.set_object_scale(min(self.doc.width, self.doc.height))
+        self.place_shape_at_zero_position(shape)
+        self.add_shape(shape)
+        shape.set_stage_xy(Point(0, 0))
+        self.multi_shape.readjust_sizes()
+        return True
+
     def delete_shape_editor(self):
         if self.shape_editor is None: return
         del self.point_group_shapes[:]
