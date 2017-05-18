@@ -166,13 +166,15 @@ class AudioJack(threading.Thread):
             while i<=output.shape[1]-self.buffer_size:
                 self.play_lock.acquire()
                 if self.should_stop_playing_now:
+                    tail_count = min(output.shape[1]-self.buffer_size, self.buffer_size)
+                    diedown_mask = numpy.repeat([numpy.linspace(1.0, 0, tail_count)], 2, axis=0)
+                    diedown_mask.shape = (2, tail_count)
+                    output[:, i:i+tail_count] = (output[:, i:i+tail_count]*diedown_mask)
                     should_exit = True
                     self.should_stop_playing_now = False
                 else:
                     should_exit = False
                 self.play_lock.release()
-                if should_exit:
-                    break
                 st = time.time()
                 try:
                     output_data = output[:, i:i+self.buffer_size]
@@ -191,6 +193,8 @@ class AudioJack(threading.Thread):
                     pass
                 except jack.OutputSyncError:
                     pass
+                if should_exit:
+                    break
                 delay = self.period-(time.time()-st)
                 if True or delay<=0.01:
                     delay = self.period

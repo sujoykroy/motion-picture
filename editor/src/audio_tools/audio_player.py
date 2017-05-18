@@ -43,9 +43,18 @@ class AudioPlayer(threading.Thread):
 
     def remove_segment(self, segment):
         self.segment_lock.acquire()
-        self.audio_segments.remove(segment)
+        if segment in self.audio_segments:
+            self.audio_segments.remove(segment)
+            self.compute_duration()
+        self.segment_lock.release()
+
+    def replace_samples(self, segment, samples):
+        self.segment_lock.acquire()
+        if segment in self.audio_segments:
+            segment.samples = samples
         self.compute_duration()
         self.segment_lock.release()
+
 
     def compute_duration(self):
         duration = 0
@@ -127,8 +136,8 @@ class AudioPlayer(threading.Thread):
                     self.t -= self.duration
             if final_samples is not None and final_samples.shape[1]>1:
                 max_amp = numpy.amax(final_samples)
-                if max_amp>1.0:
-                    final_samples = final_samples/max_amp
+                #if max_amp>1.0:
+                #    final_samples = final_samples/max_amp
 
                 if self.freq_bands:
                     audio_fft = None
