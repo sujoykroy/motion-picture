@@ -12,6 +12,7 @@ from camera_shape import CameraShape
 from multi_selection_shape import MultiSelectionShape
 from ring_shape import RingShape
 from text_shape import TextShape
+from threed_shape import ThreeDShape
 from edit_shapes import *
 from curve_point_group_shape import CurvePointGroupShape
 
