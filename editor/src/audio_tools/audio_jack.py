@@ -60,7 +60,7 @@ class AudioJack(threading.Thread):
 
         self.buffer_size = jack.get_buffer_size()
         self.sample_rate = jack.get_sample_rate()
-        self.period = self.buffer_size*0.75/self.sample_rate
+        self.period = self.buffer_size*.5/self.sample_rate
 
         self.blank_data = numpy.zeros((2, self.buffer_size), dtype=numpy.float).astype('f')
         self.empty_data = numpy.zeros((2, self.buffer_size), dtype=numpy.float).astype('f')
@@ -131,13 +131,16 @@ class AudioJack(threading.Thread):
 
     def run(self):
         leftover = None
+        waiting_time = 0
         while not self.should_stop:
             output = None
+            is_queue_output = False
             for audio_queue in self.audio_queues:
                 self.queue_lock.acquire()
                 try:
                     queue_output = audio_queue.get(block=False)
                     audio_queue.task_done()
+                    is_queue_output = True
                 except Queue.Empty as e:
                     queue_output = None
                 self.queue_lock.release()
@@ -157,7 +160,14 @@ class AudioJack(threading.Thread):
                 queue_output = None
 
             if output is None:
-                output = self.blank_data
+                if waiting_time<self.period:
+                    waiting_time += .01
+                    time.sleep(.01)
+                    continue
+                else:
+                    waiting_time = 0
+                    output = self.blank_data
+
             if leftover is not None:
                 output = numpy.concatenate((leftover, output), axis=1)
             i = 0
@@ -206,8 +216,11 @@ class AudioJack(threading.Thread):
                     leftover = None
             else:
                 leftover = None
-            if delay==0:
-                time.sleep(self.period)
+            delay = self.period-(time.time()-st)
+            if not is_queue_output:
+                if delay<=self.period/10:
+                    delay = self.period/2
+                time.sleep(delay)
         jack.detach()
         self.record_lock.acquire()
         if self.wave_file:

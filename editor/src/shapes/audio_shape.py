@@ -81,7 +81,7 @@ class AudioShape(TextShape):
         audio_file = AudioFileCache.get_file(self.audio_path)
         start_at = self.time_pos
         end_at = self.time_pos + self.TIME_STEP
-        samples = audio_file.get_samples_in_between(start_at, end_at)
+        samples = audio_file.get_samples_in_between(start_at, end_at).copy()
         AudioJack.get_thread().clear_audio_queue(self.audio_queue)
         try:
             self.audio_queue.put(samples, block=False)
