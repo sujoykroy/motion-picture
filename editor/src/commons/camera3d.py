@@ -3,6 +3,7 @@ import numpy, cairo, math
 from object3d import Object3d
 from point3d import Point3d
 from polygon3d import Polygon3d
+from draw_utils import *
 
 def surface2array(surface):
     data = surface.get_data()
@@ -67,7 +68,7 @@ class Camera3d(Object3d):
             return 0
         return 1
 
-    def get_image_canvas(self, left, top, width, height):
+    def get_image_canvas(self, left, top, width, height, border_color=None, border_width=None):
         left = math.floor(left)
         top = math.floor(top)
         width = int(width)
@@ -117,14 +118,15 @@ class Camera3d(Object3d):
 
             poly_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh)
             poly_ctx = cairo.Context(poly_surf)
+            set_default_line_style(poly_ctx)
             poly_ctx.rectangle(0, 0, sw, sh)
             poly_ctx.set_source_rgba(1, 0, 0, 0)
             poly_ctx.fill()
             poly_ctx.translate(-bleft-(sleft-bleft), -btop-(stop-btop))
-            object_3d.draw(poly_ctx, self)
+            object_3d.draw(poly_ctx, self, border_color=border_color, border_width=border_width)
 
             surfacearray = surface2array(poly_surf)
-            area_cond = (surfacearray[:, :, 3]!=255)
+            area_cond = (surfacearray[:, :, 3]<100)
 
             xs = numpy.arange(sleft, sright)
             xcount = len(xs)

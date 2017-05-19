@@ -115,18 +115,20 @@ class Polygon3d(Object3d):
         if self.closed:
             ctx.line_to(projected_values[0][0], projected_values[0][1])
 
-    def draw(self, ctx, camera):
-        border_color = self.border_color
-        parent = self.parent
-        while border_color is None and parent is not None:
-            border_color = parent.border_color
-            parent = parent.parent
+    def draw(self, ctx, camera, border_color=-1, border_width=-1):
+        if border_color == -1:
+            border_color = self.border_color
+            parent = self.parent
+            while border_color is None and parent is not None:
+                border_color = parent.border_color
+                parent = parent.parent
 
-        border_width = self.border_width
-        parent = self.parent
-        while border_width is None and parent is not None:
-            border_width = parent.border_width
-            parent = parent.parent
+        if border_width == -1:
+            border_width = self.border_width
+            parent = self.parent
+            while border_width is None and parent is not None:
+                border_width = parent.border_width
+                parent = parent.parent
 
         fill_color = self.fill_color
         parent = self.parent
@@ -136,7 +138,7 @@ class Polygon3d(Object3d):
 
         if fill_color is not None:
             if isinstance(fill_color, TextureMapColor):
-                border_color = "FF0000"
+                #border_color = "000000"
                 fill_color.build()
                 projected_values = self.parent.point_projections[camera][self.point_indices, :]
                 orig_projected_values=projected_values
@@ -186,7 +188,7 @@ class Polygon3d(Object3d):
                         #)
                         ctx.restore()
                         #draw_stroke(ctx, border_width, border_color)
-                        border_color = None
+                        #border_color = None
             else:
                 ctx.save()
                 self.draw_path(ctx, camera)
@@ -196,8 +198,10 @@ class Polygon3d(Object3d):
         if border_color is not None and border_width is not None:
             ctx.save()
             self.draw_path(ctx, camera)
+            ctx.set_antialias(False)
             ctx.restore()
-            draw_stroke(ctx, border_width+4, border_color)
+            ctx.set_antialias(False)
+            draw_stroke(ctx, border_width, border_color)
 
         if False:
             for point_index in self.point_indices:

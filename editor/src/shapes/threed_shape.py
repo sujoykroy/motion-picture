@@ -17,6 +17,8 @@ class ThreeDShape(RectangleShape):
         self.should_rebuild_d3 = True
         self.should_rebuild_camera = True
         self.should_rebuild_image = True
+        self.wire_color = None
+        self.wire_width = None
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = ThreeDShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
@@ -60,6 +62,27 @@ class ThreeDShape(RectangleShape):
         super(ThreeDShape, self).set_height(value)
         self.should_rebuild_image = True
 
+    def set_anchor_x(self, value):
+        super(ThreeDShape, self).set_anchor_x(value)
+        self.should_rebuild_image = True
+
+    def set_anchor_y(self, value):
+        super(ThreeDShape, self).set_anchor_y(value)
+        self.should_rebuild_image = True
+
+    def set_wire_color(self, color):
+        if color is None:
+            self.wire_color = None
+        elif isinstance(self.wire_color, Color) and isinstance(color, Color):
+            self.wire_color.copy_from(color)
+        else:
+            self.wire_color = color
+        self.should_rebuild_image = True
+
+    def set_wire_width(self, value):
+        self.wire_width = value
+        self.should_rebuild_image = True
+
     def set_filepath(self, filepath):
         self.filepath = filepath
         self.d3_object.load_from_file(self.filepath)
@@ -72,8 +95,10 @@ class ThreeDShape(RectangleShape):
         self.d3_object.build_projection(self.camera)
         self.camera.sort_items(self.d3_object)
         self.image_canvas = self.camera.get_image_canvas(
-            -self.width*.5, -self.height*.5,
-            self.width, self.height
+            -self.anchor_at.x, -self.anchor_at.y,
+            self.width, self.height,
+            border_color=self.wire_color,
+            border_width=self.wire_width
         )
         self.should_rebuild_d3 = False
         self.should_rebuild_camera = False

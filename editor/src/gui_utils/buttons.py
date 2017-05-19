@@ -43,8 +43,8 @@ class ColorButton(Gtk.HBox):
         self.color_button.connect("clicked", self.color_button_clicked)
 
         self.color_types_combobox =  NameValueComboBox()
-        self.color_types_combobox.build_and_set_model(["Flat", "Linear", "Radial"])
-        self.color_types_combobox.set_value("Flat")
+        self.color_types_combobox.build_and_set_model(["None", "Flat", "Linear", "Radial"])
+        self.color_types_combobox.set_value("None")
         self.color_types_combobox.connect("changed", self.color_types_combobox_changed)
 
         self.pack_start(self.color_types_combobox, expand=False, fill=False, padding = 0)
@@ -71,9 +71,10 @@ class ColorButton(Gtk.HBox):
 
     def set_color(self, color):
         self.color = color
-        if not color:
-            color = Color(0,0,0,.1)
-        if isinstance(color, Color):
+        if color is None:
+            self.color_type = "None"
+            self.pixbuf.fill(int("00000000", 16))
+        elif isinstance(color, Color):
             self.pixbuf.fill(int(color.to_html()[1:], 16))
             self.color_type = "Flat"
         elif isinstance(color, GradientColor):
@@ -104,6 +105,7 @@ class ColorButton(Gtk.HBox):
 
         self.color_types_combobox.set_value(self.color_type)
         self.emit("color-changed")
+        self.color_button.queue_draw()
 
 GObject.signal_new('clicked', ColorButton,
         GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE, tuple())

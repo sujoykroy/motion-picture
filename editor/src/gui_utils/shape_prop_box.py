@@ -176,10 +176,12 @@ class ShapePropBox(object):
     def color_button_clicked(self, color_button, prop_name):
         if not self.prop_object: return
         color_type = color_button.get_color_type()
-        if color_type == "Flat":
+        if color_type == "None":
+            color_button.set_color(None)
+        elif color_type == "Flat":
             value = self.prop_object.get_prop_value(prop_name)
             if not value:
-                value = Color(0,0,0,0)
+                value = Color(0,0,0,1)
             dialog = Gtk.ColorChooserDialog()
             rgba = Gdk.RGBA(*value.get_array())
             dialog.set_rgba(rgba)
@@ -200,8 +202,11 @@ class ShapePropBox(object):
         color_type = color_button.get_color_type()
         shape_manager = self.parent_window.get_shape_manager()
         shape = shape_manager.get_selected_shape()
-        if color_type == "Flat":
-            color = Color(0, 0, 0, 0)
+        color = None
+        if color_type == "None":
+            color = None
+        elif color_type == "Flat":
+            color = Color(0, 0, 0, 1)
         elif color_type == "Linear":
             color = LinearGradientColor.create_default(shape.get_outline(0))
         elif color_type == "Radial":
