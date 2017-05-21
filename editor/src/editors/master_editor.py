@@ -568,13 +568,18 @@ class MasterEditor(Gtk.ApplicationWindow):
     def on_configure_event(self, widget, event):
         self.fit_shape_manager_in_drawing_area()
 
-    def on_drawing_area_draw(self, widget, ctx):
+    def on_drawing_area_draw(self, widget, dctx):
+        w, h = self.get_drawing_area_size()
+        img_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(img_surf)
+
         ctx.set_antialias(cairo.ANTIALIAS_SUBPIXEL)
         ctx.save()
-        w, h = self.get_drawing_area_size()
         area = Point(float(w),float(h))
         self.shape_manager.draw(ctx, area)
-        ctx.restore()
         ctx.rectangle(0, 0, w, h)
         ctx.set_source_rgba(*Color.parse("cccccc").get_array())
         ctx.stroke()
+
+        dctx.set_source_surface(img_surf)
+        dctx.paint()

@@ -84,9 +84,10 @@ class ShapePropBox(object):
 
     def add_prop(self, prop_name, value_type, values, can_insert_slice = True):
         if value_type == PROP_TYPE_NUMBER_ENTRY:
+            step = values["step_increment"]
             adjustment = Gtk.Adjustment(values["value"], values["lower"],
-                    values["upper"], values["step_increment"], values["page_increment"],
-                    values["page_size"])
+                    values["upper"], step, values.get("page_increment", step),
+                    values.get("page_size", 0))
             spin_button = Gtk.SpinButton()
             spin_button.set_digits(2)
             spin_button.set_numeric(True)

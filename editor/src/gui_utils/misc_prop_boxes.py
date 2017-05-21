@@ -159,10 +159,13 @@ class ThreeDShapePropBox(RectangleShapePropBox):
         self.add_prop("camera_rotate_z", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-3*60*6, upper=3*60*60, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("object_scale", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=.001, upper=100000, step_increment=1, page_increment=1, page_size=1))
+                dict(value=0, lower=.001, upper=100000, step_increment=1))
         self.add_prop("wire_color", PROP_TYPE_COLOR, None)
         self.add_prop("wire_width", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=0, upper=10000, step_increment=.1, page_increment=1, page_size=1))
+                dict(value=0, lower=0, upper=1000, step_increment=.1))
+        self.add_prop("depth_mix", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0., upper=1., step_increment=.1))
+        self.add_prop("high_quality", PROP_TYPE_CHECK_BUTTON, None)
         self.orig_insert_time_slice_callback = insert_time_slice_callback
 
     def new_insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):

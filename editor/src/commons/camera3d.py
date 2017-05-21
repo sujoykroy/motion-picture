@@ -18,6 +18,7 @@ class Camera3d(Object3d):
         super(Camera3d, self).__init__()
         self.viewer = Point3d.create_if_needed(viewer)
         self.sorted_items = []
+        self.mat_params = None
 
     def project_point_values(self, point_values):
         point_values = self.forward_transform_point_values(point_values)
@@ -169,6 +170,139 @@ class Camera3d(Object3d):
         """
         canvas = cairo.ImageSurface.create_for_data(
                 numpy.getbuffer(canvas_surf_array), cairo.FORMAT_ARGB32, width, height)
+        return canvas
+
+    def get_image_canvas_high_quality(self,
+            ctx, left, top, width, height,
+            border_color=None, border_width=None, depth_mix_frac=.5):
+        max_depth = 100000
+
+        canvas_surf = ctx.get_target()
+        canvas_width = canvas_surf.get_width()
+        canvas_height = canvas_surf.get_height()
+        canvas_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, canvas_width, canvas_height)
+        canvas_surf_array = surface2array(canvas_surf)
+
+        canvas_z_depths = numpy.zeros(canvas_surf_array.shape[:2], dtype="f")
+        canvas_z_depths.fill(max_depth)
+
+        ctx.translate(-left, -top)
+        premat = ctx.get_matrix()
+        ctx = cairo.Context(canvas_surf)
+        ctx.rectangle(0, 0, canvas_width, canvas_height)
+        draw_fill(ctx, "00000000")
+        ctx.set_matrix(premat)
+
+        xx, yx, xy, yy, x0, y0 = premat
+        mat_params = premat
+        self.mat_params = mat_params
+        numpy_premat = numpy.array([[xx, xy, x0], [yx, yy, y0]])
+
+        invert = cairo.Matrix().multiply(premat)
+        invert.invert()
+        dx, dy = invert.transform_distance(1, 0)
+        #dx = abs(dx)
+        #dy = abs(dy)
+        if dx == 0 or dy==0:
+            d = math.sqrt(dx*dx+dy*dy)
+        else:
+            d = abs(min(dx, dy))
+        ceiling = .01
+        if abs(d)<ceiling:
+            d = ceiling
+        for object_3d in self.sorted_items:
+            brect = object_3d.bounding_rect[self]
+            bleft, btop = brect[0][0], brect[0][1]
+            bright, bbottom = brect[1][0], brect[1][1]
+
+            if bleft>left+width or bright<left or \
+               btop>top+height or bbottom<top:
+                continue
+
+            sleft = max(left, bleft)
+            stop = max(top, btop)
+            sright = min(left+width, bright+1)
+            sbottom = min(top+height, bbottom+1)
+
+            sw = sright-sleft
+            sh = sbottom-stop
+
+            if sw<=0 or sh<=0:
+                continue
+
+            poly_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, canvas_width, canvas_height)
+            poly_ctx = cairo.Context(poly_surf)
+            set_default_line_style(poly_ctx)
+            poly_ctx.rectangle(0, 0, canvas_width, canvas_height)
+            poly_ctx.set_source_rgba(1, 0, 0, 0)
+            poly_ctx.fill()
+            poly_ctx.set_matrix(premat)
+            object_3d.draw(poly_ctx, self, border_color=border_color, border_width=border_width)
+
+            surfacearray = surface2array(poly_surf)
+
+            xs = numpy.arange(sleft, sright, step=d)
+            xcount = len(xs)
+            ys = numpy.arange(stop, sbottom, step=d)
+            ycount = len(ys)
+            xs, ys = numpy.meshgrid(xs, ys)
+            coords = numpy.vstack((xs.flatten(), ys.flatten(), numpy.ones(xcount*ycount)))
+            canvas_poly_coords = numpy.matmul(numpy_premat, coords).astype(numpy.uint32)
+            canvas_poly_coords.shape = (2, xcount*ycount)
+            poly_coor_x = canvas_poly_coords[0, :]
+            poly_coor_y = canvas_poly_coords[1, :]
+            poly_coor_x = numpy.where(poly_coor_x>=canvas_width, canvas_width-1, poly_coor_x)
+            poly_coor_y = numpy.where(poly_coor_y>=canvas_height, canvas_height-1, poly_coor_y)
+            coords = coords[:2, :]
+            coords = coords.T#.reshape((ycount, xcount, 2))
+            coords.shape = (xcount*ycount, 2)
+
+            area_cond = (surfacearray[poly_coor_y, poly_coor_x, 3]==0)
+            area_cond.shape = (ycount, xcount)
+
+            coords_depths = numpy.matmul(object_3d.plane_params_normalized[self],
+                numpy.concatenate((coords.T, [numpy.ones(coords.shape[0])]), axis=0))
+            coords_depths.shape = (ycount, xcount)
+            blank_depths = numpy.zeros_like(coords_depths)
+            blank_depths.fill(max_depth+1)
+            coords_depths = numpy.where(area_cond, blank_depths, coords_depths)
+
+            pre_depths = canvas_z_depths[poly_coor_y, poly_coor_x]
+            pre_depths.shape = (ycount, xcount)
+            depths_cond = pre_depths>coords_depths
+
+            new_depths = numpy.where(depths_cond, coords_depths, pre_depths)
+            new_depths.shape = (ycount*xcount, )
+            canvas_z_depths[poly_coor_y, poly_coor_x] = new_depths
+
+            pre_colors = canvas_surf_array[poly_coor_y, poly_coor_x, :]
+            pre_colors.shape = (ycount, xcount, 4)
+
+            depths_cond_multi = numpy.repeat(depths_cond, 4)
+            depths_cond_multi.shape = (depths_cond.shape[0], depths_cond.shape[1], 4)
+
+            picked_surface = surfacearray[poly_coor_y, poly_coor_x]
+            picked_surface.shape = (ycount, xcount, 4)
+
+            new_colors = numpy.where(depths_cond_multi, picked_surface, pre_colors)
+            new_colors.shape = (ycount*xcount, 4)
+
+            pre_colors.shape = (ycount*xcount, 4)
+
+            #frac = .9
+            mixed_colors = pre_colors*depth_mix_frac+new_colors*(1-depth_mix_frac)
+            mixed_colors.shape = (ycount*xcount, 4)
+
+            alpha_cond = (new_colors[:, 3]<255)
+            alpha_cond_multi = numpy.repeat(alpha_cond, 4)
+            alpha_cond_multi.shape = (alpha_cond.shape[0], 4)
+            new_colors = numpy.where(alpha_cond_multi, mixed_colors, new_colors)
+            new_colors.shape = (ycount*xcount, 4)
+
+            canvas_surf_array[poly_coor_y, poly_coor_x, :] = new_colors
+
+        canvas = cairo.ImageSurface.create_for_data(
+                numpy.getbuffer(canvas_surf_array), cairo.FORMAT_ARGB32, canvas_width, canvas_height)
         return canvas
 
     def draw_objects(self, ctx, left, top, width, height):

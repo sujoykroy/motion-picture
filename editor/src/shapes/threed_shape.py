@@ -19,6 +19,9 @@ class ThreeDShape(RectangleShape):
         self.should_rebuild_image = True
         self.wire_color = None
         self.wire_width = None
+        self.high_quality = True
+        self.image_hash = None
+        self.depth_mix = .5
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = ThreeDShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
@@ -91,15 +94,35 @@ class ThreeDShape(RectangleShape):
         self.should_rebuild_camera = True
         self.should_rebuild_image = True
 
-    def build_image(self):
+    def set_high_quality(self, hq):
+        self.high_quality = hq
+        self.should_rebuild_image = True
+        self.image_hash = None
+
+    def set_depth_mix(self, value):
+        self.depth_mix = value
+        print value
+        self.should_rebuild_image = True
+
+    def build_image(self, ctx=None):
         self.d3_object.build_projection(self.camera)
         self.camera.sort_items(self.d3_object)
-        self.image_canvas = self.camera.get_image_canvas(
-            -self.anchor_at.x, -self.anchor_at.y,
-            self.width, self.height,
-            border_color=self.wire_color,
-            border_width=self.wire_width
-        )
+        if self.high_quality and ctx is not None:
+            self.image_canvas = self.camera.get_image_canvas_high_quality(
+                ctx,
+                -self.anchor_at.x, -self.anchor_at.y,
+                self.width, self.height,
+                border_color=self.wire_color,
+                border_width=self.wire_width,
+                depth_mix_frac=self.depth_mix
+            )
+        else:
+            self.image_canvas = self.camera.get_image_canvas(
+                -self.anchor_at.x, -self.anchor_at.y,
+                self.width, self.height,
+                border_color=self.wire_color,
+                border_width=self.wire_width
+            )
         self.should_rebuild_d3 = False
         self.should_rebuild_camera = False
         self.should_rebuild_image = False
@@ -109,9 +132,35 @@ class ThreeDShape(RectangleShape):
             self.d3_object.precalculate()
         if self.should_rebuild_camera:
             self.camera.precalculate()
-        if self.should_rebuild_d3 or self.should_rebuild_camera or self.should_rebuild_image:
-            self.build_image()
         ctx.set_antialias(True)
-        ctx.set_source_surface(self.image_canvas)
-        ctx.get_source().set_filter(cairo.FILTER_FAST)
-        ctx.paint()
+
+        ctx.save()
+        if self.high_quality:
+            w, h = ctx.get_target().get_width(), ctx.get_target().get_height()
+            xx, yx, xy, yy, x0, y0 = ctx.get_matrix()
+            image_hash = hash(tuple([w, h, xx, yx, xy, yy, x0, y0]))
+            if self.image_hash is None or \
+               self.image_hash != image_hash or \
+               self.image_canvas is None or \
+               self.should_rebuild_d3 or \
+               self.should_rebuild_camera or \
+               self.should_rebuild_image:
+                self.build_image(ctx)
+            self.image_hash = image_hash
+        elif self.image_canvas is None or \
+             self.should_rebuild_d3 or \
+             self.should_rebuild_camera or \
+             self.should_rebuild_image:
+            self.build_image()
+        ctx.restore()
+
+        if self.high_quality:
+            mat = ctx.get_matrix()
+            ctx.set_matrix(cairo.Matrix())
+            ctx.set_source_surface(self.image_canvas)
+            ctx.paint()
+            ctx.set_matrix(mat)
+        else:
+            ctx.set_source_surface(self.image_canvas)
+            ctx.get_source().set_filter(cairo.FILTER_FAST)
+            ctx.paint()

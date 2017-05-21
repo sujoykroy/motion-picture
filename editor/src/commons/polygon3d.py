@@ -40,30 +40,6 @@ class Polygon3d(Object3d):
             border_width=self.border_width)
         return newob
 
-    def get_intersect_rect(self, camera, other_poly):
-        self_bounding_rect = self.bounding_rect[camera]
-        other_poly_bounding_rect = other_poly.bounding_rect[camera]
-        if other_poly_bounding_rect is None:
-            return None
-        if self_bounding_rect is None:
-            return None
-
-        rect = [
-            [min(self_bounding_rect[0][0], other_poly_bounding_rect[0][0]),
-             min(self_bounding_rect[0][1], other_poly_bounding_rect[0][1])],
-            [max(self_bounding_rect[1][0], other_poly_bounding_rect[1][0]),
-             max(self_bounding_rect[1][1], other_poly_bounding_rect[1][1])],
-        ]
-        return rect
-
-    def draw_bounding_rect(self, camera, ctx):
-        if self.bounding_rect[camera] is None:
-            return
-        ctx.rectangle(self.bounding_rect[camera][0][0], self.bounding_rect[camera][0][1],
-                 self.bounding_rect[camera][1][0]-self.bounding_rect[camera][0][0],
-                 self.bounding_rect[camera][1][1]-self.bounding_rect[camera][0][1])
-        draw_stroke(ctx, 1, "000000")
-
     def get_z_cut(self, camera, x, y):
         plane_params =self.plane_params[camera]
         if plane_params is None:
@@ -197,10 +173,9 @@ class Polygon3d(Object3d):
 
         if border_color is not None and border_width is not None:
             ctx.save()
+            ctx.set_antialias(True)
             self.draw_path(ctx, camera)
-            ctx.set_antialias(False)
             ctx.restore()
-            ctx.set_antialias(False)
             draw_stroke(ctx, border_width, border_color)
 
         if False:
