@@ -128,6 +128,8 @@ class MultiShape(Shape):
                 child_shape = CameraShape.create_from_xml_element(shape_element)
             elif shape_type == MultiShape.TYPE_NAME:
                 child_shape = MultiShape.create_from_xml_element(shape_element)
+            elif shape_type == ThreeDShape.TYPE_NAME:
+                child_shape = ThreeDShape.create_from_xml_element(shape_element)
             if child_shape is None: continue
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)

@@ -18,7 +18,7 @@ class ThreeDShape(RectangleShape):
         self.should_rebuild_camera = True
         self.should_rebuild_image = True
         self.wire_color = None
-        self.wire_width = None
+        self.wire_width = 0
         self.high_quality = False
         self.image_hash = None
 
@@ -27,6 +27,28 @@ class ThreeDShape(RectangleShape):
                         self.fill_color.copy(), self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
         return newob
+
+    def get_xml_element(self):
+        elm = super(ThreeDShape, self).get_xml_element()
+        elm.attrib["filepath"] = self.filepath
+        elm.attrib["camera_rotation"] = self.camera.rotation.to_text()
+        elm.attrib["object_scale"] = "{0}".format(self.get_object_scale())
+        if self.wire_color:
+            elm.attrib["wire_color"] = self.wire_color.to_text()
+        elm.attrib["wire_width"] = "{0}".format(self.wire_width)
+        elm.attrib["high_quality"] = "{0}".format(int(self.high_quality))
+        return elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        shape = super(ThreeDShape, cls).create_from_xml_element(elm)
+        shape.camera.rotation = Point3d.from_text(elm.attrib["camera_rotation"])
+        shape.wire_color = color_from_text(elm.attrib.get("wire_color", None))
+        shape.wire_width = float(elm.attrib["wire_width"])
+        shape.set_filepath(elm.attrib.get("filepath", ""))
+        shape.high_quality = bool(int(elm.attrib["high_quality"]))
+        shape.set_object_scale(float(elm.attrib["object_scale"]))
+        return shape
 
     def get_object_scale(self):
         return self.d3_object.scale.get_average()

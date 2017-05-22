@@ -57,6 +57,18 @@ class Point3d(object):
         self.values[1] = y
         self.values[2] = z
 
+    def to_text(self):
+        return "{0},{1},{2}".format(self.values[0], self.values[1], self.values[2])
+
+    @classmethod
+    def from_text(cls, text):
+        try:
+            x, y, z = text.split(",")
+            point = cls(float(x), float(y), float(z))
+        except:
+            return None
+        return point
+
     @classmethod
     def create_if_needed(cls, data):
         if data is None or isinstance(data, Point3d):
