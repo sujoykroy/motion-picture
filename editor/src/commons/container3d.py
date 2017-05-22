@@ -14,6 +14,10 @@ class Container3d(Object3d):
         self.items = []
         self.item_names = []
 
+    def clear(self):
+        del self.items[:]
+        del self.item_names[:]
+
     def append(self, item, name=None):
         self.items.append(item)
         self.item_names.append(name)

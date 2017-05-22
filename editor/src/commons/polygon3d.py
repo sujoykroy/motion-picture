@@ -176,7 +176,10 @@ class Polygon3d(Object3d):
             ctx.set_antialias(True)
             self.draw_path(ctx, camera)
             ctx.restore()
+            mat = ctx.get_matrix()
+            ctx.set_matrix(cairo.Matrix())
             draw_stroke(ctx, border_width, border_color)
+            ctx.set_matrix(mat)
 
         if False:
             for point_index in self.point_indices:

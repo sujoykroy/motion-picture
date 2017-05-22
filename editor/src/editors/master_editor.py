@@ -101,7 +101,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_prop_box = MultiShapePropBox(self, self.redraw, self.insert_time_slice)
         self.curve_smooth_prop_box = CurveSmoothPropBox(
                             self.recreate_shape_editor, self.get_shape_manager)
-        self.audio_video_shape_prop_box = AudioVideoShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.audio_shape_prop_box = AudioShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.video_shape_prop_box = VideoShapePropBox(self, self.redraw, self.insert_time_slice)
         self.threed_shape_prop_box = ThreeDShapePropBox(self, self.redraw, self.insert_time_slice)
         self.camera_shape_prop_box = CameraShapePropBox(self, self.redraw, self.insert_time_slice)
 
@@ -112,7 +113,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.prop_grid = PropGrid()
         self.prop_grid.set_margin_left(10)
         self.prop_grid.set_margin_right(10)
-
 
         self.new_custom_prop_button = Gtk.Button("Add Custom Prop")
         self.new_custom_prop_button.connect("clicked", self.new_custom_prop_button_clicked)
@@ -134,7 +134,8 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.text_shape_prop_box,
             self.shape_form_prop_box,
             self.curve_smooth_prop_box,
-            self.audio_video_shape_prop_box,
+            self.audio_shape_prop_box,
+            self.video_shape_prop_box,
             self.threed_shape_prop_box,
             self.camera_shape_prop_box
         )
@@ -359,7 +360,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.shape_form_prop_box.hide()
         self.curve_smooth_prop_box.hide()
         self.text_shape_prop_box.hide()
-        self.audio_video_shape_prop_box.hide()
+        self.video_shape_prop_box.hide()
+        self.audio_shape_prop_box.hide()
         self.camera_shape_prop_box.hide()
         self.threed_shape_prop_box.hide()
         self.new_custom_prop_button.hide()
@@ -381,9 +383,13 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.text_shape_prop_box.show()
                 self.text_shape_prop_box.set_prop_object(shape)
 
-            if isinstance(shape, AudioShape) or isinstance(shape, VideoShape):
-                self.audio_video_shape_prop_box.show()
-                self.audio_video_shape_prop_box.set_prop_object(shape)
+            if isinstance(shape, AudioShape):
+                self.audio_shape_prop_box.show()
+                self.audio_shape_prop_box.set_prop_object(shape)
+
+            if isinstance(shape, VideoShape):
+                self.video_shape_prop_box.show()
+                self.video_shape_prop_box.set_prop_object(shape)
 
             if isinstance(shape, CameraShape):
                 self.camera_shape_prop_box.show()

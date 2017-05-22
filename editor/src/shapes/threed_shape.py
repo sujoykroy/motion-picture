@@ -110,6 +110,7 @@ class ThreeDShape(RectangleShape):
 
     def set_filepath(self, filepath):
         self.filepath = filepath
+        self.d3_object.clear()
         self.d3_object.load_from_file(self.filepath)
 
         self.should_rebuild_d3 = True

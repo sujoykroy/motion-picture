@@ -4,6 +4,7 @@ from image_combo_box import ImageComboBox
 from buttons import ColorButton
 from ..commons import Point, Color, get_displayble_prop_name
 from ..commons import LinearGradientColor, RadialGradientColor
+from file_op import *
 
 PROP_TYPE_NUMBER_ENTRY = 0
 PROP_TYPE_COLOR = 1
@@ -15,6 +16,7 @@ PROP_TYPE_LONG_TEXT = 6
 PROP_TYPE_TEXT = 7
 PROP_TYPE_FONT = 8
 PROP_TYPE_IMAGE_LIST = 9
+PROP_TYPE_FILE = 10
 
 class ShapePropBox(object):
     IdSeed = 0
@@ -81,6 +83,8 @@ class ShapePropBox(object):
                 prop_widget.set_text(value)
             elif isinstance(prop_widget, Gtk.CheckButton):
                 prop_widget.set_active(value)
+            elif isinstance(prop_widget, FileSelect):
+                prop_widget.set_filename(value)
 
     def add_prop(self, prop_name, value_type, values, can_insert_slice = True):
         if value_type == PROP_TYPE_NUMBER_ENTRY:
@@ -142,7 +146,11 @@ class ShapePropBox(object):
             entry.props.width_chars = 10
             entry.connect("activate", self.entry_activated, prop_name)
             prop_widget = entry
-
+        elif value_type == PROP_TYPE_FILE:
+            file_widget = FileSelect(file_types=values["file_type"])
+            file_widget.connect("file-selected", self.file_widget_file_selected, prop_name)
+            prop_widget = file_widget
+            can_insert_slice = False
         prop_widget.value_type = value_type
 
         label = Gtk.Label(get_displayble_prop_name(prop_name))
@@ -171,6 +179,12 @@ class ShapePropBox(object):
     def font_button_font_set(self, font_button, prop_name):
         if self.prop_object != None:
             font = font_button.get_font_name()
+            self.prop_object.set_prop_value(prop_name, font)
+            self.draw_callback()
+
+    def file_widget_file_selected(self, file_widget, prop_name):
+        if self.prop_object != None:
+            font = file_widget.get_filename()
             self.prop_object.set_prop_value(prop_name, font)
             self.draw_callback()
 

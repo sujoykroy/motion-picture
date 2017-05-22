@@ -105,7 +105,7 @@ m.add(path="Shapes/<New>/Movie", icon="video",
       action_name="win.create_new_shape", action_state="video")
 m.add(path="Shapes/<New>/Camera", icon="camera",
       action_name="win.create_new_shape", action_state="camera")
-m.add(path="Shapes/<New>/3D", icon="camera",
+m.add(path="Shapes/<New>/3D", icon="3d",
       action_name="win.create_new_shape", action_state="threed")
 
 m.add(path="Shapes/Align/X", icon="x_align", desc="Align shapes along X-axis",
