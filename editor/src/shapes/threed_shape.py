@@ -19,9 +19,8 @@ class ThreeDShape(RectangleShape):
         self.should_rebuild_image = True
         self.wire_color = None
         self.wire_width = None
-        self.high_quality = True
+        self.high_quality = False
         self.image_hash = None
-        self.depth_mix = .5
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = ThreeDShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
@@ -84,7 +83,8 @@ class ThreeDShape(RectangleShape):
 
     def set_wire_width(self, value):
         self.wire_width = value
-        self.should_rebuild_image = True
+        if self.wire_color is not None:
+           self.should_rebuild_image = True
 
     def set_filepath(self, filepath):
         self.filepath = filepath
@@ -99,11 +99,6 @@ class ThreeDShape(RectangleShape):
         self.should_rebuild_image = True
         self.image_hash = None
 
-    def set_depth_mix(self, value):
-        self.depth_mix = value
-        print value
-        self.should_rebuild_image = True
-
     def build_image(self, ctx=None):
         self.d3_object.build_projection(self.camera)
         self.camera.sort_items(self.d3_object)
@@ -113,8 +108,7 @@ class ThreeDShape(RectangleShape):
                 -self.anchor_at.x, -self.anchor_at.y,
                 self.width, self.height,
                 border_color=self.wire_color,
-                border_width=self.wire_width,
-                depth_mix_frac=self.depth_mix
+                border_width=self.wire_width
             )
         else:
             self.image_canvas = self.camera.get_image_canvas(

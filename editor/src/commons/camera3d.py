@@ -174,7 +174,7 @@ class Camera3d(Object3d):
 
     def get_image_canvas_high_quality(self,
             ctx, left, top, width, height,
-            border_color=None, border_width=None, depth_mix_frac=.5):
+            border_color=None, border_width=None):
         max_depth = 100000
 
         canvas_surf = ctx.get_target()
@@ -257,7 +257,7 @@ class Camera3d(Object3d):
             coords = coords.T#.reshape((ycount, xcount, 2))
             coords.shape = (xcount*ycount, 2)
 
-            area_cond = (surfacearray[poly_coor_y, poly_coor_x, 3]==0)
+            area_cond = (surfacearray[poly_coor_y, poly_coor_x, 3]<255)
             area_cond.shape = (ycount, xcount)
 
             coords_depths = numpy.matmul(object_3d.plane_params_normalized[self],
@@ -288,16 +288,6 @@ class Camera3d(Object3d):
             new_colors.shape = (ycount*xcount, 4)
 
             pre_colors.shape = (ycount*xcount, 4)
-
-            #frac = .9
-            mixed_colors = pre_colors*depth_mix_frac+new_colors*(1-depth_mix_frac)
-            mixed_colors.shape = (ycount*xcount, 4)
-
-            alpha_cond = (new_colors[:, 3]<255)
-            alpha_cond_multi = numpy.repeat(alpha_cond, 4)
-            alpha_cond_multi.shape = (alpha_cond.shape[0], 4)
-            new_colors = numpy.where(alpha_cond_multi, mixed_colors, new_colors)
-            new_colors.shape = (ycount*xcount, 4)
 
             canvas_surf_array[poly_coor_y, poly_coor_x, :] = new_colors
 
