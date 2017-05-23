@@ -77,7 +77,7 @@ class CurveShape(Shape, Mirror):
             curve.translate(diff_x, diff_y)
             self.curves.append(curve)
         self.fit_size_to_include_all()
-        self.forms = copy_list(self.linked_to.forms)
+        self.forms = copy_value(self.linked_to.forms)
 
     def get_form_by_name(self, form):
         if form in self.forms:
@@ -245,7 +245,7 @@ class CurveShape(Shape, Mirror):
         for curve in self.curves:
             newob.curves.append(curve.copy())
         if deep_copy:
-            newob.forms = copy_list(self.forms)
+            newob.forms = copy_value(self.forms)
         newob.show_points = self.show_points
         return newob
 

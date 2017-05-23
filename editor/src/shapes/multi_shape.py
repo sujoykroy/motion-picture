@@ -68,7 +68,7 @@ class MultiShape(Shape):
         self.poses = copy_dict(self.linked_to.poses)
         self.timelines.clear()
         for key, timeline in self.linked_to.timelines.items():
-            self.timelines[key] = timeline.copy(self.shapes)
+            self.timelines[key] = timeline.copy()
 
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)
@@ -242,7 +242,8 @@ class MultiShape(Shape):
         for pose in self.poses.values():
             old_prop_dict = pose[shape.get_name()]
             current_shape_prop_dict = shape.get_pose_prop_dict()
-            old_prop_dict[prop_name] = current_shape_prop_dict[prop_name]
+            if prop_name in old_prop_dict:
+                old_prop_dict[prop_name] = current_shape_prop_dict[prop_name]
 
     def set_pose_transition(self, start_pose, end_pose, value):
         start_pose = self.poses[start_pose]
