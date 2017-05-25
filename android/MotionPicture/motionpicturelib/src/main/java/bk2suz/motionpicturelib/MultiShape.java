@@ -2,6 +2,7 @@ package bk2suz.motionpicturelib;
 
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -27,7 +28,8 @@ public class MultiShape extends Shape {
 
     public MultiShapeTimeLine getLastTimeLine() {
         if (mMultiShapeTimeLines == null) return null;
-        return mMultiShapeTimeLines.values().toArray(new MultiShapeTimeLine[0])[0];
+        MultiShapeTimeLine[] timelines = mMultiShapeTimeLines.values().toArray(new MultiShapeTimeLine[0]);
+        return timelines[0];
     }
 
     public Shape getChildShape(String shapeName) {
@@ -58,12 +60,23 @@ public class MultiShape extends Shape {
     public void setPose(String poseName) {
         if (!mPoses.containsKey(poseName)) return;
         for(Map.Entry<String, PoseShape> poseEntry: mPoses.get(poseName).mPoseShapes.entrySet()) {
-            Shape shape = getChildShape(poseEntry.getKey());
+            String shapeName = poseEntry.getKey();
+            Shape shape;
+            if (shapeName == null) {
+                shape = this;
+                Log.d("GALA", "i got thi");
+            } else {
+                shape = getChildShape(shapeName);
+            }
             if(shape == null) continue;
             for(Map.Entry<PropName, Object> poseShapeEntry: poseEntry.getValue().mPropMap.entrySet()) {
-                shape.setProperty(poseShapeEntry.getKey(), poseShapeEntry.getValue(), null);
+                PropName propName = poseShapeEntry.getKey();
+                shape.setProperty(propName, poseShapeEntry.getValue(), null);
             }
-            shape.mTranslation.translate(mAnchorAt.x, mAnchorAt.y);
+            Point relAbsAnchorAt = (Point) poseEntry.getValue().mPropMap.get(PropName.REL_ABS_ANCHOR_AT);
+            relAbsAnchorAt.translate(mAnchorAt.x, mAnchorAt.y);
+            shape.moveTo(relAbsAnchorAt.x, relAbsAnchorAt.y);
+
         }
         readjustSizes();
     }
@@ -101,7 +114,12 @@ public class MultiShape extends Shape {
                     shape.mPreMatrix.setInBetween((Matrix) startValue, (Matrix) endValue, frac);
                 }
             }
-            shape.mTranslation.translate(mAnchorAt.x, mAnchorAt.y);
+            Point startRelAbsAnchorAt = (Point) startPoseEntry.getValue().mPropMap.get(PropName.REL_ABS_ANCHOR_AT);
+            Point endRelAbsAnchorAt = (Point)  endPoseShape.mPropMap.get(PropName.REL_ABS_ANCHOR_AT);
+            Point relAbsAnchorAt = new Point(0F, 0F);
+            relAbsAnchorAt.setInBetween(startRelAbsAnchorAt, endRelAbsAnchorAt, frac);
+            relAbsAnchorAt.translate(mAnchorAt.x, mAnchorAt.y);
+            shape.moveTo(relAbsAnchorAt.x, relAbsAnchorAt.y);
         }
         readjustSizes();
     }
@@ -134,6 +152,12 @@ public class MultiShape extends Shape {
         for(Map.Entry<String, Shape> entry: mChildShapes.entrySet()) {
             entry.getValue().draw(canvas);
         }
+        /*
+        canvas.save();
+        preDraw(canvas);
+        canvas.drawRect(new RectF(mAnchorAt.x, mAnchorAt.y, mAnchorAt.x+20, mAnchorAt.y+20), mBorderPaint);
+        canvas.restore();
+        */
     }
 
     public static MultiShape createFromXml(XmlPullParser parser)
@@ -231,6 +255,7 @@ public class MultiShape extends Shape {
                 switch(propName) {
                     case ANCHOR_AT:
                     case TRANSLATION:
+                    case REL_ABS_ANCHOR_AT:
                         propValue = Point.createFromText(propValueText);
                         break;
                     case FILL_COLOR:

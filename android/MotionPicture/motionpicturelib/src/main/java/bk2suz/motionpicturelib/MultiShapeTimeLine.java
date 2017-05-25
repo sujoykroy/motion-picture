@@ -34,7 +34,12 @@ public class MultiShapeTimeLine {
             }
             if (parser.getName().equals(ShapeTimeLine.TAG_NAME)) {
                 String shapeName = parser.getAttributeValue(null, "shape_name");
-                Shape shape = multiShape.getChildShape(shapeName);
+                Shape shape;
+                if (shapeName == null) {
+                    shape = multiShape;
+                } else {
+                    shape = multiShape.getChildShape(shapeName);
+                }
                 if (shape != null) {
                     ShapeTimeLine shapeTimeLine = ShapeTimeLine.createFromXml(parser, shape);
                     if (shapeTimeLine != null && shape != null) {

@@ -42,6 +42,26 @@ public abstract class Shape {
         mBorderPaint.setStrokeCap(Paint.Cap.ROUND);
     }
 
+    public static Color parseColor(String text) {
+        if (text == null) return null;
+        String[] segments = text.split(":");
+        if (segments.length == 1) {
+            return FlatColor.createFromText(segments[0]);
+        } else if (segments[0].equals(LinearGradientColor.TYPE_NAME)) {
+            return LinearGradientColor.createFromText(segments[1]);
+        } else if (segments[0].equals(RadialGradientColor.TYPE_NAME)) {
+            return RadialGradientColor.createFromText(segments[1]);
+        }
+        return null;
+    }
+
+    public static boolean isShapeTagType(XmlPullParser parser, String shapeTypeName)
+            throws XmlPullParserException, IOException {
+        parser.require(XmlPullParser.START_TAG, null, "shape");
+        String shapeType = parser.getAttributeValue(null, "type");
+        return !shapeType.equals(shapeTypeName);
+    }
+
     public String getName() {
         return mName;
     }
@@ -163,12 +183,33 @@ public abstract class Shape {
         }
     }
 
+    public Point getXY() {
+        Point xy = getAbsoluteAnchorAt();
+        if (mParentShape != null) {
+            xy.x -= mParentShape.mAnchorAt.x;
+            xy.y -= mParentShape.mAnchorAt.y;
+        }
+        return xy;
+    }
+
+    public void setXY(Point xy) {
+        if (mParentShape != null) {
+            moveTo(xy.x+mParentShape.mAnchorAt.x, xy.y+mParentShape.mAnchorAt.y);
+        } else {
+            moveTo(xy.x, xy.y);
+        }
+    }
+
     public void setX(Float x) {
-        moveTo(x, getAbsoluteAnchorAt().y);
+        Point xy = getXY();
+        xy.x = x;
+        setXY(xy);
     }
 
     public void setY(Float y) {
-        moveTo(getAbsoluteAnchorAt().x, y);
+        Point xy = getXY();
+        xy.y = y;
+        setXY(xy);
     }
 
     public void setStageX(Float x) {
@@ -217,7 +258,6 @@ public abstract class Shape {
         absAnchorAt.translate(mTranslation.x, mTranslation.y);
         return absAnchorAt;
     }
-
 
     public Point transformPoint(Point point) {
         point = point.copy();
@@ -330,25 +370,5 @@ public abstract class Shape {
                 mPreMatrix = (Matrix) value;
                 break;
         }
-    }
-
-    public static Color parseColor(String text) {
-        if (text == null) return null;
-        String[] segments = text.split(":");
-        if (segments.length == 1) {
-            return FlatColor.createFromText(segments[0]);
-        } else if (segments[0].equals(LinearGradientColor.TYPE_NAME)) {
-            return LinearGradientColor.createFromText(segments[1]);
-        } else if (segments[0].equals(RadialGradientColor.TYPE_NAME)) {
-            return RadialGradientColor.createFromText(segments[1]);
-        }
-        return null;
-    }
-
-    public static boolean isShapeTagType(XmlPullParser parser, String shapeTypeName)
-            throws XmlPullParserException, IOException {
-        parser.require(XmlPullParser.START_TAG, null, "shape");
-        String shapeType = parser.getAttributeValue(null, "type");
-        return !shapeType.equals(shapeTypeName);
     }
 }

@@ -8,24 +8,26 @@ import java.io.IOException;
 /**
  * Created by sujoy on 11/10/16.
  */
-public class LoopChangeType extends PeriodicChangeType {
+public class LoopChangeType extends TimeChangeType {
     public static final String TYPE_NAME = "loop";
+    protected Integer mLoopCount;
 
     @Override
     public Float getValueAt(Float startValue, Float endValue, Float t, Float duration) {
-        Float value = super.getValueAt(startValue, endValue, t, duration);
-        Float frac =  t/duration;
-        frac += mPhase/360F;
-        frac %= 1F;
-        value += mAmplitude * frac;
-        return value;
+        Float loopDuration = duration/mLoopCount;
+        t %= loopDuration;
+        return super.getValueAt(startValue, endValue, t, loopDuration);
     }
 
     public static LoopChangeType createFromXml(XmlPullParser parser)
             throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, null, TAG_NAME);
         LoopChangeType changeType = new LoopChangeType();
-        changeType.copyFromXml(parser);
+        try {
+            changeType.mLoopCount = Integer.parseInt(parser.getAttributeValue(null, "count"));
+        } catch (NumberFormatException e) {
+            changeType.mLoopCount = 1;
+        }
         return changeType;
     }
 }

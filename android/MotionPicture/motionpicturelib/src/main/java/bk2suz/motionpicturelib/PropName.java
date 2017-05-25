@@ -44,7 +44,8 @@ public enum PropName {
     FORM("form"),
     START_FORM("start_form"),
     END_FORM("end_form"),
-    TYPE("type");
+    TYPE("type"),
+    REL_ABS_ANCHOR_AT("rel_abs_anchor_at");
 
     private String mXmlName;
 
