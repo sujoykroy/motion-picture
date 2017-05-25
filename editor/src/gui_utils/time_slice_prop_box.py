@@ -240,7 +240,7 @@ class TimeSlicePropBox(Gtk.Frame):
     def set_item_value_for_widget(self, item_widget, value, parse):
         if item_widget.source_name == "periodic":
             source_object = self.time_slice.change_type
-        if item_widget.source_name == "loop":
+        elif item_widget.source_name == "loop":
             source_object = self.time_slice.change_type
         elif item_widget.source_name == "prop_data":
             source_object = self.time_slice.prop_data

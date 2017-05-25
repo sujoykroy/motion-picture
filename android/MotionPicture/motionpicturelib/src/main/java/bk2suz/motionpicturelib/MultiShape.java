@@ -61,19 +61,13 @@ public class MultiShape extends Shape {
         if (!mPoses.containsKey(poseName)) return;
         for(Map.Entry<String, PoseShape> poseEntry: mPoses.get(poseName).mPoseShapes.entrySet()) {
             String shapeName = poseEntry.getKey();
-            Shape shape;
-            if (shapeName == null) {
-                shape = this;
-                Log.d("GALA", "i got thi");
-            } else {
-                shape = getChildShape(shapeName);
-            }
+            Shape shape = getChildShape(shapeName);
             if(shape == null) continue;
             for(Map.Entry<PropName, Object> poseShapeEntry: poseEntry.getValue().mPropMap.entrySet()) {
                 PropName propName = poseShapeEntry.getKey();
                 shape.setProperty(propName, poseShapeEntry.getValue(), null);
             }
-            Point relAbsAnchorAt = (Point) poseEntry.getValue().mPropMap.get(PropName.REL_ABS_ANCHOR_AT);
+            Point relAbsAnchorAt = ((Point) poseEntry.getValue().mPropMap.get(PropName.REL_ABS_ANCHOR_AT)).copy();
             relAbsAnchorAt.translate(mAnchorAt.x, mAnchorAt.y);
             shape.moveTo(relAbsAnchorAt.x, relAbsAnchorAt.y);
 
