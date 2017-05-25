@@ -72,11 +72,13 @@ class MultiShapeTimeLine(object):
         multi_shape_time_line.get_duration()
         return multi_shape_time_line
 
-    def copy(self):
-        newob = MultiShapeTimeLine(name=self.name, multi_shape=self.multi_shape)
+    def copy(self, multi_shape=None):
+        if multi_shape is None:
+            multi_shape = self.multi_shape
+        newob = MultiShapeTimeLine(name=self.name, multi_shape=multi_shape)
         for orig_shape in self.shape_time_lines.keys:
             if orig_shape == self.multi_shape:
-                new_shape = orig_shape
+                new_shape = multi_shape
             else:
                 new_shape = self.multi_shape.shapes[orig_shape.get_name()]
             newob.shape_time_lines.add(

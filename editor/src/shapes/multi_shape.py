@@ -68,7 +68,7 @@ class MultiShape(Shape):
         self.poses = copy_dict(self.linked_to.poses)
         self.timelines.clear()
         for key, timeline in self.linked_to.timelines.items():
-            self.timelines[key] = timeline.copy()
+            self.timelines[key] = timeline.copy(multi_shape=self)
 
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)
