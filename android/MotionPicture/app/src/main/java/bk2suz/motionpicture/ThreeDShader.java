@@ -10,9 +10,10 @@ public class ThreeDShader {
                 +   "attribute vec4 aPosition;"
                 +   "attribute vec2 aTexCoords;"
                 +   "varying vec2 vTexCoords;"
+                +   "uniform mat4 uMVPMatrix;"
                 +   "void main() {"
                 +   "   vTexCoords = aTexCoords;"
-                +   "   gl_Position = aPosition;"
+                +   "   gl_Position = uMVPMatrix * aPosition;"
                 +   "}";
 
     public static final String sFragmentShaderCode = ""
@@ -43,16 +44,18 @@ public class ThreeDShader {
     }
 
     public static int getVertexShader() {
-        if (sVertexShaderId<0) {
+        return loadShader(GLES20.GL_VERTEX_SHADER, sVertexShaderCode);
+        /*if (sVertexShaderId<0) {
             sVertexShaderId = loadShader(GLES20.GL_VERTEX_SHADER, sVertexShaderCode);
         }
-        return sVertexShaderId;
+        return sVertexShaderId;*/
     }
 
     public static int getFragmentShader() {
-        if (sFragmentShaderId<0) {
+        return loadShader(GLES20.GL_FRAGMENT_SHADER, sFragmentShaderCode);
+        /*if (sFragmentShaderId<0) {
             sFragmentShaderId = loadShader(GLES20.GL_FRAGMENT_SHADER, sFragmentShaderCode);
         }
-        return sFragmentShaderId;
+        return sFragmentShaderId;*/
     }
 }

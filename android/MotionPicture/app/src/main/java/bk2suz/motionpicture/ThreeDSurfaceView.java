@@ -25,17 +25,22 @@ public class ThreeDSurfaceView extends GLSurfaceView {
         doInit();
     }
 
+
     public void doInit() {
         setEGLContextClientVersion(2);
         mRenderer = new ThreeDSurfaceRenderer(getContext());
         setRenderer(mRenderer);
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        //setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         setWillNotDraw(false);
+    }
+
+    public void setPolygonGroup3D(PolygonGroup3D polygonGroup) {
+        mRenderer.setPolygonGroup3D(polygonGroup);
     }
 
     @Override

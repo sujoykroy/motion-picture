@@ -21,31 +21,57 @@ public class Polygon3D {
     private float[] mVertices = null;
     private short[] mVertexOrder = null;
     private float[] mTexCoords = null;
-    private float[] mDiffuseColor = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
+    private float[] mDiffuseColor = null;
     private String mTextureName = null;
 
     private FloatBuffer mVertexBuffer;
     private ShortBuffer mVertexOrderBuffer;
     private FloatBuffer mTexCoordBuffer;
 
-    private final int mGLProgram;
-    private int mGLPositionHandle;
-    private int mGLTexCoordsHandle;
-    private int mGLColorHandle;
-    private int mGLHasTextureHandle;
-    private int mGLTextureHandle;
+    static class Program3D {
+        private final int mGLProgram;
+        private int mGLPositionHandle;
+        private int mGLTexCoordsHandle;
+        private int mGLColorHandle;
+        private int mGLHasTextureHandle;
+        private int mGLTextureHandle;
+        private int mMVPMatrixHandle;
+
+        public Program3D() {
+            mGLProgram = GLES20.glCreateProgram();
+            GLES20.glAttachShader(mGLProgram, ThreeDShader.getVertexShader());
+            GLES20.glAttachShader(mGLProgram, ThreeDShader.getFragmentShader());
+            GLES20.glLinkProgram(mGLProgram);
+        }
+    }
+
+    private static Program3D sProgram3D = null;
+
+    public static void createProgram() {
+        if (sProgram3D == null) {
+            sProgram3D = new Program3D();
+            //Log.d("GALA", "ssome");
+        }
+    }
+
+    private PolygonGroup3D mParentGroup = null;
+    private float[] mActiveDiffuseColor;
 
     public Polygon3D(float[] vertices) {
         setVertices(vertices);
 
-        mGLProgram = GLES20.glCreateProgram();
-        GLES20.glAttachShader(mGLProgram, ThreeDShader.getVertexShader());
-        GLES20.glAttachShader(mGLProgram, ThreeDShader.getFragmentShader());
-        GLES20.glLinkProgram(mGLProgram);
+    }
+
+    public void setParentGroup(PolygonGroup3D parentGroup) {
+        mParentGroup = parentGroup;
     }
 
     public void setTextureName(String textureName) {
         mTextureName = textureName;
+    }
+
+    public void setDiffuseColor(float[] color) {
+        mDiffuseColor = Arrays.copyOf(color, color.length);
     }
 
     public void setVertices(float[] vertices) {
@@ -86,38 +112,47 @@ public class Polygon3D {
         mTexCoordBuffer.position(0);
     }
 
-    public void draw(ThreeDTexture textureStore) {
-        GLES20.glUseProgram(mGLProgram);
+    public void draw(float[] mvpMatrix, ThreeDTexture textureStore) {
+        GLES20.glUseProgram(sProgram3D.mGLProgram);
 
-        mGLPositionHandle = GLES20.glGetAttribLocation(mGLProgram, "aPosition");
-        GLES20.glEnableVertexAttribArray(mGLPositionHandle);
-        GLES20.glVertexAttribPointer(mGLPositionHandle,
+        sProgram3D.mMVPMatrixHandle = GLES20.glGetUniformLocation(sProgram3D.mGLProgram, "uMVPMatrix");
+        GLES20.glUniformMatrix4fv(sProgram3D.mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+
+        sProgram3D.mGLPositionHandle = GLES20.glGetAttribLocation(sProgram3D.mGLProgram, "aPosition");
+        GLES20.glEnableVertexAttribArray(sProgram3D.mGLPositionHandle);
+        GLES20.glVertexAttribPointer(sProgram3D.mGLPositionHandle,
                 COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, mVertexBuffer);
 
-        mGLColorHandle = GLES20.glGetUniformLocation(mGLProgram, "uColor");
-        GLES20.glUniform4fv(mGLColorHandle, 1, mDiffuseColor, 0);
-
-        mGLHasTextureHandle = GLES20.glGetUniformLocation(mGLProgram, "uHasTexture");
+        sProgram3D.mGLHasTextureHandle = GLES20.glGetUniformLocation(sProgram3D.mGLProgram, "uHasTexture");
         if (mTextureName != null) {
-            GLES20.glUniform1i(mGLHasTextureHandle, 1);
+            GLES20.glUniform1i(sProgram3D.mGLHasTextureHandle, 1);
 
-            mGLTexCoordsHandle = GLES20.glGetAttribLocation(mGLProgram, "aTexCoords");
-            GLES20.glEnableVertexAttribArray(mGLTexCoordsHandle);
-            GLES20.glVertexAttribPointer(mGLTexCoordsHandle,
+            sProgram3D.mGLTexCoordsHandle = GLES20.glGetAttribLocation(sProgram3D.mGLProgram, "aTexCoords");
+            GLES20.glEnableVertexAttribArray(sProgram3D.mGLTexCoordsHandle);
+            GLES20.glVertexAttribPointer(sProgram3D.mGLTexCoordsHandle,
                     COORDS_PER_TEXTURE, GLES20.GL_FLOAT, false, TEXTURE_STRIDE, mTexCoordBuffer);
 
-            mGLTextureHandle = GLES20.glGetUniformLocation(mGLProgram, "uTexture");
+            sProgram3D.mGLTextureHandle = GLES20.glGetUniformLocation(sProgram3D.mGLProgram, "uTexture");
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureStore.getTextureHandle(mTextureName));
-            GLES20.glUniform1i(mGLTextureHandle, 0);
+            GLES20.glUniform1i(sProgram3D.mGLTextureHandle, 0);
         } else {
-            GLES20.glUniform1i(mGLHasTextureHandle, 0);
+            GLES20.glUniform1i(sProgram3D.mGLHasTextureHandle, 0);
+            mActiveDiffuseColor = mDiffuseColor;
+            if (mActiveDiffuseColor == null) {
+                mActiveDiffuseColor = mParentGroup.getDiffuseColor();
+            }
+            sProgram3D.mGLColorHandle = GLES20.glGetUniformLocation(sProgram3D.mGLProgram, "uColor");
+            GLES20.glUniform4fv(sProgram3D.mGLColorHandle, 1, mActiveDiffuseColor, 0);
+
         }
 
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, mVertexOrder.length,
                 GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);
+        /*GLES20.glDrawElements(GLES20.GL_LINE_LOOP, mVertexOrder.length,
+                GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);*/
         //GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, mVertices.length/COORDS_PER_VERTEX);
 
-        GLES20.glDisableVertexAttribArray(mGLPositionHandle);
+        GLES20.glDisableVertexAttribArray(sProgram3D.mGLPositionHandle);
     }
 }
