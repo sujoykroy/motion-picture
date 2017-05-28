@@ -27,6 +27,7 @@ public class OpenGLActivity extends AppCompatActivity {
         mSeekBarObjectRotateZ = (SeekBar) findViewById(R.id.seekBarObjectRotateZ);
 
         mPolygonGroup1 = PolygonGroup3D.createCube(.5f);
+        //mPolygonGroup1 = PolygonGroup3D.createAxes(.5f);
         //mPolygonGroup2 = PolygonGroup3D.createCube(.8f);
 
         mSurfaceView1 = (ThreeDSurfaceView) findViewById(R.id.surfaceView1);

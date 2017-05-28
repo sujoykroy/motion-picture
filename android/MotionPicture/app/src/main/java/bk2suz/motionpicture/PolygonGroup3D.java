@@ -16,12 +16,34 @@ public class PolygonGroup3D extends Object3D {
 
     public void draw(ThreeDTexture textureStore) {
         for(Polygon3D polygon: mPolygons) {
-            polygon.draw(mViewMatrix, textureStore);
+            polygon.draw(mModelMatrix, textureStore);
         }
     }
 
     public float[] getDiffuseColor() {
         return mDiffuseColor;
+    }
+
+    public static PolygonGroup3D createAxes(float lineLength) {
+        PolygonGroup3D axes = new PolygonGroup3D();
+        Polygon3D polygon;
+
+        polygon = new Polygon3D(new float[] {0, 0, 0, lineLength, 0, 0});
+        polygon.setDiffuseColor(new float[] {1, 0, 0, 1});
+        polygon.setIsLineDrawing(true);
+        axes.addPolygon(polygon);
+
+        polygon = new Polygon3D(new float[] {0, 0, 0, 0, lineLength, 0});
+        polygon.setDiffuseColor(new float[] {0, 1, 0, 1});
+        polygon.setIsLineDrawing(true);
+        axes.addPolygon(polygon);
+
+        polygon = new Polygon3D(new float[] {0, 0, 0, 0, 0, lineLength});
+        polygon.setDiffuseColor(new float[] {0, 0, 1, 1});
+        polygon.setIsLineDrawing(true);
+        axes.addPolygon(polygon);
+
+        return axes;
     }
 
     public static PolygonGroup3D createCube(float sideSize) {
@@ -38,8 +60,8 @@ public class PolygonGroup3D extends Object3D {
                 0f, sideSize, sideSize,
         };
         int[][] faceIndices = {
-                {0, 3, 2, 1}, //top
-                {4, 5, 6, 7}, //bottom
+                {0, 3, 2, 1}, //bottom
+                {4, 5, 6, 7}, //top
                 {0, 1, 5, 4},
                 {1, 2, 6, 5},
                 {2, 3, 7, 6},
@@ -54,13 +76,15 @@ public class PolygonGroup3D extends Object3D {
                 vertices[j*3+2] = allVertices[k+2];
             }
             Polygon3D polygon = new Polygon3D(vertices);
-            polygon.setTextureName("mipmap/ic_launcher");
-            polygon.setTexCoords(new float[] {
-                    0.0F, 1F,
-                    0F, 0F,
-                    1F, 0F,
-                    1F, 1F
-            });
+            if (i==1) {
+                polygon.setTextureName("mipmap/ic_launcher");
+                polygon.setTexCoords(new float[]{
+                        0, 0,
+                        1, 0,
+                        1, 1,
+                        0, 1
+                });
+            }
             cube.addPolygon(polygon);
         }
         return cube;

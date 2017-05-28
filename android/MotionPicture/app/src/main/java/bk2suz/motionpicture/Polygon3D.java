@@ -28,6 +28,8 @@ public class Polygon3D {
     private ShortBuffer mVertexOrderBuffer;
     private FloatBuffer mTexCoordBuffer;
 
+    private boolean mIsLineDrawing = false;
+
     static class Program3D {
         private final int mGLProgram;
         private int mGLPositionHandle;
@@ -62,6 +64,10 @@ public class Polygon3D {
 
     }
 
+    public void setIsLineDrawing(boolean value) {
+        mIsLineDrawing = value;
+    }
+
     public void setParentGroup(PolygonGroup3D parentGroup) {
         mParentGroup = parentGroup;
     }
@@ -77,12 +83,20 @@ public class Polygon3D {
     public void setVertices(float[] vertices) {
         mVertices = Arrays.copyOf(vertices, vertices.length);
         mVertexCount = vertices.length/COORDS_PER_VERTEX;
-        mVertexOrder = new short[3+(mVertexCount-3)*3];
+        int vertexOrderSize;
+        if(mVertexCount<=3) {
+            vertexOrderSize = mVertexCount;
+        } else {
+            vertexOrderSize = 3+(mVertexCount-3)*3;
+        }
+        mVertexOrder = new short[vertexOrderSize];
         int startCounter = 1;
         for(int i=0; i<mVertexOrder.length; i+=3) {
             mVertexOrder[i] = 0;
             mVertexOrder[i+1] = (short) startCounter;
-            mVertexOrder[i+2] = (short) (startCounter+1);
+            if((i+2)<mVertexOrder.length) {
+                mVertexOrder[i + 2] = (short) (startCounter + 1);
+            }
             startCounter += 1;
         }
 
@@ -103,6 +117,9 @@ public class Polygon3D {
 
     public void setTexCoords(float[] texCoords) {
         mTexCoords = Arrays.copyOf(texCoords, texCoords.length);
+        for(int i=1; i<mTexCoords.length; i+=2) {
+            mTexCoords[i] = 1-mTexCoords[i];
+        }
 
         ByteBuffer bb;
         bb = ByteBuffer.allocateDirect(mTexCoords.length*FLOAT_BYTE_COUNT);
@@ -147,10 +164,13 @@ public class Polygon3D {
 
         }
 
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, mVertexOrder.length,
-                GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);
-        /*GLES20.glDrawElements(GLES20.GL_LINE_LOOP, mVertexOrder.length,
-                GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);*/
+        if (!mIsLineDrawing) {
+            GLES20.glDrawElements(GLES20.GL_TRIANGLES, mVertexOrder.length,
+                    GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);
+        } else {
+            GLES20.glDrawElements(GLES20.GL_LINES, mVertexOrder.length,
+                    GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);
+        }
         //GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, mVertices.length/COORDS_PER_VERTEX);
 
         GLES20.glDisableVertexAttribArray(sProgram3D.mGLPositionHandle);

@@ -10,14 +10,14 @@ public class Projection3D {
     private float mProjectionRight = 1f;
     private float mProjectionTop = 1f;
     private float mProjectionBottom = -1f;
-    private float mProjectionNear = 3f;
-    private float mProjectionFar = 7f;
+    private float mProjectionNear = -10;
+    private float mProjectionFar = 2;
 
     private final float[] mProjectionMatrix = new float[16];
 
 
     public void precalculate() {
-        Matrix.frustumM(
+        Matrix.orthoM(
                 mProjectionMatrix, 0,
                 mProjectionLeft, mProjectionRight,
                 mProjectionBottom, mProjectionTop,
