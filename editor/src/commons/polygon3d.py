@@ -5,7 +5,10 @@ from texture_map_color import TextureMapColor
 from misc import *
 from draw_utils import *
 
+from xml.etree.ElementTree import Element as XmlElement
+
 class Polygon3d(Object3d):
+    TAG_NAME = "pl3"
     Items = []
 
     def __init__(self, parent, point_indices, temporary=False,
@@ -30,15 +33,31 @@ class Polygon3d(Object3d):
         if not temporary:
             Polygon3d.Items.append(self)
 
+    """
     def copy(self):
         newob = Polygon3d(
             parent=self.parent,
             point_indices=self.point_indices[: -1 if self.closed else None],
-            closd=self.closed,
+            closed=self.closed,
             border_color=self.border_color,
             fill_color=self.fill_color,
             border_width=self.border_width)
         return newob
+    """
+
+    def get_xml_element(self):
+        elm = XmlElement(self.TAG_NAME)
+        self.load_xml_elements(elm)
+        if not self.closed:
+            elm.attrib["closed"] = "0";
+        if self.fill_color:
+            elm.attrib["fc"] = self.fill_color.to_text()
+        if self.border_color:
+            elm.attrib["bc"] = self.border_color.to_text()
+        if self.border_width:
+            elm.attrib["bw"] = "{0}".format(self.border_width)
+        elm.text = ",".join(self.point_indices);
+        return elm
 
     def get_z_cut(self, camera, x, y):
         plane_params =self.plane_params[camera]

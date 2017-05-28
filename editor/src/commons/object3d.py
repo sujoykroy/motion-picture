@@ -14,7 +14,28 @@ class Object3d(object):
         self.parent = None
         self.id_num = Object3d.IdSeed
         self.extra_reverse_matrix = None
+        self.texture_resources = None
         Object3d.IdSeed += 1
+
+    def load_xml_elements(self, elm):
+        if self.rotation.get_x() !=0 or self.rotation.get_y() !=0 or self.rotation.get_z() !=0:
+            elm.attrib["rot"] = self.rotation.to_text()
+        if self.translation.get_x() !=0 or self.translation.get_y() !=0 or self.translation.get_z() !=0:
+            elm.attrib["tr"] = self.translation.to_text()
+        if self.scale.get_x() !=1 or self.scale.get_y() !=1 or self.scale.get_z()!=1:
+            elm.attrib["sc"] = self.scale.to_text()
+        if self.extra_reverse_matrix is not None:
+            arr = []
+            for i in range(self.extra_reverse_matrix.shape[0]):
+                for j in range(self.extra_reverse_matrix.shape[1]):
+                    arr.append("{0}".format(self.extra_reverse_matrix[i][j]))
+            elm.attrib["mtx"] = ",".join(arr)
+
+    def get_texture_resources(self):
+        if self.texture_resources is None:
+            if self.parent is not None:
+                return self.parent.get_texture_resources()
+        return self.texture_resources
 
     def __eq__(self, other):
         return isinstance(other, Object3d) and self.id_num == other.id_num

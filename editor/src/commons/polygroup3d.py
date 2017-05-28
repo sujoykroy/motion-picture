@@ -1,15 +1,19 @@
 import numpy
+from xml.etree.ElementTree import Element as XmlElement
 
 from object3d import Object3d
 from polygon3d import Polygon3d
 from point3d import Point3d
 from misc import *
 
+
 DEFAULT_BORDER_COLOR = "000000"
 DEFAULT_FILL_COLOR = "CCCCCC"
 DEFAULT_BORDER_WIDTH = 1
 
 class PolyGroup3d(Object3d):
+    TAG_NAME = "polygrp3"
+
     def __init__(self, points, polygons,
                        kind="linear",
                        force_style=False,
@@ -35,6 +39,22 @@ class PolyGroup3d(Object3d):
         self.world_point_values = None
         self.point_projections = dict()
         self.point_indices_sorted = dict()
+
+    def get_xml_element(self):
+        elm = XmlElement(self.TAG_NAME)
+        self.load_xml_elements(elm)
+        if self.fill_color:
+            elm.attrib["fc"] = self.fill_color.to_text()
+        if self.border_color:
+            elm.attrib["bc"] = self.border_color.to_text()
+        if self.border_width:
+            elm.attrib["bw"] = "{0}".format(self.border_width)
+
+        point_values = []
+        for point in self.points:
+            point_values.append(point.to_text())
+        elm.text = ",".join(point_values);
+        return elm
 
     def add_polygon(self, polygon, force_style=False):
         if not isinstance(polygon, Polygon3d):

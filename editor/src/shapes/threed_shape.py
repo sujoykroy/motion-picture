@@ -37,6 +37,7 @@ class ThreeDShape(RectangleShape):
             elm.attrib["wire_color"] = self.wire_color.to_text()
         elm.attrib["wire_width"] = "{0}".format(self.wire_width)
         elm.attrib["high_quality"] = "{0}".format(int(self.high_quality))
+        elm.append(self.d3_object.get_xml_element())
         return elm
 
     @classmethod

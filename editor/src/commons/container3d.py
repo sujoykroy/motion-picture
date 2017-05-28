@@ -4,15 +4,29 @@ from polygroup3d import PolyGroup3d
 from texture_map_color import TextureMapColor
 
 from colors import Color
+from texture_map_color import *
 
 import os, numpy, cairo
 import collada
+from xml.etree.ElementTree import Element as XmlElement
 
 class Container3d(Object3d):
+    TAG_NAME = "contariner3d"
+
     def __init__(self):
         super(Container3d, self).__init__()
         self.items = []
         self.item_names = []
+
+    def get_xml_element(self):
+        elm = XmlElement(self.TAG_NAME)
+        self.load_xml_elements(elm)
+        for i in range(len(self.items)):
+            item = self.items[i]
+            item_elm = item.get_xml_element()
+            item_elm.attrib["name"] = self.item_names[i]
+            elm.append(item_elm)
+        return elm
 
     def clear(self):
         del self.items[:]
@@ -53,7 +67,9 @@ class Container3d(Object3d):
     def load_from_collada(self, filepath, scale=1):
         mesh = collada.Collada(filepath)
         geometries = dict()
-        resources = dict()
+
+        if self.texture_resources is None:
+            self.texture_resources = TextureResources()
         for geometry in mesh.geometries:
             points = None
             polygons = []
@@ -66,9 +82,17 @@ class Container3d(Object3d):
                         if isinstance(diffuse, tuple):
                             fill_color = Color(diffuse[0], diffuse[1], diffuse[2], 1)
                         elif isinstance(diffuse, collada.material.Map):
-                            image_path=diffuse.sampler.surface.image.path
-                            resources[image_path] = image_path
-                            fill_color = TextureMapColor(image_path, item.texcoords)
+                            image_path= diffuse.sampler.surface.image.path
+                            if not self.texture_resources.contains(image_path):
+                                rpath = os.path.join(os.path.dirname(filepath), image_path)
+                                rpath = rpath.replace("%20", " ")
+                                self.texture_resources.add_resource(image_path, rpath)
+
+                            fill_color = TextureMapColor(
+                                self.texture_resources,
+                                self.texture_resources.get_index(image_path),
+                                item.texcoords)
+
                     polygon = [list(item.indices+point_count), fill_color]
                     polygons.append(polygon)
                 if points is None:
@@ -78,12 +102,6 @@ class Container3d(Object3d):
                 point_count = points.shape[0]
             geometries[geometry.name] = (points, polygons)
 
-        effected_resources = dict()
-        for key in resources:
-            rpath = os.path.join(os.path.dirname(filepath), resources[key])
-            rpath = rpath.replace("%20", " ")
-            if os.path.isfile(rpath):
-                TextureMapColor.Surfaces[key] = cairo.ImageSurface.create_from_png(rpath)
         for scene in mesh.scenes:
             for node in scene.nodes:
                 transform = node.transforms[0].matrix

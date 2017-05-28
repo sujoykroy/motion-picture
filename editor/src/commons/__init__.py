@@ -16,6 +16,7 @@ from object3d import Object3d
 from polygon3d import Polygon3d
 from polygroup3d import PolyGroup3d
 from camera3d import Camera3d
+from texture_map_color import TextureResources
 from texture_map_color import TextureMapColor
 from container3d import Container3d
 

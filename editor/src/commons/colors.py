@@ -1,5 +1,6 @@
 import cairo
 from point import Point
+from texture_map_color import *
 
 class Color(object):
     def __init__(self, red, green, blue, alpha):
@@ -225,6 +226,8 @@ def color_from_text(text):
         return LinearGradientColor.from_text(arr[1])
     elif color_type == RadialGradientColor.COLOR_TYPE_NAME:
         return RadialGradientColor.from_text(arr[1])
+    elif color_type == TextureMapColor.COLOR_TYPE_NAME:
+        return TextureMapColor.from_text(arr[1])
 
 def color_copy(color):
     if color is None:
