@@ -54,7 +54,9 @@ class PolyGroup3d(Object3d):
         point_values = []
         for point in self.points:
             point_values.append(point.to_text())
-        elm.text = ",".join(point_values);
+        points_elm = XmlElement("points")
+        points_elm.text = ",".join(point_values);
+        elm.append(points_elm)
 
         for polygon in self.polygons:
             elm.append(polygon.get_xml_element())
@@ -64,11 +66,11 @@ class PolyGroup3d(Object3d):
     def create_from_xml_element(cls, elm):
         border_color = color_from_text(elm.attrib.get("bc", None))
         fill_color = color_from_text(elm.attrib.get("fc", None))
-        border_width = elm.attrib.get("_text", None)
+        border_width = elm.attrib.get("border_width", None)
         if border_width is not None:
             border_width = float(border_width)
 
-        points = [float(p) for p in elm.text.split(",")]
+        points = [float(p) for p in elm.find("points").text.split(",")]
         points = numpy.array(points).reshape(-1, 3)
 
         polygons = []

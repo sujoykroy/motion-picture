@@ -56,17 +56,19 @@ class Polygon3d(Object3d):
             elm.attrib["bc"] = Text.to_text(self.border_color)
         if self.border_width is not None:
             elm.attrib["bw"] = "{0}".format(self.border_width)
-        elm.text = ",".join(str(p) for p in self.point_indices)
+        point_indices_elm = XmlElement("pi")
+        point_indices_elm.text = ",".join(str(p) for p in self.point_indices)
+        elm.append(point_indices_elm)
         return elm
 
     @classmethod
     def create_from_xml_element(cls, elm):
         border_color = color_from_text(elm.attrib.get("bc", None))
         fill_color = color_from_text(elm.attrib.get("fc", None))
-        border_width = elm.attrib.get("_text", None)
+        border_width = elm.attrib.get("border_width", None)
         if border_width is not None:
             border_width = float(border_width)
-        point_indices = [int(p) for p in elm.text.split(",")]
+        point_indices = [int(p) for p in elm.find("pi").text.split(",")]
         newob = cls(parent=None, point_indices=point_indices,
                     border_color=border_color, fill_color=fill_color,
                     border_width=border_width)

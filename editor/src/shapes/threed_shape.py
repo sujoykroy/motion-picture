@@ -33,7 +33,6 @@ class ThreeDShape(RectangleShape):
         elm = super(ThreeDShape, self).get_xml_element()
         elm.attrib["filepath"] = self.filepath
         elm.attrib["camera_rotation"] = self.camera.rotation.to_text()
-        elm.attrib["object_scale"] = "{0}".format(self.get_object_scale())
         if self.wire_color:
             elm.attrib["wire_color"] = self.wire_color.to_text()
         elm.attrib["wire_width"] = "{0}".format(self.wire_width)
@@ -49,7 +48,6 @@ class ThreeDShape(RectangleShape):
         shape.wire_width = float(elm.attrib["wire_width"])
         shape.set_filepath(elm.attrib.get("filepath", ""), load_file=False)
         shape.high_quality = bool(int(elm.attrib["high_quality"]))
-        shape.set_object_scale(float(elm.attrib["object_scale"]))
 
         container3d_elm = elm.find(Container3d.TAG_NAME)
         if container3d_elm and not shape.d3_object.items:
