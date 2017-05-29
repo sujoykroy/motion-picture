@@ -9,6 +9,10 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
+import bk2suz.motionpicturelib.Commons.Point;
+import bk2suz.motionpicturelib.Shapes.MultiShape;
+import bk2suz.motionpicturelib.TimeLines.MultiShapeTimeLine;
+
 /**
  * Created by sujoy on 8/10/16.
  */
@@ -96,7 +100,7 @@ public class Document {
         if(mClip) {
             canvas.clipRect(0, 0, mWidth, mHeight);
         }
-        canvas.translate(-mMainMultiShape.mAnchorAt.x, -mMainMultiShape.mAnchorAt.y);
+        canvas.translate(-mMainMultiShape.getAnchorX(), -mMainMultiShape.getAnchorY());
         mMainMultiShape.draw(canvas);
         canvas.restore();
     }

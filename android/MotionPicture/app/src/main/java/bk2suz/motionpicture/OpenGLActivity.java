@@ -2,8 +2,10 @@ package bk2suz.motionpicture;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.SeekBar;
+
+import bk2suz.motionpicturelib.Commons.PolygonGroup3D;
+import bk2suz.motionpicturelib.ThreeDSurfaceView;
 
 public class OpenGLActivity extends AppCompatActivity {
     private ThreeDSurfaceView m3DSurfaceView;

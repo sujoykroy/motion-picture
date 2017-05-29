@@ -14,7 +14,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import bk2suz.motionpicturelib.Document;
-import bk2suz.motionpicturelib.TimeLineTask;
+import bk2suz.motionpicturelib.TimeLines.TimeLineTask;
 
 public class MainActivity extends AppCompatActivity {
     ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
