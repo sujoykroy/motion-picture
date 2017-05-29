@@ -185,6 +185,8 @@ public class MultiShape extends Shape {
                     childShape = MultiShape.createFromXml(parser);
                 } else if (childShapeType.equals(TextShape.TYPE_NAME)) {
                     childShape = TextShape.createFromXml(parser);
+                } else if (childShapeType.equals(ThreeDShape.TYPE_NAME)) {
+                    childShape = ThreeDShape.createFromXml(parser);
                 }
                 if (childShape != null) {
                     multiShape.addChildShape(childShape);
@@ -261,7 +263,7 @@ public class MultiShape extends Shape {
                         break;
                     case FILL_COLOR:
                     case BORDER_COLOR:
-                        propValue = parseColor(propValueText);
+                        propValue = Helper.parseColor(propValueText);
                         break;
                     case PRE_MATRIX:
                         propValue = Matrix.createFromText(propValueText);

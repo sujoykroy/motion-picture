@@ -1,13 +1,22 @@
 package bk2suz.motionpicturelib.Commons;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
  * Created by sujoy on 27/5/17.
  */
 public class PolygonGroup3D extends Object3D {
+    public static final String TAG_NAME = "polygrp3";
     private ArrayList<Polygon3D> mPolygons = new ArrayList<>();
     private float[] mDiffuseColor = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
+    protected Color mFillColor;
+    protected Color mBorderColor;
+    protected Float mBorderWidth = null;
+    protected ArrayList<Point3D> mPoints = new ArrayList<>();
 
     public void addPolygon(Polygon3D polygon) {
         mPolygons.add(polygon);
@@ -88,5 +97,46 @@ public class PolygonGroup3D extends Object3D {
             cube.addPolygon(polygon);
         }
         return cube;
+    }
+
+    public static PolygonGroup3D createFromXml(XmlPullParser parser)
+            throws XmlPullParserException, IOException {
+        PolygonGroup3D polygonGroup3D = new PolygonGroup3D();
+        polygonGroup3D.load_from_xml_element(parser);
+        polygonGroup3D.mBorderColor = Helper.parseColor(parser.getAttributeValue(null, "bc"));
+        polygonGroup3D.mFillColor = Helper.parseColor(parser.getAttributeValue(null, "fc"));
+        try {
+            polygonGroup3D.mBorderWidth = Float.parseFloat(parser.getAttributeValue(null, "bc"));
+        } catch (NumberFormatException e) {
+            polygonGroup3D.mBorderWidth = null;
+        }
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                continue;
+            }
+            if (parser.getName().equals("points")) {
+                if(parser.next() == XmlPullParser.TEXT) {
+                    String[] pointsStringArray = parser.getText().split(",");
+                    Float[] pointValues = new Float[pointsStringArray.length];
+                    for(int i=0; i<pointsStringArray.length; i++) {
+                        try {
+                            pointValues[i] = Float.parseFloat(pointsStringArray[i]);
+                        } catch (NumberFormatException e) {
+                            pointValues[i] = 0F;
+                        }
+                    }
+                    for(int i=0; i<pointsStringArray.length; i+=3) {
+                        Point3D point3D = new Point3D(
+                                pointValues[i], pointValues[i+1], pointValues[i+2]);
+                        polygonGroup3D.mPoints.add(point3D);
+                    }
+                }
+            } else if (parser.getName().equals(Polygon.TAG_NAME)) {
+                Polygon3D polygon = Polygon3D.createFromXml(parser);
+                polygonGroup3D.mPolygons.add(polygon);
+            }
+            Helper.skipTag(parser);
+        }
+        return polygonGroup3D;
     }
 }

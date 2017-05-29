@@ -13,6 +13,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 
 import bk2suz.motionpicturelib.Commons.Color;
+import bk2suz.motionpicturelib.Commons.Helper;
 
 /**
  * Created by sujoy on 10/10/16.
@@ -66,7 +67,7 @@ public class TextShape extends RectangleShape {
         }
         mText = parser.getAttributeValue(null, "text");
         setFont(parser.getAttributeValue(null, "font"));
-        setFontColor(parseColor(parser.getAttributeValue(null, "font_color")));
+        setFontColor(Helper.parseColor(parser.getAttributeValue(null, "font_color")));
     }
 
     public void setFont(String font) {

@@ -2,6 +2,10 @@ package bk2suz.motionpicturelib.Commons;
 
 import android.opengl.GLES20;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -16,6 +20,7 @@ public class Polygon3D {
     private static int COORDS_PER_TEXTURE = 2;
     private static int TEXTURE_STRIDE = COORDS_PER_TEXTURE*FLOAT_BYTE_COUNT;
 
+    private int[] mPointIndices;
     private int mVertexCount = 0;
     private float[] mVertices = null;
     private short[] mVertexOrder = null;
@@ -58,9 +63,12 @@ public class Polygon3D {
     private PolygonGroup3D mParentGroup = null;
     private float[] mActiveDiffuseColor;
 
+    private Polygon3D() {
+
+    }
+
     public Polygon3D(float[] vertices) {
         setVertices(vertices);
-
     }
 
     public void setIsLineDrawing(boolean value) {
@@ -173,5 +181,32 @@ public class Polygon3D {
         //GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, mVertices.length/COORDS_PER_VERTEX);
 
         GLES20.glDisableVertexAttribArray(sProgram3D.mGLPositionHandle);
+    }
+
+    public static Polygon3D createFromXml(XmlPullParser parser)
+            throws XmlPullParserException, IOException {
+        Polygon3D polygon3D = new Polygon3D();
+
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                continue;
+            }
+            if (parser.getName().equals("pi")) {
+                if (parser.next() == XmlPullParser.TEXT) {
+                    String[] indicesStringArray = parser.getText().split(",");
+                    int[] pointIndices = new int[indicesStringArray.length];
+                    for (int i = 0; i < indicesStringArray.length; i++) {
+                        try {
+                            pointIndices[i] = Integer.parseInt(indicesStringArray[i]);
+                        } catch (NumberFormatException e) {
+                            pointIndices[i] = 0;
+                        }
+                    }
+                    polygon3D.mPointIndices = pointIndices;
+                }
+            }
+            Helper.skipTag(parser);
+        }
+        return polygon3D;
     }
 }

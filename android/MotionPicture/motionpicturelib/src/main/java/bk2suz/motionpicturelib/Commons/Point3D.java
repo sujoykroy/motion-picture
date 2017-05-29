@@ -55,4 +55,20 @@ public class Point3D {
         mY += y;
         mZ += z;
     }
+
+    public void copyFromText(String text) {
+        if (text == null) {
+            return;
+        }
+        String[] values = text.split(",");
+        if (values.length<3) {
+            return;
+        }
+        try {
+            mX = Float.parseFloat(values[0]);
+            mY = Float.parseFloat(values[1]);
+            mZ = Float.parseFloat(values[2]);
+        } catch (NumberFormatException e) {
+        }
+    }
 }

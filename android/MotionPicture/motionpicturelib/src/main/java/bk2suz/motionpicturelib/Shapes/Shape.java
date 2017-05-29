@@ -13,13 +13,11 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import bk2suz.motionpicturelib.Commons.Color;
-import bk2suz.motionpicturelib.Commons.FlatColor;
-import bk2suz.motionpicturelib.Commons.LinearGradientColor;
+import bk2suz.motionpicturelib.Commons.Helper;
 import bk2suz.motionpicturelib.Commons.Matrix;
 import bk2suz.motionpicturelib.Commons.Point;
 import bk2suz.motionpicturelib.Commons.PropData;
 import bk2suz.motionpicturelib.Commons.PropName;
-import bk2suz.motionpicturelib.Commons.RadialGradientColor;
 
 /**
  * Created by sujoy on 8/10/16.
@@ -49,19 +47,6 @@ public abstract class Shape {
         mBorderPaint.setStyle(Paint.Style.STROKE);
         mBorderPaint.setStrokeJoin(Paint.Join.ROUND);
         mBorderPaint.setStrokeCap(Paint.Cap.ROUND);
-    }
-
-    public static Color parseColor(String text) {
-        if (text == null) return null;
-        String[] segments = text.split(":");
-        if (segments.length == 1) {
-            return FlatColor.createFromText(segments[0]);
-        } else if (segments[0].equals(LinearGradientColor.TYPE_NAME)) {
-            return LinearGradientColor.createFromText(segments[1]);
-        } else if (segments[0].equals(RadialGradientColor.TYPE_NAME)) {
-            return RadialGradientColor.createFromText(segments[1]);
-        }
-        return null;
     }
 
     public static boolean isShapeTagType(XmlPullParser parser, String shapeTypeName)
@@ -111,8 +96,8 @@ public abstract class Shape {
         } catch (NumberFormatException e) {
         }
         mPreMatrix = Matrix.createFromText(parser.getAttributeValue(null, "pre_matrix"));
-        setBorderColor(parseColor(parser.getAttributeValue(null, "border_color")));
-        setFillColor(parseColor(parser.getAttributeValue(null, "fill_color")));
+        setBorderColor(Helper.parseColor(parser.getAttributeValue(null, "border_color")));
+        setFillColor(Helper.parseColor(parser.getAttributeValue(null, "fill_color")));
         try {
             setBorderWidth(Float.parseFloat(parser.getAttributeValue(null, "border_width")));
         } catch (NumberFormatException e) {
