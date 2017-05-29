@@ -60,6 +60,14 @@ class Point3d(object):
     def to_text(self):
         return "{0},{1},{2}".format(self.values[0], self.values[1], self.values[2])
 
+    def load_from_text(self, text):
+        try:
+            arr = text.split(",")
+            self.values[0] = float(arr[0])
+            self.values[1] = float(arr[1])
+            self.values[2] = float(arr[2])
+        except:
+            pass
     @classmethod
     def from_text(cls, text):
         try:

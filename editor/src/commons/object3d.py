@@ -1,5 +1,6 @@
 import math, numpy
 from point3d import Point3d
+from texture_map_color import *
 
 DEG2PI = math.pi/180.
 
@@ -24,12 +25,35 @@ class Object3d(object):
             elm.attrib["tr"] = self.translation.to_text()
         if self.scale.get_x() !=1 or self.scale.get_y() !=1 or self.scale.get_z()!=1:
             elm.attrib["sc"] = self.scale.to_text()
-        if self.extra_reverse_matrix is not None:
+        if self.extra_reverse_matrix is not None and \
+           not numpy.array_equal(self.extra_reverse_matrix, numpy.identity(4)):
             arr = []
             for i in range(self.extra_reverse_matrix.shape[0]):
                 for j in range(self.extra_reverse_matrix.shape[1]):
                     arr.append("{0}".format(self.extra_reverse_matrix[i][j]))
             elm.attrib["mtx"] = ",".join(arr)
+        if self.texture_resources is not None:
+            elm.extend(self.texture_resources.get_xml_elements())
+
+    def load_from_xml_elements(self, elm):
+        rotation_text = elm.attrib.get("rot", None)
+        if rotation_text:
+            self.rotation.load_from_text(rotation_text)
+        translation_text = elm.attrib.get("tr", None)
+        if translation_text:
+            self.translation.load_from_text(translation_text)
+        scale_text = elm.attrib.get("sc", None)
+        if scale_text:
+            self.scale.load_from_text(scale_text)
+        extra_reverse_matrix_text = elm.attrib.get("mtx", None)
+        if extra_reverse_matrix_text:
+            numbers = [float(v) for v in extra_reverse_matrix_text.split(",")]
+            self.extra_reverse_matrix = numpy.array(numbers).reshape((4,4));
+
+        for texture_elm in elm.findall(TextureResources.TAG_NAME):
+            if self.texture_resources is None:
+                self.texture_resources = TextureResources()
+            self.texture_resources.add_resource_from_xml_element(texture_elm)
 
     def get_texture_resources(self):
         if self.texture_resources is None:

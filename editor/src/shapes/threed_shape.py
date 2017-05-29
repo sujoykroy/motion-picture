@@ -1,6 +1,7 @@
 from ..commons import *
 from shape import Shape
 from rectangle_shape import RectangleShape
+
 import math
 DEG2PI = math.pi/180.
 
@@ -46,9 +47,13 @@ class ThreeDShape(RectangleShape):
         shape.camera.rotation = Point3d.from_text(elm.attrib["camera_rotation"])
         shape.wire_color = color_from_text(elm.attrib.get("wire_color", None))
         shape.wire_width = float(elm.attrib["wire_width"])
-        shape.set_filepath(elm.attrib.get("filepath", ""))
+        shape.set_filepath(elm.attrib.get("filepath", ""), load_file=False)
         shape.high_quality = bool(int(elm.attrib["high_quality"]))
         shape.set_object_scale(float(elm.attrib["object_scale"]))
+
+        container3d_elm = elm.find(Container3d.TAG_NAME)
+        if container3d_elm and not shape.d3_object.items:
+            shape.d3_object = Container3d.create_from_xml_element(container3d_elm)
         return shape
 
     def get_object_scale(self):
@@ -109,8 +114,10 @@ class ThreeDShape(RectangleShape):
         if self.wire_color is not None:
            self.should_rebuild_image = True
 
-    def set_filepath(self, filepath):
+    def set_filepath(self, filepath, load_file=True):
         self.filepath = filepath
+        if not load_file:
+            return
         self.d3_object.clear()
         self.d3_object.load_from_file(self.filepath)
 

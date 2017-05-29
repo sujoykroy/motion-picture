@@ -1,13 +1,18 @@
 import numpy, cairo, os
 from misc import *
+from xml.etree.ElementTree import Element as XmlElement
 
 class TextureResources(object):
+    TAG_NAME = "texture"
+
     def __init__(self):
         self.names = []
         self.paths = []
         self.surfaces = []
 
     def add_resource(self, resource_name, resource_path):
+        if resource_name in self.names:
+            return
         self.names.append(resource_name)
         self.paths.append(resource_path)
         if os.path.isfile(resource_path):
@@ -16,11 +21,25 @@ class TextureResources(object):
             surface = None
         self.surfaces.append(surface)
 
+    def add_resource_from_xml_element(self, elm):
+        resource_name = elm.attrib["name"]
+        resource_path = elm.attrib["path"]
+        self.add_resource(resource_name, resource_path)
+
     def contains(self, resource_name):
         return resource_name in self.names
 
     def get_index(self, resource_name):
         return self.names.index(resource_name)
+
+    def get_xml_elements(self):
+        elms = []
+        for i in range(len(self.names)):
+            elm = XmlElement(self.TAG_NAME)
+            elm.attrib["name"] = self.names[i]
+            elm.attrib["path"] = self.paths[i]
+            elms.append(elm)
+        return elms
 
 class TextureMapColor(object):
     COLOR_TYPE_NAME = "tx"
@@ -28,20 +47,24 @@ class TextureMapColor(object):
     def __init__(self, resources, resource_index, texcoords, built=False):
         self.resources = resources
         self.resource_index = resource_index
-        self.texcoords = texcoords
+        self.normalized_texcoords = texcoords
+        self.texcoords = list(texcoords)
         self.built = built
         for i in range(len(self.texcoords)):
-            texcoords = self.texcoords[i]
+            texcoords = self.texcoords[i].copy()
             if texcoords.shape[1] == 2:
                 texcoords = numpy.concatenate(
                     (texcoords, numpy.array(
                         [numpy.ones(texcoords.shape[0], dtype="f")]).T), axis=1)
-                self.texcoords[i] = texcoords
+            self.texcoords[i] = texcoords
+
+    def set_resources(self, resources):
+        self.resources = resources
 
     def to_text(self):
         arr = []
-        for i in range(len(self.texcoords)):
-            texcoords = self.texcoords[i]
+        for i in range(len(self.normalized_texcoords)):
+            texcoords = self.normalized_texcoords[i]
             tarr = []
             for j in range(texcoords.shape[0]):
                 coords = "{0},{1}".format(texcoords[j][0], texcoords[j][1])

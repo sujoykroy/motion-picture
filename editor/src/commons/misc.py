@@ -56,6 +56,13 @@ class Text(object):
                 num_arr.append(num)
         return num_arr
 
+    @classmethod
+    def to_text(cls, item):
+        if isinstance(item, str):
+            return item
+        elif hasattr(item, "to_text"):
+            return item.to_text()
+        return "{0}".format(item)
 
 def format_time(value):
     hour = int(math.floor(value / 3600.))

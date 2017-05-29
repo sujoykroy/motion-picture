@@ -11,7 +11,7 @@ import collada
 from xml.etree.ElementTree import Element as XmlElement
 
 class Container3d(Object3d):
-    TAG_NAME = "contariner3d"
+    TAG_NAME = "container3d"
 
     def __init__(self):
         super(Container3d, self).__init__()
@@ -27,6 +27,19 @@ class Container3d(Object3d):
             item_elm.attrib["name"] = self.item_names[i]
             elm.append(item_elm)
         return elm
+
+    @classmethod
+    def create_from_xml_element(self, elm):
+        newob = Container3d()
+        newob.load_from_xml_elements(elm)
+        texture_resources = newob.get_texture_resources()
+        for polygroup_elm in elm.findall(PolyGroup3d.TAG_NAME):
+            item = PolyGroup3d.create_from_xml_element(polygroup_elm)
+            newob.append(item, name=polygroup_elm.attrib["name"])
+            for polygon in item.polygons:
+                if isinstance(polygon.fill_color, TextureMapColor):
+                    polygon.fill_color.set_resources(texture_resources)
+        return newob
 
     def clear(self):
         del self.items[:]
@@ -113,11 +126,14 @@ class Container3d(Object3d):
                         for i in range(len(polygons_data)):
                             polygon_indices, fill_color = polygons_data[i]
                             polygon = Polygon3d(
-                                    parent=None,
+                                    parent=None, border_width=None,
+                                    border_color=None,
                                     point_indices=polygon_indices,
                                     fill_color=fill_color, closed=True)
                             polygons.append(polygon)
-                        polygroup3d = PolyGroup3d(points=points, polygons=polygons)
+                        polygroup3d = PolyGroup3d(
+                            points=points, polygons=polygons,
+                            border_color=None, border_width=None, fill_color=None)
                         polygroup3d.extra_reverse_matrix = transform
                         self.append(polygroup3d, node.id)
 

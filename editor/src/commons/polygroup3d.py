@@ -5,7 +5,8 @@ from object3d import Object3d
 from polygon3d import Polygon3d
 from point3d import Point3d
 from misc import *
-
+from texture_map_color import *
+from colors import *
 
 DEFAULT_BORDER_COLOR = "000000"
 DEFAULT_FILL_COLOR = "CCCCCC"
@@ -43,18 +44,44 @@ class PolyGroup3d(Object3d):
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
         self.load_xml_elements(elm)
-        if self.fill_color:
-            elm.attrib["fc"] = self.fill_color.to_text()
-        if self.border_color:
-            elm.attrib["bc"] = self.border_color.to_text()
-        if self.border_width:
+        if self.fill_color is not None:
+            elm.attrib["fc"] = Text.to_text(self.fill_color)
+        if self.border_color is not None:
+            elm.attrib["bc"] = Text.to_text(self.border_color)
+        if self.border_width is not None:
             elm.attrib["bw"] = "{0}".format(self.border_width)
 
         point_values = []
         for point in self.points:
             point_values.append(point.to_text())
         elm.text = ",".join(point_values);
+
+        for polygon in self.polygons:
+            elm.append(polygon.get_xml_element())
         return elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        border_color = color_from_text(elm.attrib.get("bc", None))
+        fill_color = color_from_text(elm.attrib.get("fc", None))
+        border_width = elm.attrib.get("_text", None)
+        if border_width is not None:
+            border_width = float(border_width)
+
+        points = [float(p) for p in elm.text.split(",")]
+        points = numpy.array(points).reshape(-1, 3)
+
+        polygons = []
+        for polygon_elm in elm.findall(Polygon3d.TAG_NAME):
+            polygon = Polygon3d.create_from_xml_element(polygon_elm)
+            polygons.append(polygon)
+
+        newob = cls(points=points, polygons=polygons,
+                border_color=border_color, fill_color=fill_color,
+                border_width=border_width)
+        newob.load_from_xml_elements(elm)
+
+        return newob
 
     def add_polygon(self, polygon, force_style=False):
         if not isinstance(polygon, Polygon3d):

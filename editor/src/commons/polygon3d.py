@@ -50,14 +50,28 @@ class Polygon3d(Object3d):
         self.load_xml_elements(elm)
         if not self.closed:
             elm.attrib["closed"] = "0";
-        if self.fill_color:
-            elm.attrib["fc"] = self.fill_color.to_text()
-        if self.border_color:
-            elm.attrib["bc"] = self.border_color.to_text()
-        if self.border_width:
+        if self.fill_color is not None:
+            elm.attrib["fc"] = Text.to_text(self.fill_color)
+        if self.border_color is not None:
+            elm.attrib["bc"] = Text.to_text(self.border_color)
+        if self.border_width is not None:
             elm.attrib["bw"] = "{0}".format(self.border_width)
-        elm.text = ",".join(self.point_indices);
+        elm.text = ",".join(str(p) for p in self.point_indices)
         return elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm):
+        border_color = color_from_text(elm.attrib.get("bc", None))
+        fill_color = color_from_text(elm.attrib.get("fc", None))
+        border_width = elm.attrib.get("_text", None)
+        if border_width is not None:
+            border_width = float(border_width)
+        point_indices = [int(p) for p in elm.text.split(",")]
+        newob = cls(parent=None, point_indices=point_indices,
+                    border_color=border_color, fill_color=fill_color,
+                    border_width=border_width)
+        newob.load_from_xml_elements(elm)
+        return newob
 
     def get_z_cut(self, camera, x, y):
         plane_params =self.plane_params[camera]
