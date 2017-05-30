@@ -1,6 +1,7 @@
 package bk2suz.motionpicturelib.Commons;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -21,172 +22,155 @@ public class Polygon3D {
     private static int TEXTURE_STRIDE = COORDS_PER_TEXTURE*FLOAT_BYTE_COUNT;
 
     private int[] mPointIndices;
-    private int mVertexCount = 0;
-    private float[] mVertices = null;
-    private short[] mVertexOrder = null;
-    private float[] mTexCoords = null;
-    private float[] mDiffuseColor = null;
-    private String mTextureName = null;
+    private Color mFillColor;
+    private boolean mIsLineDrawing = false;
 
     private FloatBuffer mVertexBuffer;
     private ShortBuffer mVertexOrderBuffer;
     private FloatBuffer mTexCoordBuffer;
 
-    private boolean mIsLineDrawing = false;
-
-    static class Program3D {
-        private final int mGLProgram;
-        private int mGLPositionHandle;
-        private int mGLTexCoordsHandle;
-        private int mGLColorHandle;
-        private int mGLHasTextureHandle;
-        private int mGLTextureHandle;
-        private int mMVPMatrixHandle;
-
-        public Program3D() {
-            mGLProgram = GLES20.glCreateProgram();
-            GLES20.glAttachShader(mGLProgram, ThreeDShader.getVertexShader());
-            GLES20.glAttachShader(mGLProgram, ThreeDShader.getFragmentShader());
-            GLES20.glLinkProgram(mGLProgram);
-        }
-    }
-
-    private static Program3D sProgram3D = null;
-
-    public static void createProgram() {
-        if (sProgram3D == null) {
-            sProgram3D = new Program3D();
-            //Log.d("GALA", "ssome");
-        }
-    }
-
     private PolygonGroup3D mParentGroup = null;
-    private float[] mActiveDiffuseColor;
+    private Color mActiveFillColor;
 
-    private Polygon3D() {
+    private int mVertexOrderCount;
 
-    }
+    private Polygon3D() {}
 
-    public Polygon3D(float[] vertices) {
-        setVertices(vertices);
-    }
-
-    public void setIsLineDrawing(boolean value) {
-        mIsLineDrawing = value;
+    public Polygon3D(int[] pointIndices) {
+        mPointIndices = pointIndices;
     }
 
     public void setParentGroup(PolygonGroup3D parentGroup) {
         mParentGroup = parentGroup;
     }
 
-    public void setTextureName(String textureName) {
-        mTextureName = textureName;
-    }
-
-    public void setDiffuseColor(float[] color) {
-        mDiffuseColor = Arrays.copyOf(color, color.length);
-    }
-
-    public void setVertices(float[] vertices) {
-        mVertices = Arrays.copyOf(vertices, vertices.length);
-        mVertexCount = vertices.length/COORDS_PER_VERTEX;
-        int vertexOrderSize;
-        if(mVertexCount<=3) {
-            vertexOrderSize = mVertexCount;
-        } else {
-            vertexOrderSize = 3+(mVertexCount-3)*3;
+    public void buildBuffers() {
+        if (mParentGroup == null || mPointIndices == null) {
+            return;
         }
-        mVertexOrder = new short[vertexOrderSize];
+         //Build Vertices
+        float[] vertices = new float[mPointIndices.length*COORDS_PER_VERTEX];
+        for(int i=0; i<mPointIndices.length; i++) {
+            Point3D point3D = mParentGroup.getPoint(mPointIndices[i]);
+            vertices[3*i+0] = point3D.getX();
+            vertices[3*i+1] = point3D.getY();
+            vertices[3*i+2] = point3D.getZ();
+        }
+        //Log.d("GALA", Arrays.toString(vertices));
+        //Build vertex order
+        if(vertices.length<=3) {
+            mVertexOrderCount = vertices.length;
+        } else {
+            mVertexOrderCount = 3+(vertices.length-3)*3;
+        }
+        short[] vertexOrder = new short[mVertexOrderCount];
         int startCounter = 1;
-        for(int i=0; i<mVertexOrder.length; i+=3) {
-            mVertexOrder[i] = 0;
-            mVertexOrder[i+1] = (short) startCounter;
-            if((i+2)<mVertexOrder.length) {
-                mVertexOrder[i + 2] = (short) (startCounter + 1);
+        for(int i=0; i<mVertexOrderCount; i+=3) {
+            vertexOrder[i] = 0;
+            vertexOrder[i+1] = (short) startCounter;
+            if((i+2)<mVertexOrderCount) {
+                vertexOrder[i + 2] = (short) (startCounter + 1);
             }
             startCounter += 1;
         }
 
         ByteBuffer bb;
 
-        bb = ByteBuffer.allocateDirect(mVertices.length*FLOAT_BYTE_COUNT);
+        //build vertices buffers
+        bb = ByteBuffer.allocateDirect(vertices.length*FLOAT_BYTE_COUNT);
         bb.order(ByteOrder.nativeOrder());
         mVertexBuffer = bb.asFloatBuffer();
-        mVertexBuffer.put(mVertices);
+        mVertexBuffer.put(vertices);
         mVertexBuffer.position(0);
 
-        bb = ByteBuffer.allocateDirect(mVertexOrder.length*SHORT_BYTE_COUNT);
+        //build vertex order buffer
+        bb = ByteBuffer.allocateDirect(vertexOrder.length*SHORT_BYTE_COUNT);
         bb.order(ByteOrder.nativeOrder());
         mVertexOrderBuffer = bb.asShortBuffer();
-        mVertexOrderBuffer.put(mVertexOrder);
+        mVertexOrderBuffer.put(vertexOrder);
         mVertexOrderBuffer.position(0);
-    }
 
-    public void setTexCoords(float[] texCoords) {
-        mTexCoords = Arrays.copyOf(texCoords, texCoords.length);
-        for(int i=1; i<mTexCoords.length; i+=2) {
-            mTexCoords[i] = 1-mTexCoords[i];
+        //build texture coordinate buffer
+        if (mFillColor != null && TextureMapColor.class.isInstance(mFillColor)) {
+            float[] texCoords = ((TextureMapColor) mFillColor).getTexCoords();
+            bb = ByteBuffer.allocateDirect(texCoords.length * FLOAT_BYTE_COUNT);
+            bb.order(ByteOrder.nativeOrder());
+            mTexCoordBuffer = bb.asFloatBuffer();
+            mTexCoordBuffer.put(texCoords);
+            mTexCoordBuffer.position(0);
+        } else {
+            mTexCoordBuffer = null;
         }
-
-        ByteBuffer bb;
-        bb = ByteBuffer.allocateDirect(mTexCoords.length*FLOAT_BYTE_COUNT);
-        bb.order(ByteOrder.nativeOrder());
-        mTexCoordBuffer = bb.asFloatBuffer();
-        mTexCoordBuffer.put(mTexCoords);
-        mTexCoordBuffer.position(0);
     }
 
-    public void draw(float[] mvpMatrix, ThreeDTexture textureStore) {
-        GLES20.glUseProgram(sProgram3D.mGLProgram);
+    public void setIsLineDrawing(boolean value) {
+        mIsLineDrawing = value;
+    }
 
-        sProgram3D.mMVPMatrixHandle = GLES20.glGetUniformLocation(sProgram3D.mGLProgram, "uMVPMatrix");
-        GLES20.glUniformMatrix4fv(sProgram3D.mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+    public void setFillColor(Color color) {
+        if (color != null && color.getClass().isInstance(mFillColor)) {
+            mFillColor.copyFrom(color);
+        } else {
+            mFillColor = color;
+        }
+    }
 
-        sProgram3D.mGLPositionHandle = GLES20.glGetAttribLocation(sProgram3D.mGLProgram, "aPosition");
-        GLES20.glEnableVertexAttribArray(sProgram3D.mGLPositionHandle);
-        GLES20.glVertexAttribPointer(sProgram3D.mGLPositionHandle,
+    public void draw(float[] mvpMatrix, ThreeDGLRenderContext threeDGLRenderContext) {
+        Polygon3DGLDrawer drawer = threeDGLRenderContext.getPolygon3DGLDrawer();
+        GLES20.glUseProgram(drawer.GLProgram);
+
+        drawer.MVPMatrixHandle = GLES20.glGetUniformLocation(drawer.GLProgram, "uMVPMatrix");
+        GLES20.glUniformMatrix4fv(drawer.MVPMatrixHandle, 1, false, mvpMatrix, 0);
+
+        drawer.GLPositionHandle = GLES20.glGetAttribLocation(drawer.GLProgram, "aPosition");
+        GLES20.glEnableVertexAttribArray(drawer.GLPositionHandle);
+        GLES20.glVertexAttribPointer(drawer.GLPositionHandle,
                 COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, mVertexBuffer);
 
-        sProgram3D.mGLHasTextureHandle = GLES20.glGetUniformLocation(sProgram3D.mGLProgram, "uHasTexture");
-        if (mTextureName != null) {
-            GLES20.glUniform1i(sProgram3D.mGLHasTextureHandle, 1);
+        drawer.GLHasTextureHandle = GLES20.glGetUniformLocation(drawer.GLProgram, "uHasTexture");
+        if (mTexCoordBuffer != null) {
+            GLES20.glUniform1i(drawer.GLHasTextureHandle, 1);
 
-            sProgram3D.mGLTexCoordsHandle = GLES20.glGetAttribLocation(sProgram3D.mGLProgram, "aTexCoords");
-            GLES20.glEnableVertexAttribArray(sProgram3D.mGLTexCoordsHandle);
-            GLES20.glVertexAttribPointer(sProgram3D.mGLTexCoordsHandle,
+            drawer.GLTexCoordsHandle = GLES20.glGetAttribLocation(drawer.GLProgram, "aTexCoords");
+            GLES20.glEnableVertexAttribArray(drawer.GLTexCoordsHandle);
+            GLES20.glVertexAttribPointer(drawer.GLTexCoordsHandle,
                     COORDS_PER_TEXTURE, GLES20.GL_FLOAT, false, TEXTURE_STRIDE, mTexCoordBuffer);
 
-            sProgram3D.mGLTextureHandle = GLES20.glGetUniformLocation(sProgram3D.mGLProgram, "uTexture");
+            drawer.GLTextureHandle = GLES20.glGetUniformLocation(drawer.GLProgram, "uTexture");
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureStore.getTextureHandle(mTextureName));
-            GLES20.glUniform1i(sProgram3D.mGLTextureHandle, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
+                    threeDGLRenderContext.getTextureHandle(((TextureMapColor) mFillColor).getResourcePath()));
+            GLES20.glUniform1i(drawer.GLTextureHandle, 0);
         } else {
-            GLES20.glUniform1i(sProgram3D.mGLHasTextureHandle, 0);
-            mActiveDiffuseColor = mDiffuseColor;
-            if (mActiveDiffuseColor == null) {
-                mActiveDiffuseColor = mParentGroup.getDiffuseColor();
+            GLES20.glUniform1i(drawer.GLHasTextureHandle, 0);
+            mActiveFillColor = mFillColor;
+            if (mActiveFillColor == null) {
+                mActiveFillColor = mParentGroup.getFillColor();
             }
-            sProgram3D.mGLColorHandle = GLES20.glGetUniformLocation(sProgram3D.mGLProgram, "uColor");
-            GLES20.glUniform4fv(sProgram3D.mGLColorHandle, 1, mActiveDiffuseColor, 0);
+            if(FlatColor.class.isInstance(mFillColor)) {
+                drawer.GLColorHandle = GLES20.glGetUniformLocation(drawer.GLProgram, "uColor");
+                GLES20.glUniform4fv(drawer.GLColorHandle, 1,
+                        ((FlatColor)mActiveFillColor).getFloatArrayValue(), 0);
+            }
 
         }
 
         if (!mIsLineDrawing) {
-            GLES20.glDrawElements(GLES20.GL_TRIANGLES, mVertexOrder.length,
+            GLES20.glDrawElements(GLES20.GL_TRIANGLES, mVertexOrderCount,
                     GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);
         } else {
-            GLES20.glDrawElements(GLES20.GL_LINES, mVertexOrder.length,
+            GLES20.glDrawElements(GLES20.GL_LINES, mVertexOrderCount,
                     GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);
         }
         //GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, mVertices.length/COORDS_PER_VERTEX);
 
-        GLES20.glDisableVertexAttribArray(sProgram3D.mGLPositionHandle);
+        GLES20.glDisableVertexAttribArray(drawer.GLPositionHandle);
     }
 
     public static Polygon3D createFromXml(XmlPullParser parser)
             throws XmlPullParserException, IOException {
         Polygon3D polygon3D = new Polygon3D();
-
+        polygon3D.mFillColor = (TextureMapColor) Helper.parseColor(parser.getAttributeValue(null, "fc"));
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;

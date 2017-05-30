@@ -15,11 +15,12 @@ import javax.microedition.khronos.opengles.GL10;
 public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
     private PolygonGroup3D mPolygonGroup3D = null;
     private PolygonGroup3D mAxes = null;
-    private Polygon3D mPolygon3D;
+
     private Camera3D mCamera3D = new Camera3D();
     private Projection3D mProjection3D = new Projection3D();
+
     private Context mContext;
-    private ThreeDTexture mTextureStore;
+    private ThreeDGLRenderContext mThreeDGLRenderContext;
 
     private float[] mVPMatrix = new float[16];
     private float[] mTempMatrix = new float[16];
@@ -27,7 +28,6 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
     public ThreeDSurfaceRenderer(Context context) {
         super();
         mContext = context;
-        mTextureStore = new ThreeDTexture(mContext);
 
         mCamera3D.precalculate();
         mProjection3D.precalculate();
@@ -59,54 +59,21 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         //mPolygonGroup3D.setRotatationX(angle);
         //mPolygonGroup3D.setRotatationY(angle);
         mPolygonGroup3D.precalculate();
-        mPolygonGroup3D.draw(mTextureStore);
+        mPolygonGroup3D.draw(mThreeDGLRenderContext);
 
         //mAxes.setParentMatrix(mVPMatrix);
         mAxes.precalculate();
-        mAxes.draw(mTextureStore);
+        mAxes.draw(mThreeDGLRenderContext);
 
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         GLES20.glEnable( GLES20.GL_DEPTH_TEST );
-        Polygon3D.createProgram();
+        mThreeDGLRenderContext = new ThreeDGLRenderContext(mContext, gl);
+
         mAxes = PolygonGroup3D.createAxes(1.5f);
         //mPolygonGroup3D = PolygonGroup3D.createCube(.5f);
-
-        mPolygon3D = new Polygon3D(new float[] {
-                -0.5f,  0.9f, 0.0f,  // 0, Top Left
-                -1.0f, -1.0f, 0.0f,  // 1, Bottom Left
-                1.0f, -1.0f, 0.0f,  // 2, Bottom Right
-                1.0f,  1.0f, 0.0f,  // 3, Top Right
-        });
-        mPolygon3D.setDiffuseColor(new float[] {1, 0, 0, 1});
-        /*
-         mPolygon3D = new Polygon3D(new float[] {
-                -0.5f,  0.5f, 0.0f,  // 0, Top Left
-                -0.5f, -0.5f, 0.0f,  // 1, Bottom Left
-                0.5f, -0.5f, 0.0f,  // 2, Bottom Right
-                0.5f,  0.5f, 0.0f,  // 3, Top Right
-        });
-        */
-        /*
-        mPolygon3D = new Polygon3D(new float[] {
-                0.0f,  0.622008459f, 0.0f, // top
-                -0.5f, -0.311004243f, 0.0f, // bottom left
-                0.5f, -0.311004243f, 0.0f  // bottom right
-
-        });
-        */
-        /*
-        mPolygon3D.setTextureName("mipmap/ic_launcher");
-        mPolygon3D.setTexCoords(new float[] {
-                0.0F, 1F,
-                0F, 0F,
-                1F, 0F,
-                1F, 1F
-
-        });
-        */
     }
 
     @Override

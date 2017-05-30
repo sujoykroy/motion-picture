@@ -45,6 +45,10 @@ public class Object3D {
         }
     }
 
+    public void setTextureResources(TextureResources textureResources) {
+        mTextureResources = textureResources;
+    }
+
     public float[] getMatrix() {
         return mModelMatrix;
     }
@@ -89,7 +93,7 @@ public class Object3D {
                 if (mTextureResources == null) {
                     mTextureResources = new TextureResources();
                 }
-                mTextureResources.add_resource_from_xml_element(parser);
+                mTextureResources.addResourceFromXmlElement(parser);
             }
             Helper.skipTag(parser);
         }

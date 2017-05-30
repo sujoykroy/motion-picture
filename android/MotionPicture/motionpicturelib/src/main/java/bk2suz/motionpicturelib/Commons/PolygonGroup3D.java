@@ -1,5 +1,7 @@
 package bk2suz.motionpicturelib.Commons;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -12,8 +14,7 @@ import java.util.ArrayList;
 public class PolygonGroup3D extends Object3D {
     public static final String TAG_NAME = "polygrp3";
     private ArrayList<Polygon3D> mPolygons = new ArrayList<>();
-    private float[] mDiffuseColor = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
-    protected Color mFillColor;
+    protected Color mFillColor = new FlatColor(0.63671875f, 0.76953125f, 0.22265625f, 1.0f);
     protected Color mBorderColor;
     protected Float mBorderWidth = null;
     protected ArrayList<Point3D> mPoints = new ArrayList<>();
@@ -23,40 +24,61 @@ public class PolygonGroup3D extends Object3D {
         polygon.setParentGroup(this);
     }
 
-    public void draw(ThreeDTexture textureStore) {
+    public Point3D getPoint(int index) {
+        return mPoints.get(index);
+    }
+
+    public void draw(ThreeDGLRenderContext threeDGLRenderContext) {
         for(Polygon3D polygon: mPolygons) {
-            polygon.draw(mModelMatrix, textureStore);
+            polygon.draw(mModelMatrix, threeDGLRenderContext);
         }
     }
 
-    public float[] getDiffuseColor() {
-        return mDiffuseColor;
+    public Color getFillColor() {
+        return mFillColor;
+    }
+
+    public void buildBuffers() {
+        for(Polygon3D polygon: mPolygons) {
+            polygon.buildBuffers();
+        }
     }
 
     public static PolygonGroup3D createAxes(float lineLength) {
         PolygonGroup3D axes = new PolygonGroup3D();
+
+        axes.mPoints.add(new Point3D(0f, 0f, 0f));
+        axes.mPoints.add(new Point3D(lineLength, 0f, 0f));
+        axes.mPoints.add(new Point3D(0f, lineLength, 0f));
+        axes.mPoints.add(new Point3D(0f, 0f, lineLength));
+
         Polygon3D polygon;
 
-        polygon = new Polygon3D(new float[] {0, 0, 0, lineLength, 0, 0});
-        polygon.setDiffuseColor(new float[] {1, 0, 0, 1});
+        polygon = new Polygon3D(new int[] {0, 1});
+        polygon.setFillColor(new FlatColor(1f, 0f, 0f, 1f));
         polygon.setIsLineDrawing(true);
         axes.addPolygon(polygon);
 
-        polygon = new Polygon3D(new float[] {0, 0, 0, 0, lineLength, 0});
-        polygon.setDiffuseColor(new float[] {0, 1, 0, 1});
+        polygon = new Polygon3D(new int[] {0, 2});
+        polygon.setFillColor(new FlatColor(0f, 1f, 0f, 1f));
         polygon.setIsLineDrawing(true);
         axes.addPolygon(polygon);
 
-        polygon = new Polygon3D(new float[] {0, 0, 0, 0, 0, lineLength});
-        polygon.setDiffuseColor(new float[] {0, 0, 1, 1});
+        polygon = new Polygon3D(new int[] {0, 3});
+        polygon.setFillColor(new FlatColor(0f, 0f, 1f, 1f));
         polygon.setIsLineDrawing(true);
         axes.addPolygon(polygon);
+
+        axes.buildBuffers();
 
         return axes;
     }
 
     public static PolygonGroup3D createCube(float sideSize) {
         PolygonGroup3D cube = new PolygonGroup3D();
+        TextureResources textureResources = new TextureResources();
+        textureResources.addResource("someTexture", "mipmap/ic_launcher");
+        cube.setTextureResources(textureResources);
         float[] allVertices = {
                 0f, 0f, 0f,
                 sideSize, 0f, 0f,
@@ -76,26 +98,27 @@ public class PolygonGroup3D extends Object3D {
                 {2, 3, 7, 6},
                 {3, 0, 4, 7}
         };
+        for (int i=0; i<allVertices.length; i+=3) {
+            Point3D point3D = new Point3D(allVertices[i], allVertices[i+1], allVertices[i+2]);
+            cube.mPoints.add(point3D);
+        }
         for (int i=0; i<faceIndices.length; i++) {
-            float[] vertices = new float[faceIndices[i].length*3];
-            for(int j=0; j<faceIndices[i].length; j++) {
-                int k = faceIndices[i][j]*3;
-                vertices[j*3] = allVertices[k];
-                vertices[j*3+1] = allVertices[k+1];
-                vertices[j*3+2] = allVertices[k+2];
-            }
-            Polygon3D polygon = new Polygon3D(vertices);
-            if (i==1) {
-                polygon.setTextureName("mipmap/ic_launcher");
-                polygon.setTexCoords(new float[]{
+            Polygon3D polygon = new Polygon3D(faceIndices[i]);
+            if (i==10) {
+                polygon.setFillColor(new TextureMapColor(
+                        textureResources,
+                        0,
+                        new float[]{
                         0, 0,
                         1, 0,
                         1, 1,
                         0, 1
-                });
+                }));
             }
             cube.addPolygon(polygon);
         }
+
+        cube.buildBuffers();
         return cube;
     }
 

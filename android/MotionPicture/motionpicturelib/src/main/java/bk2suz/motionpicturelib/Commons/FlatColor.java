@@ -26,6 +26,10 @@ public class FlatColor extends Color {
                 (int)(mAlpha*255), (int)(mRed*255), (int)(mGreen*255), (int)(mBlue*255));
     }
 
+    public float[] getFloatArrayValue() {
+        return new float[] {mRed, mGreen, mBlue, mAlpha};
+    }
+
     @Override
     public FlatColor copy() {
         return new FlatColor(mRed, mGreen, mBlue, mAlpha);

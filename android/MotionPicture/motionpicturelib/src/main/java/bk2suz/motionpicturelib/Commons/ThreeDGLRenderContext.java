@@ -7,17 +7,26 @@ import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.microedition.khronos.opengles.GL10;
+
 /**
- * Created by sujoy on 27/5/17.
+ * Created by sujoy on 30/5/17.
  */
-public class ThreeDTexture {
-    private Context mContext;
+public class ThreeDGLRenderContext {
+    public Context mContext;
+    public Polygon3DGLDrawer mPolygon3DGLDrawer;
     private HashMap<String, Integer> mTextureHandleMaps = new HashMap<>();
 
-    public ThreeDTexture(Context context) {
+    public ThreeDGLRenderContext(Context context, GL10 gl) {
         mContext = context;
+        mPolygon3DGLDrawer = new Polygon3DGLDrawer();
+    }
+
+    public Polygon3DGLDrawer getPolygon3DGLDrawer() {
+        return mPolygon3DGLDrawer;
     }
 
     public int getTextureHandle(String resourceName) {
@@ -32,7 +41,6 @@ public class ThreeDTexture {
         GLES20.glGenTextures(1, textureHandles, 0);
 
         int resId = mContext.getResources().getIdentifier(resoureName, null, mContext.getPackageName());
-        Log.d("GALA", String.format("resId=%d", resId));
         Bitmap bitmap = BitmapFactory.decodeResource(mContext.getResources(), resId);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);

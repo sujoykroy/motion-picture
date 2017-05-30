@@ -10,9 +10,19 @@ import java.util.ArrayList;
 public class TextureResources {
     public static final String TAG_NAME = "texture";
     private ArrayList<String> mNames = new ArrayList<>();
+    private ArrayList<String> mPaths = new ArrayList<>();
 
-    public void add_resource_from_xml_element(XmlPullParser parser) {
-        String resource_name = parser.getAttributeValue(null, "name");
-        mNames.add(resource_name);
+    public void addResourceFromXmlElement(XmlPullParser parser) {
+        String resourceName = parser.getAttributeValue(null, "name");
+        addResource(resourceName, "raw/" + resourceName);
+    }
+
+    public void addResource(String resourceName, String resourcePath) {
+        mNames.add(resourceName);
+        mPaths.add(resourcePath);
+    }
+
+    public String getResourcePath(int index) {
+        return mPaths.get(index);
     }
 }
