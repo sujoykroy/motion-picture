@@ -10,4 +10,5 @@ public abstract class Color {
     public abstract void copyFrom(Color color);
     public abstract Color copy();
     public abstract void setInBetween(Color startColor, Color endColor, float frac);
+    public abstract void copyFromText(String text);
 }

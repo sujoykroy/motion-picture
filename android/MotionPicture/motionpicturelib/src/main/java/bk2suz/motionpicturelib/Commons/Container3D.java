@@ -17,6 +17,7 @@ public class Container3D extends Object3D {
 
     public static Container3D createFromXml(XmlPullParser parser)
             throws XmlPullParserException, IOException {
+        parser.require(XmlPullParser.START_TAG, null, TAG_NAME);
         Container3D container3D = new Container3D();
         container3D.load_from_xml_element(parser);
         while (parser.next() != XmlPullParser.END_TAG) {

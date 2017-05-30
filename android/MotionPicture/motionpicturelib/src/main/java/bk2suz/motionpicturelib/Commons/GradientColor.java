@@ -55,7 +55,7 @@ public abstract class GradientColor extends Color {
         }
     }
 
-    protected void copyFromText(String text) {
+    public void copyFromText(String text) {
         String[] values = text.split(";");
         for (int i = 0; i < values.length; i += 2) {
             FlatColor color = FlatColor.createFromText(values[i]);

@@ -54,7 +54,8 @@ public class FlatColor extends Color {
         this.mAlpha = startFlatColor.mAlpha + (endFlatColor.mAlpha - startFlatColor.mAlpha)*frac;
     }
 
-    public static FlatColor createFromText(String text) {
+    @Override
+    public void copyFromText(String text) {
         String[] values = text.split(",");
         Float[] floatValues = new Float[4];
         for (int i=0; i<4; i++) {
@@ -67,6 +68,15 @@ public class FlatColor extends Color {
             } catch (NumberFormatException e) {
             }
         }
-        return new FlatColor(floatValues[0], floatValues[1], floatValues[2], floatValues[3]);
+        mRed = floatValues[0];
+        mGreen = floatValues[1];
+        mBlue = floatValues[2];
+        mAlpha = floatValues[3];
+    }
+
+    public static FlatColor createFromText(String text) {
+        FlatColor flatColor = new FlatColor(0f, 0f, 0f, 1f);
+        flatColor.copyFromText(text);
+        return flatColor;
     }
 }
