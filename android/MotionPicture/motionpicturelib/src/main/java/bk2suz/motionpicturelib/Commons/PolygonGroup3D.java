@@ -28,6 +28,8 @@ public class PolygonGroup3D extends Object3D {
         return mPoints.get(index);
     }
 
+
+    @Override
     public void draw(ThreeDGLRenderContext threeDGLRenderContext) {
         for(Polygon3D polygon: mPolygons) {
             polygon.draw(mModelMatrix, threeDGLRenderContext);

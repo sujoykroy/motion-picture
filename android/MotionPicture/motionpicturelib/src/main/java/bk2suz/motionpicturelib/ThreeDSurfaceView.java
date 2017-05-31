@@ -8,6 +8,7 @@ import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
+import bk2suz.motionpicturelib.Commons.Object3D;
 import bk2suz.motionpicturelib.Commons.PolygonGroup3D;
 import bk2suz.motionpicturelib.Commons.ThreeDSurfaceRenderer;
 
@@ -41,8 +42,8 @@ public class ThreeDSurfaceView extends GLSurfaceView {
         setWillNotDraw(false);
     }
 
-    public void setPolygonGroup3D(PolygonGroup3D polygonGroup) {
-        mRenderer.setPolygonGroup3D(polygonGroup);
+    public void setObject3D(Object3D object3D) {
+        mRenderer.setObject3D(object3D);
     }
 
     @Override

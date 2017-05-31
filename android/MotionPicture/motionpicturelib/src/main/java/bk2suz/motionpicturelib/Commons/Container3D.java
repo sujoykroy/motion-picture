@@ -15,6 +15,21 @@ public class Container3D extends Object3D {
     protected ArrayList<PolygonGroup3D> mPolyGroups = new ArrayList<>();
     protected ArrayList<String> mPolyGroupNames = new ArrayList<>();
 
+    @Override
+    public void precalculate() {
+        super.precalculate();
+        for(PolygonGroup3D polygonGroup: mPolyGroups) {
+            polygonGroup.precalculate();
+        }
+    }
+
+    @Override
+    public void draw(ThreeDGLRenderContext threeDGLRenderContext) {
+        for(PolygonGroup3D polygonGroup: mPolyGroups) {
+            polygonGroup.draw(threeDGLRenderContext);
+        }
+    }
+
     public static Container3D createFromXml(XmlPullParser parser)
             throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, null, TAG_NAME);
@@ -27,11 +42,13 @@ public class Container3D extends Object3D {
             if (parser.getName().equals(PolygonGroup3D.TAG_NAME)) {
                 PolygonGroup3D polygonGroup3D = PolygonGroup3D.createFromXml(parser);
                 container3D.mPolyGroups.add(polygonGroup3D);
+                polygonGroup3D.setParentObject(container3D);
                 container3D.mPolyGroupNames.add(parser.getAttributeValue(null, "name"));
             }
             Helper.skipTag(parser);
         }
         return container3D;
     }
+
 
 }

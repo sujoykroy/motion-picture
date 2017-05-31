@@ -13,7 +13,7 @@ import javax.microedition.khronos.opengles.GL10;
  * Created by sujoy on 26/5/17.
  */
 public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
-    private PolygonGroup3D mPolygonGroup3D = null;
+    private Object3D mObject3D = null;
     private PolygonGroup3D mAxes = null;
 
     private Camera3D mCamera3D = new Camera3D();
@@ -33,8 +33,9 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         mProjection3D.precalculate();
     }
 
-    public void setPolygonGroup3D(PolygonGroup3D polygonGroup) {
-        mPolygonGroup3D = polygonGroup;
+    public void setObject3D(Object3D object3D) {
+        mObject3D = object3D;
+        mObject3D.setScale(500);
     }
 
     @Override
@@ -44,7 +45,7 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         Matrix.setIdentityM(mTempMatrix, 0);
         //mPolygon3D.draw(mModelMatrix, mTextureStore);
 
-        if (mPolygonGroup3D == null) {
+        if (mObject3D == null) {
             return;
         }
         //Matrix.multiplyMM(mVPMatrix, 0, mCamera3D.getMatrix(), 0, mProjection3D.getMatrix(), 0);
@@ -55,11 +56,11 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         long time = SystemClock.uptimeMillis() % 4000L;
         float angle = 0.090f * ((int) time);
 
-        mPolygonGroup3D.setParentMatrix(mVPMatrix);
+        mObject3D.setParentMatrix(mVPMatrix);
         //mPolygonGroup3D.setRotatationZ(angle);
         //mPolygonGroup3D.setRotatationY(angle);
-        mPolygonGroup3D.precalculate();
-        mPolygonGroup3D.draw(mThreeDGLRenderContext);
+        mObject3D.precalculate();
+        mObject3D.draw(mThreeDGLRenderContext);
 
         mAxes.setParentMatrix(mVPMatrix);
         mAxes.precalculate();
@@ -73,6 +74,7 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         mThreeDGLRenderContext = new ThreeDGLRenderContext(mContext);
 
         mAxes = PolygonGroup3D.createAxes(.5f);
+        mAxes.setScale(500);
         //mPolygonGroup3D = PolygonGroup3D.createCube(.5f);
     }
 
@@ -80,7 +82,10 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
         float ratio = (float) width / height;
-        mProjection3D.setProjectionLeftRight(-ratio, ratio);
+        mProjection3D.setProjectionLeftRight(-width/2, width/2);
+        mProjection3D.setProjectionTopBottom(height/2, -height/2);
+        int depth = Math.max(width, height)/2;
+        mProjection3D.setProjectionNearFar(-depth, depth);
         mProjection3D.precalculate();
     }
 }

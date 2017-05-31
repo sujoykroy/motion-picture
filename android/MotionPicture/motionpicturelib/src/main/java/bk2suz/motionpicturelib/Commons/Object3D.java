@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Created by sujoy on 27/5/17.
  */
-public class Object3D {
+public abstract class Object3D {
     protected Point3D mTranslation = new Point3D();
     protected Point3D mRotation = new Point3D();
     protected Point3D mScale = new Point3D(1f, 1f, 1f);
@@ -24,6 +24,7 @@ public class Object3D {
     protected float[] mExtraMatrix =null;
 
     protected float[] mParentMatrix = null;
+    protected Object3D mParentObject3D = null;
 
     public void precalculate() {
         Matrix.setIdentityM(mModelMatrix, 0);
@@ -38,6 +39,11 @@ public class Object3D {
         //Matrix.multiplyMM(mModelMatrix, 0, mTranslationMatrix, 0, mRotationMatrix, 0);
 
         Matrix.scaleM(mModelMatrix, 0, mScale.getX(), mScale.getY(), mScale.getZ());
+
+        if (mParentObject3D != null) {
+            mTempMatrix = mModelMatrix.clone();
+            Matrix.multiplyMM(mModelMatrix, 0, mParentObject3D.getMatrix(), 0, mTempMatrix, 0);
+        }
 
         if (mParentMatrix != null) {
             mTempMatrix = mModelMatrix.clone();
@@ -57,6 +63,10 @@ public class Object3D {
         mParentMatrix = matrix;
     }
 
+    public void setParentObject(Object3D parentObject) {
+        mParentObject3D = parentObject;
+    }
+
     public void setRotatationX(float x) {
         mRotation.setX(x);
     }
@@ -68,6 +78,12 @@ public class Object3D {
     public void setRotatationZ(float z) {
         mRotation.setZ(z);
     }
+
+    public void setScale(float scale) {
+        mScale.setXYZ(scale, scale, scale);
+    }
+
+    abstract public void draw(ThreeDGLRenderContext threeDGLRenderContext);
 
     public void load_from_xml_element(XmlPullParser parser)
             throws XmlPullParserException, IOException {

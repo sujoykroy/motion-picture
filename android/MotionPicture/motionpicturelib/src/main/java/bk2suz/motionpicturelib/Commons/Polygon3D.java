@@ -56,6 +56,7 @@ public class Polygon3D {
             vertices[3*i+1] = point3D.getY();
             vertices[3*i+2] = point3D.getZ();
         }
+        Log.d("GALA", String.format(Arrays.toString(vertices)));
         //Build vertex order
         if(mPointIndices.length<=3) {
             mVertexOrderCount = mPointIndices.length;

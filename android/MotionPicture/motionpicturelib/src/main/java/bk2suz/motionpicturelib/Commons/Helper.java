@@ -12,7 +12,7 @@ public class Helper {
     public static final Float RADIAN_PER_DEGREE = (float) Math.PI/180F;
 
     public static void skipTag(XmlPullParser parser) throws XmlPullParserException, IOException {
-        if (parser.getEventType() != XmlPullParser.START_TAG || parser.getEventType() != XmlPullParser.TEXT) {
+        if (parser.getEventType() != XmlPullParser.START_TAG && parser.getEventType() != XmlPullParser.TEXT) {
             return;
         }
         int depth = 1;

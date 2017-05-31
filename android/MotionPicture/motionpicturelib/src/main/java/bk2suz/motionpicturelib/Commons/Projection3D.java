@@ -30,6 +30,16 @@ public class Projection3D {
         mProjectionRight = right;
     }
 
+    public void setProjectionTopBottom(float top, float bottom) {
+        mProjectionTop = top;
+        mProjectionBottom = bottom;
+    }
+
+    public void setProjectionNearFar(float near, float far) {
+        mProjectionNear = near;
+        mProjectionFar = far;
+    }
+
     public float[] getMatrix() {
         return mProjectionMatrix;
     }

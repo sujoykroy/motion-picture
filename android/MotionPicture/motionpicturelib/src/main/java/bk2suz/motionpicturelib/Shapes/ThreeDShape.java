@@ -40,6 +40,10 @@ public class ThreeDShape extends RectangleShape {
         }
     }
 
+    public Container3D getContainer3D() {
+        return mD3Object;
+    }
+
     public static ThreeDShape createFromXml(XmlPullParser parser)
             throws XmlPullParserException, IOException {
         if (isShapeTagType(parser, TYPE_NAME)) return null;
@@ -52,6 +56,7 @@ public class ThreeDShape extends RectangleShape {
             }
             if (parser.getName().equals(Container3D.TAG_NAME)) {
                 threeDShape.mD3Object = Container3D.createFromXml(parser);
+                threeDShape.mD3Object.precalculate();
             }
             Helper.skipTag(parser);
         }

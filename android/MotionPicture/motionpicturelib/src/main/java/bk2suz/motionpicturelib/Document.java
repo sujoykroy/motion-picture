@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import bk2suz.motionpicturelib.Commons.Point;
 import bk2suz.motionpicturelib.Shapes.MultiShape;
+import bk2suz.motionpicturelib.Shapes.Shape;
 import bk2suz.motionpicturelib.TimeLines.MultiShapeTimeLine;
 
 /**
@@ -40,6 +41,20 @@ public class Document {
     public MultiShapeTimeLine getMainTimeLine() {
         if (mMainMultiShape == null) return null;
         return mMainMultiShape.getLastTimeLine();
+    }
+
+
+    public Shape getShapeFromPath(String path) {
+        String[] paths = path.split("/");
+        Shape shape = mMainMultiShape;
+        for (int i=0; i<paths.length; i++) {
+            if(!MultiShape.class.isInstance(shape)) {
+                shape = null;
+                break;
+            }
+            shape = ((MultiShape) shape).getChildShape(paths[i]);
+        }
+        return shape;
     }
 
     public void setBitmapSize(float width, float height) {
