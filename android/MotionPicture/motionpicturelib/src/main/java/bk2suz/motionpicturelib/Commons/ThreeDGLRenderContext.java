@@ -20,7 +20,7 @@ public class ThreeDGLRenderContext {
     public Polygon3DGLDrawer mPolygon3DGLDrawer;
     private HashMap<String, Integer> mTextureHandleMaps = new HashMap<>();
 
-    public ThreeDGLRenderContext(Context context, GL10 gl) {
+    public ThreeDGLRenderContext(Context context) {
         mContext = context;
         mPolygon3DGLDrawer = new Polygon3DGLDrawer();
     }

@@ -104,7 +104,8 @@ public class PolygonGroup3D extends Object3D {
         }
         for (int i=0; i<faceIndices.length; i++) {
             Polygon3D polygon = new Polygon3D(faceIndices[i]);
-            if (i==10) {
+            polygon.setFillColor(new FlatColor(1f, 0f, 0f, 1f));
+            if (i==1) {
                 polygon.setFillColor(new TextureMapColor(
                         textureResources,
                         0,
@@ -115,6 +116,7 @@ public class PolygonGroup3D extends Object3D {
                         0, 1
                 }));
             }
+            //polygon.setIsLineDrawing(true);
             cube.addPolygon(polygon);
         }
 

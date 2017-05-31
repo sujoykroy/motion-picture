@@ -56,12 +56,11 @@ public class Polygon3D {
             vertices[3*i+1] = point3D.getY();
             vertices[3*i+2] = point3D.getZ();
         }
-        //Log.d("GALA", Arrays.toString(vertices));
         //Build vertex order
-        if(vertices.length<=3) {
-            mVertexOrderCount = vertices.length;
+        if(mPointIndices.length<=3) {
+            mVertexOrderCount = mPointIndices.length;
         } else {
-            mVertexOrderCount = 3+(vertices.length-3)*3;
+            mVertexOrderCount = 3+(mPointIndices.length-3)*3;
         }
         short[] vertexOrder = new short[mVertexOrderCount];
         int startCounter = 1;
@@ -121,7 +120,6 @@ public class Polygon3D {
 
         drawer.MVPMatrixHandle = GLES20.glGetUniformLocation(drawer.GLProgram, "uMVPMatrix");
         GLES20.glUniformMatrix4fv(drawer.MVPMatrixHandle, 1, false, mvpMatrix, 0);
-
         drawer.GLPositionHandle = GLES20.glGetAttribLocation(drawer.GLProgram, "aPosition");
         GLES20.glEnableVertexAttribArray(drawer.GLPositionHandle);
         GLES20.glVertexAttribPointer(drawer.GLPositionHandle,

@@ -32,7 +32,7 @@ public class ThreeDSurfaceView extends GLSurfaceView {
         setEGLContextClientVersion(2);
         mRenderer = new ThreeDSurfaceRenderer(getContext());
         setRenderer(mRenderer);
-        //setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
     @Override

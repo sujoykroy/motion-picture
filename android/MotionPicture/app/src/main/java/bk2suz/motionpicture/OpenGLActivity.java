@@ -28,12 +28,12 @@ public class OpenGLActivity extends AppCompatActivity {
         mSeekBarObjectRotateY = (SeekBar) findViewById(R.id.seekBarObjectRotateY);
         mSeekBarObjectRotateZ = (SeekBar) findViewById(R.id.seekBarObjectRotateZ);
 
-        //mPolygonGroup1 = PolygonGroup3D.createCube(.5f);
-        mPolygonGroup1 = PolygonGroup3D.createAxes(.5f);
+        mPolygonGroup1 = PolygonGroup3D.createCube(.25f);
+        //mPolygonGroup1 = PolygonGroup3D.createAxes(.5f);
         //mPolygonGroup2 = PolygonGroup3D.createCube(.8f);
 
         mSurfaceView1 = (ThreeDSurfaceView) findViewById(R.id.surfaceView1);
-        mSurfaceView2 = (ThreeDSurfaceView) findViewById(R.id.surfaceView2);
+        //mSurfaceView2 = (ThreeDSurfaceView) findViewById(R.id.surfaceView2);
 
         mSurfaceView1.setPolygonGroup3D(mPolygonGroup1);
         //mSurfaceView2.setPolygonGroup3D(mPolygonGroup2);
@@ -66,6 +66,7 @@ public class OpenGLActivity extends AppCompatActivity {
                 mPolygonGroup1.setRotatationZ(angle);
             }
             mPolygonGroup1.precalculate();
+            mSurfaceView1.requestRender();
             //mSurfaceView1.invalidate();
         }
 

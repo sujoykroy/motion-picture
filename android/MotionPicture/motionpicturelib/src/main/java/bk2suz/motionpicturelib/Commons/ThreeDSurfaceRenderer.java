@@ -52,16 +52,16 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         //Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
         //Log.d("GALA", String.format("mVPMatrix %s", Arrays.toString(mVPMatrix)));
         //Log.d("GALA", String.format("mProjection3D.getMatrix() %s", Arrays.toString(mProjection3D.getMatrix())));
-        mPolygonGroup3D.setParentMatrix(mVPMatrix);
         long time = SystemClock.uptimeMillis() % 4000L;
         float angle = 0.090f * ((int) time);
 
-        //mPolygonGroup3D.setRotatationX(angle);
+        mPolygonGroup3D.setParentMatrix(mVPMatrix);
+        //mPolygonGroup3D.setRotatationZ(angle);
         //mPolygonGroup3D.setRotatationY(angle);
         mPolygonGroup3D.precalculate();
         mPolygonGroup3D.draw(mThreeDGLRenderContext);
 
-        //mAxes.setParentMatrix(mVPMatrix);
+        mAxes.setParentMatrix(mVPMatrix);
         mAxes.precalculate();
         mAxes.draw(mThreeDGLRenderContext);
 
@@ -70,9 +70,9 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         GLES20.glEnable( GLES20.GL_DEPTH_TEST );
-        mThreeDGLRenderContext = new ThreeDGLRenderContext(mContext, gl);
+        mThreeDGLRenderContext = new ThreeDGLRenderContext(mContext);
 
-        mAxes = PolygonGroup3D.createAxes(1.5f);
+        mAxes = PolygonGroup3D.createAxes(.5f);
         //mPolygonGroup3D = PolygonGroup3D.createCube(.5f);
     }
 

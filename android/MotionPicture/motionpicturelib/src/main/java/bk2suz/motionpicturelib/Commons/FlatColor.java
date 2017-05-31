@@ -6,43 +6,43 @@ import android.graphics.Paint;
  * Created by sujoy on 8/10/16.
  */
 public class FlatColor extends Color {
-    float mRed, mGreen, mBlue, mAlpha;
+    private float[] mRGBA = new float[4];
 
     public FlatColor(Float red, Float green, Float blue, Float alpha) {
-        mRed = red;
-        mGreen = green;
-        mBlue = blue;
-        mAlpha = alpha;
+        mRGBA[0] = red;
+        mRGBA[1] = green;
+        mRGBA[2] = blue;
+        mRGBA[3] = alpha;
     }
 
     @Override
     public void setPaint(Paint paint) {
         paint.setShader(null);
-        paint.setARGB((int)(mAlpha*255), (int)(mRed*255), (int)(mGreen*255), (int)(mBlue*255));
+        paint.setARGB((int)(mRGBA[3]*255), (int)(mRGBA[0]*255), (int)(mRGBA[1]*255), (int)(mRGBA[2]*255));
     }
 
     public int getIntValue() {
         return android.graphics.Color.argb(
-                (int)(mAlpha*255), (int)(mRed*255), (int)(mGreen*255), (int)(mBlue*255));
+                (int)(mRGBA[3]*255), (int)(mRGBA[0]*255), (int)(mRGBA[1]*255), (int)(mRGBA[2]*255));
     }
 
     public float[] getFloatArrayValue() {
-        return new float[] {mRed, mGreen, mBlue, mAlpha};
+        return mRGBA;
     }
 
     @Override
     public FlatColor copy() {
-        return new FlatColor(mRed, mGreen, mBlue, mAlpha);
+        return new FlatColor(mRGBA[0], mRGBA[1], mRGBA[2], mRGBA[3]);
     }
 
     @Override
     public void copyFrom(Color color) {
         if(!FlatColor.class.isInstance(color)) return;
         FlatColor flatColor = (FlatColor) color;
-        mRed = flatColor.mRed;
-        mGreen = flatColor.mGreen;
-        mBlue = flatColor.mBlue;
-        mAlpha = flatColor.mAlpha;
+        mRGBA[0] = flatColor.mRGBA[0];
+        mRGBA[1] = flatColor.mRGBA[1];
+        mRGBA[2] = flatColor.mRGBA[2];
+        mRGBA[3] = flatColor.mRGBA[3];
     }
 
     public void setInBetween(Color startColor, Color endColor, float frac) {
@@ -52,30 +52,20 @@ public class FlatColor extends Color {
         FlatColor startFlatColor = (FlatColor) startColor;
         FlatColor endFlatColor = (FlatColor) endColor;
 
-        this.mRed = startFlatColor.mRed + (endFlatColor.mRed - startFlatColor.mRed)*frac;
-        this.mGreen = startFlatColor.mGreen + (endFlatColor.mGreen - startFlatColor.mGreen)*frac;
-        this.mBlue = startFlatColor.mBlue + (endFlatColor.mBlue - startFlatColor.mBlue)*frac;
-        this.mAlpha = startFlatColor.mAlpha + (endFlatColor.mAlpha - startFlatColor.mAlpha)*frac;
+        for (int i =0; i<4; i++) {
+            mRGBA[i] = startFlatColor.mRGBA[i] + (endFlatColor.mRGBA[i] - startFlatColor.mRGBA[i]) * frac;
+        }
     }
 
     @Override
     public void copyFromText(String text) {
         String[] values = text.split(",");
-        Float[] floatValues = new Float[4];
-        for (int i=0; i<4; i++) {
-            floatValues[i] = 1F;
-            if (i>=values.length) {
-                continue;
-            }
+        for (int i=0; i<4 && i< values.length; i++) {
             try {
-                floatValues[i] = Float.parseFloat(values[i]);
+                mRGBA[i] = Float.parseFloat(values[i]);
             } catch (NumberFormatException e) {
             }
         }
-        mRed = floatValues[0];
-        mGreen = floatValues[1];
-        mBlue = floatValues[2];
-        mAlpha = floatValues[3];
     }
 
     public static FlatColor createFromText(String text) {
