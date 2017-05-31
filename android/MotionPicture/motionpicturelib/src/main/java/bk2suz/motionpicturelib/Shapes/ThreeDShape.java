@@ -1,5 +1,7 @@
 package bk2suz.motionpicturelib.Shapes;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 

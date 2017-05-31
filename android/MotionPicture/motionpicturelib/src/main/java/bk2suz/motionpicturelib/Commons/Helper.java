@@ -1,5 +1,7 @@
 package bk2suz.motionpicturelib.Commons;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -41,5 +43,16 @@ public class Helper {
             return TextureMapColor.createFromText(segments[1]);
         }
         return null;
+    }
+
+    public static float parseFloat(String text, float defaultValue) {
+        float returnValue = defaultValue;
+        if(text != null) {
+            try {
+                returnValue = Float.parseFloat(text);
+            } catch (NumberFormatException e) {
+            }
+        }
+        return returnValue;
     }
 }

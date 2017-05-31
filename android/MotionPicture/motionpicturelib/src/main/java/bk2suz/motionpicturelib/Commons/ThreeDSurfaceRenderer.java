@@ -35,7 +35,7 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
 
     public void setObject3D(Object3D object3D) {
         mObject3D = object3D;
-        mObject3D.setScale(500);
+        //mObject3D.setScale(500);
     }
 
     @Override

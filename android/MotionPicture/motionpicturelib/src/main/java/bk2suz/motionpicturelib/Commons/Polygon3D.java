@@ -14,6 +14,7 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 
 public class Polygon3D {
+    public static final String TAG_NAME = "pl3";
     private static int FLOAT_BYTE_COUNT = 4;
     private static int SHORT_BYTE_COUNT = 2;
     private static int COORDS_PER_VERTEX = 3;
@@ -56,7 +57,7 @@ public class Polygon3D {
             vertices[3*i+1] = point3D.getY();
             vertices[3*i+2] = point3D.getZ();
         }
-        Log.d("GALA", String.format(Arrays.toString(vertices)));
+        //Log.d("GALA", String.format(Arrays.toString(vertices)));
         //Build vertex order
         if(mPointIndices.length<=3) {
             mVertexOrderCount = mPointIndices.length;
@@ -127,7 +128,7 @@ public class Polygon3D {
                 COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, mVertexBuffer);
 
         drawer.GLHasTextureHandle = GLES20.glGetUniformLocation(drawer.GLProgram, "uHasTexture");
-        if (mTexCoordBuffer != null) {
+        if (mTexCoordBuffer != null && !mIsLineDrawing) {
             GLES20.glUniform1i(drawer.GLHasTextureHandle, 1);
 
             drawer.GLTexCoordsHandle = GLES20.glGetAttribLocation(drawer.GLProgram, "aTexCoords");
@@ -138,7 +139,9 @@ public class Polygon3D {
             drawer.GLTextureHandle = GLES20.glGetUniformLocation(drawer.GLProgram, "uTexture");
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                    threeDGLRenderContext.getTextureHandle(((TextureMapColor) mFillColor).getResourcePath()));
+                    threeDGLRenderContext.getTextureHandle(
+                           mParentGroup.getTextureResources().getResourcePath (
+                                   ((TextureMapColor) mFillColor).getResourceIndex())));
             GLES20.glUniform1i(drawer.GLTextureHandle, 0);
         } else {
             GLES20.glUniform1i(drawer.GLHasTextureHandle, 0);
@@ -169,7 +172,7 @@ public class Polygon3D {
     public static Polygon3D createFromXml(XmlPullParser parser)
             throws XmlPullParserException, IOException {
         Polygon3D polygon3D = new Polygon3D();
-        polygon3D.mFillColor = (TextureMapColor) Helper.parseColor(parser.getAttributeValue(null, "fc"));
+        polygon3D.mFillColor = Helper.parseColor(parser.getAttributeValue(null, "fc"));
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;

@@ -132,15 +132,15 @@ public class PolygonGroup3D extends Object3D {
         polygonGroup3D.load_from_xml_element(parser);
         polygonGroup3D.mBorderColor = Helper.parseColor(parser.getAttributeValue(null, "bc"));
         polygonGroup3D.mFillColor = Helper.parseColor(parser.getAttributeValue(null, "fc"));
-        try {
-            polygonGroup3D.mBorderWidth = Float.parseFloat(parser.getAttributeValue(null, "bc"));
-        } catch (NumberFormatException e) {
-            polygonGroup3D.mBorderWidth = null;
-        }
+        polygonGroup3D.mBorderWidth = Helper.parseFloat(parser.getAttributeValue(null, "bw"), 0);
+
+        polygonGroup3D.mFillColor = new FlatColor(0f, 1f, 0f, 1f);
+
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
+
             if (parser.getName().equals("points")) {
                 if(parser.next() == XmlPullParser.TEXT) {
                     String[] pointsStringArray = parser.getText().split(",");
@@ -158,9 +158,12 @@ public class PolygonGroup3D extends Object3D {
                         polygonGroup3D.mPoints.add(point3D);
                     }
                 }
-            } else if (parser.getName().equals(Polygon.TAG_NAME)) {
-                Polygon3D polygon = Polygon3D.createFromXml(parser);
-                polygonGroup3D.mPolygons.add(polygon);
+            } else if (parser.getName().equals(Polygon3D.TAG_NAME)) {
+                Polygon3D polygon3D = Polygon3D.createFromXml(parser);
+                //polygon3D.setFillColor(null);
+                //polygon3D.setIsLineDrawing(true);
+                polygonGroup3D.addPolygon(polygon3D);
+                polygon3D.buildBuffers();
             }
             Helper.skipTag(parser);
         }

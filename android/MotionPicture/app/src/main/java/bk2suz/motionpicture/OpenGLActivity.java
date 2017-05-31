@@ -34,13 +34,17 @@ public class OpenGLActivity extends AppCompatActivity {
         mSeekBarObjectRotateZ = (SeekBar) findViewById(R.id.seekBarObjectRotateZ);
 
 
-        Document mDoc = Document.loadFromResource(getResources(), R.xml.threed);
+        Document mDoc = Document.loadFromResource(getResources(), R.xml.threed2);
         Shape shape = mDoc.getShapeFromPath("myob");
         if(shape != null) {
             mObject3D1 = ((ThreeDShape) shape).getContainer3D();
+            mObject3D1.setScale(800f);
         } else {
             mObject3D1 = PolygonGroup3D.createCube(.25f);
+            mObject3D1.setScale(200);
         }
+        //mObject3D1 = PolygonGroup3D.createCube(.25f);
+        mObject3D1.precalculate();
         //mObject3D1 = PolygonGroup3D.createAxes(.5f);
         //mPolygonGroup2 = PolygonGroup3D.createCube(.8f);
 

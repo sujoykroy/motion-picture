@@ -1,5 +1,7 @@
 package bk2suz.motionpicturelib.Commons;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 
 import java.util.ArrayList;
@@ -14,6 +16,10 @@ public class TextureResources {
 
     public void addResourceFromXmlElement(XmlPullParser parser) {
         String resourceName = parser.getAttributeValue(null, "name");
+        int dotIndex = resourceName.indexOf(".");
+        if (dotIndex>0) {
+            resourceName = resourceName.substring(0, dotIndex);
+        }
         addResource(resourceName, "raw/" + resourceName);
     }
 

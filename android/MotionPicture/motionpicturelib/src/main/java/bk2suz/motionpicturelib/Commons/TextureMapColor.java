@@ -1,6 +1,7 @@
 package bk2suz.motionpicturelib.Commons;
 
 import android.graphics.Paint;
+import android.util.Log;
 
 import java.util.Arrays;
 
@@ -40,6 +41,9 @@ public class TextureMapColor extends Color {
         mTexCoords = new float[texcoords_text.length];
         for(int i=0; i<texcoords_text.length; i++) {
             mTexCoords[i] = Float.parseFloat(texcoords_text[i]);
+            if(i%2==1) {
+                mTexCoords[i] = 1-mTexCoords[i];
+            }
         }
     }
 
@@ -47,8 +51,8 @@ public class TextureMapColor extends Color {
         return mTexCoords;
     }
 
-    public String getResourcePath() {
-        return mTextureResources.getResourcePath(mResourceIndex);
+    public int getResourceIndex() {
+        return mResourceIndex;
     }
 
     @Override

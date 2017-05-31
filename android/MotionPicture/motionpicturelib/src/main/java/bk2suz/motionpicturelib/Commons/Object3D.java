@@ -6,6 +6,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Created by sujoy on 27/5/17.
@@ -28,6 +29,9 @@ public abstract class Object3D {
 
     public void precalculate() {
         Matrix.setIdentityM(mModelMatrix, 0);
+        if (mExtraMatrix != null) {
+            System.arraycopy(mExtraMatrix, 0, mModelMatrix, 0, mExtraMatrix.length);
+        }
         Matrix.translateM(mModelMatrix, 0, mTranslation.getX(), mTranslation.getY(), mTranslation.getZ());
 
         //Matrix.setIdentityM(mRotationMatrix, 0);
@@ -53,6 +57,12 @@ public abstract class Object3D {
 
     public void setTextureResources(TextureResources textureResources) {
         mTextureResources = textureResources;
+    }
+
+    public TextureResources getTextureResources() {
+        if(mTextureResources != null) return mTextureResources;
+        if(mParentObject3D != null) return mParentObject3D.getTextureResources();
+        return null;
     }
 
     public float[] getMatrix() {
@@ -94,24 +104,19 @@ public abstract class Object3D {
         if (extraMatrixText != null) {
             mExtraMatrix = new float[16];
             String[] values = extraMatrixText.split(",");
-            for(int i=0; i<values.length; i++) {
-                try {
-                    mExtraMatrix[i] = Float.parseFloat(values[i]);
-                } catch (NumberFormatException e) {
+
+
+            //Matrix is stored in xml in row major format.
+            //Opengl matrix is in column major format.
+            //So, the fetched matrix needs to be transposed.
+            for(int r=0; r<4; r++) {
+                for(int c=0; c<4; c++) {
+                    try {
+                        mExtraMatrix[c*4+r] = Float.parseFloat(values[r*4+c]);
+                    } catch (NumberFormatException e) {
+                    }
                 }
             }
-        }
-        while (parser.next() != XmlPullParser.END_TAG) {
-            if (parser.getEventType() != XmlPullParser.START_TAG) {
-                continue;
-            }
-            if (parser.getName().equals(TextureResources.TAG_NAME)) {
-                if (mTextureResources == null) {
-                    mTextureResources = new TextureResources();
-                }
-                mTextureResources.addResourceFromXmlElement(parser);
-            }
-            Helper.skipTag(parser);
         }
     }
 }

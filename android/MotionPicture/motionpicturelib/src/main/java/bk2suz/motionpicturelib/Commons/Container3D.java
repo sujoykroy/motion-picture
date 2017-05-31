@@ -1,5 +1,7 @@
 package bk2suz.motionpicturelib.Commons;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -39,7 +41,12 @@ public class Container3D extends Object3D {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
-            if (parser.getName().equals(PolygonGroup3D.TAG_NAME)) {
+            if (parser.getName().equals(TextureResources.TAG_NAME)) {
+                if (container3D.mTextureResources == null) {
+                    container3D.mTextureResources = new TextureResources();
+                }
+                container3D.mTextureResources.addResourceFromXmlElement(parser);
+            } else if (parser.getName().equals(PolygonGroup3D.TAG_NAME)) {
                 PolygonGroup3D polygonGroup3D = PolygonGroup3D.createFromXml(parser);
                 container3D.mPolyGroups.add(polygonGroup3D);
                 polygonGroup3D.setParentObject(container3D);
