@@ -1,6 +1,10 @@
 package bk2suz.motionpicture;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.opengl.GLES20;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -9,12 +13,14 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.microedition.khronos.opengles.GL10;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import bk2suz.motionpicturelib.Commons.Object3D;
 import bk2suz.motionpicturelib.Commons.PolygonGroup3D;
@@ -52,12 +58,12 @@ public class OpenGLActivity extends AppCompatActivity {
 
         Document mDoc = Document.loadFromResource(getResources(), R.xml.threed2);
         Shape shape = mDoc.getShapeFromPath("myob");
-        if(shape != null) {
+        if(shape != null && !false) {
             mObject3D1 = ((ThreeDShape) shape).getContainer3D();
             mObject3D1.setScale(800f);
         } else {
             mObject3D1 = PolygonGroup3D.createCube(.25f);
-            mObject3D1.setScale(200);
+            mObject3D1.setScale(800);
         }
         //mObject3D1 = PolygonGroup3D.createCube(.25f);
         mObject3D1.precalculate();
@@ -67,7 +73,9 @@ public class OpenGLActivity extends AppCompatActivity {
         mSurfaceView1 = (ThreeDSurfaceView) findViewById(R.id.surfaceView1);
         //mSurfaceView2 = (ThreeDSurfaceView) findViewById(R.id.surfaceView2);
 
-        //mSurfaceView1.setObject3D(mObject3D1);
+        if (!MakeBitmap) {
+            mSurfaceView1.setObject3D(mObject3D1);
+        }
         //mSurfaceView2.setPolygonGroup3D(mPolygonGroup2);
 
         mSeekBarObjectRotateX.setOnSeekBarChangeListener(new ObjectRotationSeekerBarChangeListener("x"));
@@ -80,47 +88,97 @@ public class OpenGLActivity extends AppCompatActivity {
         //glThread.start();
 
         handler = new Handler(this.getMainLooper());
-        executor = Executors.newSingleThreadExecutor();
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+
+        if(MakeBitmap) {
+            mImageRendererThread = new ImageGLRender.GLThread(400, 400, this);
+            mImageRendererThread.start();
+            showBitmap();
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(bitmapRenderer!=null) {
+            bitmapRenderer.release();
+        }
+    }
+
+    private static boolean MakeBitmap = true;
+    Handler handler;
+    ThreadPoolExecutor executor;
+    ImageGLRender.GLThread mImageRendererThread;
+    Object mLockObject = new Object();
+    Object mRenderLock = new Object();
+    ImageGLRender bitmapRenderer;
+    ThreeDSurfaceRenderer surfaceRenderer;
+
+    private void showBitmap() {
+        ImageGLRender.GLImageFutureTask task = mImageRendererThread.requestBitmapFor(mObject3D1);
+        try {
+            mImageView.setImageBitmap(task.get());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        mImageView.invalidate();
+    }
+    private void showBitmap2() {
+        /*if(!executor.getQueue().isEmpty()) {
+            return;
+        }*/
         Runnable processBitmap = new Runnable() {
             @Override
             public void run() {
-                ThreeDGLBitmapRenderer bitmapRenderer= new ThreeDGLBitmapRenderer(100, 100);
-                ThreeDSurfaceRenderer surfaceRenderer = new ThreeDSurfaceRenderer(getApplicationContext());
-                surfaceRenderer.onSurfaceCreated(null, null);
-                surfaceRenderer.onSurfaceChanged(null, 100, 100);
-                surfaceRenderer.setObject3D(mObject3D1);
-                surfaceRenderer.onDrawFrame(null);
-                int mWidth=100;
-                int mHeight=100;
-                IntBuffer ib = IntBuffer.allocate(100*100);
-                IntBuffer ibt = IntBuffer.allocate(100*100);
-                GLES20.glReadPixels(0, 0, mWidth, mHeight, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, ib);
-
-                // Convert upside down mirror-reversed image to right-side up normal image.
-                /*for (int i = 0; i < mHeight; i++) {
-                    for (int j = 0; j < mWidth; j++) {
-                        ibt.put((mHeight-i-1)*mWidth + j, ib.get(i*mWidth + j));
+                //ThreeDGLBitmapRenderer bitmapRenderer= new ThreeDGLBitmapRenderer(100, 100);
+                int w=400;
+                int h = 400;
+                Bitmap bmp;
+                synchronized (mRenderLock) {
+                    if(bitmapRenderer==null) {
+                        bitmapRenderer = new ImageGLRender(w, h);
+                        surfaceRenderer = new ThreeDSurfaceRenderer(getApplicationContext());
+                        surfaceRenderer.onSurfaceCreated(null, null);
+                        surfaceRenderer.onSurfaceChanged(null, w, h);
                     }
-                }*/
-
-                final Bitmap bitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
-                bitmap.copyPixelsFromBuffer(ibt);
-
+                    //Object3D object3D = PolygonGroup3D.createCube(.25f);
+                    synchronized (mLockObject) {
+                        Object3D object3D = mObject3D1;
+                        //object3D.setScale(100);
+                        object3D.precalculate();
+                        surfaceRenderer.setObject3D(object3D);
+                        surfaceRenderer.onDrawFrame(null);
+                    }
+                    bmp= bitmapRenderer.getBitmap();
+                }
+                final Bitmap bitmap = bmp;
+                Canvas canvas = new Canvas(bitmap);
+                Paint paint = new Paint();
+                paint.setStrokeWidth(5);
+                paint.setColor(Color.GRAY);
+                paint.setStyle(Paint.Style.STROKE);
+                canvas.drawRect(new RectF(0, 0, 30, 30), paint);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
                         mImageView.setImageBitmap(bitmap);
                         mImageView.invalidate();
-                        Log.d("GALA", String.format("w=%d", bitmap.getWidth()));
                     }
                 });
+
             }
         };
         executor.execute(processBitmap);
     }
-    Handler handler;
-    ExecutorService executor;
-    ThreeDGLBitmapRenderer.GLThread glThread;
 
     class ObjectRotationSeekerBarChangeListener implements SeekBar.OnSeekBarChangeListener {
         String mAxis;
@@ -134,15 +192,18 @@ public class OpenGLActivity extends AppCompatActivity {
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             //Log.d("GALA", String.format("progress=%d", progress));
             float angle = 360f*progress*.01f;
-            if(mAxis.equals("x")) {
-                mObject3D1.setRotatationX(angle);
-            } else if(mAxis.equals("y")) {
-                mObject3D1.setRotatationY(angle);
-            } else if(mAxis.equals("z")) {
-                mObject3D1.setRotatationZ(angle);
+            synchronized (mLockObject) {
+                if (mAxis.equals("x")) {
+                    mObject3D1.setRotatationX(angle);
+                } else if (mAxis.equals("y")) {
+                    mObject3D1.setRotatationY(angle);
+                } else if (mAxis.equals("z")) {
+                    mObject3D1.setRotatationZ(angle);
+                }
+                mObject3D1.precalculate();
             }
-            mObject3D1.precalculate();
             mSurfaceView1.requestRender();
+            if(MakeBitmap) showBitmap();
             //mSurfaceView1.invalidate();
         }
 

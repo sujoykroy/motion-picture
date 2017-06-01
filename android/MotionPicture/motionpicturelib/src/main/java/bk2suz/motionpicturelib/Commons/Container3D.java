@@ -56,6 +56,4 @@ public class Container3D extends Object3D {
         }
         return container3D;
     }
-
-
 }

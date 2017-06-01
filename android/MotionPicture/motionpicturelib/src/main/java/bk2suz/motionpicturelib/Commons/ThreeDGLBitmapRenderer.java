@@ -47,10 +47,17 @@ public class ThreeDGLBitmapRenderer {
     private EGLContextFactory mEGLContextFactory;
     private EGLWindowSurfaceFactory mEGLWindowSurfaceFactory;
     int mWidth, mHeight;
+    EGLConfig[] mEglConfigs;
 
     public ThreeDGLBitmapRenderer(int width, int height) {
         mWidth = width;
         mHeight = width;
+        int[] attribList = new int[] {
+                EGL10.EGL_WIDTH, mWidth,
+                EGL10.EGL_HEIGHT, mHeight,
+                0x3098, mEGLContextClientVersion,
+                EGL10.EGL_NONE
+        };
 
         mEgl = (EGL10) EGLContext.getEGL();
         mEglDisplay = mEgl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
@@ -62,26 +69,50 @@ public class ThreeDGLBitmapRenderer {
             throw new RuntimeException("eglInitialize failed");
         }
 
-        mEGLConfigChooser = new SimpleEGLConfigChooser(true);
+        mEglConfig = chooseConfig();
+
+        mEGLConfigChooser = new SimpleEGLConfigChooser(false);
         mEglConfig = mEGLConfigChooser.chooseConfig(mEgl, mEglDisplay);
 
         mEGLContextFactory = new DefaultContextFactory();
         mEglContext = mEGLContextFactory.createContext(mEgl, mEglDisplay, mEglConfig);
+
+        mEGLWindowSurfaceFactory = new DefaultWindowSurfaceFactory();
+        mEglSurface = mEgl.eglCreatePbufferSurface(mEglDisplay, mEglConfig, attribList);
+
+        //mEglContext = mEgl.eglCreateContext(mEglDisplay, mEglConfig, EGL10.EGL_NO_CONTEXT, null);
+        //mEglSurface = mEgl.eglCreatePbufferSurface(mEglDisplay, mEglConfig,  attribList);
+
         if (mEglContext == null || mEglContext == EGL10.EGL_NO_CONTEXT) {
             mEglContext = null;
             throwEglException("createContext");
         }
 
-        //mEGLWindowSurfaceFactory = new DefaultWindowSurfaceFactory();
-        int[] attribList = new int[] {
-                EGL10.EGL_WIDTH, mWidth,
-                EGL10.EGL_HEIGHT, mHeight,
-                EGL10.EGL_NONE
-        };
-        mEglSurface = mEgl.eglCreatePbufferSurface(mEglDisplay, mEglConfig, attribList);
         mEgl.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext);
         Log.d("GALA", String.format("mEGLContext.getGL()=%s", mEglContext.getGL().getClass().toString()));
 
+    }
+
+    private EGLConfig chooseConfig() {
+        int[] attribList = new int[] {
+                EGL10.EGL_DEPTH_SIZE, 0,
+                EGL10.EGL_STENCIL_SIZE, 0,
+                EGL10.EGL_RED_SIZE, 8,
+                EGL10.EGL_GREEN_SIZE, 8,
+                EGL10.EGL_BLUE_SIZE, 8,
+                EGL10.EGL_ALPHA_SIZE, 8,
+                EGL10.EGL_NONE
+        };
+
+        // No error checking performed, minimum required code to elucidate logic
+        // Expand on this logic to be more selective in choosing a configuration
+        int[] numConfig = new int[1];
+        mEgl.eglChooseConfig(mEglDisplay, attribList, null, 0, numConfig);
+        int configSize = numConfig[0];
+        mEglConfigs = new EGLConfig[configSize];
+        mEgl.eglChooseConfig(mEglDisplay, attribList, mEglConfigs, configSize, numConfig);
+
+        return mEglConfigs[0];  // Best match is probably the first configuration
     }
 
     private void throwEglException(String function) {
@@ -129,7 +160,7 @@ public class ThreeDGLBitmapRenderer {
      * {@link GLSurfaceView#setEGLContextFactory(EGLContextFactory)}
      */
     public interface EGLContextFactory {
-        EGLContext createContext(EGL10 egl, EGLDisplay display, EGLConfig eglConfig);
+        EGLContext  createContext(EGL10 egl, EGLDisplay display, EGLConfig eglConfig);
         void destroyContext(EGL10 egl, EGLDisplay display, EGLContext context);
     }
 
@@ -321,6 +352,17 @@ public class ThreeDGLBitmapRenderer {
      */
     private class SimpleEGLConfigChooser extends ComponentSizeChooser {
         public SimpleEGLConfigChooser(boolean withDepthBuffer) {
+            super(8, 8, 8, 8, withDepthBuffer ? 16 : 0, 0);
+        }
+    }
+
+    /**
+     * This class will choose a RGB_888 surface with
+     * or without a depth buffer.
+     *
+     */
+    private class SimpleEGLConfigChooser2 extends ComponentSizeChooser {
+        public SimpleEGLConfigChooser2(boolean withDepthBuffer) {
             super(8, 8, 8, 0, withDepthBuffer ? 16 : 0, 0);
         }
     }

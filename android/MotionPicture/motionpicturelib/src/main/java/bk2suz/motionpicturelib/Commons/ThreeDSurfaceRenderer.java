@@ -5,6 +5,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.util.Log;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -40,14 +41,11 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT|GLES20.GL_DEPTH_BUFFER_BIT);
         Matrix.setIdentityM(mTempMatrix, 0);
         //mPolygon3D.draw(mModelMatrix, mTextureStore);
 
-        if (mObject3D == null) {
-            return;
-        }
         //Matrix.multiplyMM(mVPMatrix, 0, mCamera3D.getMatrix(), 0, mProjection3D.getMatrix(), 0);
         mVPMatrix = mProjection3D.getMatrix();
         //Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
@@ -56,16 +54,18 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         long time = SystemClock.uptimeMillis() % 4000L;
         float angle = 0.090f * ((int) time);
 
-        mObject3D.setParentMatrix(mVPMatrix);
-        //mPolygonGroup3D.setRotatationZ(angle);
-        //mPolygonGroup3D.setRotatationY(angle);
-        mObject3D.precalculate();
-        mObject3D.draw(mThreeDGLRenderContext);
+        if (mObject3D != null) {
+            mObject3D.setParentMatrix(mVPMatrix);
+            //mPolygonGroup3D.setRotatationZ(angle);
+            //mPolygonGroup3D.setRotatationY(angle);
+            mObject3D.precalculate();
+            mObject3D.draw(mThreeDGLRenderContext);
 
+        } else {
+        }
         mAxes.setParentMatrix(mVPMatrix);
         mAxes.precalculate();
         mAxes.draw(mThreeDGLRenderContext);
-
     }
 
     @Override
