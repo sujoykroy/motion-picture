@@ -73,6 +73,7 @@ public class OpenGLActivity extends AppCompatActivity {
         mSurfaceView1 = (ThreeDSurfaceView) findViewById(R.id.surfaceView1);
         //mSurfaceView2 = (ThreeDSurfaceView) findViewById(R.id.surfaceView2);
 
+        mSurfaceView1.setPreMatrix(((ThreeDShape) shape).getGLMatrix());
         if (!MakeBitmap) {
             mSurfaceView1.setObject3D(mObject3D1);
         }
@@ -112,7 +113,7 @@ public class OpenGLActivity extends AppCompatActivity {
         }
     }
 
-    private static boolean MakeBitmap = true;
+    private static boolean MakeBitmap = !true;
     Handler handler;
     ThreadPoolExecutor executor;
     ImageGLRender.GLThread mImageRendererThread;

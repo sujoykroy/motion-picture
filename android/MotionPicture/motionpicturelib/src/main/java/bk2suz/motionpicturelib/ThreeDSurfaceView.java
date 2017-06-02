@@ -28,6 +28,10 @@ public class ThreeDSurfaceView extends GLSurfaceView {
         doInit();
     }
 
+    public void setPreMatrix(float[] preMatrix) {
+        mRenderer.setPreMatrix(preMatrix);
+    }
+
 
     public void doInit() {
         setEGLContextClientVersion(2);

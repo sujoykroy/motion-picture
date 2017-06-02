@@ -6,6 +6,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import bk2suz.motionpicturelib.Commons.Camera3D;
 import bk2suz.motionpicturelib.Commons.Color;
@@ -40,6 +41,12 @@ public class ThreeDShape extends RectangleShape {
         } else {
             mWireColor = color;
         }
+    }
+
+    public void buildContainerParentMatrix() {
+        float[] mat = getGLMatrix();
+        Log.d("GALA", String.format("dd %s", Arrays.toString(getGLMatrix())));
+        mD3Object.setParentMatrix(mat);
     }
 
     public Container3D getContainer3D() {

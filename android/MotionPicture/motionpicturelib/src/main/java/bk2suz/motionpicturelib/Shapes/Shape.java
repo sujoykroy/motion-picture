@@ -133,6 +133,27 @@ public abstract class Shape {
         mBorderPaint.setStrokeWidth(mBorderWidth);
     }
 
+    public float[] getGLMatrix() {
+        float[] selfMatrix = new float[16];
+        float[] tempMatrix;
+
+        android.opengl.Matrix.setIdentityM(selfMatrix, 0);
+        android.opengl.Matrix.translateM(selfMatrix, 0, mTranslation.x, mTranslation.y, 0);
+        if (mPreMatrix != null) {
+            tempMatrix = selfMatrix.clone();
+            android.opengl.Matrix.multiplyMM(selfMatrix, 0, tempMatrix, 0, mPreMatrix.getGLMatrix(), 0);
+        }
+        android.opengl.Matrix.scaleM(selfMatrix, 0, mScaleX, mScaleY, 1);
+        android.opengl.Matrix.rotateM(selfMatrix, 0, mAngle, 0, 0, 1);
+        android.opengl.Matrix.scaleM(selfMatrix, 0, mPostScaleX, mPostScaleY, 1);
+
+        if(mParentShape != null) {
+            tempMatrix = selfMatrix.clone();
+            android.opengl.Matrix.multiplyMM(selfMatrix, 0, mParentShape.getGLMatrix(), 0, tempMatrix, 0);
+        }
+        return selfMatrix;
+    }
+
     public void preDraw(Canvas canvas) {
         if (mParentShape != null) {
             mParentShape.preDraw(canvas);

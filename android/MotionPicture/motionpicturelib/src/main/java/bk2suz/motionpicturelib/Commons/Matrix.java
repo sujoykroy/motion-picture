@@ -21,6 +21,11 @@ public class Matrix {
         return graphicsMatrix;
     }
 
+    public float[] getGLMatrix() {
+        float[] mat = {mXX, mXY, mX0, 0F, mYX, mYY, mY0, 0F, 0F, 0F, 1F, 0F, 0F, 0F, 0F, 1F};
+        return mat;
+    }
+
     public void setInBetween(Matrix startMatrix, Matrix endMatrix, float frac) {
         this.mXX = startMatrix.mXX + (endMatrix.mXX-startMatrix.mXX)*frac;
         this.mYX = startMatrix.mYX + (endMatrix.mYX-startMatrix.mYX)*frac;

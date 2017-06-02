@@ -25,6 +25,7 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
 
     private float[] mVPMatrix = new float[16];
     private float[] mTempMatrix = new float[16];
+    private float[] mPreMatrix;
 
     public ThreeDSurfaceRenderer(Context context) {
         super();
@@ -32,6 +33,10 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
 
         mCamera3D.precalculate();
         mProjection3D.precalculate();
+    }
+
+    public void setPreMatrix(float[] preMatrix) {
+        mPreMatrix = preMatrix;
     }
 
     public void setObject3D(Object3D object3D) {
@@ -44,10 +49,16 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT|GLES20.GL_DEPTH_BUFFER_BIT);
         Matrix.setIdentityM(mTempMatrix, 0);
+        //Matrix.rotateM(mTempMatrix, 0, 30, 0, 0, 1);
         //mPolygon3D.draw(mModelMatrix, mTextureStore);
+        if (mPreMatrix != null) {
+            Matrix.multiplyMM(mVPMatrix, 0, mPreMatrix, 0, mTempMatrix, 0);
+            mTempMatrix = mVPMatrix.clone();
+        }
+        Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
 
         //Matrix.multiplyMM(mVPMatrix, 0, mCamera3D.getMatrix(), 0, mProjection3D.getMatrix(), 0);
-        mVPMatrix = mProjection3D.getMatrix();
+        //mVPMatrix = mProjection3D.getMatrix();
         //Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
         //Log.d("GALA", String.format("mVPMatrix %s", Arrays.toString(mVPMatrix)));
         //Log.d("GALA", String.format("mProjection3D.getMatrix() %s", Arrays.toString(mProjection3D.getMatrix())));
@@ -82,7 +93,7 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
         float ratio = (float) width / height;
-        mProjection3D.setProjectionLeftRight(-width/2, width/2);
+        mProjection3D.setProjectionLeftRight(-width*.25f, width*.75f);
         mProjection3D.setProjectionTopBottom(height/2, -height/2);
         int depth = Math.max(width, height)/2;
         mProjection3D.setProjectionNearFar(-depth, depth);
