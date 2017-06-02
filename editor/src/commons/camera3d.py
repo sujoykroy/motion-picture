@@ -75,12 +75,12 @@ class Camera3d(Object3d):
         width = int(width)
         height = int(height)
         pixel_count = width*height
-        max_depth = 100000
+        min_depth = -100000
 
         canvas_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
         canvas_surf_array = surface2array(canvas_surf)
 
-        canvas_z_depths =numpy.repeat(max_depth, pixel_count)
+        canvas_z_depths =numpy.repeat(min_depth, pixel_count)
         canvas_z_depths = canvas_z_depths.astype("f").reshape((height, width))
 
         pad = 3
@@ -141,13 +141,13 @@ class Camera3d(Object3d):
             coords_depths = numpy.matmul(object_3d.plane_params_normalized[self],
                 numpy.concatenate((coords.T, [numpy.ones(coords.shape[0])]), axis=0))
             coords_depths.shape = (ycount, xcount)
-            blank_depths = numpy.repeat(max_depth+1, ycount*xcount)
+            blank_depths = numpy.repeat(min_depth+1, ycount*xcount)
             blank_depths.shape = coords_depths.shape
             coords_depths = numpy.where(area_cond, blank_depths, coords_depths)
 
             pre_depths = canvas_z_depths[ctop:cbottom, cleft:cright]
             pre_depths.shape = (cbottom-ctop, cright-cleft)
-            depths_cond = pre_depths>coords_depths
+            depths_cond = pre_depths<coords_depths#highier depths come at top
 
             new_depths = numpy.where(depths_cond, coords_depths, pre_depths)
             canvas_z_depths[ctop:cbottom, cleft:cright] = new_depths
@@ -175,7 +175,7 @@ class Camera3d(Object3d):
     def get_image_canvas_high_quality(self,
             ctx, left, top, width, height,
             border_color=None, border_width=None):
-        max_depth = 100000
+        min_depth = -100000
 
         canvas_surf = ctx.get_target()
         canvas_width = canvas_surf.get_width()
@@ -184,7 +184,7 @@ class Camera3d(Object3d):
         canvas_surf_array = surface2array(canvas_surf)
 
         canvas_z_depths = numpy.zeros(canvas_surf_array.shape[:2], dtype="f")
-        canvas_z_depths.fill(max_depth)
+        canvas_z_depths.fill(min_depth)
 
         ctx.translate(-left, -top)
         premat = ctx.get_matrix()
@@ -264,12 +264,12 @@ class Camera3d(Object3d):
                 numpy.concatenate((coords.T, [numpy.ones(coords.shape[0])]), axis=0))
             coords_depths.shape = (ycount, xcount)
             blank_depths = numpy.zeros_like(coords_depths)
-            blank_depths.fill(max_depth+1)
+            blank_depths.fill(min_depth+1)
             coords_depths = numpy.where(area_cond, blank_depths, coords_depths)
 
             pre_depths = canvas_z_depths[poly_coor_y, poly_coor_x]
             pre_depths.shape = (ycount, xcount)
-            depths_cond = pre_depths>coords_depths
+            depths_cond = pre_depths<coords_depths
 
             new_depths = numpy.where(depths_cond, coords_depths, pre_depths)
             new_depths.shape = (ycount*xcount, )

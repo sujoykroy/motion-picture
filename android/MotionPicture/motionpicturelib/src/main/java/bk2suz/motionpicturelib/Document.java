@@ -1,5 +1,6 @@
 package bk2suz.motionpicturelib;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -69,6 +70,20 @@ public class Document {
         synchronized (BitmapLock) {
             mBitmap = null;
         }
+    }
+
+
+    private boolean mGLThreadCreated = false;
+
+    public void createGLThread(Context context) {
+        if(!mMainMultiShape.hasThreeDShape()) return;
+        mGLThreadCreated = ImageGLRender.GLThreadManager.createThread((int)mBitmapWidth, (int)mBitmapHeight, context);
+    }
+
+    public void deleteGLThread() {
+        if(!mGLThreadCreated) return;
+        ImageGLRender.GLThreadManager.deleteThread((int)mBitmapWidth, (int)mBitmapHeight);
+        mGLThreadCreated = false;
     }
 
     public Bitmap getBitmap() {

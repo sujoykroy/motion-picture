@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.opengl.GLES20;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,20 +12,15 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import bk2suz.motionpicturelib.Commons.Object3D;
 import bk2suz.motionpicturelib.Commons.PolygonGroup3D;
-import bk2suz.motionpicturelib.Commons.ThreeDGLBitmapRenderer;
 import bk2suz.motionpicturelib.Commons.ThreeDSurfaceRenderer;
 import bk2suz.motionpicturelib.Document;
+import bk2suz.motionpicturelib.ImageGLRender;
 import bk2suz.motionpicturelib.Shapes.Shape;
 import bk2suz.motionpicturelib.Shapes.ThreeDShape;
 import bk2suz.motionpicturelib.ThreeDSurfaceView;
@@ -56,11 +50,11 @@ public class OpenGLActivity extends AppCompatActivity {
 
         mImageView = (ImageView) findViewById(R.id.imageView);
 
-        Document mDoc = Document.loadFromResource(getResources(), R.xml.threed2);
+        Document mDoc = Document.loadFromResource(getResources(), R.xml.threed);
         Shape shape = mDoc.getShapeFromPath("myob");
-        if(shape != null && !false) {
+        if(shape != null) {
             mObject3D1 = ((ThreeDShape) shape).getContainer3D();
-            mObject3D1.setScale(800f);
+            //mObject3D1.setScale(800f);
         } else {
             mObject3D1 = PolygonGroup3D.createCube(.25f);
             mObject3D1.setScale(800);
@@ -73,7 +67,7 @@ public class OpenGLActivity extends AppCompatActivity {
         mSurfaceView1 = (ThreeDSurfaceView) findViewById(R.id.surfaceView1);
         //mSurfaceView2 = (ThreeDSurfaceView) findViewById(R.id.surfaceView2);
 
-        mSurfaceView1.setPreMatrix(((ThreeDShape) shape).getGLMatrix());
+        //mSurfaceView1.setPreMatrix(((ThreeDShape) shape).getGLMatrix());
         if (!MakeBitmap) {
             mSurfaceView1.setObject3D(mObject3D1);
         }
@@ -95,8 +89,12 @@ public class OpenGLActivity extends AppCompatActivity {
             mImageRendererThread = new ImageGLRender.GLThread(400, 400, this);
             mImageRendererThread.start();
             showBitmap();
+        } else {
+            //mDoc.setBitmapSize(100, 100);
+            mDoc.createGLThread(this);
+            mImageView.setImageBitmap(mDoc.getBitmap());
+            mDoc.deleteGLThread();
         }
-
     }
 
     @Override
@@ -123,7 +121,7 @@ public class OpenGLActivity extends AppCompatActivity {
     ThreeDSurfaceRenderer surfaceRenderer;
 
     private void showBitmap() {
-        ImageGLRender.GLImageFutureTask task = mImageRendererThread.requestBitmapFor(mObject3D1);
+        ImageGLRender.GLImageFutureTask task = mImageRendererThread.requestBitmapFor(null, mObject3D1);
         try {
             mImageView.setImageBitmap(task.get());
         } catch (InterruptedException e) {

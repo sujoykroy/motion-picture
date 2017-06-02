@@ -43,6 +43,21 @@ public class MultiShape extends Shape {
         return mChildShapes.get(shapeName);
     }
 
+    public boolean hasThreeDShape() {
+        for(Map.Entry<String, Shape> entry: mChildShapes.entrySet()) {
+            Shape shape = entry.getValue();
+            if(ThreeDShape.class.isInstance(shape)) {
+                return true;
+            }
+            if(MultiShape.class.isInstance(shape)) {
+                if(((MultiShape) shape).hasThreeDShape()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public void readjustSizes() {
         RectF outline = new RectF();
         for(Shape shape: mChildShapes.values()) {

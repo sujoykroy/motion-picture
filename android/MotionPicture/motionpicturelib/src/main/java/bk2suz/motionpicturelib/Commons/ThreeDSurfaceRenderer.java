@@ -57,7 +57,8 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         }
         Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
 
-        //Matrix.multiplyMM(mVPMatrix, 0, mCamera3D.getMatrix(), 0, mProjection3D.getMatrix(), 0);
+        mTempMatrix = mVPMatrix.clone();
+        //Matrix.multiplyMM(mVPMatrix, 0, mCamera3D.getMatrix(), 0, mTempMatrix, 0);
         //mVPMatrix = mProjection3D.getMatrix();
         //Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
         //Log.d("GALA", String.format("mVPMatrix %s", Arrays.toString(mVPMatrix)));

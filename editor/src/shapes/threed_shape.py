@@ -134,14 +134,14 @@ class ThreeDShape(RectangleShape):
         if self.high_quality and ctx is not None:
             self.image_canvas = self.camera.get_image_canvas_high_quality(
                 ctx,
-                -self.anchor_at.x, -self.anchor_at.y,
+                -self.anchor_at.x, -self.anchor_at.y,#what happens to y?
                 self.width, self.height,
                 border_color=self.wire_color,
                 border_width=self.wire_width
             )
         else:
             self.image_canvas = self.camera.get_image_canvas(
-                -self.anchor_at.x, -self.anchor_at.y,
+                -self.anchor_at.x, -self.height+self.anchor_at.y,#inverting y, huh opnegl
                 self.width, self.height,
                 border_color=self.wire_color,
                 border_width=self.wire_width
@@ -177,13 +177,19 @@ class ThreeDShape(RectangleShape):
             self.build_image()
         ctx.restore()
 
+        ctx.save()
         if self.high_quality:
             mat = ctx.get_matrix()
             ctx.set_matrix(cairo.Matrix())
+            ctx.translate(0, self.image_canvas.get_height())
+            ctx.scale(1, -1) #OpenGL inverts image. So, we do it to match up.
             ctx.set_source_surface(self.image_canvas)
             ctx.paint()
             ctx.set_matrix(mat)
         else:
+            ctx.translate(0, self.image_canvas.get_height())
+            ctx.scale(1, -1) #OpenGL inverts image. So, we do it to match up.
             ctx.set_source_surface(self.image_canvas)
             ctx.get_source().set_filter(cairo.FILTER_FAST)
             ctx.paint()
+        ctx.restore()

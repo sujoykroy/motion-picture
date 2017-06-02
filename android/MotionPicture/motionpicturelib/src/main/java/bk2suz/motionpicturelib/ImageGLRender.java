@@ -1,4 +1,4 @@
-package bk2suz.motionpicture;
+package bk2suz.motionpicturelib;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,12 +13,12 @@ import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-
-import javax.microedition.khronos.egl.EGL10;
 
 import bk2suz.motionpicturelib.Commons.Object3D;
 import bk2suz.motionpicturelib.Commons.ThreeDSurfaceRenderer;
@@ -137,6 +137,7 @@ public class ImageGLRender {
 
     public static class GLImageFutureTask extends FutureTask<Bitmap> {
         Object3D mObject3D;
+        float[] mPreMatrix;
 
         public GLImageFutureTask(Callable<Bitmap> callable) {
             super(callable);
@@ -144,6 +145,10 @@ public class ImageGLRender {
 
         public void setObject3D(Object3D object3D) {
             mObject3D = object3D;
+        }
+
+        public void setPreMatrix(float[] preMatrix) {
+            mPreMatrix = preMatrix;
         }
 
         public void setBitmap(Bitmap bitmap) {
@@ -181,10 +186,10 @@ public class ImageGLRender {
                 GLImageFutureTask task = mTaskQueue.poll();
                 if(task != null) {
                     mSurfaceRenderer.setObject3D(task.mObject3D);
+                    mSurfaceRenderer.setPreMatrix(task.mPreMatrix);
                     mSurfaceRenderer.onDrawFrame(null);
                     task.setBitmap(mImageGLRender.getBitmap());
                     task.markComplete();
-                    Log.d("GALA", "done");
                 }
                 try {
                     Thread.sleep(TimeUnit.MILLISECONDS.toMillis(100));
@@ -192,9 +197,12 @@ public class ImageGLRender {
                     break;
                 }
             }
+            mImageGLRender.release();
+            mImageGLRender = null;
+            mSurfaceRenderer = null;
         }
 
-        public GLImageFutureTask requestBitmapFor(final Object3D object3D) {
+        public GLImageFutureTask requestBitmapFor(float[] preMatrix, final Object3D object3D) {
             GLImageFutureTask task = new GLImageFutureTask(new Callable<Bitmap>() {
                 @Override
                 public Bitmap call() throws Exception {
@@ -202,6 +210,7 @@ public class ImageGLRender {
                 }
             });
             task.setObject3D(object3D);
+            task.setPreMatrix(preMatrix);
             mTaskQueue.add(task);
             return task;
         }
@@ -210,6 +219,47 @@ public class ImageGLRender {
             synchronized (mLock) {
                 mShouldExit = true;
             }
+        }
+    }
+
+    public static class GLThreadManager {
+        private static HashMap<String, GLThread> mThreads = new HashMap<>();
+
+        private static String getKey(int width, int height) {
+            String key = String.format("%dx%d", width, height);
+            return key;
+        }
+
+        public static GLThread getThread(int width, int height) {
+            String key = getKey(width, height);
+            return mThreads.get(key);
+        }
+
+        public static boolean createThread(int width, int height, Context context) {
+            String key = getKey(width, height);
+            if (!mThreads.containsKey(key)) {
+                GLThread thread = new GLThread(width, height, context);
+                mThreads.put(key, thread);
+                thread.start();
+                return true;
+            }
+            return false;
+        }
+
+        public static void deleteThread(int width, int height) {
+            String key = getKey(width, height);
+            GLThread thread = mThreads.get(key);
+            if (thread != null) {
+                thread.makeExit();
+            }
+            mThreads.remove(key);
+        }
+
+        public void deleteAll() {
+            for(GLThread thread: mThreads.values()) {
+                thread.makeExit();
+            }
+            mThreads.clear();
         }
     }
 }
