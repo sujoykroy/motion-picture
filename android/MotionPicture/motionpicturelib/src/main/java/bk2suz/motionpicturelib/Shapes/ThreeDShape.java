@@ -3,6 +3,7 @@ package bk2suz.motionpicturelib.Shapes;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
@@ -60,15 +61,15 @@ public class ThreeDShape extends RectangleShape {
         float[] tempMatrix;
 
         android.opengl.Matrix.setIdentityM(selfMatrix, 0);
-        android.opengl.Matrix.translateM(selfMatrix, 0, mAnchorAt.x, -mAnchorAt.y, 0);
         android.opengl.Matrix.translateM(selfMatrix, 0, mTranslation.x, -mTranslation.y, 0);
         if (mPreMatrix != null) {
             tempMatrix = selfMatrix.clone();
-            //android.opengl.Matrix.multiplyMM(selfMatrix, 0, tempMatrix, 0, mPreMatrix.getGLMatrix(), 0);
+            android.opengl.Matrix.multiplyMM(selfMatrix, 0, tempMatrix, 0, mPreMatrix.getGLMatrix(), 0);
         }
         android.opengl.Matrix.scaleM(selfMatrix, 0, mScaleX, mScaleY, 1);
         android.opengl.Matrix.rotateM(selfMatrix, 0, -mAngle, 0, 0, 1);
         android.opengl.Matrix.scaleM(selfMatrix, 0, mPostScaleX, mPostScaleY, 1);
+        android.opengl.Matrix.translateM(selfMatrix, 0, mAnchorAt.x, -mAnchorAt.y, 0);
 
         if(mParentShape != null) {
             tempMatrix = selfMatrix.clone();
@@ -99,6 +100,7 @@ public class ThreeDShape extends RectangleShape {
         projection3D.precalculate();
 
         Matrix.multiplyMM(tempMatrix, 0, projection3D.getMatrix(), 0, selfMatrix, 0);
+        //tempMatrix = null;
         ImageGLRender.GLImageFutureTask task = thread.requestBitmapFor(tempMatrix, mD3Object);
 
         try {
@@ -122,22 +124,35 @@ public class ThreeDShape extends RectangleShape {
         Bitmap bitmap = getBitmap(canvas);
         if(bitmap != null) {
             canvas.save();
+            Path path = new Path(getPath());
+            path.transform(getGraphicsMatrix());
+            canvas.clipPath(path);
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
+            //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
             canvas.drawBitmap(bitmap, 0, 0, paint);
             canvas.restore();
         }
         if (mBorderColor != null) {
+            /*
+            canvas.save();
+            Path path = new Path(getPath());
+            path.transform(getGraphicsMatrix());
+            canvas.drawPath(path, mBorderPaint);
+            canvas.restore();
+            */
+
             canvas.save();
             preDraw(canvas);
             drawBorder(canvas);
             canvas.restore();
 
+            /*
             canvas.save();
             preDraw(canvas);
             canvas.translate(mAnchorAt.x, mAnchorAt.y);
             canvas.drawRect(new RectF(-5, -5, 5, 5), mBorderPaint);
             canvas.restore();
+            */
         }
     }
 

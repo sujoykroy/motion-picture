@@ -138,13 +138,13 @@ public abstract class Shape {
         float[] tempMatrix;
 
         android.opengl.Matrix.setIdentityM(selfMatrix, 0);
-        android.opengl.Matrix.translateM(selfMatrix, 0, mTranslation.x, mTranslation.y, 0);
+        android.opengl.Matrix.translateM(selfMatrix, 0, mTranslation.x, -mTranslation.y, 0);
         if (mPreMatrix != null) {
             tempMatrix = selfMatrix.clone();
             android.opengl.Matrix.multiplyMM(selfMatrix, 0, tempMatrix, 0, mPreMatrix.getGLMatrix(), 0);
         }
         android.opengl.Matrix.scaleM(selfMatrix, 0, mScaleX, mScaleY, 1);
-        android.opengl.Matrix.rotateM(selfMatrix, 0, mAngle, 0, 0, 1);
+        android.opengl.Matrix.rotateM(selfMatrix, 0, -mAngle, 0, 0, 1);
         android.opengl.Matrix.scaleM(selfMatrix, 0, mPostScaleX, mPostScaleY, 1);
 
         if(mParentShape != null) {
@@ -165,6 +165,21 @@ public abstract class Shape {
         canvas.scale(mScaleX, mScaleY);
         canvas.rotate(mAngle);
         canvas.scale(mPostScaleX, mPostScaleY);
+    }
+
+    public android.graphics.Matrix getGraphicsMatrix() {
+        android.graphics.Matrix matrix = new android.graphics.Matrix();
+        matrix.postTranslate(mTranslation.x, mTranslation.y);
+        if (mPreMatrix != null) {
+            matrix.preConcat(mPreMatrix.getGraphicsMatrix());
+        }
+        matrix.preScale(mScaleX, mScaleY);
+        matrix.preRotate(mAngle);
+        matrix.preScale(mPostScaleX, mPostScaleY);
+        if (mParentShape != null) {
+            matrix.postConcat(mParentShape.getGraphicsMatrix());
+        }
+        return matrix;
     }
 
     public Path getPath() {

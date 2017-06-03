@@ -4,6 +4,13 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.RectF;
+import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -11,6 +18,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 
 import bk2suz.motionpicturelib.Commons.Point;
+import bk2suz.motionpicturelib.Shapes.BlankShape;
 import bk2suz.motionpicturelib.Shapes.MultiShape;
 import bk2suz.motionpicturelib.Shapes.Shape;
 import bk2suz.motionpicturelib.TimeLines.MultiShapeTimeLine;
@@ -91,11 +99,39 @@ public class Document {
             if (mBitmap == null) {
                 Bitmap bitmap = Bitmap.createBitmap((int) mBitmapWidth, (int) mBitmapHeight, Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(bitmap);
-                Float scale = Math.min(mBitmapWidth / mWidth, mBitmapHeight / mHeight);
-                canvas.translate((mBitmapWidth - scale * mWidth) * .5F, (mBitmapHeight - scale * mHeight) * .5F);
-                canvas.scale(scale, scale);
+
+                float scale = Math.min(mBitmapWidth / mWidth, mBitmapHeight / mHeight);
+                float dx = (mBitmapWidth - scale * mWidth) * .5F;
+                float dy = (mBitmapHeight - scale * mHeight) * .5F;
+
+                BlankShape bitmapShape = null;
+                if(scale!=1) {
+                    bitmapShape = new BlankShape();
+                    bitmapShape.translate(dx, dy);
+                    bitmapShape.scale(scale, scale);
+                }
                 if (mMainMultiShape != null) {
+                    if(bitmapShape != null) {
+                        mMainMultiShape.setParentShape(bitmapShape);
+                    }
+                    canvas.save();
                     mMainMultiShape.draw(canvas);
+                    canvas.restore();
+                    if(bitmapShape != null) {
+                        mMainMultiShape.setParentShape(null);
+                    }
+                }
+                if(bitmapShape != null) {
+                    Paint clearPaint = new Paint();
+                    clearPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+                    clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
+                    clearPaint.setARGB(0, 0, 0, 0);
+                    Path coverPath = new Path();
+                    coverPath.addRect(0, 0, mBitmapWidth, mBitmapHeight, Path.Direction.CW);
+                    Path actualImagePath = new Path();
+                    actualImagePath.addRect(new RectF(dx, dy, dx+scale*mWidth, dy+scale*mHeight), Path.Direction.CW);
+                    coverPath.op(actualImagePath, Path.Op.DIFFERENCE);
+                    canvas.drawPath(coverPath, clearPaint);
                 }
                 mBitmap = bitmap;
             }

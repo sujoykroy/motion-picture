@@ -90,7 +90,7 @@ public class OpenGLActivity extends AppCompatActivity {
             mImageRendererThread.start();
             showBitmap();
         } else {
-            //mDoc.setBitmapSize(100, 100);
+            mDoc.setBitmapSize(200, 110);
             mDoc.createGLThread(this);
             mImageView.setImageBitmap(mDoc.getBitmap());
             mDoc.deleteGLThread();
