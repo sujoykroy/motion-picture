@@ -7,6 +7,8 @@ import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.util.Log;
 
+import java.util.Arrays;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -54,9 +56,10 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         if (mPreMatrix != null) {
             Matrix.multiplyMM(mVPMatrix, 0, mPreMatrix, 0, mTempMatrix, 0);
             mTempMatrix = mVPMatrix.clone();
+        } else {
+            Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
         }
-        Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
-
+        //Log.d("GALA", String.format("mProjection3D.getMatrix()=%s", Arrays.toString(mProjection3D.getMatrix())));
         mTempMatrix = mVPMatrix.clone();
         //Matrix.multiplyMM(mVPMatrix, 0, mCamera3D.getMatrix(), 0, mTempMatrix, 0);
         //mVPMatrix = mProjection3D.getMatrix();
@@ -94,7 +97,7 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
         float ratio = (float) width / height;
-        mProjection3D.setProjectionLeftRight(-width*.25f, width*.75f);
+        mProjection3D.setProjectionLeftRight(-width*.5f, width*.5f);
         mProjection3D.setProjectionTopBottom(height/2, -height/2);
         int depth = Math.max(width, height)/2;
         mProjection3D.setProjectionNearFar(-depth, depth);

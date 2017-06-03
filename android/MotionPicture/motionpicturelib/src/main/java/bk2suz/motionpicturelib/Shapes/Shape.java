@@ -311,6 +311,14 @@ public abstract class Shape {
         return point;
     }
 
+    public Point absoluteReverseTransformPoint(Point point) {
+        point = reverseTransformPoint(point);
+        if(mParentShape != null) {
+            point = mParentShape.absoluteReverseTransformPoint(point);
+        }
+        return point;
+    }
+
     public RectF getAbsoluteOutline() {
         RectF outline = new RectF(0, 0, mWidth, mHeight);
         Point[] points = new Point[4];
