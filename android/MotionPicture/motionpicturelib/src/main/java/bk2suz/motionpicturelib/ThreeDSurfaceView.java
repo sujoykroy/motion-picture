@@ -53,9 +53,11 @@ public class ThreeDSurfaceView extends GLSurfaceView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        /*
         Paint paint = new Paint();
         paint.setColor(Color.BLUE);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(new RectF(0, 0, 100, 100), paint);
+        */
     }
 }

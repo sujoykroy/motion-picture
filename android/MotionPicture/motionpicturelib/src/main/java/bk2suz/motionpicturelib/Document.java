@@ -103,8 +103,7 @@ public class Document {
                 float scale = Math.min(mBitmapWidth / mWidth, mBitmapHeight / mHeight);
                 float dx = (mBitmapWidth - scale * mWidth) * .5F;
                 float dy = (mBitmapHeight - scale * mHeight) * .5F;
-
-                BlankShape bitmapShape = null;
+                 BlankShape bitmapShape = null;
                 if(scale!=1) {
                     bitmapShape = new BlankShape();
                     bitmapShape.translate(dx, dy);

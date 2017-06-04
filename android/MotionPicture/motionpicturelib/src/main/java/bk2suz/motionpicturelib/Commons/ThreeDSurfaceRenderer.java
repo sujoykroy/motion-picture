@@ -19,6 +19,8 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
     private Object3D mObject3D = null;
     private PolygonGroup3D mAxes = null;
 
+
+    private boolean mShowAxes = false;
     private Camera3D mCamera3D = new Camera3D();
     private Projection3D mProjection3D = new Projection3D();
 
@@ -43,44 +45,33 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
 
     public void setObject3D(Object3D object3D) {
         mObject3D = object3D;
-        //mObject3D.setScale(500);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT|GLES20.GL_DEPTH_BUFFER_BIT);
+
         Matrix.setIdentityM(mTempMatrix, 0);
-        //Matrix.rotateM(mTempMatrix, 0, 30, 0, 0, 1);
-        //mPolygon3D.draw(mModelMatrix, mTextureStore);
+        mTempMatrix = mCamera3D.getMatrix();
         if (mPreMatrix != null) {
             Matrix.multiplyMM(mVPMatrix, 0, mPreMatrix, 0, mTempMatrix, 0);
             mTempMatrix = mVPMatrix.clone();
         } else {
             Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
         }
-        //Log.d("GALA", String.format("mProjection3D.getMatrix()=%s", Arrays.toString(mProjection3D.getMatrix())));
         mTempMatrix = mVPMatrix.clone();
-        //Matrix.multiplyMM(mVPMatrix, 0, mCamera3D.getMatrix(), 0, mTempMatrix, 0);
-        //mVPMatrix = mProjection3D.getMatrix();
-        //Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
-        //Log.d("GALA", String.format("mVPMatrix %s", Arrays.toString(mVPMatrix)));
-        //Log.d("GALA", String.format("mProjection3D.getMatrix() %s", Arrays.toString(mProjection3D.getMatrix())));
-        long time = SystemClock.uptimeMillis() % 4000L;
-        float angle = 0.090f * ((int) time);
-
         if (mObject3D != null) {
             mObject3D.setParentMatrix(mVPMatrix);
-            //mPolygonGroup3D.setRotatationZ(angle);
-            //mPolygonGroup3D.setRotatationY(angle);
             mObject3D.precalculate();
             mObject3D.draw(mThreeDGLRenderContext);
 
-        } else {
         }
-        mAxes.setParentMatrix(mVPMatrix);
-        mAxes.precalculate();
-        mAxes.draw(mThreeDGLRenderContext);
+        if(mShowAxes) {
+            mAxes.setParentMatrix(mVPMatrix);
+            mAxes.precalculate();
+            mAxes.draw(mThreeDGLRenderContext);
+        }
     }
 
     @Override
@@ -90,7 +81,6 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
 
         mAxes = PolygonGroup3D.createAxes(.5f);
         mAxes.setScale(500);
-        //mPolygonGroup3D = PolygonGroup3D.createCube(.5f);
     }
 
     @Override

@@ -22,6 +22,7 @@ import bk2suz.motionpicturelib.Commons.Color;
 import bk2suz.motionpicturelib.Commons.Container3D;
 import bk2suz.motionpicturelib.Commons.Helper;
 import bk2suz.motionpicturelib.Commons.Point;
+import bk2suz.motionpicturelib.Commons.Point3D;
 import bk2suz.motionpicturelib.Commons.Projection3D;
 import bk2suz.motionpicturelib.ImageGLRender;
 
@@ -30,8 +31,10 @@ import bk2suz.motionpicturelib.ImageGLRender;
  */
 public class ThreeDShape extends RectangleShape {
     public static final String TYPE_NAME = "threed";
+    public static final float PI2DEG = (float) (180/Math.PI);
 
     protected Camera3D mCamera3D = new Camera3D();
+    protected Point3D mCameraRotation = new Point3D();
     protected Container3D mD3Object;
     protected Color mWireColor;
     protected Float mWireWidth;
@@ -45,6 +48,7 @@ public class ThreeDShape extends RectangleShape {
             mWireWidth = Float.parseFloat(parser.getAttributeValue(null, "wire_width"));
         } catch (NumberFormatException e) {
         }
+        mCameraRotation.copyFromText(parser.getAttributeValue(null, "camera_rotation"));
     }
 
     public void setWireColor(Color color) {
@@ -60,7 +64,17 @@ public class ThreeDShape extends RectangleShape {
         float[] selfMatrix = new float[16];
         float[] tempMatrix;
 
+
         android.opengl.Matrix.setIdentityM(selfMatrix, 0);
+
+        float[ ] camMatrix = new float[16];
+        Matrix.setIdentityM(camMatrix, 0);
+        Matrix.rotateM(camMatrix, 0, mCameraRotation.getX()*PI2DEG, 1, 0, 0);
+        Matrix.rotateM(camMatrix, 0, mCameraRotation.getY()*PI2DEG, 0, 1, 0);
+        Matrix.rotateM(camMatrix, 0, mCameraRotation.getZ()*PI2DEG, 0, 0, 1);
+        //Matrix.multiplyMM(cvMatrix, 0, camMatrix, 0, projection3D.getMatrix(), 0);
+       // selfMatrix = camMatrix;
+
         android.opengl.Matrix.translateM(selfMatrix, 0, mTranslation.x, -mTranslation.y, 0);
         if (mPreMatrix != null) {
             tempMatrix = selfMatrix.clone();
@@ -99,7 +113,18 @@ public class ThreeDShape extends RectangleShape {
         projection3D.setProjectionNearFar(-depth, depth);
         projection3D.precalculate();
 
-        Matrix.multiplyMM(tempMatrix, 0, projection3D.getMatrix(), 0, selfMatrix, 0);
+
+        float[] cvMatrix = new float[16];
+        float[ ] camMatrix = new float[16];
+        Matrix.setIdentityM(camMatrix, 0);
+        Matrix.rotateM(camMatrix, 0, mCameraRotation.getX()*PI2DEG, 1, 0, 0);
+        Matrix.rotateM(camMatrix, 0, mCameraRotation.getY()*PI2DEG, 0, 1, 0);
+        Matrix.rotateM(camMatrix, 0, -mCameraRotation.getZ()*PI2DEG, 0, 0, 1);
+        //Matrix.multiplyMM(cvMatrix, 0, camMatrix, 0, projection3D.getMatrix(), 0);
+        cvMatrix = projection3D.getMatrix();
+       // Log.d("GALA", String.format("%f %f %f", mCameraRotation.getX(), mCameraRotation.getY(), mCameraRotation.getZ()));
+        Matrix.multiplyMM(tempMatrix, 0, cvMatrix, 0, selfMatrix, 0);
+
         //tempMatrix = null;
         ImageGLRender.GLImageFutureTask task = thread.requestBitmapFor(tempMatrix, mD3Object);
 
