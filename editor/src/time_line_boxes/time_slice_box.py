@@ -130,15 +130,16 @@ class TimeSliceBox(Box):
             while t<time_end:
                 y = self.time_slice.value_at(t)
                 if self.time_slice.has_multiple_prop():
-                    for i in range(y):
+                    for i in range(len(y)):
                         if len(paths)<=i:
                             paths.append([])
-                        paths[i].append((t, y))
-                if not draw_started:
-                    ctx.move_to(t, y)
-                    draw_started = True
+                        paths[i].append((t, y[i]))
                 else:
-                    ctx.line_to(t, y)
+                    if not draw_started:
+                        ctx.move_to(t, y)
+                        draw_started = True
+                    else:
+                        ctx.line_to(t, y)
                 t += t_step
         elif isinstance(self.time_slice.change_type, TimeChangeType):
             if self.time_slice.has_multiple_prop():

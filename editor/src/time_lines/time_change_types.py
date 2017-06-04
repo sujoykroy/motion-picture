@@ -81,7 +81,12 @@ class PeriodicChangeType(TimeChangeType):
 
     def value_at(self, start_value, end_value, t, duration):
         value = TimeChangeType.value_at(self, start_value, end_value, t, duration)
-        value += self.self_value_at(t)
+        self_value = self.self_value_at(t)
+        if isinstance(value, list):
+            for i in range(len(value)):
+                value[i] += self_value
+        else:
+            value += self_value
         return value
 
     def get_min_max_value(self, start_value, end_value, duration):
