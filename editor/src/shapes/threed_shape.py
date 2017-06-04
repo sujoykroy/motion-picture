@@ -32,7 +32,7 @@ class ThreeDShape(RectangleShape):
     def get_xml_element(self):
         elm = super(ThreeDShape, self).get_xml_element()
         elm.attrib["filepath"] = self.filepath
-        elm.attrib["camera_rotation"] = self.camera.rotation.to_text()
+        elm.attrib["camera_rotation"] = self.camera.rotation.to_text(factor=1/DEG2PI)
         if self.wire_color:
             elm.attrib["wire_color"] = self.wire_color.to_text()
         elm.attrib["wire_width"] = "{0}".format(self.wire_width)
@@ -43,7 +43,7 @@ class ThreeDShape(RectangleShape):
     @classmethod
     def create_from_xml_element(cls, elm):
         shape = super(ThreeDShape, cls).create_from_xml_element(elm)
-        shape.camera.rotation = Point3d.from_text(elm.attrib["camera_rotation"])
+        shape.camera.rotation = Point3d.from_text(elm.attrib["camera_rotation"], factor=DEG2PI)
         shape.wire_color = color_from_text(elm.attrib.get("wire_color", None))
         shape.wire_width = float(elm.attrib["wire_width"])
         shape.set_filepath(elm.attrib.get("filepath", ""), load_file=False)

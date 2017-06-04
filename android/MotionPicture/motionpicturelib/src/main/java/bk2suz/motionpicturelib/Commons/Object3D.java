@@ -16,6 +16,10 @@ public abstract class Object3D {
     protected Point3D mRotation = new Point3D();
     protected Point3D mScale = new Point3D(1f, 1f, 1f);
 
+    protected Color mBorderColor;
+    protected Color mFillColor;
+    protected Float mBorderWidth;
+
     protected TextureResources mTextureResources = null;
     //protected final float[] mTranslationMatrix = new float[16];
     //protected final float[] mRotationMatrix = new float[16];
@@ -53,6 +57,45 @@ public abstract class Object3D {
             mTempMatrix = mModelMatrix.clone();
             Matrix.multiplyMM(mModelMatrix, 0, mParentMatrix, 0, mTempMatrix, 0);
         }
+    }
+
+    public void setFillColor(Color color) {
+        if(color != null) {
+            color = color.copy();
+        }
+        mFillColor = color;
+    }
+
+    public void setBorderWidth(Float value) {
+        mBorderWidth = value;
+    }
+
+    public Color getActiveBorderColor() {
+        if (mBorderColor == null && mParentObject3D != null) {
+            return mParentObject3D.getActiveBorderColor();
+        }
+        return mBorderColor;
+    }
+
+    public Color getActiveFillColor() {
+        if (mFillColor == null && mParentObject3D != null) {
+            return mParentObject3D.getActiveFillColor();
+        }
+        return mFillColor;
+    }
+
+    public Float getActiveBorderWidth() {
+        if (mBorderWidth == null && mParentObject3D != null) {
+            return mParentObject3D.getActiveBorderWidth();
+        }
+        return mBorderWidth;
+    }
+
+    public void setBorderColor(Color color) {
+        if(color != null) {
+            color = color.copy();
+        }
+        mBorderColor = color;
     }
 
     public void setTextureResources(TextureResources textureResources) {
@@ -100,6 +143,15 @@ public abstract class Object3D {
         mTranslation.copyFromText(parser.getAttributeValue(null, "tr"));
         mRotation.copyFromText(parser.getAttributeValue(null, "rot"));
         mScale.copyFromText(parser.getAttributeValue(null, "sc"));
+        mBorderColor = Helper.parseColor(parser.getAttributeValue(null, "bc"));
+        mFillColor = Helper.parseColor(parser.getAttributeValue(null, "fc"));
+        try {
+            mBorderWidth = Float.parseFloat(parser.getAttributeValue(null, "bw"));
+        } catch (NumberFormatException e) {
+            mBorderWidth = null;
+        } catch (NullPointerException e) {
+            mBorderWidth = null;
+        }
         String extraMatrixText = parser.getAttributeValue(null, "mtx");
         if (extraMatrixText != null) {
             mExtraMatrix = new float[16];

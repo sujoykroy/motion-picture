@@ -66,7 +66,7 @@ class PolyGroup3d(Object3d):
     def create_from_xml_element(cls, elm):
         border_color = color_from_text(elm.attrib.get("bc", None))
         fill_color = color_from_text(elm.attrib.get("fc", None))
-        border_width = elm.attrib.get("border_width", None)
+        border_width = elm.attrib.get("bw", None)
         if border_width is not None:
             border_width = float(border_width)
 

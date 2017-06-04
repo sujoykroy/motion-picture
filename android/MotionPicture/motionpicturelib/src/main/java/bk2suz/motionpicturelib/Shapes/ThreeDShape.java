@@ -15,6 +15,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
 import bk2suz.motionpicturelib.Commons.Camera3D;
@@ -24,6 +25,8 @@ import bk2suz.motionpicturelib.Commons.Helper;
 import bk2suz.motionpicturelib.Commons.Point;
 import bk2suz.motionpicturelib.Commons.Point3D;
 import bk2suz.motionpicturelib.Commons.Projection3D;
+import bk2suz.motionpicturelib.Commons.PropData;
+import bk2suz.motionpicturelib.Commons.PropName;
 import bk2suz.motionpicturelib.ImageGLRender;
 
 /**
@@ -31,7 +34,6 @@ import bk2suz.motionpicturelib.ImageGLRender;
  */
 public class ThreeDShape extends RectangleShape {
     public static final String TYPE_NAME = "threed";
-    public static final float PI2DEG = (float) (180/Math.PI);
 
     protected Camera3D mCamera3D = new Camera3D();
     protected Point3D mCameraRotation = new Point3D();
@@ -42,7 +44,6 @@ public class ThreeDShape extends RectangleShape {
     @Override
     public void copyAttributesFromXml(XmlPullParser parser) {
         super.copyAttributesFromXml(parser);
-        //read "camera_rotation-tbd
         setWireColor(Helper.parseColor(parser.getAttributeValue(null, "wire_color")));
         try {
             mWireWidth = Float.parseFloat(parser.getAttributeValue(null, "wire_width"));
@@ -60,20 +61,32 @@ public class ThreeDShape extends RectangleShape {
     }
 
     @Override
+    public void setProperty(PropName propName, Object value, HashMap<PropName, PropData> propDataMap) {
+        switch(propName) {
+            case CAMERA_ROTATE_X:
+                mCameraRotation.setX((float) value);
+                break;
+            case CAMERA_ROTATE_Y:
+                mCameraRotation.setY((float) value);
+                break;
+            case CAMERA_ROTATE_Z:
+                mCameraRotation.setZ((float) value);
+                break;
+            default:
+                super.setProperty(propName, value, propDataMap);
+        }
+    }
+
+    @Override
     public float[] getGLMatrix() {
         float[] selfMatrix = new float[16];
         float[] tempMatrix;
 
-
         android.opengl.Matrix.setIdentityM(selfMatrix, 0);
-
-        float[ ] camMatrix = new float[16];
-        Matrix.setIdentityM(camMatrix, 0);
-        Matrix.rotateM(camMatrix, 0, mCameraRotation.getX()*PI2DEG, 1, 0, 0);
-        Matrix.rotateM(camMatrix, 0, mCameraRotation.getY()*PI2DEG, 0, 1, 0);
-        Matrix.rotateM(camMatrix, 0, mCameraRotation.getZ()*PI2DEG, 0, 0, 1);
-        //Matrix.multiplyMM(cvMatrix, 0, camMatrix, 0, projection3D.getMatrix(), 0);
-       // selfMatrix = camMatrix;
+        Camera3D camera3D = new Camera3D();
+        camera3D.rotate(mCameraRotation);
+        camera3D.precalculate();
+        //selfMatrix = camera3D.getMatrix().clone();
 
         android.opengl.Matrix.translateM(selfMatrix, 0, mTranslation.x, -mTranslation.y, 0);
         if (mPreMatrix != null) {
@@ -99,8 +112,6 @@ public class ThreeDShape extends RectangleShape {
         if(thread == null) {
             return null;
         }
-        float[] selfMatrix = getGLMatrix();
-        float[] tempMatrix = selfMatrix.clone();
 
         Point point = mAnchorAt.copy();
         point = absoluteReverseTransformPoint(point);
@@ -113,20 +124,22 @@ public class ThreeDShape extends RectangleShape {
         projection3D.setProjectionNearFar(-depth, depth);
         projection3D.precalculate();
 
+        Camera3D camera3D = new Camera3D();
+        camera3D.rotate(mCameraRotation);
+        camera3D.precalculate();
 
         float[] cvMatrix = new float[16];
-        float[ ] camMatrix = new float[16];
-        Matrix.setIdentityM(camMatrix, 0);
-        Matrix.rotateM(camMatrix, 0, mCameraRotation.getX()*PI2DEG, 1, 0, 0);
-        Matrix.rotateM(camMatrix, 0, mCameraRotation.getY()*PI2DEG, 0, 1, 0);
-        Matrix.rotateM(camMatrix, 0, -mCameraRotation.getZ()*PI2DEG, 0, 0, 1);
-        //Matrix.multiplyMM(cvMatrix, 0, camMatrix, 0, projection3D.getMatrix(), 0);
-        cvMatrix = projection3D.getMatrix();
-       // Log.d("GALA", String.format("%f %f %f", mCameraRotation.getX(), mCameraRotation.getY(), mCameraRotation.getZ()));
-        Matrix.multiplyMM(tempMatrix, 0, cvMatrix, 0, selfMatrix, 0);
+        //Matrix.multiplyMM(cvMatrix, 0, projection3D.getMatrix(), 0, camera3D.getMatrix(), 0);
+        //Log.d("GALA", String.format("mCameraRotation.getZ()= %f", mCameraRotation.getZ()));
 
-        //tempMatrix = null;
-        ImageGLRender.GLImageFutureTask task = thread.requestBitmapFor(tempMatrix, mD3Object);
+        float[] bmpMatrix = new float[16];
+        float[] tempMatrix = new float[16];
+        Matrix.multiplyMM(tempMatrix, 0, projection3D.getMatrix(), 0, getGLMatrix(), 0);
+        Matrix.multiplyMM(bmpMatrix, 0, tempMatrix, 0, camera3D.getMatrix(), 0);
+
+         //Matrix.multiplyMM(bmpMatrix, 0, cvMatrix, 0, getGLMatrix(), 0);
+
+        ImageGLRender.GLImageFutureTask task = thread.requestBitmapFor(bmpMatrix, mD3Object);
 
         try {
             return task.get();
@@ -198,6 +211,8 @@ public class ThreeDShape extends RectangleShape {
             if (parser.getName().equals(Container3D.TAG_NAME)) {
                 threeDShape.mD3Object = Container3D.createFromXml(parser);
                 threeDShape.mD3Object.precalculate();
+                threeDShape.mD3Object.setBorderColor(threeDShape.mWireColor);
+                threeDShape.mD3Object.setBorderWidth(threeDShape.mWireWidth);
             }
             Helper.skipTag(parser);
         }

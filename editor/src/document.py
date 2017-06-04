@@ -28,8 +28,11 @@ class Document(object):
         if self.filename:
             self.load_from_xml_file()
         if not self.main_multi_shape:
-            self.main_multi_shape = MultiShape(width=width, height=height, border_color="000000")
+            self.main_multi_shape = MultiShape(width=width, height=height, border_color=None)
             self.main_multi_shape._name = "MainShape"
+        self.main_multi_shape.border_color = None
+        self.main_multi_shape.fill_color = None
+        self.main_multi_shape.border_width = 0
 
     def is_empty(self):
         return not self.filename and self.reundo.is_empty()

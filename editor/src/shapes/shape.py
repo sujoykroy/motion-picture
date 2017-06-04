@@ -149,7 +149,8 @@ class Shape(object):
         if not self.visible:
             elm.attrib["visible"] = "0"
         elm.attrib["anchor_at"] = self.anchor_at.to_text()
-        elm.attrib["border_color"] = self.border_color.to_text()
+        if self.border_color:
+            elm.attrib["border_color"] = self.border_color.to_text()
         elm.attrib["border_width"] = "{0}".format(self.border_width)
         if self.fill_color:
             elm.attrib["fill_color"] = self.fill_color.to_text()

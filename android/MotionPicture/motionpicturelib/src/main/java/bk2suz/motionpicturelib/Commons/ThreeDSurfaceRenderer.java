@@ -53,14 +53,12 @@ public class ThreeDSurfaceRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT|GLES20.GL_DEPTH_BUFFER_BIT);
 
         Matrix.setIdentityM(mTempMatrix, 0);
-        mTempMatrix = mCamera3D.getMatrix();
         if (mPreMatrix != null) {
             Matrix.multiplyMM(mVPMatrix, 0, mPreMatrix, 0, mTempMatrix, 0);
-            mTempMatrix = mVPMatrix.clone();
         } else {
+            mTempMatrix = mCamera3D.getMatrix();
             Matrix.multiplyMM(mVPMatrix, 0, mProjection3D.getMatrix(), 0, mTempMatrix, 0);
         }
-        mTempMatrix = mVPMatrix.clone();
         if (mObject3D != null) {
             mObject3D.setParentMatrix(mVPMatrix);
             mObject3D.precalculate();

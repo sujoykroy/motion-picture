@@ -43,7 +43,10 @@ public enum PropName {
     START_FORM("start_form"),
     END_FORM("end_form"),
     TYPE("type"),
-    REL_ABS_ANCHOR_AT("rel_abs_anchor_at");
+    REL_ABS_ANCHOR_AT("rel_abs_anchor_at"),
+    CAMERA_ROTATE_X("camera_rotate_x"),
+    CAMERA_ROTATE_Y("camera_rotate_y"),
+    CAMERA_ROTATE_Z("camera_rotate_z");
 
     private String mXmlName;
 

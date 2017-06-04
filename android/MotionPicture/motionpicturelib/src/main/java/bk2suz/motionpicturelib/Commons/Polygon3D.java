@@ -28,10 +28,12 @@ public class Polygon3D {
 
     private FloatBuffer mVertexBuffer;
     private ShortBuffer mVertexOrderBuffer;
+    private ShortBuffer mVertexLineOrderBuffer;
     private FloatBuffer mTexCoordBuffer;
 
     private PolygonGroup3D mParentGroup = null;
     private Color mActiveFillColor;
+    private Color mActiveBorderColor;
 
     private int mVertexOrderCount;
 
@@ -75,6 +77,11 @@ public class Polygon3D {
             startCounter += 1;
         }
 
+        short[] vertexLineOrder = new short[mPointIndices.length];
+        for(int i=0; i<mPointIndices.length; i++) {
+            vertexLineOrder[i] = (short) i;
+        }
+
         ByteBuffer bb;
 
         //build vertices buffers
@@ -90,6 +97,13 @@ public class Polygon3D {
         mVertexOrderBuffer = bb.asShortBuffer();
         mVertexOrderBuffer.put(vertexOrder);
         mVertexOrderBuffer.position(0);
+
+        //build vertex line order buffer
+        bb = ByteBuffer.allocateDirect(vertexLineOrder.length*SHORT_BYTE_COUNT);
+        bb.order(ByteOrder.nativeOrder());
+        mVertexLineOrderBuffer = bb.asShortBuffer();
+        mVertexLineOrderBuffer.put(vertexLineOrder);
+        mVertexLineOrderBuffer.position(0);
 
         //build texture coordinate buffer
         if (mFillColor != null && TextureMapColor.class.isInstance(mFillColor)) {
@@ -147,14 +161,13 @@ public class Polygon3D {
             GLES20.glUniform1i(drawer.GLHasTextureHandle, 0);
             mActiveFillColor = mFillColor;
             if (mActiveFillColor == null) {
-                mActiveFillColor = mParentGroup.getFillColor();
+                mActiveFillColor = mParentGroup.getActiveFillColor();
             }
-            if(FlatColor.class.isInstance(mFillColor)) {
+            if(FlatColor.class.isInstance(mActiveFillColor)) {
                 drawer.GLColorHandle = GLES20.glGetUniformLocation(drawer.GLProgram, "uColor");
                 GLES20.glUniform4fv(drawer.GLColorHandle, 1,
                         ((FlatColor)mActiveFillColor).getFloatArrayValue(), 0);
             }
-
         }
 
         if (!mIsLineDrawing) {
@@ -162,8 +175,22 @@ public class Polygon3D {
                     GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);
         } else {
             GLES20.glDrawElements(GLES20.GL_LINES, mVertexOrderCount,
-                    GLES20.GL_UNSIGNED_SHORT, mVertexOrderBuffer);
+                    GLES20.GL_UNSIGNED_SHORT, mVertexLineOrderBuffer);
         }
+
+        mActiveBorderColor = mParentGroup.getActiveBorderColor();
+        if( mActiveBorderColor != null && mParentGroup.getActiveBorderWidth() != null) {
+            if(FlatColor.class.isInstance(mActiveBorderColor)) {
+                drawer.GLColorHandle = GLES20.glGetUniformLocation(drawer.GLProgram, "uColor");
+                GLES20.glUniform4fv(drawer.GLColorHandle, 1,
+                        ((FlatColor)mActiveBorderColor).getFloatArrayValue(), 0);
+            }
+            GLES20.glUniform1i(drawer.GLHasTextureHandle, 0);
+            GLES20.glLineWidth(mParentGroup.getActiveBorderWidth());
+            GLES20.glDrawElements(GLES20.GL_LINE_LOOP, mPointIndices.length,
+                    GLES20.GL_UNSIGNED_SHORT, mVertexLineOrderBuffer);
+        }
+
         //GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, mVertices.length/COORDS_PER_VERTEX);
 
         GLES20.glDisableVertexAttribArray(drawer.GLPositionHandle);

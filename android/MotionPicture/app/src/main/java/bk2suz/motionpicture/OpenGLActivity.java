@@ -1,12 +1,17 @@
 package bk2suz.motionpicture;
 
+import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import bk2suz.motionpicturelib.Commons.Object3D;
 import bk2suz.motionpicturelib.Commons.PolygonGroup3D;
@@ -15,6 +20,7 @@ import bk2suz.motionpicturelib.ImageGLRender;
 import bk2suz.motionpicturelib.Shapes.Shape;
 import bk2suz.motionpicturelib.Shapes.ThreeDShape;
 import bk2suz.motionpicturelib.ThreeDSurfaceView;
+import bk2suz.motionpicturelib.TimeLines.TimeLineTask;
 
 public class OpenGLActivity extends AppCompatActivity {
     private SeekBar mSeekBarObjectRotateX;
@@ -29,9 +35,14 @@ public class OpenGLActivity extends AppCompatActivity {
     ThreeDShape mThreeeDShape;
     PolygonGroup3D mPolygonGroup2;
 
-    private static boolean sMakeDocBitmap = true;
+    private static boolean sMakeDocBitmap = !true;
     private static boolean sShowGLSurface = true;
+    private static boolean sShowAnimation = true;
     ImageGLRender.GLThread mImageRendererThread;
+
+    TimeLineTask mTimeLineTask;
+    ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+    Runnable mUpdateImageTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,16 +83,43 @@ public class OpenGLActivity extends AppCompatActivity {
         } else {
             mDoc.createGLThread(this);
             mImageView.setImageBitmap(mDoc.getBitmap());
-            mDoc.deleteGLThread();
+            //mDoc.deleteGLThread();
+        }
+
+        if (sShowAnimation) {
+            mDoc.createGLThread(this);
+            mTimeLineTask = new TimeLineTask(mDoc);
+            mUpdateImageTask = new Runnable() {
+                @Override
+                public void run() {
+                    showBitmap();
+                }
+            };
+            mExecutor.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mTimeLineTask.moveTimeNext();
+                        final Bitmap bitmap = mDoc.getBitmap();
+                        mImageView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mImageView.setImageBitmap(bitmap);
+                                mImageView.invalidate();
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, 0, 100, TimeUnit.MILLISECONDS);
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(sMakeDocBitmap) {
-            mDoc.deleteGLThread();
-        }
+        mDoc.deleteGLThread();
     }
 
     private void showBitmap() {
@@ -109,7 +147,7 @@ public class OpenGLActivity extends AppCompatActivity {
                 mObject3D.setRotatationZ(angle);
             }
             mObject3D.precalculate();
-            if(sMakeDocBitmap) {
+            if(!sShowAnimation && sMakeDocBitmap) {
                 showBitmap();
             }
             if(sShowGLSurface) {

@@ -36,10 +36,6 @@ public class PolygonGroup3D extends Object3D {
         }
     }
 
-    public Color getFillColor() {
-        return mFillColor;
-    }
-
     public void buildBuffers() {
         for(Polygon3D polygon: mPolygons) {
             polygon.buildBuffers();

@@ -16,6 +16,10 @@ class MultiShapeTimeLine(object):
         self.time_labels = []
         self.time_markers = dict()
 
+
+    def set_name(self, name):
+        self.name = name
+
     def add_time_marker(self, at, error_span):
         if at in self.time_markers:
             return None

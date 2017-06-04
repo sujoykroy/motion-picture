@@ -84,6 +84,7 @@ public class Document {
     private boolean mGLThreadCreated = false;
 
     public void createGLThread(Context context) {
+        if(mGLThreadCreated) return;
         if(!mMainMultiShape.hasThreeDShape()) return;
         mGLThreadCreated = ImageGLRender.GLThreadManager.createThread((int)mBitmapWidth, (int)mBitmapHeight, context);
     }

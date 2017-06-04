@@ -40,8 +40,8 @@ class MultiShape(Shape):
     POSE_TAG_NAME = "pose"
     POSE_SHAPE_TAG_NAME = "pose_shape"
 
-    def __init__(self, anchor_at=None, border_color=Color(0,0,0,1),
-                        border_width=1, fill_color=None, width=1, height=1):
+    def __init__(self, anchor_at=None, border_color=None,
+                        border_width=0, fill_color=None, width=1, height=1):
         if anchor_at is None:
             anchor_at = Point(width*.5, height*.5)
         Shape.__init__(self,  anchor_at, border_color, border_width, fill_color, width, height)
@@ -285,6 +285,7 @@ class MultiShape(Shape):
         timeline = self.timelines[old_timeline_name]
         self.timelines[new_timeline_name] = timeline
         del self.timelines[old_timeline_name]
+        timeline.set_name(new_timeline_name)
         return True
 
     def add_custom_prop(self, prop_name, prop_type):
@@ -460,9 +461,20 @@ class MultiShape(Shape):
                     del pose[old_name]
         return True
 
+    def draw_path(self, ctx, for_fill=False):
+        draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, 0)
+
     def draw(self, ctx, drawing_size=None,
                         fixed_border=True, no_camera=True,
                         root_shape=None, exclude_camera_list=None):
+
+        if self.fill_color is not None:
+            ctx.save()
+            self.pre_draw(ctx, root_shape=root_shape)
+            self.draw_path(ctx, for_fill=True)
+            self.draw_fill(ctx)
+            ctx.restore()
+
         if self.masked and len(self.shapes)>1:#masking feature needs to be revisited.
             last_shape = self.shapes.get_at_index(-1)
             if not isinstance(last_shape, MultiShape):
@@ -541,6 +553,17 @@ class MultiShape(Shape):
                 else:
                     shape.draw_border(ctx)
                     ctx.restore()
+
+        if self.border_color is not None:
+            ctx.save()
+            self.pre_draw(ctx, root_shape=root_shape)
+            self.draw_path(ctx, for_fill=False)
+            if fixed_border:
+                ctx.restore()
+                self.draw_border(ctx)
+            else:
+                self.draw_border(ctx)
+                ctx.restore()
 
     def be_like_shape(self, shape):
         self.width = shape.width

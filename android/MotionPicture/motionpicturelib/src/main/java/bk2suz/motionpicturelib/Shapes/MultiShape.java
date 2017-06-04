@@ -1,7 +1,9 @@
 package bk2suz.motionpicturelib.Shapes;
 
 import android.graphics.Canvas;
+import android.graphics.Path;
 import android.graphics.RectF;
+import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -164,9 +166,31 @@ public class MultiShape extends Shape {
     }
 
     @Override
+    public Path getPath() {
+        if (mPath != null) return mPath;
+        Path path = new Path();
+        path.addRect(new RectF(0, 0, mWidth, mHeight), Path.Direction.CW);
+        mPath = path;
+        return path;
+    }
+
+    @Override
     public void draw(Canvas canvas) {
+        if (getPath() == null) return;
+        if (mFillColor != null) {
+            canvas.save();
+            preDraw(canvas);
+            drawFill(canvas);
+            canvas.restore();
+        }
         for(Map.Entry<String, Shape> entry: mChildShapes.entrySet()) {
             entry.getValue().draw(canvas);
+        }
+        if (mBorderColor != null) {
+            canvas.save();
+            preDraw(canvas);
+            drawBorder(canvas);
+            canvas.restore();
         }
         /*
         canvas.save();
