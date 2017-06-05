@@ -94,6 +94,8 @@ def copy_dict(dicto):
     return copied_dict
 
 def copy_value(val):
+    if val is None:
+        return None
     if isinstance(val, dict):
         val = copy_dict(val)
     elif isinstance(val, list):

@@ -29,7 +29,7 @@ class Camera3d(Object3d):
             ratio = self.viewer.get_z()/point_values[:, 2]
             x_values = (ratio*point_values[:,0]) - self.viewer.get_x()
             y_values = (ratio*point_values[:,1]) - self.viewer.get_y()
-            return numpy.stack((x_values, y_values), axis=1)#reverse xy
+            return numpy.stack((x_values, y_values), axis=1)
         else:
             return point_values[:, [0,1]]
 
@@ -138,8 +138,17 @@ class Camera3d(Object3d):
             coords = coords.T#.reshape((ycount, xcount, 2))
             coords.shape = (xcount*ycount, 2)
 
-            coords_depths = numpy.matmul(object_3d.plane_params_normalized[self],
-                numpy.concatenate((coords.T, [numpy.ones(coords.shape[0])]), axis=0))
+            vz = self.viewer.get_z()
+            if vz == 0:
+                coords_depths = numpy.matmul(object_3d.plane_params_normalized[self],
+                    numpy.concatenate((coords.T, [numpy.ones(coords.shape[0])]), axis=0))
+            else:
+                vx = self.viewer.get_x()
+                vy = self.viewer.get_y()
+                pp = object_3d.plane_params_normalized[self]
+                coords_depths = pp[2]*vz/(-pp[0]*(coords[:, 0]+vx)-pp[1]*(coords[:, 1]+vy)+vz)
+                coords_depths.shape = (ycount, xcount)
+
             coords_depths.shape = (ycount, xcount)
             blank_depths = numpy.repeat(min_depth+1, ycount*xcount)
             blank_depths.shape = coords_depths.shape
@@ -170,6 +179,7 @@ class Camera3d(Object3d):
         """
         canvas = cairo.ImageSurface.create_for_data(
                 numpy.getbuffer(canvas_surf_array), cairo.FORMAT_ARGB32, width, height)
+
         return canvas
 
     def get_image_canvas_high_quality(self,
@@ -186,8 +196,11 @@ class Camera3d(Object3d):
         canvas_z_depths = numpy.zeros(canvas_surf_array.shape[:2], dtype="f")
         canvas_z_depths.fill(min_depth)
 
+        ctx.save()
         ctx.translate(-left, -top)
         premat = ctx.get_matrix()
+        ctx.restore()
+
         ctx = cairo.Context(canvas_surf)
         ctx.rectangle(0, 0, canvas_width, canvas_height)
         draw_fill(ctx, "00000000")

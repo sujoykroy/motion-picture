@@ -170,6 +170,12 @@ class ThreeDShapePropBox(RectangleShapePropBox):
                 dict(value=0, lower=-3*60*6, upper=3*60*60, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("object_scale", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=.001, upper=100000, step_increment=1))
+        """
+        self.add_prop("viewer_z", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=-10000, upper=100000, step_increment=1))
+        self.add_prop("camera_position_z", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=-10000, upper=100000, step_increment=1))
+        """
         self.add_prop("wire_color", PROP_TYPE_COLOR, None)
         self.add_prop("wire_width", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1000, step_increment=.1))

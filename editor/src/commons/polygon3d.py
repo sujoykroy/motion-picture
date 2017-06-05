@@ -102,6 +102,7 @@ class Polygon3d(Object3d):
                 0, 0, 0
             ])
 
+        camera_point_values = camera.viewer_point_values(camera_point_values)
         self.bounding_rect[camera] = [
             numpy.min(camera_point_values, axis=0),
             numpy.max(camera_point_values, axis=0),
@@ -143,7 +144,7 @@ class Polygon3d(Object3d):
 
         fill_color = self.fill_color
         parent = self.parent
-        while fill_color is None and parent is not None:
+        while fill_color is None and parent is not None and hasattr(parent, "fill_color"):
             fill_color = parent.fill_color
             parent = parent.parent
 
