@@ -1,5 +1,7 @@
 package bk2suz.motionpicturelib.TimeLines;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -13,7 +15,7 @@ public class LoopChangeType extends TimeChangeType {
     protected Integer mLoopCount;
 
     @Override
-    public Float getValueAt(Float startValue, Float endValue, Float t, Float duration) {
+    public TimeSliceValue getValueAt(TimeSliceValue startValue, TimeSliceValue endValue, Float t, Float duration) {
         Float loopDuration = duration/mLoopCount;
         t %= loopDuration;
         return super.getValueAt(startValue, endValue, t, loopDuration);

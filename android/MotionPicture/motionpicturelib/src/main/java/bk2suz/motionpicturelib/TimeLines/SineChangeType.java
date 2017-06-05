@@ -12,10 +12,11 @@ public class SineChangeType extends PeriodicChangeType {
     public static final String TYPE_NAME = "sine";
 
     @Override
-    public Float getValueAt(Float startValue, Float endValue, Float t, Float duration) {
-        Float value = super.getValueAt(startValue, endValue, t, duration);
-        value += mAmplitude * (float) Math.sin(Math.PI*2*t/mPeriod+mPhase*Math.PI/180F);
-        return value;
+    public TimeSliceValue getValueAt(TimeSliceValue startValue, TimeSliceValue endValue, Float t, Float duration) {
+        TimeSliceValue timeSliceValue = super.getValueAt(startValue, endValue, t, duration);
+        timeSliceValue.add(mAmplitude * (float) Math.sin(Math.PI*2*t/mPeriod+mPhase*Math.PI/180F));
+        //value += mAmplitude * (float) Math.sin(Math.PI*2*t/mPeriod+mPhase*Math.PI/180F);
+        return timeSliceValue;
     }
 
     public static SineChangeType createFromXml(XmlPullParser parser)

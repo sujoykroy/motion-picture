@@ -7,6 +7,7 @@ public enum PropName {
     NONE(""),
     X("x"),
     Y("y"),
+    XY("xy"),
     STAGE_X("stage_x"),
     STAGE_Y("stage_y"),
     SCALE_X("scale_x"),

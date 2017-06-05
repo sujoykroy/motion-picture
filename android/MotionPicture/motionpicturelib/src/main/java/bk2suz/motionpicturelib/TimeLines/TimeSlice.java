@@ -15,8 +15,8 @@ import bk2suz.motionpicturelib.Commons.PropName;
  */
 public class TimeSlice {
     public static final String TAG_NAME = "time_slice";
-    private Float mStartValue;
-    private Float mEndValue;
+    private TimeSliceValue mStartValue;
+    private TimeSliceValue mEndValue;
     private Float mDuration;
     private TimeChangeType mTimeChangeType;
     private HashMap<PropName, PropData> mPropDataMap;
@@ -25,7 +25,7 @@ public class TimeSlice {
         return mDuration;
     }
 
-    public Float getValueAt(Float t) {
+    public TimeSliceValue getValueAt(Float t) {
         return mTimeChangeType.getValueAt(mStartValue, mEndValue, t, mDuration);
     }
 
@@ -37,17 +37,12 @@ public class TimeSlice {
             throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, null, TAG_NAME);
         TimeSlice timeSlice = new TimeSlice();
-        try {
-            timeSlice.mStartValue = Float.parseFloat(parser.getAttributeValue(null, "start_value"));
-        } catch (NumberFormatException e) {
-        }
-        try {
-            timeSlice.mEndValue = Float.parseFloat(parser.getAttributeValue(null, "end_value"));
-        } catch (NumberFormatException e) {
-        }
+        timeSlice.mStartValue = TimeSliceValue.createFromText(parser.getAttributeValue(null, "start_value"));
+        timeSlice.mEndValue = TimeSliceValue.createFromText(parser.getAttributeValue(null, "end_value"));
         try {
             timeSlice.mDuration = Float.parseFloat(parser.getAttributeValue(null, "duration"));
         } catch (NumberFormatException e) {
+            timeSlice.mDuration = 1f;
         }
         TimeChangeType timeChangeType = null;
         while (parser.next() != XmlPullParser.END_TAG) {

@@ -151,6 +151,6 @@ class LoopChangeType(TimeChangeType):
 
     @classmethod
     def create_from_xml_element(cls, elm):
-        loop_count = float(elm.attrib.get(cls.LOOP_COUNT_NAME, 1.))
+        loop_count = int(float(elm.attrib.get(cls.LOOP_COUNT_NAME, 1.)))
         change_type = cls(loop_count)
         return change_type

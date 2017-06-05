@@ -26,8 +26,8 @@ public class PropTimeLine {
         float elapsed = 0F;
         for(TimeSlice timeSlice: mTimeSlices) {
             if (t<elapsed+timeSlice.getDuration()) {
-                Float value = timeSlice.getValueAt(t-elapsed);
-                mShape.setProperty(mPropName, value, timeSlice.getPropDataMap());
+                TimeSliceValue timeSliceValue = timeSlice.getValueAt(t-elapsed);
+                mShape.setProperty(mPropName, timeSliceValue.getData(), timeSlice.getPropDataMap());
                 break;
             }
             elapsed += timeSlice.getDuration();

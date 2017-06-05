@@ -407,6 +407,11 @@ public abstract class Shape {
             case Y:
                 setY((float) value);
                 break;
+            case XY:
+                float[] values = (float[]) value;
+                setX(values[0]);
+                setY(values[1]);
+                break;
             case STAGE_X:
                 setStageX((float) value);
                 break;

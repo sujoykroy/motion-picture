@@ -6,7 +6,12 @@ package bk2suz.motionpicturelib.TimeLines;
 public class TimeChangeType {
     public static final String TAG_NAME = "time_change_type";
 
-    public Float getValueAt(Float startValue, Float endValue, Float t, Float duration) {
-        return startValue + (endValue-startValue)*t/duration;
+    public TimeSliceValue getValueAt(TimeSliceValue startValue, TimeSliceValue endValue, Float t, Float duration) {
+        TimeSliceValue timeSliceValue = endValue.copy();
+        timeSliceValue.subtract(startValue);
+        timeSliceValue.multiply(t/duration);
+        timeSliceValue.add(startValue);
+        //return startValue + (endValue-startValue)*t/duration;
+        return timeSliceValue;
     }
 }
