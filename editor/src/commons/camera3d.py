@@ -127,7 +127,7 @@ class Camera3d(Object3d):
             object_3d.draw(poly_ctx, self, border_color=border_color, border_width=border_width)
 
             surfacearray = surface2array(poly_surf)
-            area_cond = (surfacearray[:, :, 3]<100)
+            area_cond = (surfacearray[:, :, 3]<255)
 
             xs = numpy.arange(sleft, sright)
             xcount = len(xs)
@@ -188,9 +188,8 @@ class Camera3d(Object3d):
             border_color=None, border_width=None):
         min_depth = -100000
 
-        #canvas_surf = ctx.get_target()
-        canvas_width = int(canvas_width)#canvas_surf.get_width()
-        canvas_height = int(canvas_height)#canvas_surf.get_height()
+        canvas_width = int(canvas_width)
+        canvas_height = int(canvas_height)
         canvas_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, canvas_width, canvas_height)
         ctx = cairo.Context(canvas_surf)
         ctx.rectangle(0, 0, canvas_width, canvas_height)
@@ -200,30 +199,10 @@ class Camera3d(Object3d):
         canvas_z_depths = numpy.zeros(canvas_surf_array.shape[:2], dtype="f")
         canvas_z_depths.fill(min_depth)
 
-        #ctx.save()
-        #ctx.translate(-left, -top)
-        #premat = ctx.get_matrix()
-        #ctx.restore()
-
-        #ctx.set_matrix(premat)
-
-        xx, yx, xy, yy, x0, y0 = premat
-        mat_params = premat
-        self.mat_params = mat_params
-        numpy_premat = numpy.array([[xx, xy, x0], [yx, yy, y0]])
-
         invert = cairo.Matrix().multiply(premat)
         invert.invert()
-        dx, dy = invert.transform_distance(1, 0)
-        #dx = abs(dx)
-        #dy = abs(dy)
-        if dx == 0 or dy==0:
-            d = math.sqrt(dx*dx+dy*dy)
-        else:
-            d = abs(min(dx, dy))
-        ceiling = .5
-        if abs(d)<ceiling:
-            d = ceiling
+        xx, yx, xy, yy, x0, y0 = invert
+        numpy_pre_invert_mat = numpy.array([[xx, xy, x0], [yx, yy, y0]])
 
         span_y = max(-top, top+height)
 
@@ -259,59 +238,52 @@ class Camera3d(Object3d):
 
             surfacearray = surface2array(poly_surf)
 
-            xs = numpy.arange(sleft, sright, step=d)
+            xs = numpy.arange(0, canvas_width, step=1)
             xcount = len(xs)
-            ys = numpy.arange(stop, sbottom, step=d)
+            ys = numpy.arange(0, canvas_height, step=1)
             ycount = len(ys)
             xs, ys = numpy.meshgrid(xs, ys)
-            coords = numpy.vstack((xs.flatten(), ys.flatten(), numpy.ones(xcount*ycount)))
+            surface_grid = numpy.vstack((xs.flatten(), ys.flatten(), numpy.ones(xcount*ycount)))
+            surface_grid.shape = (3, ycount*xcount)
             del xs, ys
 
-            canvas_poly_coords = numpy.matmul(numpy_premat, coords).astype(numpy.uint32)
-            canvas_poly_coords.shape = (2, xcount*ycount)
+            hit_area_cond = (surfacearray[:, :, 3]>250)
+            hit_area_cond.shape = (ycount*xcount,)
 
-            poly_coor_x = canvas_poly_coords[0, :]
-            poly_coor_y = canvas_poly_coords[1, :]
+            canvas_poly_coords = surface_grid[:, hit_area_cond]
+            canvas_poly_coords.shape = (3, -1)
+            del hit_area_cond
+
+            poly_coor_x = canvas_poly_coords[0, :].astype(numpy.uint32)
+            poly_coor_y = canvas_poly_coords[1, :].astype(numpy.uint32)
+
+            coords = numpy.matmul(numpy_pre_invert_mat, canvas_poly_coords)
+            coords.shape = (2, -1)
 
             del canvas_poly_coords
 
-            poly_coor_x = numpy.where(poly_coor_x>=canvas_width, canvas_width-1, poly_coor_x)
-            poly_coor_y = numpy.where(poly_coor_y>=canvas_height, canvas_height-1, poly_coor_y)
-            coords = coords[:2, :]
-            coords = coords.T#.reshape((ycount, xcount, 2))
-            coords.shape = (xcount*ycount, 2)
-
-            area_cond = (surfacearray[poly_coor_y, poly_coor_x, 3]<100)
-            area_cond.shape = (ycount, xcount)
-
             coords_depths = numpy.matmul(object_3d.plane_params_normalized[self],
-                numpy.concatenate((coords.T, [numpy.ones(coords.shape[0])]), axis=0))
-            coords_depths.shape = (ycount, xcount)
-            blank_depths = numpy.zeros_like(coords_depths)
-            blank_depths.fill(min_depth+1)
-            coords_depths = numpy.where(area_cond, blank_depths, coords_depths)
-            del blank_depths
+                numpy.concatenate((coords, [numpy.ones(coords.shape[1])]), axis=0))
+            del coords
 
             pre_depths = canvas_z_depths[poly_coor_y, poly_coor_x]
-            pre_depths.shape = (ycount, xcount)
             depths_cond = pre_depths<coords_depths
 
             new_depths = numpy.where(depths_cond, coords_depths, pre_depths)
-            new_depths.shape = (ycount*xcount, )
             canvas_z_depths[poly_coor_y, poly_coor_x] = new_depths
             del pre_depths, new_depths
 
             pre_colors = canvas_surf_array[poly_coor_y, poly_coor_x, :]
-            pre_colors.shape = (ycount, xcount, 4)
+            pre_colors.shape = (-1, 4)
 
             depths_cond_multi = numpy.repeat(depths_cond, 4)
-            depths_cond_multi.shape = (depths_cond.shape[0], depths_cond.shape[1], 4)
+            depths_cond_multi.shape = (depths_cond.shape[0], 4)
 
             picked_surface = surfacearray[poly_coor_y, poly_coor_x]
-            picked_surface.shape = (ycount, xcount, 4)
+            picked_surface.shape = (-1, 4)
 
             new_colors = numpy.where(depths_cond_multi, picked_surface, pre_colors)
-            new_colors.shape = (ycount*xcount, 4)
+            new_colors.shape = (-1, 4)
             del depths_cond_multi, pre_colors, picked_surface
 
             canvas_surf_array[poly_coor_y, poly_coor_x, :] = new_colors
