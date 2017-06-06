@@ -2,7 +2,7 @@ from ..commons import *
 from shape import Shape
 from rectangle_shape import RectangleShape
 
-import math
+import math, time
 DEG2PI = math.pi/180.
 
 class ThreeDShape(RectangleShape):
@@ -115,6 +115,14 @@ class ThreeDShape(RectangleShape):
         super(ThreeDShape, self).set_anchor_y(value)
         self.should_rebuild_image = True
 
+    def set_angle(self, value):
+        super(ThreeDShape, self).set_angle(value)
+        self.should_rebuild_image = True
+
+    def move_to(self, x, y):
+        super(ThreeDShape, self).move_to(x, y)
+        self.should_rebuild_image = True
+
     def set_wire_color(self, color):
         if color is None:
             self.wire_color = None
@@ -146,50 +154,68 @@ class ThreeDShape(RectangleShape):
         self.image_hash = None
 
     def build_image(self, ctx=None):
+        self.last_built_at = time.time()
         self.d3_object.build_projection(self.camera)
         self.camera.sort_items(self.d3_object)
-        if self.high_quality and ctx is not None:
+
+        ay = self.anchor_at.y
+        iay = self.height -ay
+
+        if ay<iay:
+            origin_y = iay
+            canvas_height = 2*iay
+        else:
+            origin_y = ay
+        canvas_height = 2*origin_y
+
+        if self.high_quality:
+            rect = self.get_abs_reverse_outline(0, 0, self.width, self.height)
+
+            blank_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1)
+            ctx = cairo.Context(blank_surface)
+            ctx.translate(-rect.left, -rect.top)
+            self.pre_draw(ctx)
+            ctx.translate(self.anchor_at.x, self.anchor_at.y)
+            ctx.scale(1, -1)
+            premat = ctx.get_matrix()
+            del blank_surface
+
             self.image_canvas = self.camera.get_image_canvas_high_quality(
-                ctx,
+                rect.width, rect.height,
+                premat,
                 -self.anchor_at.x, -self.anchor_at.y,#what happens to y?
                 self.width, self.height,
                 border_color=self.wire_color,
                 border_width=self.wire_width
             )
+            """
             ctx = cairo.Context(self.image_canvas)
-            ctx.save()
-            abs_anchor_at = self.abs_reverse_transform_point(self.anchor_at)
-            ctx.translate(abs_anchor_at.x, abs_anchor_at.y)
+            ctx.set_matrix(premat)
             ctx.rectangle(-2, -2, 4, 4)
+            ctx.set_matrix(cairo.Matrix())
             draw_stroke(ctx, 4, "000000")
-            ctx.restore()
+            """
         else:
-            ay = self.anchor_at.y
-            iay = self.height -ay
-
-            if ay<iay:
-                origin_y = iay
-                canvas_height = 2*iay
-            else:
-                origin_y = ay
-            canvas_height = 2*origin_y
-
             inv_canvas = self.camera.get_image_canvas(
                 -self.anchor_at.x, -origin_y,
                 self.width, canvas_height,
                 border_color=self.wire_color,
                 border_width=self.wire_width
             )
+            """
             ctx = cairo.Context(inv_canvas)
             ctx.translate(self.anchor_at.x, origin_y)
             ctx.rectangle(-25, -25, 50, 50)
             draw_stroke(ctx, 4, "000000")
+            """
 
             final_canvas = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(self.width), int(self.height))
             ctx  = cairo.Context(final_canvas)
 
+            """
             ctx.rectangle(0, 0, final_canvas.get_width(), final_canvas.get_height())
             draw_fill(ctx, "0000ff")
+            """
 
             ctx.scale(1, -1)
             if ay<iay:
@@ -226,7 +252,7 @@ class ThreeDShape(RectangleShape):
                self.should_rebuild_d3 or \
                self.should_rebuild_camera or \
                self.should_rebuild_image:
-                self.build_image(ctx)
+                self.build_image()
             self.image_hash = image_hash
         elif self.image_canvas is None or \
              self.should_rebuild_d3 or \
@@ -239,11 +265,12 @@ class ThreeDShape(RectangleShape):
         if self.high_quality:
             mat = ctx.get_matrix()
             ctx.set_matrix(cairo.Matrix())
-            #ctx.translate(0, self.image_canvas.get_height())
-            ctx.scale(1, -1) #OpenGL inverts image. So, we do it to match up.
-            ctx.translate(0, -2*self.abs_reverse_transform_point(self.anchor_at).y)
-            #ctx.translate(0, -2*self.abs_reverse_transform_point(self.anchor_at).y)
+            rect = self.get_abs_reverse_outline(0, 0, self.width, self.height)
+            ctx.translate(rect.left, rect.top)
             ctx.set_source_surface(self.image_canvas)
+            ctx.set_matrix(mat)
+            self.draw_path(ctx)
+            ctx.clip()
             ctx.paint()
             ctx.set_matrix(mat)
         else:

@@ -642,6 +642,24 @@ class Shape(object):
 
         return Rect(min_x, min_y, max_x - min_x, max_y - min_y)
 
+    def get_abs_reverse_outline(self, left, top, width, height):
+        points = []
+        points.append(Point(left, top))
+        points.append(Point(left + width, top))
+        points.append(Point(left + width, top + height))
+        points.append(Point(left, top + height))
+
+        min_x = max_x = min_y = max_y =  None
+        for point in points:
+            point = self.abs_reverse_transform_point(point)
+
+            if min_x is None or min_x>point.x: min_x = point.x
+            if max_x is None or max_x<point.x: max_x = point.x
+            if min_y is None or min_y>point.y: min_y = point.y
+            if max_y is None or max_y<point.y: max_y = point.y
+
+        return Rect(min_x, min_y, max_x - min_x, max_y - min_y)
+
     def is_within(self, point, margin=0):
         point = self.transform_point(point)
         return point.x>=-margin and point.x<=self.width+margin and \
