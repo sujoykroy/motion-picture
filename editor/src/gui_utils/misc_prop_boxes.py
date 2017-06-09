@@ -170,6 +170,8 @@ class ThreeDShapePropBox(RectangleShapePropBox):
                 dict(value=0, lower=-3*60*6, upper=3*60*60, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("object_scale", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=.001, upper=100000, step_increment=1))
+        self.add_prop("quality_scale", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0.01, lower=.001, upper=10, step_increment=.01, digits=3))
         """
         self.add_prop("viewer_z", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-10000, upper=100000, step_increment=1))

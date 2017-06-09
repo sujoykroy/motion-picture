@@ -69,21 +69,24 @@ class Camera3d(Object3d):
             return 0
         return 1
 
-    def get_image_canvas(self, left, top, width, height, border_color=None, border_width=None):
+    def get_image_canvas(self, left, top, width, height, border_color=None, border_width=None, scale=.5):
         left = math.floor(left)
         top = math.floor(top)
         width = int(width)
         height = int(height)
-        pixel_count = width*height
+        border_width = max(border_width*scale, 1)
         min_depth = -100000
 
-        canvas_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+        canvas_width = int(width*scale)
+        canvas_height = int(height*scale)
+        pixel_count = canvas_width*canvas_height
+        canvas_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, canvas_width, canvas_height)
         canvas_surf_array = surface2array(canvas_surf)
 
         canvas_z_depths =numpy.repeat(min_depth, pixel_count)
-        canvas_z_depths = canvas_z_depths.astype("f").reshape((height, width))
+        canvas_z_depths = canvas_z_depths.astype("f").reshape(canvas_height, canvas_width)
 
-        pad = 3
+        pad = border_width*4
         for object_3d in self.sorted_items:
             brect = object_3d.bounding_rect[self]
             bleft, btop = int(math.ceil(brect[0][0])), int(math.ceil(brect[0][1]))
@@ -112,27 +115,50 @@ class Camera3d(Object3d):
             if sw<=0 or sh<=0:
                 continue
 
-            cleft = int(sleft-left)
-            cright = int(sright-left)
-            ctop = int(stop-top)
-            cbottom = int(sbottom-top)
+            poly_canvas_width = int(sw*scale)
+            poly_canvas_height = int(sh*scale)
 
-            poly_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh)
+            cleft = int((sleft-left)*scale)
+            cright = min(int((sright-left)*scale), canvas_width)
+            ctop = int((stop-top)*scale)
+            cbottom = int((sbottom-top)*scale)
+
+            if (ctop-cbottom!=poly_canvas_height):
+                cbottom=poly_canvas_height+ctop
+            if cbottom>canvas_height:
+                cbottom = canvas_height
+                ctop = cbottom-poly_canvas_height
+
+            if (cright-cleft!=poly_canvas_width):
+                cright=poly_canvas_width+cleft
+            if cright>canvas_width:
+                cright = canvas_width
+                cleft = cright-poly_canvas_width
+
+            #print "poly_canvas_height", poly_canvas_height, "poly_canvas_width", poly_canvas_width
+            #print "cbottom-ctop", cbottom-ctop, "cright-cleft", cright-cleft
+            #print "canvas_width, canvas_height", canvas_width, canvas_height
+            #print "cbottom, ctop", cbottom, ctop, "cright, cleft", cright, cleft
+
+            poly_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, poly_canvas_width, poly_canvas_height)
             poly_ctx = cairo.Context(poly_surf)
+            poly_ctx.scale(scale, scale)
             set_default_line_style(poly_ctx)
             poly_ctx.rectangle(0, 0, sw, sh)
             poly_ctx.set_source_rgba(1, 0, 0, 0)
             poly_ctx.fill()
-            poly_ctx.translate(-bleft-(sleft-bleft), -btop-(stop-btop))
+            poly_ctx.translate(-bleft, -btop)
+            poly_ctx.translate(-(sleft-bleft), -(stop-btop))
             object_3d.draw(poly_ctx, self, border_color=border_color, border_width=border_width)
 
             surfacearray = surface2array(poly_surf)
             area_cond = (surfacearray[:, :, 3]<255)
 
-            xs = numpy.arange(sleft, sright)
+            xs = numpy.linspace(sleft, sright, poly_canvas_width)
             xcount = len(xs)
-            ys = numpy.arange(stop, sbottom)
+            ys = numpy.linspace(stop, sbottom, poly_canvas_height)
             ycount = len(ys)
+
             xs, ys = numpy.meshgrid(xs, ys)
             coords = numpy.vstack((xs.flatten(), ys.flatten()))
             coords = coords.T#.reshape((ycount, xcount, 2))
@@ -178,8 +204,16 @@ class Camera3d(Object3d):
         canvas_surf_array = numpy.where(cond_multi, filled_values, canvas_surf_array)
         """
         canvas = cairo.ImageSurface.create_for_data(
-                numpy.getbuffer(canvas_surf_array), cairo.FORMAT_ARGB32, width, height)
+                numpy.getbuffer(canvas_surf_array), cairo.FORMAT_ARGB32, canvas_width, canvas_height)
 
+        if scale != 1:
+            enlarged_canvas = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+            ctx = cairo.Context(enlarged_canvas)
+            ctx.rectangle(0, 0, width, height)
+            ctx.scale(1./scale, 1./scale)
+            ctx.set_source_surface(canvas)
+            ctx.paint()
+            canvas = enlarged_canvas
         return canvas
 
     def get_image_canvas_high_quality(self,

@@ -93,7 +93,7 @@ class ShapePropBox(object):
                     values["upper"], step, values.get("page_increment", step),
                     values.get("page_size", 0))
             spin_button = Gtk.SpinButton()
-            spin_button.set_digits(2)
+            spin_button.set_digits(values.get("digits", 2))
             spin_button.set_numeric(True)
             spin_button.set_adjustment(adjustment)
             spin_button.connect("value-changed", self.spin_button_value_changed, prop_name)
