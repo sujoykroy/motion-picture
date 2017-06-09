@@ -137,7 +137,3 @@ class Container3d(Object3d):
                         polygroup3d.extra_reverse_matrix = transform
                         self.append(polygroup3d, node.id)
 
-    def draw_gl(self, pre_matrix, threed_gl_render_context):
-        pre_matrix = numpy.matmul(pre_matrix, self.reverse_matrix)
-        for item in self.items:
-            item.draw_gl(pre_matrix, threed_gl_render_context)

@@ -141,11 +141,6 @@ class PolyGroup3d(Object3d):
             return 1
         return -1
 
-    def draw_gl(self, pre_matrix, threed_gl_render_context):
-        pre_matrix = numpy.matmul(pre_matrix, self.reverse_matrix)
-        for polygon3d in self.polygons:
-            polygon3d.draw_gl(pre_matrix, threed_gl_render_context)
-
     @classmethod
     def create_from_polygons_points(cls,
                        polygons_points, kind="linear",
