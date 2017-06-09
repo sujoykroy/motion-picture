@@ -18,9 +18,9 @@ class Container3d(Object3d):
         self.items = []
         self.item_names = []
 
-    def get_xml_element(self):
+    def get_xml_element(self, exclude_border_fill=False):
         elm = XmlElement(self.TAG_NAME)
-        self.load_xml_elements(elm)
+        self.load_xml_elements(elm, exclude_border_fill=exclude_border_fill)
         for i in range(len(self.items)):
             item = self.items[i]
             item_elm = item.get_xml_element()
@@ -137,3 +137,7 @@ class Container3d(Object3d):
                         polygroup3d.extra_reverse_matrix = transform
                         self.append(polygroup3d, node.id)
 
+    def draw_gl(self, pre_matrix, threed_gl_render_context):
+        pre_matrix = numpy.matmul(pre_matrix, self.reverse_matrix)
+        for item in self.items:
+            item.draw_gl(pre_matrix, threed_gl_render_context)

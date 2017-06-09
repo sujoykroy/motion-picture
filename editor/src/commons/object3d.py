@@ -16,9 +16,38 @@ class Object3d(object):
         self.id_num = Object3d.IdSeed
         self.extra_reverse_matrix = None
         self.texture_resources = None
+
+        self.border_color = None
+        self.fill_color = None
+        self.border_width = None
+
         Object3d.IdSeed += 1
 
-    def load_xml_elements(self, elm):
+    def get_active_fill_color(self):
+        if self.fill_color is None and self.parent:
+            return self.parent.get_active_fill_color()
+        return self.fill_color
+
+    def get_active_border_color(self):
+        if self.border_color is None and self.parent:
+            return self.parent.get_active_border_color()
+        return self.border_color
+
+    def get_active_border_width(self):
+        if self.border_width is None and self.parent:
+            return self.parent.get_active_border_width()
+        return self.border_width
+
+    def set_fill_color(self, color):
+        self.fill_color = copy_value(color)
+
+    def set_border_color(self, color):
+        self.border_color = copy_value(color)
+
+    def set_border_width(self, value):
+        self.border_width = copy_value(value)
+
+    def load_xml_elements(self, elm, exclude_border_fill=False):
         if self.rotation.get_x() !=0 or self.rotation.get_y() !=0 or self.rotation.get_z() !=0:
             elm.attrib["rot"] = self.rotation.to_text()
         if self.translation.get_x() !=0 or self.translation.get_y() !=0 or self.translation.get_z() !=0:
@@ -34,6 +63,14 @@ class Object3d(object):
             elm.attrib["mtx"] = ",".join(arr)
         if self.texture_resources is not None:
             elm.extend(self.texture_resources.get_xml_elements())
+        if not exclude_border_fill:
+            if self.fill_color is not None:
+                elm.attrib["fc"] = Text.to_text(self.fill_color)
+            if self.border_color is not None:
+                elm.attrib["bc"] = Text.to_text(self.border_color)
+            if self.border_width is not None:
+                elm.attrib["bw"] = "{0}".format(self.border_width)
+
 
     def load_from_xml_elements(self, elm):
         rotation_text = elm.attrib.get("rot", None)
@@ -73,7 +110,7 @@ class Object3d(object):
         self.rotation.translate(point3d.values*DEG2PI)
 
     def precalculate(self):
-        self.build_rotation_matrix()
+        self.build_matrices()
 
     def forward_transform_point_values(self, point_values, deep=True):
         if deep:
@@ -93,7 +130,7 @@ class Object3d(object):
                 point_values = self.parent.reverse_transform_point_values(point_values)
         return point_values
 
-    def build_rotation_matrix(self):
+    def build_matrices(self):
         frotx = numpy.array([
             [1, 0                               , 0                              , 0],
             [0, math.cos(self.rotation.get_x()) , math.sin(self.rotation.get_x()), 0],

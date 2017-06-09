@@ -8,8 +8,8 @@ from misc import *
 from texture_map_color import *
 from colors import *
 
-DEFAULT_BORDER_COLOR = "000000"
-DEFAULT_FILL_COLOR = "CCCCCC"
+DEFAULT_BORDER_COLOR = Color.from_html("000000")
+DEFAULT_FILL_COLOR = Color.from_html("CCCCCC")
 DEFAULT_BORDER_WIDTH = 1
 
 class PolyGroup3d(Object3d):
@@ -44,12 +44,6 @@ class PolyGroup3d(Object3d):
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
         self.load_xml_elements(elm)
-        if self.fill_color is not None:
-            elm.attrib["fc"] = Text.to_text(self.fill_color)
-        if self.border_color is not None:
-            elm.attrib["bc"] = Text.to_text(self.border_color)
-        if self.border_width is not None:
-            elm.attrib["bw"] = "{0}".format(self.border_width)
 
         point_values = []
         for point in self.points:
@@ -146,6 +140,11 @@ class PolyGroup3d(Object3d):
         if o1[2]>o2[2]:
             return 1
         return -1
+
+    def draw_gl(self, pre_matrix, threed_gl_render_context):
+        pre_matrix = numpy.matmul(pre_matrix, self.reverse_matrix)
+        for polygon3d in self.polygons:
+            polygon3d.draw_gl(pre_matrix, threed_gl_render_context)
 
     @classmethod
     def create_from_polygons_points(cls,

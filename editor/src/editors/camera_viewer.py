@@ -74,12 +74,17 @@ class CamerViewerBox(Gtk.Box):
         dw_width = self.drawing_area.get_allocated_width()
         dw_height = self.drawing_area.get_allocated_height()
 
-        draw_rounded_rectangle(ctx, 0, 0, dw_width, dw_height, 0)
-        draw_fill(ctx, "ff0000")
+        #draw_rounded_rectangle(ctx, 0, 0, dw_width, dw_height, 0)
+        #draw_fill(ctx, "cccccc")
 
         sx, sy = dw_width/view_width, dw_height/view_height
         scale = min(sx, sy)
-        ctx.translate((dw_width-scale*view_width)*.5, (dw_height-scale*view_height)*.5)
+
+        view_left = (dw_width-scale*view_width)*.5
+        view_top = (dw_height-scale*view_height)*.5
+
+        ctx.save()
+        ctx.translate(view_left, view_top)
         ctx.scale(scale, scale)
 
         draw_rounded_rectangle(ctx, 0, 0, view_width, view_height, 0)
@@ -89,4 +94,14 @@ class CamerViewerBox(Gtk.Box):
             self.camera.paint_screen(ctx, view_width, view_height, cam_scale=scale)
         else:
             multi_shape.draw(ctx, root_shape=multi_shape)
+        ctx.restore()
+
+        ctx.rectangle(0, 0, view_left, dw_height)
+        draw_fill(ctx, "000000")
+        ctx.rectangle(view_left+scale*view_width, 0, dw_width-view_left-scale*view_width, dw_height)
+        draw_fill(ctx, "000000")
+        ctx.rectangle(0, 0, dw_width, view_top)
+        draw_fill(ctx, "000000")
+        ctx.rectangle(0, view_top+scale*view_height, dw_width, dw_height-view_top-scale*view_height)
+        draw_fill(ctx, "000000")
 

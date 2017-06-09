@@ -1,32 +1,31 @@
-import cairo
+import cairo, numpy
 from point import Point
 from texture_map_color import *
 
 class Color(object):
     def __init__(self, red, green, blue, alpha):
-        self.red = red
-        self.green = green
-        self.blue = blue
-        self.alpha = alpha
+        self.values = numpy.array([red, green, blue, alpha]).astype("f" )
 
     def copy(self):
-        return Color(self.red, self.green, self.blue, self.alpha)
+        return Color(*list(self.values))
 
     def get_array(self):
-        return [self.red, self.green, self.blue, self.alpha]
+        return list(self.values)
+
+    def get_gl_array_value(self):
+        if not self.values.flags['C_CONTIGUOUS']:
+            self.values = numpy.ascontiquousarray(self.values)
+        return self.values
 
     def copy_from(self, color):
         if not isinstance(color, Color): return
-        self.red = color.red
-        self.green = color.green
-        self.blue = color.blue
-        self.alpha = color.alpha
+        self.values = color.values.copy()
 
     def to_text(self):
-        return "{0},{1},{2},{3}".format(self.red, self.green, self.blue, self.alpha)
+        return "{0},{1},{2},{3}".format(*list(self.values))
 
     def to_html(self):
-        arr = [self.red, self.green, self.blue, self.alpha]
+        arr = list(self.values)
         for i in range(len(arr)):
             arr[i] = hex(int(arr[i]*255))[2:]
             if len(arr[i]) == 1:
@@ -36,10 +35,7 @@ class Color(object):
     def set_inbetween(self, start_color, end_color, frac):
         if not isinstance(start_color, Color) or not isinstance(end_color, Color):
             return
-        self.red = start_color.red + (end_color.red-start_color.red)*frac
-        self.green = start_color.green + (end_color.green-start_color.green)*frac
-        self.blue = start_color.blue + (end_color.blue-start_color.blue)*frac
-        self.alpha = start_color.alpha + (end_color.alpha-start_color.alpha)*frac
+        self.values = start_color.values + (end_color.values-start_color.values)*frac
 
     @classmethod
     def from_text(cls, text):
@@ -145,7 +141,7 @@ class GradientColor(object):
             frac_pos = color_point.point.distance(self.color_points[0].point)/full_distance
             color = color_point.color
             self.pattern.add_color_stop_rgba (
-                frac_pos, color.red, color.green, color.blue, color.alpha)
+                frac_pos, color.values[0], color.values[1], color.values[2], color.values[3])
         return self.pattern
 
     @classmethod
@@ -181,7 +177,7 @@ class LinearGradientColor(GradientColor):
         for color_point in self.color_points:
             frac_pos = color_point.point.distance(self.color_points[0].point)/full_distance
             color = color_point.color
-            pattern.add_color_stop_rgba (frac_pos, color.red, color.green, color.blue, color.alpha)
+            pattern.add_color_stop_rgba (frac_pos, color.values[0], color.values[1], color.values[2], color.values[3])
         return pattern
 
     @classmethod

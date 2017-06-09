@@ -201,6 +201,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         AudioShape.DONT_PLAY = False
         CameraShape.CAMERA_ICON = Document.get_icon_shape("camera", 20, 20)
 
+        self.image_gl_render = None
+
     def quit(self, widget, event):
         Gtk.main_quit()
         if self.shape_manager:
@@ -576,6 +578,15 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def on_drawing_area_draw(self, widget, dctx):
         w, h = self.get_drawing_area_size()
+        """
+        if self.image_gl_render and \
+           (self.image_gl_render.width !=w or self.image_gl_render.height != h):
+            del self.image_gl_render
+            self.image_gl_render = None
+        if self.image_gl_render is None:
+            self.image_gl_render = ImageGLRender(w, h)
+        """
+
         img_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(img_surf)
 

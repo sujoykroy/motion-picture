@@ -4,8 +4,20 @@ from object3d import Object3d
 from texture_map_color import TextureMapColor
 from misc import *
 from draw_utils import *
+from colors import Color
 
 from xml.etree.ElementTree import Element as XmlElement
+
+#from OpenGL.EGL import *
+from ctypes import *
+from OpenGL.GL import *
+
+FLOAT_BYTE_COUNT = 4;
+SHORT_BYTE_COUNT = 2;
+COORDS_PER_VERTEX = 3;
+VERTEX_STRIDE = COORDS_PER_VERTEX*FLOAT_BYTE_COUNT;
+COORDS_PER_TEXTURE = 2;
+TEXTURE_STRIDE = COORDS_PER_TEXTURE*FLOAT_BYTE_COUNT;
 
 class Polygon3d(Object3d):
     TAG_NAME = "pl3"
@@ -33,6 +45,8 @@ class Polygon3d(Object3d):
         if not temporary:
             Polygon3d.Items.append(self)
 
+        self.gl_vertices = None
+        self.is_line_drawing = False
     """
     def copy(self):
         newob = Polygon3d(
@@ -50,12 +64,6 @@ class Polygon3d(Object3d):
         self.load_xml_elements(elm)
         if not self.closed:
             elm.attrib["closed"] = "0";
-        if self.fill_color is not None:
-            elm.attrib["fc"] = Text.to_text(self.fill_color)
-        if self.border_color is not None:
-            elm.attrib["bc"] = Text.to_text(self.border_color)
-        if self.border_width is not None:
-            elm.attrib["bw"] = "{0}".format(self.border_width)
         point_indices_elm = XmlElement("pi")
         point_indices_elm.text = ",".join(str(p) for p in self.point_indices)
         elm.append(point_indices_elm)
@@ -126,6 +134,7 @@ class Polygon3d(Object3d):
                 ctx.line_to(values[0], values[1])
         if self.closed:
             ctx.line_to(projected_values[0][0], projected_values[0][1])
+
 
     def draw(self, ctx, camera, border_color=-1, border_width=-1):
         if border_color == -1:
@@ -224,6 +233,97 @@ class Polygon3d(Object3d):
                 ctx.arc(proj_value[0], proj_value[1], 2, 0, 2*math.pi)
                 ctx.restore()
                 draw_stroke(ctx, 1, "FF4400")
+
+    def build_gl_buffers(self):
+        vertices = numpy.array([]).astype("f")
+
+        for i in range(len(self.point_indices)):
+            point3d = self.parent.points[self.point_indices[i]]
+            vertices = numpy.append(vertices, point3d.values[:3])
+        vertices.shape = (len(self.point_indices), 3)
+
+        if isinstance(self.fill_color, TextureMapColor):
+            texcoords = self.fill_color.texcoords[0][:, :2]
+            texcoords = (-1, 2)
+            vertices = numpy.concatenate((vertices, texcoords), axis=1).astype("f")
+            stride_count = 5
+        else:
+            stride_count = 3
+        vertices.shape = (-1,)
+        self.gl_vertices = vertices = numpy.ascontiguousarray(vertices)
+        self.gl_vertices_stride = vertices.dtype.itemsize*stride_count
+        if len(self.point_indices)<=3:
+            vertex_order_count = len(self.point_indices)
+        else:
+            vertex_order_count = 3+(len(self.point_indices)-3)*3
+        vertex_order_data = numpy.array([]).astype(numpy.uint16)
+        start_counter = 0
+        for i in range(0, vertex_order_count, 3):
+            vertex_order_data = numpy.append(vertex_order_data, [0, start_counter+1, start_counter+2])
+            start_counter += 1
+        self.gl_vertex_order_data = numpy.ascontiguousarray(vertex_order_data)
+        self.gl_vertex_line_order_data = numpy.ascontiguousarray(numpy.array(
+                list(range(len(self.point_indices)))).astype(numpy.uint16))
+
+    def draw_gl(self, pre_matrix, threed_gl_render_context):
+        drawer = threed_gl_render_context.get_drawer()
+        glUseProgram(drawer.gl_program)
+        if self.gl_vertices is None:
+            self.build_gl_buffers()
+
+        drawer.mvp_matrix_handle = glGetUniformLocation(drawer.gl_program, 'uMVPMatrix')
+        glUniformMatrix4fv(drawer.mvp_matrix_handle, 1, GL_FALSE, pre_matrix, 0)
+
+        glBindBuffer(GL_ARRAY_BUFFER, drawer.vbo)
+        glBufferData(GL_ARRAY_BUFFER,
+            self.gl_vertices.dtype.itemsize*self.gl_vertices.size, self.gl_vertices, GL_STATIC_DRAW)
+
+        drawer.gl_position_handle = glGetAttribLocation(drawer.gl_program, 'aPosition')
+        glEnableVertexAttribArray(drawer.gl_position_handle)
+        glVertexAttribPointer(drawer.gl_position_handle,
+                COORDS_PER_VERTEX, GL_FLOAT, GL_FALSE, self.gl_vertices_stride, ctypes.c_void_p(0))
+
+        drawer.gl_has_texture_handle = glGetUniformLocation(drawer.gl_program, 'uHasTexture')
+        if isinstance(self.fill_color, TextureMapColor) and not self.is_line_drawing:
+            glUniform1i(drawer.gl_has_texture_handle, 1)
+
+            drawer.gl_tex_coords_handle = glGetAttribLocation(drawer.gl_program, 'aTexCoords')
+            glEnableVertexAttribArray(drawer.gl_tex_coords_handle)
+            glVertexAttribPointer(drawer.gl_tex_coords_handle,
+                    COORDS_PER_TEXTURE, GL_FLOAT, GL_FALSE, self.gl_vertices_stride,
+                    c_void_p(COORDS_PER_VERTEX*self.gl_vertices.dtype.itemsize))
+
+            drawer.gl_texture_handle = glGetUniformLocation(drawer.gl_program, 'uTexture')
+            glActiveTexture(GL_TEXTURE0)
+            glBindTexture(GL_TEXTURE_2D,
+                    threed_gl_render_context.get_texture_handle(
+                           self.fill_color.get_resource_name()))
+            glUniform1i(drawer.gl_texture_handle, 0)
+        else:
+            glUniform1i(drawer.gl_has_texture_handle, 0)
+            fill_color = self.get_active_fill_color()
+            if isinstance(fill_color, Color):
+                drawer.gl_color_handle = glGetUniformLocation(drawer.gl_program, 'uColor')
+                glUniform4fv(drawer.gl_color_handle, 1,
+                        fill_color.get_gl_array_value(), 0)
+        if not self.is_line_drawing:
+            glDrawElements(GL_TRIANGLES, len(self.gl_vertex_order_data),
+                    GL_UNSIGNED_SHORT, self.gl_vertex_order_data)
+        else:
+            glDrawElements(GL_LINES, len(self.gl_vertex_line_order_data),
+                    GL_UNSIGNED_SHORT, self.gl_vertex_line_order_data)
+
+        border_color = self.get_active_border_color()
+        if border_color is not None and self.get_active_border_width() is not None:
+            if isinstance(border_color, Color):
+                drawer.gl_color_handle = glGetUniformLocation(drawer.gl_program, 'uColor')
+                glUniform4fv(drawer.gl_color_handle, 1,
+                        border_color.get_gl_array_value(), 0)
+            glUniform1i(drawer.gl_has_texture_handle, 0)
+            glLineWidth(self.get_active_border_width())
+            glDrawElements(GL_LINES, len(self.gl_vertex_line_order_data),
+                    GL_UNSIGNED_SHORT, self.gl_vertex_line_order_data)
+        glDisableVertexAttribArray(drawer.gl_position_handle)
 
     @classmethod
     def create_if_needed(cls, parent, data):

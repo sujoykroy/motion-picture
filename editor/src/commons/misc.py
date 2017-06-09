@@ -158,3 +158,19 @@ class Span(object):
     def copy(self):
         newob = Span(self.start, self.end, self.scale)
         return newob
+
+class ImageHelper(object):
+    @classmethod
+    def get_bitmap_data_from_file(cls, filepath):
+        surface = cairo.ImageSurface.create_from_png(filepath)
+        return cls.surface2array(surface)
+
+    @classmethod
+    def surface2array(cls, surface, reformat=False):
+        data = surface.get_data()
+        rgb_array = 0+numpy.frombuffer(surface.get_data(), numpy.uint8)
+        rgb_array.shape = (surface.get_height(), surface.get_width(), 4)
+        if reformat:
+            rgb_array = rgb_array[:,:,[2,1,0,3]]
+        #rgb_array = rgb_array[:,:, :3]
+        return rgb_array

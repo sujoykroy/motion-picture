@@ -15,8 +15,8 @@ class Shape(object):
         self.border_color = Color.parse(border_color)
         self.border_width = border_width
         self.fill_color = Color.parse(fill_color)
-        self.width = width
-        self.height= height
+        self.width = max(1, width)
+        self.height= max(1, height)
 
         self.scale_x = 1.
         self.scale_y = 1.

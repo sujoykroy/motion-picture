@@ -61,6 +61,9 @@ class TextureMapColor(object):
     def set_resources(self, resources):
         self.resources = resources
 
+    def get_resource_name(self):
+        return self.resources.names[self.resource_index]
+
     def to_text(self):
         arr = []
         for i in range(len(self.normalized_texcoords)):

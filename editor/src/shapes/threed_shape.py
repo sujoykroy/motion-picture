@@ -38,7 +38,7 @@ class ThreeDShape(RectangleShape):
             elm.attrib["wire_color"] = self.wire_color.to_text()
         elm.attrib["wire_width"] = "{0}".format(self.wire_width)
         elm.attrib["high_quality"] = "{0}".format(int(self.high_quality))
-        elm.append(self.d3_object.get_xml_element())
+        elm.append(self.d3_object.get_xml_element(exclude_border_fill=True))
         return elm
 
     @classmethod
@@ -53,6 +53,8 @@ class ThreeDShape(RectangleShape):
         container3d_elm = elm.find(Container3d.TAG_NAME)
         if container3d_elm and not shape.d3_object.items:
             shape.d3_object = Container3d.create_from_xml_element(container3d_elm)
+            shape.d3_object.set_border_color(shape.wire_color)
+            shape.d3_object.set_border_width(shape.wire_width)
         return shape
 
     def get_object_scale(self):
@@ -130,12 +132,14 @@ class ThreeDShape(RectangleShape):
             self.wire_color.copy_from(color)
         else:
             self.wire_color = color
+        self.d3_object.set_border_color(self.wire_color)
         self.should_rebuild_image = True
 
     def set_wire_width(self, value):
         self.wire_width = value
         if self.wire_color is not None:
            self.should_rebuild_image = True
+        self.d3_object.set_border_width(self.wire_width)
 
     def set_filepath(self, filepath, load_file=True):
         self.filepath = filepath
@@ -196,12 +200,42 @@ class ThreeDShape(RectangleShape):
             draw_stroke(ctx, 4, "000000")
             """
         else:
+            """
             inv_canvas = self.camera.get_image_canvas(
                 -self.anchor_at.x, -origin_y,
                 self.width, canvas_height,
                 border_color=self.wire_color,
                 border_width=self.wire_width
             )
+            """
+            self.image_gl_render = ImageGLRender.get_render(self.width, canvas_height)
+            l, r = -self.width*.5, self.width*.5
+            t, b = self.height*.5, -self.height*.5
+            n, f = -self.width*.5, self.width*.5
+            pre_matrix = numpy.array([
+                [2*n/(r-l), 0, (r+l)/(r-l), 0 ],
+                [0, 2*n/(t-b), (t+b)/(t-b), 0],
+                [0, 0, -(f+n)/(f-n), -2*f*n/(f-n)],
+                [0, 0, -1, 0]
+            ]).astype("f")
+
+            #self.d3_object
+            drawable = PolyGroup3d.create_from_polygons_points(
+                polygons_points = [
+                    ((0, 0, 0), (30, 0, 0), (30, 30, 0), (0, 30, 0)),
+                    ((0, 0, 0), (0, 0, 30), (30, 0, 30), (30, 0, 0)),
+                    ((0, 0, 0), (0, 0, 30), (0, 30, 30), (0, 30, 0)),
+
+                    ((0, 0, 30), (30, 0, 30), (30, 30, 30), (0, 30, 30)),
+                    ((0, 30, 0), (0, 30, 30), (30, 30, 30), (30, 30, 0)),
+                    ((30, 0, 0), (30, 0, 30), (30, 30, 30), (30, 30, 0)),
+                ]
+            )
+            drawable.scale.multiply(.25)
+            drawable.precalculate()
+
+            pre_matrix = numpy.identity(4)
+            inv_canvas=self.image_gl_render.draw_and_get_image_surface(pre_matrix, drawable)
             """
             ctx = cairo.Context(inv_canvas)
             ctx.translate(self.anchor_at.x, origin_y)
@@ -227,8 +261,8 @@ class ThreeDShape(RectangleShape):
             ctx.paint()
 
             del ctx
+            self.image_canvas = inv_canvas#final_canvas
             del inv_canvas
-            self.image_canvas = final_canvas
 
         self.should_rebuild_d3 = False
         self.should_rebuild_camera = False

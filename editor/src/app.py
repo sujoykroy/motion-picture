@@ -1,3 +1,6 @@
+import os
+os.environ['PYOPENGL_PLATFORM'] = 'egl'
+
 from gi.repository import Gtk, GLib, Gio
 from gi.repository import Gdk, GdkPixbuf
 from gi.repository.GdkPixbuf import Pixbuf
