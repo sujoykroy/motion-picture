@@ -32,7 +32,7 @@ class MultiShapeTreeView(Gtk.TreeView):
         for shape in parent_shape.shapes:
             current_iter = tree_model.append(parent_iter,
                 [shape.get_pixbuf(32,32), shape.get_name(), shape.visible, shape])
-            if depth <   0 and isinstance(shape, MultiShape):
+            if depth < 0 and isinstance(shape, MultiShape):
                 self.append_child_items(tree_model, shape, current_iter, depth+1)
 
 

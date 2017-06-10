@@ -251,7 +251,7 @@ class ThreeDShape(RectangleShape):
         self.should_rebuild_camera = False
         self.should_rebuild_image = False
 
-    def draw_image(self, ctx, root_shape=None, pre_matrix=None):
+    def draw_image(self, ctx, root_shape=None, pre_matrix=None, no_hq=False):
         if self.should_rebuild_d3:
             self.d3_object.precalculate()
         if self.should_rebuild_camera:
@@ -259,7 +259,7 @@ class ThreeDShape(RectangleShape):
         ctx.set_antialias(True)
 
         ctx.save()
-        if self.high_quality:
+        if self.high_quality and not no_hq:
             w, h = ctx.get_target().get_width(), ctx.get_target().get_height()
             xx, yx, xy, yy, x0, y0 = ctx.get_matrix()
             image_hash = hash(tuple([w, h, xx, yx, xy, yy, x0, y0]))
@@ -298,3 +298,30 @@ class ThreeDShape(RectangleShape):
             ctx.get_source().set_filter(cairo.FILTER_FAST)
             ctx.paint()
         ctx.restore()
+
+    def draw(self, ctx, fixed_border=True, root_shape=None):
+        if self.fill_color is not None:
+            ctx.save()
+            self.pre_draw(ctx, root_shape=root_shape)
+            self.draw_path(ctx, for_fill=True)
+            self.draw_fill(ctx)
+            ctx.restore()
+
+        ctx.save()
+        self.pre_draw(ctx, root_shape=root_shape)
+        self.draw_path(ctx, for_fill=True)
+        self.should_rebuild_image = True
+        self.draw_image(ctx, root_shape=root_shape, no_hq=True)
+        self.should_rebuild_image = True
+        ctx.restore()
+
+        if self.border_color is not None:
+            ctx.save()
+            self.pre_draw(ctx, root_shape=root_shape)
+            self.draw_path(ctx, for_fill=False)
+            if fixed_border:
+                ctx.restore()
+                self.draw_border(ctx)
+            else:
+                self.draw_border(ctx)
+                ctx.restore()
