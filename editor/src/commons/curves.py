@@ -233,6 +233,68 @@ class NaturalCurve(object):
                         break
         return None
 
+    def get_baked_points(self, width, height):
+        """
+        This will generate the points along the path of curve.
+        Curve has normalized points. So, width and height are provided.
+        The baking or precalculation of pixels points in this way
+        helps to implement path following feature.
+        The distance between to points are kept one pixel along diagonal.
+        """
+        diagonal = math.sqrt(width*width+height*height)
+        path_points = numpy.array([], dtype="f")
+
+        prev_tp = self.origin.copy()
+        elapsed_dist = 0
+        for bezier_point_index in range(len(self.bezier_points)):
+            bezier_point = self.bezier_points[bezier_point_index]
+            if bezier_point_index == 0:
+                p0 = self.origin
+            else:
+                p0 = self.bezier_points[bezier_point_index-1].dest
+            p1 = bezier_point.control_1
+            p2 = bezier_point.control_2
+            p3 = bezier_point.dest
+
+            dist = p0.distance(p1) + p1.distance(p2) + p2.distance(p3)
+            dist = int(round(dist*diagonal))
+            for i in range(dist):
+                t = i*1.0/dist
+                tm1 = 1-t
+
+                p0p1_x = tm1*p0.x + t*p1.x
+                p0p1_y = tm1*p0.y + t*p1.y
+
+                p1p2_x = tm1*p1.x + t*p2.x
+                p1p2_y = tm1*p1.y + t*p2.y
+
+                p2p3_x = tm1*p2.x + t*p3.x
+                p2p3_y = tm1*p2.y + t*p3.y
+
+                p0p1_p1p2_x = tm1*p0p1_x + t*p1p2_x
+                p0p1_p1p2_y = tm1*p0p1_y + t*p1p2_y
+
+                p1p2_p2p3_x = tm1*p1p2_x + t*p2p3_x
+                p1p2_p2p3_y = tm1*p1p2_y + t*p2p3_y
+
+                tx = tm1*p0p1_p1p2_x + t*p1p2_p2p3_x
+                ty = tm1*p0p1_p1p2_y + t*p1p2_p2p3_y
+
+                this_tp = Point(tx, ty)
+                t_dist = int(round(prev_tp.distance(this_tp)*diagonal))
+                if t_dist == 0:
+                    continue
+                prev_tp = this_tp
+                ts_step = 1./t_dist
+                for ts in range(1, t_dist+1):
+                    ts *= ts_step
+                    nx = prev_tp.x + ts*(tx-prev_tp.x)
+                    ny = prev_tp.y + ts*(ty-prev_tp.y)
+                    path_points = numpy.append(path_points, [nx, ny])
+
+        path_points.shape =(-1, 2)
+        return path_points
+
     def insert_point_at(self, bezier_point_index, t):
         if bezier_point_index>=len(self.bezier_points): return
         bezier_point = self.bezier_points[bezier_point_index]

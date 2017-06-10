@@ -44,6 +44,8 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "end_form", self.LIST)
         self.add_editable_item("prop_data", "text", self.TEXT)
         self.add_editable_item("prop_data", "av_filename", self.AUDIO_FILE)
+        self.add_editable_item("prop_data", "follow_curve", self.TEXT)
+        self.add_editable_item("prop_data", "follow_angle", self.BOOLEAN)
 
         self.add_editable_item("attrib", "start_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "end_value", self.NUMBERS, syncable=True)
@@ -124,6 +126,10 @@ class TimeSlicePropBox(Gtk.Frame):
                         widget.set_value(prop_data[key])
                     elif isinstance(widget, FileSelect):
                         widget.set_filename(prop_data[key])
+                    elif isinstance(widget, Gtk.Entry):
+                        widget.set_text(prop_data[key])
+                    elif isinstance(widget, Gtk.CheckButton):
+                        widget.set_active(prop_data[key])
 
     def show_widgets(self, widgets, visible):
         for key, widget in widgets.items():
@@ -267,7 +273,7 @@ class TimeSlicePropBox(Gtk.Frame):
                 if value is None:
                     return
             elif item_widget.item_type == self.BOOLEAN:
-                value == bool(value)
+                value = bool(value)
 
         self.set_item_value(source_object, item_widget.item_name, value)
 

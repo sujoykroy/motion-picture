@@ -39,6 +39,30 @@ class Shape(object):
         self.border_dashes = None
         self.border_dash_offset = 0
 
+        self.follow_curve = None
+        self.followed_upto = 0.
+
+    def set_followed_upto(self, value, prop_data=None):
+        self.followed_upto = value
+        if prop_data:
+            curve_name = prop_data.get("follow_curve")
+            if curve_name:
+                self.follow_curve = curve_name
+            follow_angle = prop_data.get("follow_angle")
+        else:
+            follow_angle = False
+        if not self.follow_curve:
+            return
+        if self.parent_shape is None:
+            return
+        curve_shape = self.parent_shape.shapes.get_item_by_name(self.follow_curve)
+        if not curve_shape or not hasattr(curve_shape, "baked_points"):
+            return
+        point, angle = curve_shape.get_baked_point(self.followed_upto)
+        self.move_to(point.x, point.y)
+        if follow_angle:
+            self.set_angle(angle)
+
     def reset_transformations(self):
         self.scale_x = 1.
         self.scale_y = 1.
@@ -265,6 +289,8 @@ class Shape(object):
         return False
 
     def set_prop_value(self, prop_name, value, prop_data=None):
+        if prop_name == "followed_upto":
+            self.set_followed_upto(value, prop_data)
         set_attr_name = "set_" + prop_name
         if hasattr(self, set_attr_name):
             getattr(self, set_attr_name)(value)
@@ -537,7 +563,9 @@ class Shape(object):
         return math.atan2(point.y, point.x)/RAD_PER_DEG
 
     def pre_draw(self, ctx, root_shape=None):
-        if self.parent_shape and self != root_shape:
+        if self == root_shape:
+            return
+        if self.parent_shape:
             self.parent_shape.pre_draw(ctx, root_shape=root_shape)
         ctx.translate(self.translation.x, self.translation.y)
         if self.pre_matrix:
@@ -705,7 +733,7 @@ class Shape(object):
         scale = min(eff_width*1./self.width, eff_height*1./self.height)
         ctx.translate((width-scale*self.width)*.5, (height-scale*self.height)*.5)
         ctx.scale(scale, scale)
-        ctx.translate(-self.translation.x, -self.translation.y)
+        #ctx.translate(-self.translation.x, -self.translation.y)
         set_default_line_style(ctx)
         self.draw(ctx, Point(self.width, self.height), root_shape=self)
         return ctx.get_target()

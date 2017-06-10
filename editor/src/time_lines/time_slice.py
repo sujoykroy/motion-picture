@@ -105,6 +105,8 @@ class TimeSlice(object):
                 value_type = prop_data_elm.attrib["type"]
                 if value_type in ("float", "int"):
                     value = float(value)
+                elif value_type == 'bool':
+                    value = (value == "True")
                 prop_data[key] = value
         time_slice = cls(start_value, end_value, duration, change_type, prop_data)
         time_slice.linked_to_next = linked_to_next

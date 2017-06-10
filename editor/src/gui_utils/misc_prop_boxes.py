@@ -47,6 +47,16 @@ class CommonShapePropBox(ShapePropBox):
         mirror_comobobox.build_and_set_model(mirror_options)
         self.add_prop("mirror_angle", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=361, step_increment=1, page_increment=1, page_size=1))
+        self.add_prop("followed_upto", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0, upper=1, step_increment=.01))
+
+    def insert_slice_button_clicked(self, widget, prop_name):
+        if prop_name == "followed_upto":
+            if self.prop_object != None:
+                prop_data = dict(follow_curve="", follow_angle=False)
+                self.insert_time_slice_callback(self.prop_object, prop_name, 0, 1, prop_data)
+        else:
+            super(CommonShapePropBox, self).insert_slice_button_clicked(widget, prop_name)
 
 class RectangleShapePropBox(ShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):

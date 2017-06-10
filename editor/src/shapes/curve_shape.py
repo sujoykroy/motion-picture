@@ -35,6 +35,7 @@ class CurveShape(Shape, Mirror):
         self.show_points = True
         self.point_groups = []
         self.point_group_shapes = dict()
+        self.baked_points = None
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -271,6 +272,7 @@ class CurveShape(Shape, Mirror):
             elif scale[0] == -1 and scale[1] == -1:
                 ctx.translate(2*self.anchor_at.x/self.width, 2*self.anchor_at.y/self.height)
             ctx.scale(*scale)
+
         curve.draw_path(ctx)
         ctx.restore()
 
@@ -329,6 +331,30 @@ class CurveShape(Shape, Mirror):
         for curve_point_group_shape in self.point_group_shapes.values():
             curve_point_group_shape.translate_anchor(shift_w, shift_h)
             curve_point_group_shape.update()
+
+        self.baked_points = None
+
+    def get_baked_point(self, frac):
+        if self.baked_points is None:
+            self.baked_points = self.curves[0].get_baked_points(self.width, self.height)
+        if frac<0:
+            frac += 1
+
+        if frac>1:
+            frac %= 1
+
+        pos = int(self.baked_points.shape[0]*frac)
+        x, y = list(self.baked_points[pos])
+        point = self.reverse_transform_point(Point(x*self.width, y*self.height))
+
+        if pos<self.baked_points.shape[0]-1:
+            x, y = list(self.baked_points[pos+1])
+            point2 = self.reverse_transform_point(Point(x*self.width, y*self.height))
+            diffp = point2.diff(point)
+            angle = diffp.get_angle()
+        else:
+            angle = 0.
+        return point, angle
 
     def find_point_location(self, point):
         point = point.copy()
