@@ -74,8 +74,8 @@ class CamerViewerBox(Gtk.Box):
         dw_width = self.drawing_area.get_allocated_width()
         dw_height = self.drawing_area.get_allocated_height()
 
-        #draw_rounded_rectangle(ctx, 0, 0, dw_width, dw_height, 0)
-        #draw_fill(ctx, "cccccc")
+        draw_rounded_rectangle(ctx, 0, 0, dw_width, dw_height, 0)
+        draw_fill(ctx, "000000")
 
         sx, sy = dw_width/view_width, dw_height/view_height
         scale = min(sx, sy)
@@ -85,17 +85,28 @@ class CamerViewerBox(Gtk.Box):
 
         ctx.save()
         ctx.translate(view_left, view_top)
-        ctx.scale(scale, scale)
 
-        draw_rounded_rectangle(ctx, 0, 0, view_width, view_height, 0)
-        draw_fill(ctx, "ffffff")
+        view_canvas = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                        int(scale*view_width), int(scale*view_height))
+
+        view_ctx = cairo.Context(view_canvas)
+        view_ctx.scale(scale, scale)
+        pre_matrix = view_ctx.get_matrix()
+
+        draw_rounded_rectangle(view_ctx, 0, 0, view_width, view_height, 0)
+        draw_fill(view_ctx, "ffffff")
 
         if self.camera:
-            self.camera.paint_screen(ctx, view_width, view_height, cam_scale=scale)
+            self.camera.paint_screen(view_ctx, view_width, view_height, cam_scale=scale)
         else:
-            multi_shape.draw(ctx, root_shape=multi_shape)
-        ctx.restore()
+            multi_shape.draw(view_ctx, root_shape=multi_shape, pre_matrix=pre_matrix)
 
+        ctx.set_source_surface(view_canvas)
+        ctx.scale(scale, scale)
+        draw_rounded_rectangle(ctx, 0, 0, view_width, view_height, 0)
+        ctx.paint()
+        ctx.restore()
+        """
         ctx.rectangle(0, 0, view_left, dw_height)
         draw_fill(ctx, "000000")
         ctx.rectangle(view_left+scale*view_width, 0, dw_width-view_left-scale*view_width, dw_height)
@@ -104,4 +115,4 @@ class CamerViewerBox(Gtk.Box):
         draw_fill(ctx, "000000")
         ctx.rectangle(0, view_top+scale*view_height, dw_width, dw_height-view_top-scale*view_height)
         draw_fill(ctx, "000000")
-
+        """

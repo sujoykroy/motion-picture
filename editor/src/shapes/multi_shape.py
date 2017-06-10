@@ -466,7 +466,8 @@ class MultiShape(Shape):
 
     def draw(self, ctx, drawing_size=None,
                         fixed_border=True, no_camera=True,
-                        root_shape=None, exclude_camera_list=None):
+                        root_shape=None, exclude_camera_list=None,
+                        pre_matrix=None):
 
         if self.fill_color is not None:
             ctx.save()
@@ -476,6 +477,7 @@ class MultiShape(Shape):
             ctx.restore()
 
         if self.masked and len(self.shapes)>1:#masking feature needs to be revisited.
+            #here pre_matrix feature is not incorporated here. will do later if required.
             last_shape = self.shapes.get_at_index(-1)
             if not isinstance(last_shape, MultiShape):
                 for i in range(len(self.shapes)-1):
@@ -533,8 +535,10 @@ class MultiShape(Shape):
                     if isinstance(shape, CameraShape):
                         shape.draw_image(ctx, fixed_border=fixed_border,
                                               exclude_camera_list=exclude_camera_list)
+                    elif isinstance(shape, ThreeDShape):
+                        shape.draw_image(ctx, root_shape=root_shape, pre_matrix=pre_matrix)
                     else:
-                        shape.draw_image(ctx)
+                        shape.draw_image(ctx, root_shape=root_shape)
                     ctx.restore()
 
                 if isinstance(shape, TextShape):

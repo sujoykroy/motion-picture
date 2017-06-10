@@ -519,10 +519,10 @@ class Shape(object):
         point.translate(abs_anchor.x, abs_anchor.y)
         return point
 
-    def abs_reverse_transform_point(self, point):
+    def abs_reverse_transform_point(self, point, root_shape=None):
         point = self.reverse_transform_point(point)
-        if self.parent_shape:
-            point = self.parent_shape.abs_reverse_transform_point(point)
+        if self.parent_shape and self != root_shape:
+            point = self.parent_shape.abs_reverse_transform_point(point, root_shape=root_shape)
         return point
 
     def abs_angle(self, angle):
@@ -642,7 +642,7 @@ class Shape(object):
 
         return Rect(min_x, min_y, max_x - min_x, max_y - min_y)
 
-    def get_abs_reverse_outline(self, left, top, width, height):
+    def get_abs_reverse_outline(self, left, top, width, height, root_shape=None):
         points = []
         points.append(Point(left, top))
         points.append(Point(left + width, top))
@@ -651,7 +651,7 @@ class Shape(object):
 
         min_x = max_x = min_y = max_y =  None
         for point in points:
-            point = self.abs_reverse_transform_point(point)
+            point = self.abs_reverse_transform_point(point, root_shape=root_shape)
 
             if min_x is None or min_x>point.x: min_x = point.x
             if max_x is None or max_x<point.x: max_x = point.x

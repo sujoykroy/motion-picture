@@ -167,7 +167,7 @@ class ThreeDShape(RectangleShape):
         if not self.high_quality:
             self.should_rebuild_image = True
 
-    def build_image(self, ctx=None):
+    def build_image(self, root_shape=None):
         self.last_built_at = time.time()
         self.d3_object.build_projection(self.camera)
         self.camera.sort_items(self.d3_object)
@@ -183,12 +183,12 @@ class ThreeDShape(RectangleShape):
         canvas_height = 2*origin_y
 
         if self.high_quality:
-            rect = self.get_abs_reverse_outline(0, 0, self.width, self.height)
+            rect = self.get_abs_reverse_outline(0, 0, self.width, self.height, root_shape=root_shape)
 
             blank_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1)
             ctx = cairo.Context(blank_surface)
             ctx.translate(-rect.left, -rect.top)
-            self.pre_draw(ctx)
+            self.pre_draw(ctx, root_shape=root_shape)
             ctx.translate(self.anchor_at.x, self.anchor_at.y)
             ctx.scale(1, -1)
             premat = ctx.get_matrix()
@@ -206,8 +206,9 @@ class ThreeDShape(RectangleShape):
             ctx = cairo.Context(self.image_canvas)
             ctx.set_matrix(premat)
             ctx.rectangle(-2, -2, 4, 4)
-            ctx.set_matrix(cairo.Matrix())
-            draw_stroke(ctx, 4, "000000")
+            #ctx.set_matrix(cairo.Matrix())
+            #ctx.rectangle(0,0, self.image_canvas.get_width(), self.image_canvas.get_height())
+            draw_stroke(ctx, 20, "000000")
             """
         else:
             inv_canvas = self.camera.get_image_canvas(
@@ -250,7 +251,7 @@ class ThreeDShape(RectangleShape):
         self.should_rebuild_camera = False
         self.should_rebuild_image = False
 
-    def draw_image(self, ctx):
+    def draw_image(self, ctx, root_shape=None, pre_matrix=None):
         if self.should_rebuild_d3:
             self.d3_object.precalculate()
         if self.should_rebuild_camera:
@@ -268,20 +269,23 @@ class ThreeDShape(RectangleShape):
                self.should_rebuild_d3 or \
                self.should_rebuild_camera or \
                self.should_rebuild_image:
-                self.build_image()
+                self.build_image(root_shape)
             self.image_hash = image_hash
         elif self.image_canvas is None or \
              self.should_rebuild_d3 or \
              self.should_rebuild_camera or \
              self.should_rebuild_image:
-            self.build_image()
+            self.build_image(root_shape)
         ctx.restore()
 
         ctx.save()
         if self.high_quality:
             mat = ctx.get_matrix()
-            ctx.set_matrix(cairo.Matrix())
-            rect = self.get_abs_reverse_outline(0, 0, self.width, self.height)
+            if pre_matrix:
+                ctx.set_matrix(pre_matrix)
+            else:
+                ctx.set_matrix(cairo.Matrix())
+            rect = self.get_abs_reverse_outline(0, 0, self.width, self.height, root_shape=root_shape)
             ctx.translate(rect.left, rect.top)
             ctx.set_source_surface(self.image_canvas)
             ctx.set_matrix(mat)
