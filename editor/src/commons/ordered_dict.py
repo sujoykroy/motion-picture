@@ -44,6 +44,10 @@ class OrderedDict(object):
     def __getitem__(self, key):
         return self.items[key]
 
+    def iter_key_values(self):
+        for key in self.keys:
+            yield key, self.items[key]
+
     def __iter__(self):
         for key in self.keys:
             yield self.items[key]

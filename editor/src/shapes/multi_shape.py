@@ -263,7 +263,7 @@ class MultiShape(Shape):
         self.readjust_sizes()
 
     def get_pose_list(self):
-        poses = []
+        poses = [[None, "None"]]
         for pose_name in sorted(self.poses.keys()):
             pose = MultiShapePoseRenderer(self, pose_name)
             poses.append(pose)
@@ -647,6 +647,8 @@ class MultiShape(Shape):
                 if follow_angle:
                     self.set_angle(angle)
             self.readjust_sizes()
+            self.anchor_at.x = self.width*.5
+            self.anchor_at.y = self.height*.5
         else:
             point, angle = curve_shape.get_baked_point(self.followed_upto)
             self.move_to(point.x, point.y)

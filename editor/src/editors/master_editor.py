@@ -182,7 +182,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.paned_box_4.pack2(right_prop_box_container, resize=True, shrink=True)
 
         self.multi_shape_tree_container = Gtk.ScrolledWindow()
-        self.multi_shape_tree_view = MultiShapeTreeView(self.select_shape, self.redraw)
+        self.multi_shape_tree_view = MultiShapeTreeView(self.select_shapes, self.redraw)
         self.multi_shape_tree_container.add_with_viewport(self.multi_shape_tree_view)
         self.paned_box_4.pack1(self.multi_shape_tree_container, resize=True, shrink=True)
         self.multi_shape_tree_container.set_size_request(-1, 50)
@@ -328,7 +328,9 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.time_slice_prop_box.set_time_slice_box(time_slice_box)
 
     def set_shape_name(self, shape, name):
-        return self.shape_manager.rename_shape(shape, name)
+        ret = self.shape_manager.rename_shape(shape, name)
+        self.rebuild_tree_view()
+        return ret
 
     def new_custom_prop_button_clicked(self, widget):
         prop_editor = CustomPropEditor(parent=self, shape=self.shape_manager.multi_shape)
@@ -436,12 +438,16 @@ class MasterEditor(Gtk.ApplicationWindow):
                     self.prop_grid.add(self.custom_props_box)
                     #self.custom_props_box.set_prop_object(multi_shape)
 
-    def select_shape(self, shape, double_clicked=False):
-        if double_clicked and isinstance(shape, MultiShape):
-            self.load_multi_shape(shape)
-        elif not self.shape_manager.select_shape(shape) and double_clicked:
-            self.load_multi_shape(shape.parent_shape)
-            self.shape_manager.select_shape(shape)
+    def select_shapes(self, shapes, double_clicked=False):
+        if double_clicked and len(shapes)==1 and isinstance(shapes[0], MultiShape):
+            self.load_multi_shape(shapes[0])
+
+        #elif not self.shape_manager.select_shape(shape) and double_clicked:
+        #    self.load_multi_shape(shape.parent_shape)
+        else:
+            self.shape_manager.select_shapes(shapes)
+            if len(shapes) == 1:
+                self.show_prop_of(shapes[0])
         self.redraw()
 
     def update_drawing_area_scrollbars(self):
@@ -462,6 +468,9 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def get_shape_manager(self):
         return self.shape_manager
+
+    def rebuild_tree_view(self):
+        self.multi_shape_tree_view.rebuild()
 
     def redraw(self):
         self.drawing_area.queue_draw()
@@ -484,6 +493,7 @@ class MasterEditor(Gtk.ApplicationWindow):
                 double_click_handled = True
                 if self.shape_manager.has_shape_creator():
                     self.shape_manager.complete_shape_creation()
+                    self.rebuild_tree_view()
                 elif self.shape_manager.has_designable_multi_shape_selected():
                     multi_shape = self.shape_manager.get_selected_shape()
                     self.load_multi_shape(multi_shape)
@@ -523,10 +533,13 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.redraw()
 
     def on_drawing_area_mouse_release(self, widget, event):
+        had_shape_creator = (self.shape_manager.shape_creator is not None)
         self.shape_manager.end_movement()
         self.drawing_area_mouse_pressed = False
         self.show_prop_of(self.shape_manager.get_selected_shape())
         self.update_drawing_area_scrollbars()
+        if had_shape_creator:
+            self.rebuild_tree_view()
         self.redraw()
 
     def on_drawing_area_mouse_move(self, widget, event):

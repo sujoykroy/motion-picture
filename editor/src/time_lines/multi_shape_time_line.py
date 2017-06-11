@@ -16,7 +16,6 @@ class MultiShapeTimeLine(object):
         self.time_labels = []
         self.time_markers = dict()
 
-
     def set_name(self, name):
         self.name = name
 

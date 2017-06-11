@@ -220,6 +220,7 @@ class ApplicationWindow(MasterEditor):
     def duplicate_shape(self, action, parameter):
         linked = (parameter.get_string() == "linked")
         if self.shape_manager.duplicate_shape(linked=linked):
+            self.rebuild_tree_view()
             self.redraw()
 
     def update_linked_shapes(self, action, parameter):
@@ -262,18 +263,22 @@ class ApplicationWindow(MasterEditor):
                 timeline.remove_shape(shape)
 
         self.time_line_editor.update()
+        self.rebuild_tree_view()
         self.redraw()
 
     def create_shape_group(self, action, parameter):
         self.shape_manager.combine_shapes()
+        self.rebuild_tree_view()
         self.redraw()
 
     def break_shape_group(self, action, parameter):
         if self.shape_manager.break_selected_multi_shape():
+            self.rebuild_tree_view()
             self.redraw()
 
     def merge_shapes(self, action, parameter):
         if self.shape_manager.merge_shapes():
+            self.rebuild_tree_view()
             self.redraw()
 
     def align_shapes(self, action, parameter):
@@ -339,6 +344,7 @@ class ApplicationWindow(MasterEditor):
             editing_shape = get_shape_at_hierarchy(self.doc.main_multi_shape, editing_shape_hierarchy)
             if editing_shape:
                 self.shape_manager.create_shape_editor(editing_shape)
+        self.rebuild_tree_view()
         self.redraw()
 
     def lock_shape_movement(self, action, parameter):
@@ -405,6 +411,7 @@ class ApplicationWindow(MasterEditor):
             for shape in shapes:
                 self.shape_manager.add_shape(shape.copy())
             self.shape_manager.multi_shape.readjust_sizes()
+            self.rebuild_tree_view()
             self.redraw()
 
     def delete_time_slice(self, action, parameter):

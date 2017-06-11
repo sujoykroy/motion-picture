@@ -18,6 +18,8 @@ class TimeSlice(object):
             value = value.to_array()
         elif isinstance(value, list):
             value = copy_list(value)
+        elif isinstance(value, bool):
+            value = int(value)
         elif type(value) not in (int, float, numpy.float64):
             raise Exception("Unknown type[{0}] of value to copy".format(type(value)))
         return value

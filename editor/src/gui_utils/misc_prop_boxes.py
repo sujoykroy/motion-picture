@@ -8,6 +8,7 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("show_points", PROP_TYPE_CHECK_BUTTON, None)
         self.add_prop("moveable", PROP_TYPE_CHECK_BUTTON, None)
         self.add_prop("masked", PROP_TYPE_CHECK_BUTTON, None)
+        self.add_prop("visible", PROP_TYPE_CHECK_BUTTON, None)
         #self.add_prop("stage_xy", PROP_TYPE_POINT, None)
         self.add_prop("alpha", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1.1, step_increment=.1, page_increment=.1, page_size=.1))
@@ -137,7 +138,7 @@ class MultiShapePropBox(ShapePropBox):
         elif prop_name == "timeline":
             timeline = self.timelines_combo_box.get_value()
             pose = self.poses_combo_box.get_value()
-            if not pose: return
+            #if not pose: return
             prop_data = dict(pose=pose, timeline=timeline, type="timeline")
 
         self.insert_time_slice_callback(self.prop_object, "internal" , 0, 1, prop_data)

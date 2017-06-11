@@ -73,7 +73,7 @@ class GradientColor(object):
         self.get_pattern()
 
     def copy(self):
-        newob = LinearGradientColor([])
+        newob = self.__class__([])
         for color_point in self.color_points:
             color_point = ColorPoint(color_point.color.copy(), color_point.point.copy())
             newob.color_points.append(color_point)

@@ -542,6 +542,9 @@ class PseudoBezierPoints(object):
             indices.extend([index*3+0+1, index*3+1+1, index*3+2+1])
         self.curve.all_points = numpy.delete(self.curve.all_points,indices, axis=0)
 
+    def insert(self, index, bezier_point):
+        self.curve.insert_bezier_point(index, bezier_point)
+
     def extend(self, bezier_points):
         for bezier_point in bezier_points:
             self.curve.add_bezier_point(bezier_point)
@@ -581,7 +584,7 @@ class Curve(NaturalCurve):
              (bezier_point.dest.x, bezier_point.dest.y)], axis=0)
 
     def insert_bezier_point(self, index, bezier_point):
-        self.all_points=numpy.insert(self.all_points, index*3+1
+        self.all_points=numpy.insert(self.all_points, index*3,
             [(bezier_point.control_1.x, bezier_point.control_1.y),
              (bezier_point.control_2.x, bezier_point.control_2.y),
              (bezier_point.dest.x, bezier_point.dest.y)], axis=0)

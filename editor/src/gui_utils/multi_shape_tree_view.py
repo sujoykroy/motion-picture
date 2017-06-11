@@ -14,6 +14,7 @@ class MultiShapeTreeView(Gtk.TreeView):
         visible_renderer.connect("toggled", self.visible_renderer_toggled)
         self.append_column(Gtk.TreeViewColumn("Visible", visible_renderer, active=2))
 
+        self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.get_selection().connect("changed", self.on_shape_selected)
 
         self.props.enable_tree_lines = True
@@ -37,10 +38,13 @@ class MultiShapeTreeView(Gtk.TreeView):
 
 
     def on_shape_selected(self, tree_selection):
-        model, treeiter = tree_selection.get_selected()
-        if treeiter:
-            shape = self.tree_model.get_value(treeiter, 3)
-            self.on_shape_selected_callback(shape)
+        model, treepaths = tree_selection.get_selected_rows()
+        shapes = []
+        for treepath in treepaths:
+            treeiter = model.get_iter(treepath)
+            shape = model.get_value(treeiter, 3)
+            shapes.append(shape)
+        self.on_shape_selected_callback(shapes)
 
     def visible_renderer_toggled(self, cell_renderer_toggle, path):
         treeiter = self.tree_model.get_iter(path)
@@ -54,4 +58,4 @@ class MultiShapeTreeView(Gtk.TreeView):
         if not treeiter:
             return
         shape = self.tree_model.get_value(treeiter, 3)
-        self.on_shape_selected_callback(shape, double_clicked=True)
+        self.on_shape_selected_callback([shape], double_clicked=True)

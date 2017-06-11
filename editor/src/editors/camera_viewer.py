@@ -99,7 +99,7 @@ class CamerViewerBox(Gtk.Box):
         if self.camera:
             self.camera.paint_screen(view_ctx, view_width, view_height, cam_scale=scale)
         else:
-            multi_shape.draw(view_ctx, root_shape=multi_shape, pre_matrix=pre_matrix)
+            multi_shape.draw(view_ctx, root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
         ctx.set_source_surface(view_canvas)
         ctx.scale(scale, scale)

@@ -205,8 +205,10 @@ class ShapeManager(object):
             return self.shapes.rename(old_name, name)
         return False
 
-    def get_shape_at(self, point, multi_select):
+    def get_shape_at(self, point, multi_select, exclude_invisible=False):
         for shape in self.shapes.reversed_list():
+            if exclude_invisible and not shape.visible:
+                continue
             if isinstance(shape, MultiSelectionShape) and multi_select:
                 continue
             if isinstance(shape.parent_shape, MultiSelectionShape) and multi_select:
@@ -614,7 +616,7 @@ class ShapeManager(object):
 
         if self.shape_editor is None or \
                 (self.shape_editor is not None and not self.shape_editor.has_selected_box()):
-            shape = self.get_shape_at(shape_point, multi_select)
+            shape = self.get_shape_at(shape_point, multi_select, exclude_invisible=True)
             if shape is None:
                 self.delete_shape_editor()
             elif self.shape_editor is None:
@@ -656,6 +658,23 @@ class ShapeManager(object):
                     self.selected_guide = HorizontalGuide(doc_point.y, self.document_area_box)
                     self.guides.append(self.selected_guide)
 
+    def select_shapes(self, shapes):
+        if len(shapes) == 0:
+            return
+        self.delete_shape_editor()
+
+        if len(shapes) == 1:
+            self.select_shape(shapes[0])
+            return
+
+        multi_selection_shape = MultiSelectionShape()
+        multi_selection_shape.be_like_shape(shapes[0])
+        for i in range(len(shapes)):
+            shape = shapes[i]
+            multi_selection_shape.add_shape(shape)
+        multi_selection_shape.move_anchor_at_center()
+        self.add_shape(multi_selection_shape)
+        self.shape_editor = ShapeEditor(multi_selection_shape)
 
     def select_shape(self, shape):
         if shape.parent_shape == self.multi_shape:
