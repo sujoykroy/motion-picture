@@ -330,6 +330,10 @@ class MultiShape(Shape):
         return None
 
     def set_prop_value(self, prop_name, value, prop_data=None):
+        if prop_name == "followed_upto":
+            self.set_followed_upto(value, prop_data)
+            return
+
         if prop_name.find("tm_") == 0:
             timeline_name = prop_name[3:]
             if timeline_name in self.timelines:
@@ -613,3 +617,38 @@ class MultiShape(Shape):
                     shape.set_stage_xy(stage_xy)
                     self.shapes.insert_at(i, shape)
         self.readjust_sizes()
+
+    def set_followed_upto(self, value, prop_data=None):
+        self.followed_upto = value
+        if prop_data:
+            curve_name = prop_data.get("follow_curve")
+            if curve_name:
+                self.follow_curve = curve_name
+            follow_angle = prop_data.get("follow_angle")
+        else:
+            follow_angle = False
+        if not self.follow_curve:
+            return
+        if self.parent_shape is None:
+            return
+        curve_shape = self.parent_shape.shapes.get_item_by_name(self.follow_curve)
+        if not curve_shape or not hasattr(curve_shape, "baked_points"):
+            return
+
+        curve_count = len(curve_shape.curves)
+        if curve_count>1:
+            shape_count = len(self.shapes)
+            for i in range(shape_count):
+                shape = self.shapes.get_at_index(i)
+                curve_index = i%curve_count
+                point, angle = curve_shape.get_baked_point(self.followed_upto, curve_index=curve_index)
+                point = self.transform_point(point)
+                shape.move_to(point.x, point.y)
+                if follow_angle:
+                    self.set_angle(angle)
+            self.readjust_sizes()
+        else:
+            point, angle = curve_shape.get_baked_point(self.followed_upto)
+            self.move_to(point.x, point.y)
+            if follow_angle:
+                self.set_angle(angle)

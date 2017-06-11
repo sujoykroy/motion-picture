@@ -334,21 +334,24 @@ class CurveShape(Shape, Mirror):
 
         self.baked_points = None
 
-    def get_baked_point(self, frac):
+    def get_baked_point(self, frac, curve_index=0):
         if self.baked_points is None:
-            self.baked_points = self.curves[0].get_baked_points(self.width, self.height)
+            self.baked_points = dict()
+        if self.baked_points.get(curve_index) is None:
+            self.baked_points[curve_index] = self.curves[curve_index].get_baked_points(self.width, self.height)
+        baked_points = self.baked_points[curve_index]
         if frac<0:
             frac += 1
 
         if frac>1:
             frac %= 1
 
-        pos = int(self.baked_points.shape[0]*frac)
-        x, y = list(self.baked_points[pos])
+        pos = int(baked_points.shape[0]*frac)
+        x, y = list(baked_points[pos])
         point = self.reverse_transform_point(Point(x*self.width, y*self.height))
 
-        if pos<self.baked_points.shape[0]-1:
-            x, y = list(self.baked_points[pos+1])
+        if pos<baked_points.shape[0]-1:
+            x, y = list(baked_points[pos+1])
             point2 = self.reverse_transform_point(Point(x*self.width, y*self.height))
             diffp = point2.diff(point)
             angle = diffp.get_angle()
@@ -682,11 +685,11 @@ class CurveShape(Shape, Mirror):
         if not isinstance(shape, CurveShape): return False
         for curve in shape.curves:
             curve = curve.copy()
-            curve.origin = self._transform_point_from_shape(shape, curve.origin)
+            curve.origin.copy_from(self._transform_point_from_shape(shape, curve.origin))
             for i in range(len(curve.bezier_points)):
                 bp = curve.bezier_points[i]
-                bp.control_1 = self._transform_point_from_shape(shape, bp.control_1)
-                bp.control_2 = self._transform_point_from_shape(shape, bp.control_2)
-                bp.dest = self._transform_point_from_shape(shape, bp.dest)
+                bp.control_1.copy_from(self._transform_point_from_shape(shape, bp.control_1))
+                bp.control_2.copy_from(self._transform_point_from_shape(shape, bp.control_2))
+                bp.dest.copy_from(self._transform_point_from_shape(shape, bp.dest))
             self.curves.append(curve)
         return True

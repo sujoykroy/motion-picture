@@ -563,9 +563,9 @@ class Shape(object):
         return math.atan2(point.y, point.x)/RAD_PER_DEG
 
     def pre_draw(self, ctx, root_shape=None):
-        if self == root_shape:
-            return
-        if self.parent_shape:
+        #if self == root_shape:
+        #    return
+        if self.parent_shape and self!=root_shape:
             self.parent_shape.pre_draw(ctx, root_shape=root_shape)
         ctx.translate(self.translation.x, self.translation.y)
         if self.pre_matrix:
