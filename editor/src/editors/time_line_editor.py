@@ -296,17 +296,17 @@ class TimeLineEditor(Gtk.VBox):
             self.play_button.show()
             self.pause_button.hide()
             self.update()
-            self.move_play_head_to_time(0)
+            self.move_play_head_to_time(0, force_visible=True)
         self.is_playing = False
 
     def show_current_play_head_time(self):
         self.play_head_time_label.set_markup(
             "Playhead at: <span color=\"#cc6600\">{0:.2f}</span> sec".format(self.play_head_time))
 
-    def move_play_head_to_time(self, value):
+    def move_play_head_to_time(self, value, force_visible=False):
         if value is not None:
             self.play_head_time = value
-            self.time_line.move_to(self.play_head_time)
+            self.time_line.move_to(self.play_head_time, force_visible=force_visible)
         extra_x = self.time_range.get_extra_pixel_for_time(self.play_head_time)
         if self.play_head_box:
             self.play_head_box.set_center_x(TIME_SLICE_START_X + extra_x)
@@ -548,7 +548,7 @@ class TimeLineEditor(Gtk.VBox):
         if self.play_head_time<0:
             self.move_play_head_to_time(0)
         self.show_current_play_head_time()
-        self.time_line.move_to(self.play_head_time)
+        self.time_line.move_to(self.play_head_time, force_visible=False)
         self.play_head_callback()
 
     def on_move_to(self):

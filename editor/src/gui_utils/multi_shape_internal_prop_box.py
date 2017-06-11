@@ -49,12 +49,16 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         self.rename_timeline_button.connect("clicked", self.rename_timeline_button_clicked)
         self.insert_time_line_button = Gtk.Button("I+I")
         self.insert_time_line_button.connect("clicked", self.insert_slice_button_clicked, "timeline")
+        self.insert_time_line_internal_button = Gtk.Button("I+I as Internal")
+        self.insert_time_line_internal_button.connect(
+                "clicked", self.insert_slice_button_clicked, "timeline_internal")
 
         timeline_button_box = Gtk.HBox()
         timeline_button_box.pack_start(self.show_timeline_button, expand=False, fill=False, padding=0)
         timeline_button_box.pack_start(self.rename_timeline_button, expand=False, fill=False, padding=0)
         timeline_button_box.pack_start(self.new_timeline_button, expand=False, fill=False, padding=0)
         timeline_button_box.pack_start(self.insert_time_line_button, expand=False, fill=False, padding=0)
+        timeline_button_box.pack_start(self.insert_time_line_internal_button, expand=False, fill=False, padding=0)
 
         self.pack_start(timeline_label, expand=False, fill=False, padding=0)
         self.pack_start(self.timelines_combo_box, expand=False, fill=False, padding=0)
@@ -155,3 +159,8 @@ class MultiShapeInternalPropBox(Gtk.VBox):
             timeline_name = self.timelines_combo_box.get_value()
             if timeline_name:
                 self.insert_time_slice_callback(self.multi_shape, "tm_" +timeline_name , 0, 1)
+        elif prop_name == "timeline_internal":
+            timeline_name = self.timelines_combo_box.get_value()
+            if timeline_name:
+                prop_data = dict(timeline=timeline_name, pose="", type="timeline")
+                self.insert_time_slice_callback(self.multi_shape, "internal" , 0, 1, prop_data)

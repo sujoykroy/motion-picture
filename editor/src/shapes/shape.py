@@ -285,6 +285,9 @@ class Shape(object):
     def get_name(self):
         return self._name
 
+    def set_visible(self, value):
+        self.visible = bool(value)
+
     def can_draw_time_slice_for(self, prop_name):
         return False
 

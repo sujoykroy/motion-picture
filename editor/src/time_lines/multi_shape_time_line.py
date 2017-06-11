@@ -137,8 +137,10 @@ class MultiShapeTimeLine(object):
     def remove_shape(self, shape):
         self.shape_time_lines.remove(shape)
 
-    def move_to(self, t):
-        for shape_time_line in self.shape_time_lines:
+    def move_to(self, t, force_visible=True):
+        for shape, shape_time_line in self.shape_time_lines.iter_key_values():
+            if force_visible:
+                shape.visible = True
             shape_time_line.move_to(t)
 
     def get_duration(self):
