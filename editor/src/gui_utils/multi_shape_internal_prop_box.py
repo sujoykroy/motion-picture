@@ -92,6 +92,9 @@ class MultiShapeInternalPropBox(Gtk.VBox):
             self.save_pose_button.hide()
             self.rename_pose_button.hide()
 
+    def set_timeline(self, timeline_name):
+        self.timelines_combo_box.set_value(timeline_name)
+
     def timelines_combo_box_changed(self, widget):
         timeline_name = self.timelines_combo_box.get_value()
         if timeline_name:

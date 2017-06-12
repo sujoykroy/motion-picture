@@ -314,6 +314,14 @@ class MultiShape(Shape):
             return None
         return self.custom_props.get_prop(prop_name)
 
+    def set_width(self, value):
+        pass
+        #multi shape's width is controlled by its content
+
+    def set_height(self, value):
+        pass
+        #multi shape's width is controlled by its content
+
     def has_prop(self, prop_name):
         if not super(MultiShape, self).has_prop(prop_name):
             return self.custom_props and self.custom_props.get_prop(prop_name) is not None

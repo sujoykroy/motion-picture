@@ -248,12 +248,18 @@ class Document(object):
             bitrate="320k")
 
     @staticmethod
-    def create_image(icon_name, scale=None):
+    def get_icon_pixbuf(icon_name, scale=None, size=20):
         filename = os.path.join(Settings.ICONS_FOLDER, icon_name + ".xml")
         doc = Document(filename=filename)
         if scale:
             doc.main_multi_shape.scale_border_width(scale)
-        pixbuf = doc.get_pixbuf(width=20, height=20, bg_color=False)
+        width = height = size
+        pixbuf = doc.get_pixbuf(width=width, height=height, bg_color=False)
+        return pixbuf
+
+    @staticmethod
+    def create_image(icon_name, scale=None, size=20):
+        pixbuf = Document.get_icon_pixbuf(icon_name, scale=scale, size=size)
         image = Gtk.Image.new_from_pixbuf(pixbuf)
         image.set_tooltip_text(get_displayble_prop_name(icon_name))
         return image

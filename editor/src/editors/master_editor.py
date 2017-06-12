@@ -181,10 +181,19 @@ class MasterEditor(Gtk.ApplicationWindow):
         right_prop_box_container.add_with_viewport(self.right_prop_box)
         self.paned_box_4.pack2(right_prop_box_container, resize=True, shrink=True)
 
+        self.shape_hierarchy = Gtk.VBox()
+
+        self.back_to_parent_shape = Gtk.Button()
+        self.back_to_parent_shape.set_image(Document.create_image("back_to_parent", size=20))
+        self.back_to_parent_shape.connect("clicked", self.pop_back_to_parent_shape)
+        self.shape_hierarchy.pack_end(self.back_to_parent_shape, expand=False, fill=False, padding=0)
+
         self.multi_shape_tree_container = Gtk.ScrolledWindow()
         self.multi_shape_tree_view = MultiShapeTreeView(self.select_shapes, self.redraw)
         self.multi_shape_tree_container.add_with_viewport(self.multi_shape_tree_view)
-        self.paned_box_4.pack1(self.multi_shape_tree_container, resize=True, shrink=True)
+        self.shape_hierarchy.pack_start(self.multi_shape_tree_container, expand=True, fill=True, padding=0)
+
+        self.paned_box_4.pack1(self.shape_hierarchy, resize=True, shrink=True)
         self.multi_shape_tree_container.set_size_request(-1, 50)
 
         self.multi_shape_internal_prop_box = MultiShapeInternalPropBox(
@@ -286,8 +295,13 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_tree_view.set_multi_shape(multi_shape)
         self.multi_shape_internal_prop_box.set_multi_shape(multi_shape)
         if multi_shape.timelines:
-            timeline_name = sorted(multi_shape.timelines.keys())[0]
-            self.load_multi_shape_time_line(multi_shape.timelines[timeline_name])
+            timeline_names = multi_shape.timelines.keys()
+            if len(timeline_names) == 1:
+                timeline_name = timeline_names[0]
+                self.multi_shape_internal_prop_box.set_timeline(timeline_name)
+                self.load_multi_shape_time_line(multi_shape.timelines[timeline_name])
+            else:
+                self.load_multi_shape_time_line(None)
         self.redraw()
 
     def load_multi_shape_time_line(self, multi_shape_time_line):
@@ -441,9 +455,8 @@ class MasterEditor(Gtk.ApplicationWindow):
     def select_shapes(self, shapes, double_clicked=False):
         if double_clicked and len(shapes)==1 and isinstance(shapes[0], MultiShape):
             self.load_multi_shape(shapes[0])
-
-        #elif not self.shape_manager.select_shape(shape) and double_clicked:
-        #    self.load_multi_shape(shape.parent_shape)
+        #elif len(shapes) == 1 and shapes[0] is None and double_clicked:
+        #    self.pop_back_to_parent_shape()
         else:
             self.shape_manager.select_shapes(shapes)
             if len(shapes) == 1:
@@ -484,6 +497,14 @@ class MasterEditor(Gtk.ApplicationWindow):
     def on_drawing_area_key_release(self, widget, event):
         self.keyboard_object.set_keypress(event.keyval, pressed=False)
 
+    def pop_back_to_parent_shape(self, widget=None):
+        if len(self.multi_shape_stack)<=1:
+            return
+        del self.multi_shape_stack[-1]
+        multi_shape = self.multi_shape_stack[-1]
+        del self.multi_shape_stack[-1]
+        self.load_multi_shape(multi_shape)
+
     def on_drawing_area_mouse_press(self, widget, event):
         self.mouse_init_point.x = self.mouse_point.x
         self.mouse_init_point.y = self.mouse_point.y
@@ -505,10 +526,7 @@ class MasterEditor(Gtk.ApplicationWindow):
                     self.shape_manager.insert_point_in_shape_at(shape_point)
                 elif self.shape_manager.has_no_shape_selected():
                     if len(self.multi_shape_stack)>1:
-                        del self.multi_shape_stack[-1]
-                        multi_shape = self.multi_shape_stack[-1]
-                        del self.multi_shape_stack[-1]
-                        self.load_multi_shape(multi_shape)
+                        self.pop_back_to_parent_shape()
                     else:
                         double_click_handled = False
                 if double_click_handled:
