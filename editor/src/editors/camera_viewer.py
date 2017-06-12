@@ -97,13 +97,20 @@ class CamerViewerBox(Gtk.Box):
         draw_fill(view_ctx, "ffffff")
 
         if self.camera:
-            self.camera.paint_screen(view_ctx, view_width, view_height, cam_scale=scale)
-        else:
-            multi_shape.draw(view_ctx, root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
+            #self.camera.paint_screen(view_ctx,
+            #    view_canvas.get_width(), view_canvas.get_height(), cam_scale=scale)
+            self.camera.reverse_pre_draw(view_ctx, root_shape=multi_shape.parent_shape)
+
+        pre_matrix = view_ctx.get_matrix()
+        multi_shape.draw(view_ctx, root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
         ctx.set_source_surface(view_canvas)
         ctx.scale(scale, scale)
-        draw_rounded_rectangle(ctx, 0, 0, view_width, view_height, 0)
+        if self.camera:
+            self.camera.draw_path(ctx)
+        else:
+            draw_rounded_rectangle(ctx, 0, 0, view_width, view_height, 0)
+        ctx.clip()
         ctx.paint()
         ctx.restore()
         """

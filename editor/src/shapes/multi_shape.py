@@ -150,6 +150,13 @@ class MultiShape(Shape):
                         value = color_from_text(value)
                     elif prop_name == "pre_matrix":
                         value = Matrix.from_text(value)
+                    elif prop_name == "visible":
+                        if value == "True":
+                            value = True
+                        elif value == "False":
+                            value = False
+                        else:
+                            value = bool(int(value))
                     else:
                         try:
                             value = float(value)

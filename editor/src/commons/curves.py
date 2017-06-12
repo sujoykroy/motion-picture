@@ -343,8 +343,9 @@ class NaturalCurve(object):
             self.add_bezier_point(post_bzp)
         else:
             self.bezier_points.insert(bezier_point_index+1, post_bzp)
-            self.bare_point_xys=numpy.insert(self.bare_point_xys, bezier_point_index+1,
-                    [(post_bzp.dest.x, post_bzp.dest.y)], axis=0)
+            if hasattr(self, "bare_point_xys"):
+                self.bare_point_xys=numpy.insert(self.bare_point_xys, bezier_point_index+1,
+                        [(post_bzp.dest.x, post_bzp.dest.y)], axis=0)
         return post_bzp
 
     @staticmethod

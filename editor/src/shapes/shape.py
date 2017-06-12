@@ -109,7 +109,7 @@ class Shape(object):
     def get_pose_prop_names(cls):
         prop_names = ["anchor_at", "border_color", "border_width", "fill_color",
                       "width", "height", "scale_x", "scale_y", "translation",
-                      "angle", "pre_matrix", "post_scale_x", "post_scale_y"]
+                      "angle", "pre_matrix", "post_scale_x", "post_scale_y", "visible"]
         return prop_names
 
     def get_pose_prop_dict(self):
@@ -120,7 +120,7 @@ class Shape(object):
                 value = Matrix.copy(value) if value else None
             elif value and hasattr(value, "copy"):
                 value = value.copy()
-            elif type(value) not in (int, float, str) and value is not None:
+            elif type(value) not in (int, float, str, bool) and value is not None:
                 raise Exception("Don't know how to copy {0} of type {1}".format(prop_name, type(value)))
             prop_dict[prop_name] = value
         return prop_dict
@@ -291,7 +291,10 @@ class Shape(object):
         return self._name
 
     def set_visible(self, value):
-        self.visible = bool(value)
+        if isinstance(value, str):
+            self.visible = (value=="True")
+        else:
+            self.visible = bool(value)
 
     def can_draw_time_slice_for(self, prop_name):
         return False
@@ -617,9 +620,8 @@ class Shape(object):
         if self.pre_matrix:
             ctx.set_matrix(ctx.get_matrix()*self.pre_matrix)
         ctx.translate(-self.translation.x, -self.translation.y)
-        if self.parent_shape and self != root_shape:
+        if self.parent_shape and self.parent_shape != root_shape:
             self.parent_shape.reverse_pre_draw(ctx, root_shape=root_shape)
-
 
     def draw_anchor(self, ctx):
         ctx.translate(self.anchor_at.x, self.anchor_at.y)

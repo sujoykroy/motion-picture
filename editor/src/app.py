@@ -409,7 +409,7 @@ class ApplicationWindow(MasterEditor):
         shapes = self.parent.copied_shapes
         if shapes:
             for shape in shapes:
-                self.shape_manager.add_shape(shape.copy())
+                self.shape_manager.add_shape(shape.copy(deep_copy=True))
             self.shape_manager.multi_shape.readjust_sizes()
             self.rebuild_tree_view()
             self.redraw()

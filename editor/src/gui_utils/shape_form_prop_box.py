@@ -1,6 +1,6 @@
 from gi.repository import Gtk
 from image_combo_box import ImageComboBox
-from helper_dialogs import TextInputDialog
+from helper_dialogs import TextInputDialog, YesNoDialog
 
 class ShapeFormPropBox(object):
     def __init__(self, draw_callback, insert_time_slice_callback):
@@ -15,6 +15,8 @@ class ShapeFormPropBox(object):
         self.new_form_button.connect("clicked", self.new_form_button_clicked)
         self.rename_form_button = Gtk.Button("Rename")
         self.rename_form_button.connect("clicked", self.rename_form_button_clicked)
+        self.delete_form_button = Gtk.Button("Delete")
+        self.delete_form_button.connect("clicked", self.delete_form_button_clicked)
         self.save_form_button = Gtk.Button("Save")
         self.save_form_button.connect("clicked", self.save_form_button_clicked)
 
@@ -22,6 +24,7 @@ class ShapeFormPropBox(object):
         self.form_button_box.pack_start(self.apply_form_button, expand=False, fill=False, padding=0)
         self.form_button_box.pack_start(self.save_form_button, expand=False, fill=False, padding=0)
         self.form_button_box.pack_start(self.rename_form_button, expand=False, fill=False, padding=0)
+        self.form_button_box.pack_start(self.delete_form_button, expand=False, fill=False, padding=0)
         self.form_button_box.pack_start(self.new_form_button, expand=False, fill=False, padding=0)
 
 
@@ -47,6 +50,7 @@ class ShapeFormPropBox(object):
         self.apply_form_button.hide()
         self.rename_form_button.hide()
         self.save_form_button.hide()
+        self.delete_form_button.hide()
         self.update()
         if self.curve_shape:
             self.forms_combo_box.set_value(self.curve_shape.get_prop_value("form_name"))
@@ -64,10 +68,12 @@ class ShapeFormPropBox(object):
             self.apply_form_button.show()
             self.rename_form_button.show()
             self.save_form_button.show()
+            self.delete_form_button.show()
         else:
             self.apply_form_button.hide()
             self.rename_form_button.hide()
             self.save_form_button.hide()
+            self.delete_form_button.hide()
 
     def apply_form_button_clicked(self, widget):
         form_name = self.forms_combo_box.get_value()
@@ -89,6 +95,15 @@ class ShapeFormPropBox(object):
             if new_form_name and self.curve_shape.rename_form(form_name, new_form_name):
                 self.update()
                 self.forms_combo_box.set_value(new_form_name)
+        dialog.destroy()
+
+    def delete_form_button_clicked(self, widget):
+        form_name = self.forms_combo_box.get_value()
+        dialog = YesNoDialog(self.parent_window,
+                "Delete From", "Do you realy want to delete from [{0}]".format(form_name))
+        if dialog.run() == Gtk.ResponseType.YES:
+            self.curve_shape.delete_form(form_name)
+            self.update()
         dialog.destroy()
 
     def save_form_button_clicked(self, widget):

@@ -30,8 +30,8 @@ class CameraShape(Shape):
         return shape
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = CameraShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
-                            self.fill_color.copy(), self.width, self.height,
+        newob = CameraShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
+                            copy_value(self.fill_color), self.width, self.height,
                             self.aspect_ratio, self.eye_type)
         self.copy_into(newob, copy_name)
         return newob
@@ -99,10 +99,26 @@ class CameraShape(Shape):
         self.aspect_ratio = value
         self.set_width(self.width)
 
-    def set_width(self, value):
+    def set_width(self, value, fixed_anchor=True):
+        if value<=0:
+            return
+        if fixed_anchor:
+            abs_anchor_at = self.get_abs_anchor_at()
+            self.anchor_at.x *= float(value)/self.width
+            self.anchor_at.y *= float(value)/(self.height*self._aspect_ratio)
         self.width = value
         self.height = value/self._aspect_ratio
+        if fixed_anchor:
+            self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
-    def set_height(self, value):
+    def set_height(self, value, fixed_anchor=True):
+        if value<=0:
+            return
+        if fixed_anchor:
+            abs_anchor_at = self.get_abs_anchor_at()
+            self.anchor_at.x *= float(value*self._aspect_ratio)/self.width
+            self.anchor_at.y *= float(value)/self.height
         self.height = value
         self.width = self.height*self._aspect_ratio
+        if fixed_anchor:
+            self.move_to(abs_anchor_at.x, abs_anchor_at.y)

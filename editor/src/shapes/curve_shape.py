@@ -109,6 +109,10 @@ class CurveShape(Shape, Mirror):
         self.forms[form_name] = form
         return form_name
 
+    def delete_form(self, form_name):
+        if form_name in self.forms:
+            del self.forms[form_name]
+
     def set_form_raw(self, form):
         diff_width = form.width - self.width
         diff_height = form.height - self.height
@@ -312,8 +316,8 @@ class CurveShape(Shape, Mirror):
         shift_w, shift_h = -self.width*outline.left, -self.height*outline.top
         self.anchor_at.translate(shift_w, shift_h)
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
-        self.set_width(outline.width*self.width)
-        self.set_height(outline.height*self.height)
+        self.set_width(outline.width*self.width, fixed_anchor=False)
+        self.set_height(outline.height*self.height, fixed_anchor=False)
 
         if outline.height==0:
             sy = None
