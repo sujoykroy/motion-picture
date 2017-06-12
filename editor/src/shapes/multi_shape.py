@@ -314,11 +314,11 @@ class MultiShape(Shape):
             return None
         return self.custom_props.get_prop(prop_name)
 
-    def set_width(self, value):
+    def set_width(self, value, fixed_anchor=True):
         pass
         #multi shape's width is controlled by its content
 
-    def set_height(self, value):
+    def set_height(self, value, fixed_anchor=True):
         pass
         #multi shape's width is controlled by its content
 

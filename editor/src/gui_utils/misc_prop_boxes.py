@@ -14,14 +14,15 @@ class CommonShapePropBox(ShapePropBox):
                 dict(value=0, lower=0, upper=1.1, step_increment=.1, page_increment=.1, page_size=.1))
 
         self.add_prop("x", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=-10000, upper=10000, step_increment=1, page_increment=1, page_size=1))
+                dict(value=0, lower=-10000, upper=10000, step_increment=1), related=["xy"])
         self.add_prop("y", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=-10000, upper=10000, step_increment=1, page_increment=1, page_size=1))
-        self.add_prop("xy", PROP_TYPE_POINT, None)
+                dict(value=0, lower=-10000, upper=10000, step_increment=1), related=["xy"])
+        self.add_prop("xy", PROP_TYPE_POINT, None, related=["x", "y"])
         self.add_prop("scale_x", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=.001, upper=100, step_increment=.10, page_increment=.1, page_size=1))
+                dict(value=0, lower=.001, upper=100, step_increment=.10), related=["scale_y"])
         self.add_prop("scale_y", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=.001, upper=100, step_increment=.01, page_increment=.1, page_size=1))
+                dict(value=0, lower=.001, upper=100, step_increment=.01), related=["scale_x"])
+        self.add_prop("same_xy_scale", PROP_TYPE_CHECK_BUTTON, None, related=["scale_x", "scale_y"])
         self.add_prop("anchor_x", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-10000, upper=10000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("anchor_y", PROP_TYPE_NUMBER_ENTRY,

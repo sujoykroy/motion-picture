@@ -25,7 +25,7 @@ class ShapePropBox(object):
         self.parent_window = parent_window
         self.prop_boxes = dict()
         self.prop_object = None
-        self.draw_callback = draw_callback
+        self.draw_callback_func = draw_callback
         self.shape_name_checker = shape_name_checker
         self.insert_time_slice_callback = insert_time_slice_callback
         self.widget_rows = []
@@ -52,9 +52,19 @@ class ShapePropBox(object):
     def has_prop(self, prop_name):
         return self.prop_object.has_prop(prop_name)
 
+    def draw_callback(self, prop_widget=None):
+        self.draw_callback_func()
+        if prop_widget and prop_widget.related:
+            self.show_prop_values(prop_widget.related)
+
     def set_prop_object(self, prop_object):
         self.prop_object = prop_object
-        for prop_name in self.prop_boxes.keys():
+        self.show_prop_values()
+
+    def show_prop_values(self, prop_keys=None):
+        if prop_keys is None:
+            prop_keys = self.prop_boxes.keys()
+        for prop_name in prop_keys:
             prop_widget = self.prop_boxes[prop_name]
             if not self.has_prop(prop_name):
                 prop_widget.hide()
@@ -86,7 +96,8 @@ class ShapePropBox(object):
             elif isinstance(prop_widget, FileSelect):
                 prop_widget.set_filename(value)
 
-    def add_prop(self, prop_name, value_type, values, can_insert_slice = True):
+    def add_prop(self, prop_name, value_type, values, can_insert_slice = True,
+                       related=None):
         if value_type == PROP_TYPE_NUMBER_ENTRY:
             step = values["step_increment"]
             adjustment = Gtk.Adjustment(values["value"], values["lower"],
@@ -152,6 +163,7 @@ class ShapePropBox(object):
             prop_widget = file_widget
             can_insert_slice = False
         prop_widget.value_type = value_type
+        prop_widget.related = related
 
         label = Gtk.Label(get_displayble_prop_name(prop_name))
         label.set_halign(Gtk.Align.START)
@@ -180,13 +192,13 @@ class ShapePropBox(object):
         if self.prop_object != None:
             font = font_button.get_font_name()
             self.prop_object.set_prop_value(prop_name, font)
-            self.draw_callback()
+            self.draw_callback(font_button)
 
     def file_widget_file_selected(self, file_widget, prop_name):
         if self.prop_object != None:
             font = file_widget.get_filename()
             self.prop_object.set_prop_value(prop_name, font)
-            self.draw_callback()
+            self.draw_callback(file_widget)
 
     def color_button_clicked(self, color_button, prop_name):
         if not self.prop_object: return
@@ -234,7 +246,7 @@ class ShapePropBox(object):
         if self.prop_object != None:
             color = color_button.get_color()
             self.prop_object.set_prop_value(prop_name, color)
-            self.draw_callback()
+            self.draw_callback(color_button)
 
     def insert_slice_button_clicked(self, widget, prop_name):
         if self.prop_object != None:
@@ -258,33 +270,33 @@ class ShapePropBox(object):
         if self.prop_object != None:
             text = widget.get_text()
             self.prop_object.set_prop_value(prop_name, text)
-            self.draw_callback()
+            self.draw_callback(widget)
 
     def spin_button_value_changed(self, spin_button, prop_name):
         if self.prop_object != None:
             self.prop_object.set_prop_value(prop_name, spin_button.get_value())
-            self.draw_callback()
+            self.draw_callback(spin_button)
 
     def point_entry_value_changed(self, point_entry, prop_name):
         if self.prop_object != None:
             point = Point.from_text(point_entry.get_text())
             self.prop_object.set_prop_value(prop_name, point)
-            self.draw_callback()
+            self.draw_callback(point_entry)
 
     def combo_box_changed(self, combo_box, prop_name):
         if self.prop_object != None:
             value = combo_box.get_value()
             self.prop_object.set_prop_value(prop_name, value)
-            self.draw_callback()
+            self.draw_callback(combo_box)
 
     def check_button_clicked(self, check_button, prop_name):
         if self.prop_object != None:
             self.prop_object.set_prop_value(prop_name, check_button.get_active())
-            self.draw_callback()
+            self.draw_callback(check_button)
 
     def text_buffer_changed(self, text_buffer, prop_name, text_view):
         if self.prop_object != None:
             value = text_buffer.get_text(
                 text_buffer.get_start_iter(), text_buffer.get_end_iter(), False)
             self.prop_object.set_prop_value(prop_name, value)
-            self.draw_callback()
+            self.draw_callback(text_buffer)

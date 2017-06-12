@@ -20,6 +20,7 @@ class Shape(object):
 
         self.scale_x = 1.
         self.scale_y = 1.
+        self.same_xy_scale = False
         self.post_scale_x = 1.
         self.post_scale_y = 1.
         self.translation = Point(0,0)
@@ -172,6 +173,8 @@ class Shape(object):
         elm.attrib["moveable"] = ("1" if self.moveable else "0")
         if not self.visible:
             elm.attrib["visible"] = "0"
+        if self.same_xy_scale:
+            elm.attrib["same_xy_scale"] = "1"
         elm.attrib["anchor_at"] = self.anchor_at.to_text()
         if self.border_color:
             elm.attrib["border_color"] = self.border_color.to_text()
@@ -214,6 +217,7 @@ class Shape(object):
     def assign_params_from_xml_element(self, elm, all_fields=False):
         self.moveable = bool(int(elm.attrib.get("moveable", 1)))
         self.visible = bool(int(elm.attrib.get("visible", 1)))
+        self.same_xy_scale = bool(int(elm.attrib.get("same_xy_scale", False)))
         self.scale_x = float(elm.attrib.get("scale_x", 1))
         self.scale_y = float(elm.attrib.get("scale_y", 1))
 
@@ -240,6 +244,7 @@ class Shape(object):
         self.set_border_dash(elm.attrib.get("border_dash", ""))
 
     def copy_into(self, newob, copy_name=False, all_fields=False):
+        newob.same_xy_scale = self.same_xy_scale
         newob.translation = self.translation.copy()
         newob.angle = self.angle
         newob.pre_matrix = Matrix.copy(self.pre_matrix) if self.pre_matrix else None
@@ -379,15 +384,25 @@ class Shape(object):
 
     def get_width(self): return self.width
 
-    def set_width(self, value):
+    def set_width(self, value, fixed_anchor=True):
         if value >0:
+            if fixed_anchor:
+                abs_anchor_at = self.get_abs_anchor_at()
+                self.anchor_at.x *= float(value)/self.width
             self.width = value
+            if fixed_anchor:
+                self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
     def get_height(self): return self.height
 
-    def set_height(self, value):
-        if value>0:
+    def set_height(self, value, fixed_anchor=True):
+        if value >0:
+            if fixed_anchor:
+                abs_anchor_at = self.get_abs_anchor_at()
+                self.anchor_at.y *= float(value)/self.height
             self.height = value
+            if fixed_anchor:
+                self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
     def get_anchor_x(self):
         return self.anchor_at.x
@@ -481,6 +496,24 @@ class Shape(object):
         if self.parent_shape:
             xy.y += self.parent_shape.anchor_at.y
         self.move_to(xy.x, xy.y)
+
+    def set_scale_x(self, sx):
+        abs_anchor_at = self.get_abs_anchor_at()
+        self.scale_x = sx
+        if self.same_xy_scale:
+            self.scale_y = sx
+        self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+
+    def set_scale_y(self, sy):
+        abs_anchor_at = self.get_abs_anchor_at()
+        self.scale_y = sy
+        if self.same_xy_scale:
+            self.scale_x = sy
+        self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+
+    def set_same_xy_scale(self, value):
+        self.same_xy_scale = bool(value)
+        self.set_scale_x((self.scale_x+self.scale_y)*.5)
 
     def translate(self, dx, dy):
         self.translation.x += dx
