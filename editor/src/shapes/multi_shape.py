@@ -50,6 +50,7 @@ class MultiShape(Shape):
         self.timelines = dict()
         self.masked = False
         self.custom_props = None
+        self.camera = None
 
     def copy_data_from_linked(self):
         if not self.linked_to: return
@@ -344,6 +345,9 @@ class MultiShape(Shape):
             return self.custom_props.get_prop_value(prop_name)
         return None
 
+    def set_camera(self, camera):
+        self.camera=self.shapes.get_item_by_name(camera)
+
     def set_prop_value(self, prop_name, value, prop_data=None):
         if prop_name == "followed_upto":
             self.set_followed_upto(value, prop_data)
@@ -358,7 +362,7 @@ class MultiShape(Shape):
         if prop_name == "internal":
             if prop_data["type"] == "pose":
                 start_pose = prop_data["start_pose"]
-                end_pose = prop_data["end_pose"]
+                end_pose = prop_data.get("end_pose")
                 if end_pose:
                     self.set_pose_transition(start_pose, end_pose, value)
                 else:
@@ -368,6 +372,8 @@ class MultiShape(Shape):
                     pose = prop_data["pose"]
                     self.set_pose(pose)
                 timeline_name = prop_data["timeline"]
+                parent_shape = self.parent_shape
+                self.set_camera(prop_data.get("camera"))
                 if timeline_name in self.timelines:
                     timeline = self.timelines[timeline_name]
                     timeline.move_to(timeline.duration*value)

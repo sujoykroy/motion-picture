@@ -46,6 +46,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "av_filename", self.AUDIO_FILE)
         self.add_editable_item("prop_data", "follow_curve", self.TEXT)
         self.add_editable_item("prop_data", "follow_angle", self.BOOLEAN)
+        self.add_editable_item("prop_data", "camera", self.TEXT)
 
         self.add_editable_item("attrib", "start_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "end_value", self.NUMBERS, syncable=True)
@@ -102,7 +103,7 @@ class TimeSlicePropBox(Gtk.Frame):
             if self.shape and prop_data:
                 if "start_pose" in prop_data:
                     self.prop_data_widgets["start_pose"].build_and_set_model(sorted(self.shape.poses.keys()))
-                if "end_pose" in prop_data:
+                if "end_pose" in prop_data or "start_pose" in prop_data:
                     self.prop_data_widgets["end_pose"].build_and_set_model(
                         [""] + sorted(self.shape.poses.keys()))
                 if "pose" in prop_data:
@@ -130,6 +131,15 @@ class TimeSlicePropBox(Gtk.Frame):
                         widget.set_text(prop_data[key])
                     elif isinstance(widget, Gtk.CheckButton):
                         widget.set_active(prop_data[key])
+
+            if self.prop_name == "internal" and "timeline" in self.time_slice.prop_data:
+                widget = self.prop_data_widgets["camera"]
+                widget.show()
+                widget.label.show()
+            if self.prop_name == "internal" and self.time_slice.prop_data["type"] == "pose":
+                widget = self.prop_data_widgets["end_pose"]
+                widget.show()
+                widget.label.show()
 
     def show_widgets(self, widgets, visible):
         for key, widget in widgets.items():

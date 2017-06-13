@@ -65,8 +65,13 @@ class CamerViewerBox(Gtk.Box):
         multi_shape = doc.get_main_multi_shape()
 
         if self.camera:
-            view_width = self.camera.width
-            view_height = self.camera.height
+            camera = self.camera
+        else:
+            camera = multi_shape.camera
+
+        if camera:
+            view_width = camera.width
+            view_height = camera.height
         else:
             view_width = doc.width
             view_height = doc.height
@@ -96,18 +101,18 @@ class CamerViewerBox(Gtk.Box):
         draw_rounded_rectangle(view_ctx, 0, 0, view_width, view_height, 0)
         draw_fill(view_ctx, "ffffff")
 
-        if self.camera:
+        if camera:
             #self.camera.paint_screen(view_ctx,
             #    view_canvas.get_width(), view_canvas.get_height(), cam_scale=scale)
-            self.camera.reverse_pre_draw(view_ctx, root_shape=multi_shape.parent_shape)
+            camera.reverse_pre_draw(view_ctx, root_shape=multi_shape.parent_shape)
 
         pre_matrix = view_ctx.get_matrix()
         multi_shape.draw(view_ctx, root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
         ctx.set_source_surface(view_canvas)
         ctx.scale(scale, scale)
-        if self.camera:
-            self.camera.draw_path(ctx)
+        if camera:
+            camera.draw_path(ctx)
         else:
             draw_rounded_rectangle(ctx, 0, 0, view_width, view_height, 0)
         ctx.clip()
