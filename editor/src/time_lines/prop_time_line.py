@@ -89,9 +89,12 @@ class PropTimeLine(object):
 
     def move_to(self, t):
         elapsed = 0
-        for i in range(len(self.time_slices.keys)):
+        slice_count = len(self.time_slices.keys)
+        for i in range(slice_count):
             time_slice = self.time_slices[self.time_slices.keys[i]]
-            if t<elapsed+time_slice.duration:
+            if t<elapsed+time_slice.duration or i==slice_count-1:
+                if t>elapsed+time_slice.duration:
+                    t = elapsed+time_slice.duration
                 value = time_slice.value_at(t - elapsed)
                 self.shape.set_prop_value(self.prop_name, value, time_slice.prop_data)
                 return

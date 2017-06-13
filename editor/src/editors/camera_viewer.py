@@ -96,7 +96,6 @@ class CamerViewerBox(Gtk.Box):
 
         view_ctx = cairo.Context(view_canvas)
         view_ctx.scale(scale, scale)
-        pre_matrix = view_ctx.get_matrix()
 
         draw_rounded_rectangle(view_ctx, 0, 0, view_width, view_height, 0)
         draw_fill(view_ctx, "ffffff")

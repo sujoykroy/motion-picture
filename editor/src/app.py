@@ -405,6 +405,15 @@ class ApplicationWindow(MasterEditor):
         if shape:
             self.parent.copied_shapes = [shape]
 
+    def zoom_to_shape(self, action, parameter):
+        shape = self.shape_manager.get_selected_shape()
+        if shape is None:
+            return
+        w, h = self.get_drawing_area_size()
+        self.shape_manager.zoom_to_shape(shape, w, h)
+        self.update_drawing_area_scrollbars()
+        self.redraw()
+
     def paste_shape_action(self, action, paramter):
         shapes = self.parent.copied_shapes
         if shapes:

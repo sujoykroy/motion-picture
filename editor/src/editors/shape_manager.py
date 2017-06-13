@@ -307,6 +307,23 @@ class ShapeManager(object):
         self.resize_scollable_area(out_width, out_height)
         self.document_area_box.anchor_at.assign(self.doc.width*.5, self.doc.height*.5)
 
+    def zoom_to_shape(self, shape, out_width, out_height):
+        shape_rect = shape.get_abs_reverse_outline(
+                0, 0, shape.width, shape.height, root_shape=self.document_area_box)
+        scale_x = out_width/shape_rect.width
+        scale_y = out_height/shape_rect.height
+        scale = max (scale_x, scale_y)
+
+        self.document_area_box.anchor_at.x = 0
+        self.document_area_box.anchor_at.y = 0
+        self.document_area_box.move_to(-shape_rect.left*scale, -shape_rect.top*scale)
+
+        self.document_area_box.scale_x = scale
+        self.document_area_box.scale_y = scale
+
+        self.resize_scollable_area(out_width, out_height)
+        self.document_area_box.anchor_at.assign(self.doc.width*.5, self.doc.height*.5)
+
     def get_scale(self):
         return self.document_area_box.scale_x
 
@@ -364,15 +381,16 @@ class ShapeManager(object):
             self.scrollable_area.height = out_height+2*extra_y
             self.scrollable_area.offset_y = extra_y
 
-        if rect.left+rect.width>out_width:
+        if rect.width>out_width:
             if rect.left>0:
+                print "s1"
                 self.scrollable_area.width = 2*rect.left+rect.width
                 self.scrollable_area.offset_x = rect.left
             else:
                 extra_x = 50
                 self.scrollable_area.width = rect.width+2*extra_x
                 self.scrollable_area.offset_x = extra_x
-        elif rect.left>0:
+        elif rect.left>0:#need to be recheked?
             if out_width-(rect.left+rect.width)>rect.left:
                 extra_x = out_width-(rect.left+rect.width)-rect.left
                 self.scrollable_area.width = out_width+extra_x
@@ -381,7 +399,7 @@ class ShapeManager(object):
                 extra_x = rect.left-(out_width-(rect.left+rect.width))
                 self.scrollable_area.width = out_width+extra_x
                 self.scrollable_area.offset_x = rect.left
-        else:
+        else:#need to be recheked?
             extra_x = out_width-(rect.left+rect.width)
             self.scrollable_area.width = out_width+2*extra_x
             self.scrollable_area.offset_x = extra_x

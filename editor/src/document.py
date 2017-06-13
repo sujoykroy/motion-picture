@@ -15,7 +15,7 @@ from tasks import TaskManager
 from time_lines import MultiShapeTimeLine
 
 import moviepy.editor as movie_editor
-import numpy
+import numpy, time
 
 class Document(object):
     def __init__(self, filename=None, width=400., height=300.):
@@ -195,28 +195,10 @@ class Document(object):
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
         return pixbuf
 
-    def get_rgb_array(self, camera):
-        if camera:
-            width, height = camera.width, camera.height
-            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(camera.width), int(camera.height))
-            ctx = cairo.Context(surface)
-            ctx.set_antialias(cairo.ANTIALIAS_DEFAULT)
-            ctx.rectangle(0, 0, width, height)
-            ctx.set_source_rgb(1,1,1)
-            ctx.fill()
-            camera.paint_screen(ctx, camera.width, camera.height, cam_scale=1.)
-        else:
-            width, height = self.width, self.height
-            surface= self.get_surface(width, height)
-        data = surface.get_data()
-        rgb_array = 0+numpy.frombuffer(surface.get_data(), numpy.uint8)
-        rgb_array.shape = (int(height), int(width), 4)
-        rgb_array = rgb_array[:,:,[2,1,0,3]]
-        rgb_array = rgb_array[:,:, :3]
-        return rgb_array
-
-    def make_movie(self, filename, time_line, start_time=0, end_time=None, speed=1,
-                         fps=24, camera=None, ffmpeg_params=None, codec=None, audio=True):
+    def make_movie(self, filename, time_line, start_time=0, end_time=None, speed=1, sleep=0,
+                         fps=24, camera=None,
+                         ffmpeg_params="-quality good -qmin 10 -qmax 42", bitrate="640k",
+                         codec="libvpx", audio=True):
         timelines = self.main_multi_shape.timelines
         if not timelines:
             return
@@ -236,17 +218,22 @@ class Document(object):
         if camera:
             camera = self.get_shape_by_name(camera)
 
-        frame_maker = FrameMaker(self, time_line, start_time, end_time, camera, speed=speed)
-        video_clip = movie_editor.VideoClip(frame_maker.make_frame, duration=frame_maker.get_duration())
+        frame_maker = FrameMaker(self, time_line, start_time, end_time,
+                                       camera=camera, speed=speed, sleep=sleep)
+        video_clip = movie_editor.VideoClip(
+                frame_maker.make_frame, duration=frame_maker.get_duration())
 
+        if isinstance(ffmpeg_params, str):
+            ffmpeg_params = ffmpeg_params.split(" ")
         if audio:
             audio_clips = time_line.get_audio_clips()
             if audio_clips:
                 audio_clip = movie_editor.CompositeAudioClip(audio_clips)
                 video_clip = video_clip.set_audio(audio_clip)
         video_clip.write_videofile(
-            filename, fps=fps, codec=codec, preset="superslow", ffmpeg_params=ffmpeg_params,
-            bitrate="320k")
+            filename, fps=fps, codec=codec, preset="superslow",
+            ffmpeg_params=ffmpeg_params,
+            bitrate=bitrate)
 
     @staticmethod
     def get_icon_pixbuf(icon_name, scale=None, size=20):
@@ -286,17 +273,69 @@ class Document(object):
         return shape
 
 class FrameMaker(object):
-    def __init__(self, doc, time_line, start_time, end_time, camera, speed):
+    def __init__(self, doc, time_line, start_time, end_time,
+                       camera=None, speed=1, bg_color="FFFFFF", sleep=0):
         self.doc = doc
         self.time_line = time_line
+        self.camera = camera
+        self.sleep= sleep
+
         self.start_time = start_time
         self.end_time = end_time
-        self.camera = camera
+
         self.speed = float(speed)
+        self.bg_color = bg_color
+
+        if self.camera:
+            self.width, self.height = self.camera.width, self.camera.height
+        else:
+            self.width, self.height = self.doc.width, self.doc.height
+        self.surface = cairo.ImageSurface(
+            cairo.FORMAT_ARGB32, int(self.width), int(self.height))
+        self.ctx = cairo.Context(self.surface)
 
     def get_duration(self):
         return (self.end_time-self.start_time)/float(self.speed)
 
     def make_frame(self, t):
+        if self.sleep:
+            time.sleep(self.sleep)
         self.time_line.move_to(t*self.speed+self.start_time)
-        return self.doc.get_rgb_array(self.camera)
+
+        if self.bg_color:
+            self.ctx.rectangle(0, 0, self.width, self.height)
+            draw_fill(self.ctx, self.bg_color)
+        self.ctx.save()
+
+        camera = self.camera
+        multi_shape = self.doc.main_multi_shape
+        if camera is None:
+            camera = multi_shape.camera
+
+        if camera:
+            view_width = camera.width
+            view_height = camera.height
+        else:
+            view_width = self.width
+            view_height = self.height
+
+        dw_width = float(self.width)
+        dw_height = float(self.height)
+
+        sx, sy = dw_width/view_width, dw_height/view_height
+        scale = min(sx, sy)
+
+        view_left = (dw_width-scale*view_width)*.5
+        view_top = (dw_height-scale*view_height)*.5
+
+        self.ctx.translate(view_left, view_top)
+        self.ctx.scale(scale, scale)
+
+        if camera:
+            camera.reverse_pre_draw(self.ctx, root_shape=multi_shape.parent_shape)
+
+        pre_matrix = self.ctx.get_matrix()
+        multi_shape.draw(self.ctx, root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
+
+        self.ctx.restore()
+        return ImageHelper.surface2array(self.surface, reformat=True, rgb_only=True)

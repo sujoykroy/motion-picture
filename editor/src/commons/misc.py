@@ -1,4 +1,4 @@
-import cairo, re
+import cairo, re, numpy
 from gi.repository import Gtk
 
 class Keyboard(object):
@@ -166,11 +166,12 @@ class ImageHelper(object):
         return cls.surface2array(surface)
 
     @classmethod
-    def surface2array(cls, surface, reformat=False):
+    def surface2array(cls, surface, reformat=False, rgb_only=False):
         data = surface.get_data()
         rgb_array = 0+numpy.frombuffer(surface.get_data(), numpy.uint8)
         rgb_array.shape = (surface.get_height(), surface.get_width(), 4)
         if reformat:
             rgb_array = rgb_array[:,:,[2,1,0,3]]
-        #rgb_array = rgb_array[:,:, :3]
+        if rgb_only:
+            rgb_array = rgb_array[:,:, :3]
         return rgb_array

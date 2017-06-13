@@ -6,6 +6,7 @@ import math, time
 DEG2PI = math.pi/180.
 
 class ThreeDShape(RectangleShape):
+    HQRender = False
     TYPE_NAME = "threed"
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius):
@@ -182,7 +183,7 @@ class ThreeDShape(RectangleShape):
             origin_y = ay
         canvas_height = 2*origin_y
 
-        if self.high_quality:
+        if self.high_quality or ThreeDShape.HQRender:
             rect = self.get_abs_reverse_outline(0, 0, self.width, self.height, root_shape=root_shape)
 
             blank_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1)
@@ -259,7 +260,7 @@ class ThreeDShape(RectangleShape):
         ctx.set_antialias(True)
 
         ctx.save()
-        if self.high_quality and not no_hq:
+        if (self.high_quality or ThreeDShape.HQRender) and not no_hq:
             w, h = ctx.get_target().get_width(), ctx.get_target().get_height()
             xx, yx, xy, yy, x0, y0 = ctx.get_matrix()
             image_hash = hash(tuple([w, h, xx, yx, xy, yy, x0, y0]))
