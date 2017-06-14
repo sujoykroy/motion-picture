@@ -51,6 +51,7 @@ class MultiShape(Shape):
         self.masked = False
         self.custom_props = None
         self.camera = None
+        self.pose = None
 
     def copy_data_from_linked(self):
         if not self.linked_to: return
@@ -151,6 +152,8 @@ class MultiShape(Shape):
                         value = color_from_text(value)
                     elif prop_name == "pre_matrix":
                         value = Matrix.from_text(value)
+                    elif prop_name == "pose":
+                        value = value
                     elif prop_name == "visible":
                         if value == "True":
                             value = True
@@ -176,8 +179,15 @@ class MultiShape(Shape):
             shape.timelines[time_line.name] = time_line
         return shape
 
+    @classmethod
+    def get_pose_prop_names(cls):
+        prop_names = super(MultiShape, cls).get_pose_prop_names()
+        prop_names.append("pose")
+        return prop_names
+
     def copy(self, copy_name=False, copy_shapes=True, deep_copy=False):
-        newob = MultiShape(anchor_at=self.anchor_at.copy(), width=self.width, height=self.height)
+        newob = MultiShape(
+            anchor_at=self.anchor_at.copy(), width=self.width, height=self.height)
         Shape.copy_into(self, newob, copy_name=copy_name)
         if copy_shapes or deep_copy:
             for shape in self.shapes:
@@ -233,12 +243,15 @@ class MultiShape(Shape):
 
     def set_pose(self, pose_name):
         if pose_name not in self.poses: return
+        self.pose = pose_name
         self.set_pose_raw(self.poses[pose_name])
 
     def set_pose_raw(self, pose):
         anchor_at = self.anchor_at.copy()
         for shape_name, prop_dict in pose.items():
-            shape = self.shapes[shape_name]
+            shape = self.shapes.get_item_by_name(shape_name)
+            if shape is None:
+                continue
             shape.set_pose_prop_from_dict(prop_dict)
             if "rel_abs_anchor_at" in prop_dict:
                 abs_anchor_at = prop_dict["rel_abs_anchor_at"].copy()
@@ -259,7 +272,9 @@ class MultiShape(Shape):
         anchor_at = self.anchor_at.copy()
         for shape_name, start_prop_dict in start_pose.items():
             if shape_name not in end_pose.keys(): continue
-            shape = self.shapes[shape_name]
+            shape = self.shapes.get_item_by_name(shape_name)
+            if shape is None:
+                continue
             end_prop_dict = end_pose[shape_name]
             shape.set_transition_pose_prop_from_dict(start_prop_dict, end_prop_dict, frac=value)
             start_rel_abs_anchor_at = start_prop_dict["rel_abs_anchor_at"].copy()
@@ -361,8 +376,12 @@ class MultiShape(Shape):
             return
         if prop_name == "internal":
             if prop_data["type"] == "pose":
-                start_pose = prop_data["start_pose"]
-                end_pose = prop_data.get("end_pose")
+                start_pose = prop_data.get("start_pose")
+                if start_pose is None:
+                    start_pose = prop_data.get("start_pose_raw")
+                    end_pose = prop_data.get("end_pose_raw")
+                else:
+                    end_pose = prop_data.get("end_pose")
                 if end_pose:
                     self.set_pose_transition(start_pose, end_pose, value)
                 else:
@@ -454,8 +473,8 @@ class MultiShape(Shape):
                     shape.scale_x *= self.post_scale_x
                     shape.scale_y *= self.post_scale_y
                 else:
-                    shape.set_width(shape.width*self.post_scale_x)
-                    shape.set_height(shape.height*self.post_scale_y)
+                    shape.set_width(shape.width*self.post_scale_x, fixed_anchor=False)
+                    shape.set_height(shape.height*self.post_scale_y, fixed_anchor=False)
                     shape.anchor_at.scale(self.post_scale_x, self.post_scale_y)
             else:
                 if self.post_scale_x != 1 or self.post_scale_y != 1:

@@ -30,7 +30,7 @@ m.add(path="Edit/Shape/Delete", icon="delete_shape",
       action_name="win.delete_shape")
 m.add(path="Edit/Shape/Duplicate", icon="duplicate_shape", accel="<Control>b",
       action_name="win.duplicate_shape", action_param="")
-m.add(path="Edit/Shape/Zoom", icon="duplicate_shape", accel="<Control>m",
+m.add(path="Edit/Shape/Zoom", icon="zoom_to_shape", accel="<Control>m",
       action_name="win.zoom_to_shape", action_param="")
 
 m.add(path="Edit/Shape/<Linked>/Linked Duplicate", icon="linked_duplicate_shape",

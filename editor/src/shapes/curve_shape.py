@@ -244,8 +244,8 @@ class CurveShape(Shape, Mirror):
         return shape
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = CurveShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
-                            color_copy(self.fill_color), self.width, self.height)
+        newob = CurveShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
+                            copy_value(self.fill_color), self.width, self.height)
         self.copy_into(newob, copy_name)
         for curve in self.curves:
             newob.curves.append(curve.copy())

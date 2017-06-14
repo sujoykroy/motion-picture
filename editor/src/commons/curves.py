@@ -621,7 +621,8 @@ class Curve(NaturalCurve):
         self.all_points = numpy.multiply(self.all_points, [sx, sy])
 
     def set_inbetween(self, start_curve, end_curve, frac):
-        self.all_points = start_curve.all_points*(1-frac) + end_curve.all_points*frac
+        yc = min(start_curve.all_points.shape[0], end_curve.all_points.shape[0])
+        self.all_points = start_curve.all_points[:yc, :]*(1-frac) + end_curve.all_points[:yc, :]*frac
 
     def draw_path(self, ctx):
         ctx.new_path()

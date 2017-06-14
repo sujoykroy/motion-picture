@@ -307,6 +307,7 @@ class ApplicationWindow(MasterEditor):
 
     def convert_shape_to(self, action, parameter):
         if self.shape_manager.convert_shape_to(parameter.get_string()):
+            self.rebuild_tree_view()
             self.redraw()
 
     def undo_redo(self, action, parameter):

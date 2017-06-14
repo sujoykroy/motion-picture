@@ -178,8 +178,8 @@ class PolygonShape(Shape, Mirror):
         return shape
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = PolygonShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
-                            color_copy(self.fill_color), self.width, self.height)
+        newob = PolygonShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
+                            copy_value(self.fill_color), self.width, self.height)
         self.copy_into(newob, copy_name)
         for polygon in self.polygons:
             newob.polygons.append(polygon.copy())
@@ -250,8 +250,8 @@ class PolygonShape(Shape, Mirror):
         abs_anchor_at = self.get_abs_anchor_at()
         self.anchor_at.translate(-self.width*outline.left, -self.height*outline.top)
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
-        self.set_width(outline.width*self.width)
-        self.set_height(outline.height*self.height)
+        self.set_width(outline.width*self.width, fixed_anchor=False)
+        self.set_height(outline.height*self.height, fixed_anchor=False)
 
         if outline.height==0:
             sy = None

@@ -141,6 +141,9 @@ class Shape(object):
             if prop_name == "form_raw":
                 prop_data=dict(start_form_raw=start_value, end_form_raw=end_value)
                 self.set_prop_value("internal", frac, prop_data)
+            elif prop_name == "pose":
+                prop_data=dict(start_pose=start_value, end_pose=end_value, type="pose")
+                self.set_prop_value("internal", frac, prop_data)
             elif prop_name == "form_name":
                 prop_data=dict(start_form=start_value, end_form=end_value)
                 self.set_prop_value("internal", frac, prop_data)

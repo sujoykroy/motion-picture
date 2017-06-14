@@ -78,6 +78,7 @@ class MultiShapeInternalPropBox(Gtk.VBox):
     def update(self, poses=False, timelines=False):
         if poses:
             self.poses_combo_box.build_and_set_model(self.multi_shape.get_pose_list())
+            self.poses_combo_box.set_value(self.multi_shape.pose)
         if timelines:
             self.timelines_combo_box.build_and_set_model(sorted(self.multi_shape.timelines.keys()))
 

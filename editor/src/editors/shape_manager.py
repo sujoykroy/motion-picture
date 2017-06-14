@@ -236,8 +236,26 @@ class ShapeManager(object):
         self.document_area_box.draw_axis(ctx)
 
         ctx.save()
-        self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border, no_camera=False)
+        self.doc.main_multi_shape.draw(ctx, drawing_size, self.doc.fixed_border, no_camera=False)
         ctx.restore()
+
+        if self.multi_shape != self.doc.main_multi_shape:
+            ctx.save()
+            self.doc.main_multi_shape.pre_draw(ctx)
+            self.doc.main_multi_shape.draw_path(ctx)
+            ctx.restore()
+            draw_fill(ctx, "ffffffcc")
+
+            ctx.save()
+            self.multi_shape.pre_draw(ctx)
+            self.multi_shape.draw_path(ctx)
+            ctx.restore()
+            draw_stroke(ctx, 2, "00ff00")
+
+            ctx.save()
+            self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border, no_camera=False)
+            ctx.restore()
+
         if not EditingChoice.HIDE_AXIS:
             self.multi_shape.draw_axis(ctx)
 
