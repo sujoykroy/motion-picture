@@ -30,8 +30,11 @@ m.add(path="Edit/Shape/Delete", icon="delete_shape",
       action_name="win.delete_shape")
 m.add(path="Edit/Shape/Duplicate", icon="duplicate_shape", accel="<Control>b",
       action_name="win.duplicate_shape", action_param="")
-m.add(path="Edit/Shape/Zoom", icon="zoom_to_shape", accel="<Control>m",
+
+m.add(path="View/Zoom To Shape", icon="zoom_to_shape", accel="<Control>m",
       action_name="win.zoom_to_shape", action_param="")
+m.add(path="View/Zoom To Canvas", icon="zoom_to_canvas", accel="<Control>1",
+      action_name="win.zoom_to_canvas", action_param="")
 
 m.add(path="Edit/Shape/<Linked>/Linked Duplicate", icon="linked_duplicate_shape",
       action_name="win.duplicate_shape", action_param="linked")
@@ -162,7 +165,7 @@ m.add(path="Windows/Camera Viewer", icon="camera_viewer", desc = "Camera Viewer"
       action_name="win.toggle_camera_viewer", action_state=False)
 
 m.tool_rows = [
-    ["File/<Open>", "File/New", "Edit/Shape", "Edit/Preferences/Lock Movement",
+    ["File/<Open>", "File/New", "Edit/Shape", "View", "Edit/Preferences/Lock Movement",
      "Edit/TimeLine", "Edit/Preferences", "Edit/Shape/<Linked>",
      "Edit/Preferences/Panel Layout", "Edit/Document", "Shapes/Pre-Drawn", "Windows"],
     ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>",

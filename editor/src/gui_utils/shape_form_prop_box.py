@@ -100,7 +100,7 @@ class ShapeFormPropBox(object):
     def delete_form_button_clicked(self, widget):
         form_name = self.forms_combo_box.get_value()
         dialog = YesNoDialog(self.parent_window,
-                "Delete From", "Do you realy want to delete from [{0}]".format(form_name))
+                "Delete Form", "Do you realy want to delete Form [{0}]".format(form_name))
         if dialog.run() == Gtk.ResponseType.YES:
             self.curve_shape.delete_form(form_name)
             self.update()

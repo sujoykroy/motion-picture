@@ -311,6 +311,7 @@ class ShapeManager(object):
             guide.draw(ctx, self.out_width, self.out_height)
             ctx.restore()
 
+
     def zoom(self, scale, point, out_width, out_height):
         scale = 1. + scale*.1
 
@@ -425,8 +426,8 @@ class ShapeManager(object):
         #self.scroll(x_pos, "horiz", out_width, out_height)
 
     def fit_area_in_size(self, out_width, out_height):
-        self.out_width = out_width
-        self.out_height = out_height
+        self.out_width = float(out_width)
+        self.out_height = float(out_height)
         scale = min(out_width/self.doc.width, out_height/self.doc.height)
         self.document_area_box.scale_x = scale
         self.document_area_box.scale_y = scale
@@ -435,6 +436,12 @@ class ShapeManager(object):
         self.resize_scollable_area(out_width, out_height)
         self.scroll(.5, "vert", out_width, out_height)
         self.scroll(.5, "horiz", out_width, out_height)
+
+    def resize_area(self, out_width, out_height):
+        if self.document_area_box.get_abs_outline(0).width<out_width:
+            self.fit_area_in_size(out_width, out_height)
+        else:
+            return
 
     def start_creating_new_shape(self, shape_type, doc_point, shape_point):
         point = shape_point

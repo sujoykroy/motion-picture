@@ -1,7 +1,7 @@
 from gi.repository import Gtk, Gdk
 from name_value_combo_box import NameValueComboBox
 from image_combo_box import ImageComboBox
-from buttons import ColorButton
+from buttons import *
 from ..commons import Point, Color, get_displayble_prop_name
 from ..commons import LinearGradientColor, RadialGradientColor
 from file_op import *
@@ -173,7 +173,7 @@ class ShapePropBox(object):
         widgets = [label, prop_widget]
 
         if can_insert_slice:
-            insert_slice_button = Gtk.Button("I+I")
+            insert_slice_button = create_new_image_button("insert_time_slice", size=16)#Gtk.Button("I+I")
             insert_slice_button.connect("clicked", self.insert_slice_button_clicked, prop_name)
             widgets.append(insert_slice_button)
             prop_widget.widgets.append(insert_slice_button)

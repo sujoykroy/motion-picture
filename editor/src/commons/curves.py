@@ -479,6 +479,8 @@ class PseudoPoint(Point):
         self.index = index
 
     def __getattr__(self, name):
+        if self.index>=self.curve.all_points.shape[0]:
+            self.index = self.curve.all_points.shape[0]-1
         if name == "x":
             return self.curve.all_points[self.index][0]
         elif name == "y":
@@ -575,8 +577,16 @@ class Curve(NaturalCurve):
         return newob
 
     def copy_from(self, other_curve):
-        self.all_points = other_curve.all_points.copy()
+        sl = self.all_points.shape[0]
+        ol = other_curve.all_points.shape[0]
+        if sl<ol:
+            self.all_points = other_curve.all_points[:sl].copy()
+        else:
+            self.all_points[:ol] = other_curve.all_points.copy()
         self.closed = other_curve.closed
+        if self.closed:
+            self.all_points[-1][0] = self.all_points[0][0]
+            self.all_points[-1][1] = self.all_points[0][1]
 
     def add_bezier_point(self, bezier_point):
         self.all_points=numpy.append(self.all_points,

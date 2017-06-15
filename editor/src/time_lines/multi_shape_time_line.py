@@ -35,7 +35,10 @@ class MultiShapeTimeLine(object):
     def move_time_marker(self, at, to):
         if to in self.time_markers:
             return False
-        self.time_markers[to] = self.time_markers[at]
+        tmk = self.time_markers.get(at)
+        if tmk is None:
+            return False
+        self.time_markers[to] = tmk
         self.time_markers[at].at = to
         del self.time_markers[at]
         return True

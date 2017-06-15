@@ -7,10 +7,10 @@ from gi.repository import Gtk, GdkPixbuf, GObject, Gdk
 from name_value_combo_box import NameValueComboBox
 import os, cairo
 
-def create_new_image_button(icon_name, desc=None, border_scale=1.):
+def create_new_image_button(icon_name, desc=None, border_scale=1., size=20):
     if desc is None:
         desc = icon_name[0].upper() + icon_name[1:]
-    image_widget = create_new_image_widget(icon_name, border_scale)
+    image_widget = create_new_image_widget(icon_name, border_scale, size=size)
     if image_widget:
         button = Gtk.Button()
         button.set_image(image_widget)
@@ -19,12 +19,12 @@ def create_new_image_button(icon_name, desc=None, border_scale=1.):
         button = Gtk.Button(desc)
     return button
 
-def create_new_image_widget(icon_name, border_scale=1.):
+def create_new_image_widget(icon_name, border_scale=1., size=20):
     filename = os.path.join(settings.ICONS_FOLDER, icon_name + ".xml")
     if os.path.isfile(filename):
         doc = Document(filename=filename)
         doc.main_multi_shape.scale_border_width(border_scale)
-        pixbuf = doc.get_pixbuf(width=20, height=20, bg_color=False)
+        pixbuf = doc.get_pixbuf(width=size, height=size, bg_color=False)
         return Gtk.Image.new_from_pixbuf(pixbuf)
     return None
 

@@ -415,6 +415,12 @@ class ApplicationWindow(MasterEditor):
         self.update_drawing_area_scrollbars()
         self.redraw()
 
+    def zoom_to_canvas(self, action, parameter):
+        w, h = self.get_drawing_area_size()
+        self.shape_manager.fit_area_in_size(w, h)
+        self.update_drawing_area_scrollbars()
+        self.redraw()
+
     def paste_shape_action(self, action, paramter):
         shapes = self.parent.copied_shapes
         if shapes:

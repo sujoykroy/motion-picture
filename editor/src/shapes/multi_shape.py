@@ -311,6 +311,11 @@ class MultiShape(Shape):
         timeline.set_name(new_timeline_name)
         return True
 
+    def delete_timeline(self, timeline_name):
+        if timeline_name not in self.timelines: return False
+        del self.timelines[timeline_name]
+        return True
+
     def add_custom_prop(self, prop_name, prop_type):
         if hasattr(self, prop_name):
             return False

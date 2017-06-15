@@ -1,7 +1,8 @@
 from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
 from image_combo_box import ImageComboBox
-from helper_dialogs import TextInputDialog
+from helper_dialogs import TextInputDialog, YesNoDialog
+from buttons import *
 
 class MultiShapeInternalPropBox(Gtk.VBox):
     def __init__(self, draw_callback, timeline_load_callback, insert_time_slice_callback):
@@ -16,21 +17,24 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         pose_label = Gtk.Label("Poses")
         self.poses_combo_box = ImageComboBox()
         self.poses_combo_box.connect("changed", self.poses_combo_box_changed)
-        self.apply_pose_button = Gtk.Button("Apply")
+        self.apply_pose_button = create_new_image_button("apply")#Gtk.Button("Apply")
         self.apply_pose_button.connect("clicked", self.apply_pose_button_clicked)
-        self.new_pose_button = Gtk.Button("New")
+        self.new_pose_button = create_new_image_button("new")#Gtk.Button("New")
         self.new_pose_button.connect("clicked", self.new_pose_button_clicked)
-        self.rename_pose_button = Gtk.Button("Rename")
+        self.rename_pose_button = create_new_image_button("rename")#Gtk.Button("Rename")
         self.rename_pose_button.connect("clicked", self.rename_pose_button_clicked)
-        self.save_pose_button = Gtk.Button("Save")
+        self.delete_pose_button = create_new_image_button("delete")#Gtk.Button("Delete")
+        self.delete_pose_button.connect("clicked", self.delete_pose_button_clicked)
+        self.save_pose_button = create_new_image_button("save")#Gtk.Button("Save")
         self.save_pose_button.connect("clicked", self.save_pose_button_clicked)
-        self.insert_pose_button = Gtk.Button("I+I")
+        self.insert_pose_button = create_new_image_button("insert_time_slice")#Gtk.Button("I+I")
         self.insert_pose_button.connect("clicked", self.insert_slice_button_clicked, "pose")
 
         pose_button_box = Gtk.HBox()
         pose_button_box.pack_start(self.apply_pose_button, expand=False, fill=False, padding=0)
         pose_button_box.pack_start(self.save_pose_button, expand=False, fill=False, padding=0)
         pose_button_box.pack_start(self.rename_pose_button, expand=False, fill=False, padding=0)
+        pose_button_box.pack_start(self.delete_pose_button, expand=False, fill=False, padding=0)
         pose_button_box.pack_start(self.new_pose_button, expand=False, fill=False, padding=0)
         pose_button_box.pack_start(self.insert_pose_button, expand=False, fill=False, padding=0)
 
@@ -43,11 +47,13 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         self.timelines_combo_box.connect("changed", self.timelines_combo_box_changed)
         self.show_timeline_button = Gtk.Button("Show")
         self.show_timeline_button.connect("clicked", self.show_timeline_button_clicked)
-        self.new_timeline_button = Gtk.Button("New")
+        self.new_timeline_button = create_new_image_button("new")#Gtk.Button("New")
         self.new_timeline_button.connect("clicked", self.new_timeline_button_clicked)
-        self.rename_timeline_button = Gtk.Button("Rename")
+        self.rename_timeline_button =  create_new_image_button("rename")#Gtk.Button("Rename")
         self.rename_timeline_button.connect("clicked", self.rename_timeline_button_clicked)
-        self.insert_time_line_button = Gtk.Button("I+I")
+        self.delete_timeline_button = create_new_image_button("delete")#Gtk.Button("Delete")
+        self.delete_timeline_button.connect("clicked", self.delete_timeline_button_clicked)
+        self.insert_time_line_button = create_new_image_button("insert_time_slice")#Gtk.Button("I+I")
         self.insert_time_line_button.connect("clicked", self.insert_slice_button_clicked, "timeline")
         self.insert_time_line_internal_button = Gtk.Button("I+I as Internal")
         self.insert_time_line_internal_button.connect(
@@ -56,6 +62,7 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         timeline_button_box = Gtk.HBox()
         timeline_button_box.pack_start(self.show_timeline_button, expand=False, fill=False, padding=0)
         timeline_button_box.pack_start(self.rename_timeline_button, expand=False, fill=False, padding=0)
+        timeline_button_box.pack_start(self.delete_timeline_button, expand=False, fill=False, padding=0)
         timeline_button_box.pack_start(self.new_timeline_button, expand=False, fill=False, padding=0)
         timeline_button_box.pack_start(self.insert_time_line_button, expand=False, fill=False, padding=0)
         timeline_button_box.pack_start(self.insert_time_line_internal_button, expand=False, fill=False, padding=0)
@@ -137,6 +144,15 @@ class MultiShapeInternalPropBox(Gtk.VBox):
                 self.poses_combo_box.set_value(new_pose_name)
         dialog.destroy()
 
+    def delete_pose_button_clicked(self, widget):
+        pose_name = self.poses_combo_box.get_value()
+        dialog = YesNoDialog(self.parent_window,
+                "Delete Pose", "Do you realy want to delete Pose [{0}]".format(pose_name))
+        if dialog.run() == Gtk.ResponseType.YES:
+            self.multi_shape.delete_pose(pose_name)
+            self.update(poses=True)
+        dialog.destroy()
+
     def rename_timeline_button_clicked(self, widget):
         timeline_name = self.timelines_combo_box.get_value()
         dialog = TextInputDialog(self.parent_window,
@@ -146,6 +162,15 @@ class MultiShapeInternalPropBox(Gtk.VBox):
             if new_timeline_name and self.multi_shape.rename_timeline(timeline_name, new_timeline_name):
                 self.update(timelines=True)
                 self.timelines_combo_box.set_value(new_timeline_name)
+        dialog.destroy()
+
+    def delete_timeline_button_clicked(self, widget):
+        timeline_name = self.timelines_combo_box.get_value()
+        dialog = YesNoDialog(self.parent_window,
+                "Delete Timeline", "Do you realy want to delete Timeline [{0}]".format(timeline_name))
+        if dialog.run() == Gtk.ResponseType.YES:
+            self.multi_shape.delete_timeline(timeline_name)
+            self.update(timelines=True)
         dialog.destroy()
 
     def save_pose_button_clicked(self, widget):
