@@ -167,7 +167,7 @@ class MultiShapeInternalPropBox(Gtk.VBox):
     def delete_pose_button_clicked(self, widget):
         pose_name = self.poses_combo_box.get_value()
         dialog = YesNoDialog(self.parent_window,
-                "Delete Pose", "Do you realy want to delete Pose [{0}]".format(pose_name))
+                "Delete Pose", "Do you really want to delete Pose [{0}]".format(pose_name))
         if dialog.run() == Gtk.ResponseType.YES:
             self.multi_shape.delete_pose(pose_name)
             self.update(poses=True)
@@ -187,7 +187,7 @@ class MultiShapeInternalPropBox(Gtk.VBox):
     def delete_timeline_button_clicked(self, widget):
         timeline_name = self.timelines_combo_box.get_value()
         dialog = YesNoDialog(self.parent_window,
-                "Delete Timeline", "Do you realy want to delete Timeline [{0}]".format(timeline_name))
+                "Delete Timeline", "Do you really want to delete Timeline [{0}]".format(timeline_name))
         if dialog.run() == Gtk.ResponseType.YES:
             self.multi_shape.delete_timeline(timeline_name)
             self.update(timelines=True)
@@ -196,7 +196,12 @@ class MultiShapeInternalPropBox(Gtk.VBox):
     def save_pose_button_clicked(self, widget):
         pose_name = self.poses_combo_box.get_value()
         if pose_name:
-            self.multi_shape.save_pose(pose_name)
+            dialog = YesNoDialog(self.parent_window,
+                "Save Pose", "Do you really want to overwrite Pose [{0}]".format(pose_name))
+            if dialog.run() == Gtk.ResponseType.YES:
+                self.multi_shape.save_pose(pose_name)
+                self.update(poses=True)
+            dialog.destroy()
 
     def insert_slice_button_clicked(self, widget, prop_name):
         if prop_name == "pose":

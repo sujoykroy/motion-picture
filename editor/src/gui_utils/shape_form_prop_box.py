@@ -63,6 +63,7 @@ class ShapeFormPropBox(object):
             values = None
         self.forms_combo_box.build_and_set_model(values)
         self.forms_combo_box_changed(widget=None)
+        self.forms_combo_box.set_value(None)
 
     def forms_combo_box_changed(self, widget):
         form_name = self.forms_combo_box.get_value()
@@ -104,7 +105,7 @@ class ShapeFormPropBox(object):
     def delete_form_button_clicked(self, widget):
         form_name = self.forms_combo_box.get_value()
         dialog = YesNoDialog(self.parent_window,
-                "Delete Form", "Do you realy want to delete Form [{0}]".format(form_name))
+                "Delete Form", "Do you really want to delete Form [{0}]".format(form_name))
         if dialog.run() == Gtk.ResponseType.YES:
             self.curve_shape.delete_form(form_name)
             self.update()
@@ -113,7 +114,13 @@ class ShapeFormPropBox(object):
     def save_form_button_clicked(self, widget):
         form_name = self.forms_combo_box.get_value()
         if form_name:
-            self.curve_shape.save_form(form_name)
+            dialog = YesNoDialog(self.parent_window,
+                "Save Form", "Do you really want to overwrite Form [{0}]".format(form_name))
+            if dialog.run() == Gtk.ResponseType.YES:
+                self.curve_shape.save_form(form_name)
+                self.update()
+                self.forms_combo_box.set_value(form_name)
+            dialog.destroy()
 
     def insert_slice_button_clicked(self, widget):
         form_name = self.forms_combo_box.get_value()

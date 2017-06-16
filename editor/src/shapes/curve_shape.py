@@ -154,7 +154,7 @@ class CurveShape(Shape, Mirror):
         if prop_name == "internal":
             if "start_form" in prop_data:
                 start_form_name = prop_data["start_form"]
-                end_form_name = prop_data["end_form"]
+                end_form_name = prop_data.get("end_form")
 
                 if end_form_name is None or end_form_name not in self.forms:
                     self.set_form(start_form_name)
@@ -164,7 +164,7 @@ class CurveShape(Shape, Mirror):
                 end_form = self.forms[end_form_name]
             else:
                 start_form = prop_data["start_form_raw"]
-                end_form = prop_data["end_form_raw"]
+                end_form = prop_data.get("end_form_raw")
             new_width = start_form.width + (end_form.width-start_form.width)*value
             new_height = start_form.height + (end_form.height-start_form.height)*value
 
@@ -351,6 +351,8 @@ class CurveShape(Shape, Mirror):
             frac %= 1
 
         pos = int(baked_points.shape[0]*frac)
+        if pos>=baked_points.shape[0]:
+            pos=baked_points.shape[0]-1
         x, y = list(baked_points[pos])
         point = self.reverse_transform_point(Point(x*self.width, y*self.height))
 

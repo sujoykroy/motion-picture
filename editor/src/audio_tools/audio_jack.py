@@ -6,10 +6,15 @@ class AudioJack(threading.Thread):
 
     @staticmethod
     def get_thread():
-        if AudioJack._running_thread is None:
-            AudioJack._running_thread = AudioJack()
-            AudioJack._running_thread.start()
-        return AudioJack._running_thread
+        jthread = AudioJack._running_thread
+        if jthread is None:
+            jthread = AudioJack()
+            if jthread.attached:
+                jthread.start()
+            AudioJack._running_thread = jthread
+        if jthread and jthread.attached:
+            return jthread
+        return None
 
     @staticmethod
     def close_thread():
@@ -34,7 +39,7 @@ class AudioJack(threading.Thread):
         self.record_lock = threading.RLock()
         self.play_lock = threading.RLock()
         self.should_stop_playing_now = False
-
+        self.attached = False
         try:
             jack.attach(jack_name)
             jack.activate()
@@ -45,6 +50,8 @@ class AudioJack(threading.Thread):
             self.buffer_size = 0
             self.sample_rate = 1.0
             return
+
+        self.attached = True
 
         port_name = "out"
         jack.register_port(port_name+"_1", jack.IsOutput | jack.CanMonitor)

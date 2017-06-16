@@ -275,10 +275,10 @@ class TimeLineEditor(Gtk.VBox):
         self.is_playing = False
         self.last_play_updated_at = 0
         self.selected_shape = None
+        self.time_range.reset()
         if multi_shape_time_line == None:
             self.time_line_name_label.set_text("")
             self.multi_shape_time_line_box = None
-            self.time_range.reset()
             self.play_button.hide()
             self.pause_button.hide()
             self.update()
@@ -526,7 +526,7 @@ class TimeLineEditor(Gtk.VBox):
     def on_playing_timer_movement(self):
         current_time = time.time()
         if self.last_play_updated_at>0:
-            diff = current_time - self.last_play_updated_at
+            #diff = current_time - self.last_play_updated_at
             diff = MOVE_TO_INCREMENT
             value = self.play_head_time + diff
             if self.time_line.duration == 0:
@@ -544,11 +544,11 @@ class TimeLineEditor(Gtk.VBox):
 
     def on_play_head_move(self):
         extra_x = self.play_head_box.get_center_x()-TIME_SLICE_START_X
-        self.play_head_time = self.time_range.get_time_for_extra_x(extra_x)
-        if self.play_head_time<0:
-            self.move_play_head_to_time(0)
-        self.show_current_play_head_time()
-        self.time_line.move_to(self.play_head_time, force_visible=False)
+        play_head_time = self.time_range.get_time_for_extra_x(extra_x)
+        if play_head_time<0:
+            play_head_time = 0
+        self.move_play_head_to_time(play_head_time)
+        self.redraw()
         self.play_head_callback()
 
     def on_move_to(self):
@@ -797,6 +797,7 @@ class TimeLineEditor(Gtk.VBox):
                 self.zoom_vertical(zoom*.1, self.mouse_point)
             else:
                 self.zoom_time(zoom*.1)
+                #AudioShape.build_time_step(self.time_range.get_scale())
             self.update_slices_left()
             self.update_drawing_area_scrollbars()
             self.update()

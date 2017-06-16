@@ -253,7 +253,8 @@ class ShapeManager(object):
             draw_stroke(ctx, 2, "00ff00")
 
             ctx.save()
-            self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border, no_camera=False)
+            self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border,
+                    no_camera=False, show_non_renderable=True)
             ctx.restore()
 
         if not EditingChoice.HIDE_AXIS:
@@ -402,7 +403,6 @@ class ShapeManager(object):
 
         if rect.width>out_width:
             if rect.left>0:
-                print "s1"
                 self.scrollable_area.width = 2*rect.left+rect.width
                 self.scrollable_area.offset_x = rect.left
             else:

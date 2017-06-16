@@ -4,11 +4,12 @@ class CommonShapePropBox(ShapePropBox):
     def __init__(self, parent_window, draw_callback, shape_name_checker, insert_time_slice_callback):    
         ShapePropBox.__init__(self, parent_window, draw_callback,
                                 shape_name_checker, insert_time_slice_callback)
-        self.add_prop("name", PROP_TYPE_NAME_ENTRY, None)
-        self.add_prop("show_points", PROP_TYPE_CHECK_BUTTON, None)
-        self.add_prop("moveable", PROP_TYPE_CHECK_BUTTON, None)
-        self.add_prop("masked", PROP_TYPE_CHECK_BUTTON, None)
-        self.add_prop("visible", PROP_TYPE_CHECK_BUTTON, None)
+        self.add_prop("name", PROP_TYPE_NAME_ENTRY)
+        self.add_prop("show_points", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
+        self.add_prop("moveable", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
+        self.add_prop("masked", PROP_TYPE_CHECK_BUTTON)
+        self.add_prop("visible", PROP_TYPE_CHECK_BUTTON)
+        self.add_prop("renderable", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         #self.add_prop("stage_xy", PROP_TYPE_POINT, None)
         self.add_prop("alpha", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1.1, step_increment=.1, page_increment=.1, page_size=.1))
@@ -172,6 +173,7 @@ class VideoShapePropBox(TimePosShapePropBox):
         self.add_prop("video_length", PROP_TYPE_LABEL)
         self.add_prop("video_path", PROP_TYPE_FILE, dict(file_type=[["Video", "video/*"]]))
         self.add_prop("use_thread", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
+        self.add_prop("audio_active", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
 
 class ThreeDShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):

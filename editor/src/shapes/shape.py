@@ -42,6 +42,7 @@ class Shape(object):
 
         self.follow_curve = None
         self.followed_upto = 0.
+        self.renderable = True
 
     def set_followed_upto(self, value, prop_data=None):
         self.followed_upto = value
@@ -176,6 +177,8 @@ class Shape(object):
         elm.attrib["moveable"] = ("1" if self.moveable else "0")
         if not self.visible:
             elm.attrib["visible"] = "0"
+        if not self.renderable:
+            elm.attrib["renderable"] = "0"
         if self.same_xy_scale:
             elm.attrib["same_xy_scale"] = "1"
         elm.attrib["anchor_at"] = self.anchor_at.to_text()
@@ -220,6 +223,7 @@ class Shape(object):
     def assign_params_from_xml_element(self, elm, all_fields=False):
         self.moveable = bool(int(elm.attrib.get("moveable", 1)))
         self.visible = bool(int(elm.attrib.get("visible", 1)))
+        self.renderable = bool(int(elm.attrib.get("renderable", 1)))
         self.same_xy_scale = bool(int(elm.attrib.get("same_xy_scale", False)))
         self.scale_x = float(elm.attrib.get("scale_x", 1))
         self.scale_y = float(elm.attrib.get("scale_y", 1))

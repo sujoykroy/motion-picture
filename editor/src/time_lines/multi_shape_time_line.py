@@ -142,7 +142,7 @@ class MultiShapeTimeLine(object):
 
     def move_to(self, t, force_visible=True):
         for shape, shape_time_line in self.shape_time_lines.iter_key_values():
-            if force_visible:
+            if force_visible and shape.renderable:
                 shape.visible = True
             shape_time_line.move_to(t)
 

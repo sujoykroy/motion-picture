@@ -516,7 +516,7 @@ class MultiShape(Shape):
     def draw(self, ctx, drawing_size=None,
                         fixed_border=True, no_camera=True,
                         root_shape=None, exclude_camera_list=None,
-                        pre_matrix=None):
+                        pre_matrix=None, show_non_renderable=False):
 
         if self.fill_color is not None:
             ctx.save()
@@ -560,6 +560,8 @@ class MultiShape(Shape):
 
         for shape in self.shapes:
             if not shape.visible:
+                continue
+            if not self.renderable and not show_non_renderable:
                 continue
             if isinstance(shape, CameraShape) and \
                 (no_camera or (exclude_camera_list and shape in exclude_camera_list)):
@@ -699,3 +701,8 @@ class MultiShape(Shape):
             self.move_to(point.x, point.y)
             if follow_angle:
                 self.set_angle(angle)
+
+    def cleanup(self):
+        for shape in self.shapes:
+            shape.cleanup()
+        super(MultiShape, self).cleanup()

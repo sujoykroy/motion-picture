@@ -21,6 +21,10 @@ class AudioShape(TextShape):
         self.time_pos = 0.
         self.audio_queue = None
 
+    @classmethod
+    def build_time_step(self, mult):
+        AudioShape.TIME_STEP = .1*mult
+
     def copy(self, copy_name=False, deep_copy=False):
         newob = AudioShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
                         self.fill_color.copy(), self.width, self.height, self.corner_radius)
@@ -96,7 +100,8 @@ class AudioShape(TextShape):
         self.AUDIO_ICON.draw(ctx)
         ctx.restore()
 
-    def draw_for_time_slice(self, ctx, prop_name, prop_data, visible_time_span,
+    @staticmethod
+    def draw_for_time_slice(ctx, prop_name, prop_data, visible_time_span,
                                  time_slice, time_slice_box, pixel_per_second):
         if prop_name != "time_pos":
             return
