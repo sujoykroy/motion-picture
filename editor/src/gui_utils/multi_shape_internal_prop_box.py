@@ -17,17 +17,17 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         pose_label = Gtk.Label("Poses")
         self.poses_combo_box = ImageComboBox()
         self.poses_combo_box.connect("changed", self.poses_combo_box_changed)
-        self.apply_pose_button = create_new_image_button("apply")#Gtk.Button("Apply")
+        self.apply_pose_button = create_new_image_button("apply")
         self.apply_pose_button.connect("clicked", self.apply_pose_button_clicked)
-        self.new_pose_button = create_new_image_button("new")#Gtk.Button("New")
+        self.new_pose_button = create_new_image_button("new")
         self.new_pose_button.connect("clicked", self.new_pose_button_clicked)
-        self.rename_pose_button = create_new_image_button("rename")#Gtk.Button("Rename")
+        self.rename_pose_button = create_new_image_button("rename")
         self.rename_pose_button.connect("clicked", self.rename_pose_button_clicked)
-        self.delete_pose_button = create_new_image_button("delete")#Gtk.Button("Delete")
+        self.delete_pose_button = create_new_image_button("delete")
         self.delete_pose_button.connect("clicked", self.delete_pose_button_clicked)
-        self.save_pose_button = create_new_image_button("save")#Gtk.Button("Save")
+        self.save_pose_button = create_new_image_button("save")
         self.save_pose_button.connect("clicked", self.save_pose_button_clicked)
-        self.insert_pose_button = create_new_image_button("insert_time_slice")#Gtk.Button("I+I")
+        self.insert_pose_button = create_new_image_button("insert_time_slice")
         self.insert_pose_button.connect("clicked", self.insert_slice_button_clicked, "pose")
 
         pose_button_box = Gtk.HBox()
@@ -45,17 +45,19 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         timeline_label = Gtk.Label("TimeLines")
         self.timelines_combo_box = NameValueComboBox()
         self.timelines_combo_box.connect("changed", self.timelines_combo_box_changed)
-        self.show_timeline_button = Gtk.Button("Show")
+        self.show_timeline_button = create_new_image_button("show_time_line")
         self.show_timeline_button.connect("clicked", self.show_timeline_button_clicked)
-        self.new_timeline_button = create_new_image_button("new")#Gtk.Button("New")
+        self.new_timeline_button = create_new_image_button("new")
         self.new_timeline_button.connect("clicked", self.new_timeline_button_clicked)
-        self.rename_timeline_button =  create_new_image_button("rename")#Gtk.Button("Rename")
+        self.rename_timeline_button =  create_new_image_button("rename")
         self.rename_timeline_button.connect("clicked", self.rename_timeline_button_clicked)
-        self.delete_timeline_button = create_new_image_button("delete")#Gtk.Button("Delete")
+        self.delete_timeline_button = create_new_image_button("delete")
         self.delete_timeline_button.connect("clicked", self.delete_timeline_button_clicked)
-        self.insert_time_line_button = create_new_image_button("insert_time_slice")#Gtk.Button("I+I")
+        self.insert_time_line_button = create_new_image_button("insert_time_slice")
         self.insert_time_line_button.connect("clicked", self.insert_slice_button_clicked, "timeline")
-        self.insert_time_line_internal_button = Gtk.Button("I+I as Internal")
+        self.insert_time_line_internal_button = create_new_image_button(
+                    "insert_time_slice_internal",
+                    desc="Insert New Internal Time Slice")
         self.insert_time_line_internal_button.connect(
                 "clicked", self.insert_slice_button_clicked, "timeline_internal")
 
@@ -78,16 +80,24 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         self.apply_pose_button.hide()
         self.rename_pose_button.hide()
         self.save_pose_button.hide()
+        self.delete_pose_button.hide()
+        self.insert_pose_button.hide()
+
         self.show_timeline_button.hide()
         self.rename_timeline_button.hide()
+        self.delete_timeline_button.hide()
+        self.insert_time_line_button.hide()
+        self.insert_time_line_internal_button.hide()
         self.update(poses=True, timelines=True)
 
     def update(self, poses=False, timelines=False):
         if poses:
             self.poses_combo_box.build_and_set_model(self.multi_shape.get_pose_list())
+            self.poses_combo_box_changed(widget=None)
             self.poses_combo_box.set_value(self.multi_shape.pose)
         if timelines:
             self.timelines_combo_box.build_and_set_model(sorted(self.multi_shape.timelines.keys()))
+            self.timelines_combo_box_changed(widget=None)
 
     def poses_combo_box_changed(self, widget):
         pose_name = self.poses_combo_box.get_value()
@@ -95,10 +105,14 @@ class MultiShapeInternalPropBox(Gtk.VBox):
             self.apply_pose_button.show()
             self.save_pose_button.show()
             self.rename_pose_button.show()
+            self.delete_pose_button.show()
+            self.insert_pose_button.show()
         else:
             self.apply_pose_button.hide()
             self.save_pose_button.hide()
             self.rename_pose_button.hide()
+            self.delete_pose_button.hide()
+            self.insert_pose_button.hide()
 
     def set_timeline(self, timeline_name):
         self.timelines_combo_box.set_value(timeline_name)
@@ -108,9 +122,15 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         if timeline_name:
             self.show_timeline_button.show()
             self.rename_timeline_button.show()
+            self.delete_timeline_button.show()
+            self.insert_time_line_button.show()
+            self.insert_time_line_button.show()
         else:
             self.show_timeline_button.hide()
             self.rename_timeline_button.hide()
+            self.delete_timeline_button.hide()
+            self.insert_time_line_button.hide()
+            self.insert_time_line_button.hide()
 
     def apply_pose_button_clicked(self, widget):
         pose_name = self.poses_combo_box.get_value()

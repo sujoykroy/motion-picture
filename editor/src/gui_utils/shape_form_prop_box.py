@@ -1,6 +1,7 @@
 from gi.repository import Gtk
 from image_combo_box import ImageComboBox
 from helper_dialogs import TextInputDialog, YesNoDialog
+from buttons import *
 
 class ShapeFormPropBox(object):
     def __init__(self, draw_callback, insert_time_slice_callback):
@@ -9,15 +10,15 @@ class ShapeFormPropBox(object):
         self.form_label = Gtk.Label("Forms")
         self.forms_combo_box = ImageComboBox()
         self.forms_combo_box.connect("changed", self.forms_combo_box_changed)
-        self.apply_form_button = Gtk.Button("Apply")
+        self.apply_form_button = create_new_image_button("apply")
         self.apply_form_button.connect("clicked", self.apply_form_button_clicked)
-        self.new_form_button = Gtk.Button("New")
+        self.new_form_button = create_new_image_button("new")
         self.new_form_button.connect("clicked", self.new_form_button_clicked)
-        self.rename_form_button = Gtk.Button("Rename")
+        self.rename_form_button = create_new_image_button("rename")
         self.rename_form_button.connect("clicked", self.rename_form_button_clicked)
-        self.delete_form_button = Gtk.Button("Delete")
+        self.delete_form_button = create_new_image_button("delete")
         self.delete_form_button.connect("clicked", self.delete_form_button_clicked)
-        self.save_form_button = Gtk.Button("Save")
+        self.save_form_button = create_new_image_button("save")
         self.save_form_button.connect("clicked", self.save_form_button_clicked)
 
         self.form_button_box = Gtk.HBox()
@@ -28,9 +29,9 @@ class ShapeFormPropBox(object):
         self.form_button_box.pack_start(self.new_form_button, expand=False, fill=False, padding=0)
 
 
-        insert_slice_button = Gtk.Button("[+]")
-        insert_slice_button.connect("clicked", self.insert_slice_button_clicked)
-        self.form_button_box.pack_start(insert_slice_button, expand=False, fill=False, padding=0)
+        self.insert_slice_button = create_new_image_button("insert_time_slice")
+        self.insert_slice_button.connect("clicked", self.insert_slice_button_clicked)
+        self.form_button_box.pack_start(self.insert_slice_button, expand=False, fill=False, padding=0)
 
         self.curve_shape = None
 
@@ -61,6 +62,7 @@ class ShapeFormPropBox(object):
         else:
             values = None
         self.forms_combo_box.build_and_set_model(values)
+        self.forms_combo_box_changed(widget=None)
 
     def forms_combo_box_changed(self, widget):
         form_name = self.forms_combo_box.get_value()
@@ -69,11 +71,13 @@ class ShapeFormPropBox(object):
             self.rename_form_button.show()
             self.save_form_button.show()
             self.delete_form_button.show()
+            self.insert_slice_button.show()
         else:
             self.apply_form_button.hide()
             self.rename_form_button.hide()
             self.save_form_button.hide()
             self.delete_form_button.hide()
+            self.insert_slice_button.hide()
 
     def apply_form_button_clicked(self, widget):
         form_name = self.forms_combo_box.get_value()

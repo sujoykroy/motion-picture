@@ -151,6 +151,10 @@ class PolygonShape(Shape, Mirror):
         self.forms[new_form] = self.forms[old_form]
         del self.forms[old_form]
 
+    def delete_form(self, form_name):
+        if form_name in self.forms:
+            del self.forms[form_name]
+
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)
         for polygon in self.polygons:
