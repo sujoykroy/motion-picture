@@ -286,7 +286,7 @@ class MultiShape(Shape):
         self.readjust_sizes()
 
     def get_pose_list(self):
-        poses = [[None, "None"]]
+        poses = [[None, ""]]
         for pose_name in sorted(self.poses.keys()):
             pose = MultiShapePoseRenderer(self, pose_name)
             poses.append(pose)

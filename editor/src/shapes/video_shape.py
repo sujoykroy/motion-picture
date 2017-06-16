@@ -47,10 +47,11 @@ class VideoShape(RectangleShape):
         self.video_clip = None
         self.duration = 0
         self.process_thread = None
+        self.use_thread = False
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = VideoShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
-                        self.fill_color.copy(), self.width, self.height, self.corner_radius)
+        newob = VideoShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
+                        copy_value(self.fill_color), self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
         newob.set_video_path(self.video_path)
         newob.alpha = self.alpha
@@ -60,6 +61,7 @@ class VideoShape(RectangleShape):
         elm = RectangleShape.get_xml_element(self)
         elm.attrib["video_path"] = self.video_path
         elm.attrib["alpha"] = "{0}".format(self.alpha)
+        elm.attrib["duration"] = "{0}".format(self.duration)
         return elm
 
     @classmethod
@@ -67,6 +69,7 @@ class VideoShape(RectangleShape):
         shape = super(VideoShape, cls).create_from_xml_element(elm)
         shape.set_video_path(elm.attrib.get("video_path", ""))
         shape.alpha = float(elm.attrib.get("alpha", 1.))
+        shape.duration = float(elm.attrib.get("duration", 0))
         return shape
 
     def set_video_path(self, video_path):
@@ -75,27 +78,41 @@ class VideoShape(RectangleShape):
         self.duration =  video_clip.duration
         self.image_pixbuf = None
 
+    def get_duration(self):
+        return self.duration
+
+    def get_video_length(self):
+        return "{0:.2f} sec".format(self.duration)
+
+    def get_av_filename(self):
+        return self.video_path
+
     def set_time_pos(self, time_pos):
         if time_pos<0:
             return
         if self.video_clip is None:
             self.video_clip = VideoFileClip(self.video_path)
+            self.duration = self.video_clip.duration
         if time_pos>self.video_clip.duration:
             time_pos = self.video_clip.duration
-        if time_pos>0:
-            if self.process_thread is None:
-                self.frame_queue = Queue.Queue(1)
-                self.time_queue = Queue.Queue(1)
-                self.process_thread = VideoProcessThread(
-                    self.video_clip, self.frame_queue, self.time_queue)
-                self.process_thread.start()
 
-        if self.process_thread is not None:
-            try:
-                self.time_queue.put(time_pos, block=False)
-            except Queue.Full as e:
-                pass
-        else:
+        self.time_pos = time_pos
+
+        if self.use_thread:
+            if time_pos>0:
+                if self.process_thread is None:
+                    self.frame_queue = Queue.Queue(1)
+                    self.time_queue = Queue.Queue(1)
+                    self.process_thread = VideoProcessThread(
+                        self.video_clip, self.frame_queue, self.time_queue)
+                    self.process_thread.start()
+
+            if self.process_thread is not None:
+                try:
+                    self.time_queue.put(time_pos, block=False)
+                except Queue.Full as e:
+                    pass
+        if not self.use_thread or self.process_thread is None:
             frame = self.video_clip.get_frame(self.time_pos)
             self.image_pixbuf = self.get_pixbuf_from_frame(frame)
 
@@ -112,7 +129,7 @@ class VideoShape(RectangleShape):
         pixbuf = ploader.get_pixbuf()
         return pixbuf
 
-    def draw_image(self, ctx):
+    def draw_image(self, ctx, root_shape=None):
         if self.process_thread:
             try:
                 frame = self.frame_queue.get(block=False)
@@ -130,7 +147,6 @@ class VideoShape(RectangleShape):
             else:
                 ctx.paint()
             ctx.restore()
-
 
     def cleanup(self):
         RectangleShape.cleanup(self)

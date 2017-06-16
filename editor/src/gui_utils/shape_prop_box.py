@@ -17,6 +17,7 @@ PROP_TYPE_TEXT = 7
 PROP_TYPE_FONT = 8
 PROP_TYPE_IMAGE_LIST = 9
 PROP_TYPE_FILE = 10
+PROP_TYPE_LABEL = 11
 
 class ShapePropBox(object):
     IdSeed = 0
@@ -87,7 +88,7 @@ class ShapePropBox(object):
                 prop_widget.get_buffer().set_text(value)
             elif isinstance(prop_widget, NameValueComboBox):
                 prop_widget.set_value(value)
-            elif isinstance(prop_widget, Gtk.Entry):
+            elif isinstance(prop_widget, Gtk.Entry) or isinstance(prop_widget, Gtk.Label):
                 if prop_widget.value_type == PROP_TYPE_POINT:
                     value = value.to_text()
                 prop_widget.set_text(value)
@@ -96,7 +97,7 @@ class ShapePropBox(object):
             elif isinstance(prop_widget, FileSelect):
                 prop_widget.set_filename(value)
 
-    def add_prop(self, prop_name, value_type, values, can_insert_slice = True,
+    def add_prop(self, prop_name, value_type, values=None, can_insert_slice = True,
                        related=None):
         if value_type == PROP_TYPE_NUMBER_ENTRY:
             step = values["step_increment"]
@@ -157,6 +158,11 @@ class ShapePropBox(object):
             entry.props.width_chars = 10
             entry.connect("activate", self.entry_activated, prop_name)
             prop_widget = entry
+        elif value_type == PROP_TYPE_LABEL:
+            can_insert_slice = False
+            label = Gtk.Label()
+            label.set_halign(Gtk.Align.START)
+            prop_widget = label
         elif value_type == PROP_TYPE_FILE:
             file_widget = FileSelect(file_types=values["file_type"])
             file_widget.connect("file-selected", self.file_widget_file_selected, prop_name)

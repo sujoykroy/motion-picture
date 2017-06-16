@@ -148,7 +148,7 @@ class TimePosShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         RectangleShapePropBox.__init__(self, parent_window, draw_callback, self.new_insert_time_slice)
         self.add_prop("time_pos", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=0, upper=3*60*60, step_increment=1, page_increment=1, page_size=1))
+                dict(value=0, lower=0, upper=3*60*60, step_increment=.01))
         self.orig_insert_time_slice_callback = insert_time_slice_callback
 
     def new_insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):
@@ -169,7 +169,9 @@ class AudioShapePropBox(TimePosShapePropBox):
 class VideoShapePropBox(TimePosShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         TimePosShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
+        self.add_prop("video_length", PROP_TYPE_LABEL)
         self.add_prop("video_path", PROP_TYPE_FILE, dict(file_type=[["Video", "video/*"]]))
+        self.add_prop("use_thread", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
 
 class ThreeDShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
