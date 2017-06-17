@@ -36,6 +36,11 @@ class AudioFileCache(object):
             return numpy.zeros((self.samples.shape[0], 1), dtype="f")
         return self.samples[:, pos]
 
+    def get_samples(self, at):
+        pos = numpy.array(at*self.sample_rate, dtype=numpy.uint32)
+        pos = numpy.where(pos>=self.samples.shape[1], self.samples.shape[1]-1, pos)
+        return self.samples[:, pos]
+
     def get_samples_in_between(self, start_at, end_at):
         start_at = int(start_at*self.sample_rate)
         end_at = int(end_at*self.sample_rate)

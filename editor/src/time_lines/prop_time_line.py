@@ -12,7 +12,7 @@ class PropTimeLine(object):
         self.time_slices = OrderedDict()
 
     def is_time_slice_linkable(self):
-        return self.prop_name != 'internal'
+        return not self.prop_name in('internal', "time_pos")
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)

@@ -159,19 +159,68 @@ class MultiShapeTimeLine(object):
         for shape_time_line in self.shape_time_lines:
             shape_time_line.expand_duration(self.duration)
 
-    def get_audio_clips(self):
+    def get_audio_clips(self, abs_time_offset=0, pre_scale=1.,
+                              slice_start_at=None, slice_end_at=None):
         audio_clips = []
+        if slice_start_at is None:
+            slice_start_at = 0
+        if slice_end_at is None:
+            slice_end_at = self.duration
+
         for shape_line in self.shape_time_lines:
             shape = shape_line.shape
-            if not isinstance(shape, AudioShape):
-                continue
-            for prop_line in shape_line.prop_time_lines:
-                if prop_line.prop_name != "time_pos":
-                    continue
+            if shape_line.prop_time_lines.key_exists("internal"):
+                prop_line = shape_line.prop_time_lines["internal"]
                 t = 0
                 for time_slice in prop_line.time_slices:
-                    clip = AudioClipGenerator(shape, time_slice)
-                    clip = clip.set_start(t)
-                    audio_clips.append(clip)
+                    if time_slice.prop_data and time_slice.prop_data.get("type") == "timeline":
+                        next_timeline = shape.timelines.get(time_slice.prop_data.get("timeline"))
+                    else:
+                        next_timeline = None
+                    if next_timeline and t+time_slice.duration<slice_start_at and t<slice_end_at:
+                        tm_start = max(slice_start_at, t)
+                        tm_end = min(t+time_slice.duration, slice_end_at)
+
+                        scale = (time_slice.end_value-time_slice.start_value)
+                        scale *= next_timeline.duration/time_slice.duration
+                        scale *= pre_scale
+
+                        audio_clips.extend(
+                            next_timeline.get_audio_clips(
+                                abs_time_offset=abs_time_offset+(tm_start-slice_start_at)/pre_scale,
+                                pre_scale=scale,
+                                slice_start_at=time_slice.start_value*next_timeline.duration,
+                                slice_end_at=time_slice.end_value*next_timeline.duration
+                            )
+                        )
                     t += time_slice.duration
+                    if t>=slice_end_at:
+                        break
+
+            if not hasattr(shape, "audio_active") or not shape.audio_active:
+                continue
+            if not shape_line.prop_time_lines.key_exists("time_pos"):
+                continue
+            prop_line = shape_line.prop_time_lines["time_pos"]
+
+            t = 0
+            for time_slice in prop_line.time_slices:
+                if t+time_slice.duration>slice_start_at and t<=slice_end_at:
+                    tm_start = max(slice_start_at, t)
+                    tm_end = min(t+time_slice.duration, slice_end_at)
+
+                    scale = (time_slice.end_value-time_slice.start_value)/time_slice.duration
+                    scale *= pre_scale
+                    duration = (tm_end-tm_start)/pre_scale
+
+                    clip = AudioClipGenerator(
+                        abs_time_offset+(tm_start-slice_start_at)/pre_scale,
+                        scale, duration, time_slice
+                    )
+                    clip = clip.set_start(clip.time_offset)
+                    audio_clips.append(clip)
+
+                t += time_slice.duration
+                if t>=slice_end_at:
+                    break
         return audio_clips

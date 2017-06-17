@@ -166,6 +166,8 @@ class AudioShapePropBox(TimePosShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         TimePosShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
         self.add_prop("audio_path", PROP_TYPE_FILE, dict(file_type=[["Audio", "audio/*"], ["Video", "video/*"]]))
+        self.add_prop("audio_length", PROP_TYPE_LABEL)
+        self.add_prop("audio_active", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
 
 class VideoShapePropBox(TimePosShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):

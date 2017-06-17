@@ -150,6 +150,7 @@ class ShapePropBox(object):
             text_view.set_margin_top(2)
             text_view.set_margin_bottom(5)
             text_view.get_buffer().connect("changed", self.text_buffer_changed, prop_name, text_view)
+            text_view.get_buffer().related = related
             prop_widget = text_view
             can_insert_slice = False
         elif value_type == PROP_TYPE_TEXT:

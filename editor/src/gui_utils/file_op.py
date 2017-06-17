@@ -57,12 +57,15 @@ class FileSelect(Gtk.HBox):
         Gtk.HBox.__init__(self)
         self.selection_entry = Gtk.Entry()
         self.selection_entry.set_editable(False)
-        self.select_button = Gtk.Button("C")
+        self.select_button = Gtk.Button("S")
         self.select_button.connect("clicked", self.select_button_clicked)
+        self.clear_button = Gtk.Button("C")
+        self.clear_button.connect("clicked", self.clear_button_clicked)
         self.file_types = file_types
         self.set_filename(None)
 
         self.pack_start(self.selection_entry, expand=True, fill=True, padding=0)
+        self.pack_end(self.clear_button, expand=False, fill=True, padding=0)
         self.pack_end(self.select_button, expand=False, fill=True, padding=0)
 
     def set_filename(self, filename):
@@ -80,6 +83,10 @@ class FileSelect(Gtk.HBox):
         if filename:
             self.set_filename(filename)
             self.emit("file-selected")
+
+    def clear_button_clicked(self, widget):
+        self.set_filename(None)
+        self.emit("file-selected")
 
 class FileChooserDialog(Gtk.FileChooserDialog):
     def __init__(self, *args, **kwargs):

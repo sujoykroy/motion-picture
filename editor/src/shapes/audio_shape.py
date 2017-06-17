@@ -20,6 +20,7 @@ class AudioShape(TextShape):
         self.audio_path = None
         self.time_pos = 0.
         self.audio_queue = None
+        self.audio_active = True
 
     @classmethod
     def build_time_step(self, mult):
@@ -35,17 +36,19 @@ class AudioShape(TextShape):
     def get_xml_element(self):
         elm = TextShape.get_xml_element(self)
         elm.attrib["audio_path"] = self.audio_path
+        if not self.audio_active:
+            elm.attrib["audio_active"] = "0"
         return elm
 
     @classmethod
     def create_from_xml_element(cls, elm):
         shape = super(AudioShape, cls).create_from_xml_element(elm)
         shape.set_audio_path(elm.attrib.get("audio_path", ""))
+        shape.audio_active = bool(int(elm.attrib.get("audio_active", 1)))
         return shape
 
     def set_audio_path(self, audio_path):
-        if audio_path:
-            self.audio_path = audio_path
+        self.audio_path = audio_path
 
     def set_av_filename(self, filename):
         self.set_audio_path(filename)
@@ -60,6 +63,9 @@ class AudioShape(TextShape):
         audio_file = AudioFileCache.get_file(self.audio_path)
         return audio_file.duration
 
+    def get_audio_length(self):
+        return "{0:.2f} sec".format(self.get_duration())
+
     def get_sample(self, at):
         audio_file = AudioFileCache.get_file(self.audio_path)
         return audio_file.get_sample_at(at)
@@ -73,9 +79,11 @@ class AudioShape(TextShape):
     def set_time_pos(self, time_pos, prop_data=None):
         if prop_data:
             self.set_av_filename(prop_data["av_filename"])
+
         self.time_pos = time_pos
-        if AudioShape.DONT_PLAY:
+        if AudioShape.DONT_PLAY or not self.audio_path:
             return
+
         audio_jack = AudioJack.get_thread()
         if not audio_jack:
             return
@@ -92,7 +100,7 @@ class AudioShape(TextShape):
         except Queue.Full as e:
             pass
 
-    def draw_image(self, ctx):
+    def draw_image(self, ctx, root_shape=None):
         if self.AUDIO_ICON is None:
             return
         ctx.save()
@@ -107,7 +115,7 @@ class AudioShape(TextShape):
             return
         filename = prop_data["av_filename"] if prop_data else None
         if not filename:
-            filename = self.audio_path
+            return
         wave_file = AudioFileCache.get_file(filename)
         diff_value = abs(time_slice.end_value - time_slice.start_value)
         if diff_value ==0:

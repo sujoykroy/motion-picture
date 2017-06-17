@@ -38,6 +38,7 @@ class VideoProcessThread(threading.Thread):
 
 class VideoShape(RectangleShape):
     TYPE_NAME = "Video"
+    USE_IMAGE_THREAD = False
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius):
         RectangleShape.__init__(self, anchor_at, border_color, border_width,
@@ -87,31 +88,48 @@ class VideoShape(RectangleShape):
     def get_duration(self):
         return self.duration
 
+    def get_sample(self):
+        audio_file = AudioFileCache.get_file(self.video_path)
+        return audio_file.get_sample_at(self.time_pos)
+
     def get_video_length(self):
         return "{0:.2f} sec".format(self.duration)
 
     def get_av_filename(self):
         return self.video_path
 
+    def set_av_filename(self, filename):
+        if self.video_path != filename:
+            self.set_video_path(filename)
+
     def can_draw_time_slice_for(self, prop_name):
         return True if prop_name == "time_pos" else False
+
+    def get_sample(self):#audio sample
+        audio_file = AudioFileCache.get_file(self.video_path)
+        return audio_file.get_sample_at(self.time_pos)
 
     def set_time_pos(self, time_pos, prop_data=None):
         if prop_data and False:
             filename = prop_data.get("av_filename")
             if filename:
                 self.set_video_path(filename)
+
+        if AudioShape.ActiveShapes is not None:
+            AudioShape.ActiveShapes.add(self)
+
+        self.time_pos = time_pos
+
         if time_pos<0:
             return
+
         if self.video_clip is None:
             self.video_clip = VideoFileClip(self.video_path)
             self.duration = self.video_clip.duration
         if time_pos>self.video_clip.duration:
             time_pos = self.video_clip.duration
 
-        self.time_pos = time_pos
-
-        if self.use_thread:
+        if self.use_thread and VideoShape.USE_IMAGE_THREAD:
             if time_pos>0:
                 if self.process_thread is None:
                     self.frame_queue = Queue.Queue(1)
