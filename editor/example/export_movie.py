@@ -5,6 +5,10 @@ movie_filename = "/home/sujoy/Pictures/MotionPictureFiles/test.webm"
 
 doc_filename = "/home/sujoy/Devel/MotionPicture/resources/sample_blender_mp.xml"
 movie_filename = "/home/sujoy/Temporary/test.webm"
+
+doc_filename = "/home/sujoy/Temporary/audio_test.xml"
+movie_filename = "/home/sujoy/Temporary/audio_test.webm"
+
 time_line = "main"
 camera = None
 
@@ -21,7 +25,7 @@ if doc:
     doc.make_movie(
         movie_filename, time_line=time_line, camera=camera, start_time=4, end_time=None,
         ffmpeg_params="-quality good -qmin 10 -qmax 42",
-        codec="libvpx", audio=True, speed=1, sleep=0)
+        codec="libvpx", audio=True, speed=1, sleep=0, dry=not True)
 
 
 #subprocess.call(["vlc", movie_filename])

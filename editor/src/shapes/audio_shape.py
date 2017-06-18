@@ -108,6 +108,12 @@ class AudioShape(TextShape):
         self.AUDIO_ICON.draw(ctx)
         ctx.restore()
 
+    def draw(self, ctx, fixed_border=True, root_shape=None):
+        super(AudioShape, self).draw(ctx, fixed_border=fixed_border, root_shape=root_shape)
+        ctx.save()
+        self.AUDIO_ICON.draw(ctx)
+        ctx.restore()
+
     @staticmethod
     def draw_for_time_slice(ctx, prop_name, prop_data, visible_time_span,
                                  time_slice, time_slice_box, pixel_per_second):

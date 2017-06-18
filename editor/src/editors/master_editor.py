@@ -308,6 +308,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def load_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line_editor.set_multi_shape_time_line(multi_shape_time_line)
+        self.show_time_slice_props(None)
 
     def open_document(self, filename=None, width=400., height=400.):
         self.doc = Document(filename, width=width, height=height)

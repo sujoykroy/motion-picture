@@ -1,5 +1,5 @@
 from xml.etree.ElementTree import Element as XmlElement
-import math
+import math, numpy
 
 class TimeChangeType(object):
     TAG_NAME = "time_change_type"
@@ -86,7 +86,7 @@ class PeriodicChangeType(TimeChangeType):
             for i in range(len(value)):
                 value[i] += self_value
         else:
-            value += self_value
+            value = value + self_value
         return value
 
     def get_min_max_value(self, start_value, end_value, duration):
@@ -114,7 +114,10 @@ class SineChangeType(PeriodicChangeType):
     TYPE_NAME = "sine"
 
     def self_value_at(self, t):
-        value = self.amplitude*math.sin(math.pi*2*t/self.period + self.phase*math.pi/180.)
+        if isinstance(t, numpy.ndarray):
+            value = self.amplitude*numpy.sin(math.pi*2*t/self.period + self.phase*math.pi/180.)
+        else:
+            value = self.amplitude*math.sin(math.pi*2*t/self.period + self.phase*math.pi/180.)
         return value
 
 
@@ -123,10 +126,13 @@ class TriangleChangeType(PeriodicChangeType):
 
     def self_value_at(self, t):
         frac = t/self.period
-        frac += self.phase/360.
-        frac %= 1
-        if frac>.5: frac = 1-frac
-        frac *= 2
+        frac = frac + self.phase/360.
+        frac = frac % 1
+        if isinstance(frac, numpy.ndarray):
+            frac = numpy.where(frac>.5, 1-frac, frac)
+        else:
+            if frac>.5: frac = 1-frac
+        frac = frac * 2
         return self.amplitude*frac
 
 class LoopChangeType(TimeChangeType):
@@ -138,7 +144,7 @@ class LoopChangeType(TimeChangeType):
 
     def value_at(self, start_value, end_value, t, duration):
         loop_duration = duration/(1.0*self.loop_count)
-        t %= loop_duration
+        t = t % loop_duration
         return super(LoopChangeType, self).value_at(start_value, end_value, t, loop_duration)
 
     def get_xml_element(self):

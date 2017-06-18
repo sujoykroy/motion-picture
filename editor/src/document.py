@@ -198,7 +198,7 @@ class Document(object):
     def make_movie(self, filename, time_line, start_time=0, end_time=None, speed=1, sleep=0,
                          fps=24, camera=None,
                          ffmpeg_params="-quality good -qmin 10 -qmax 42", bitrate="640k",
-                         codec="libvpx", audio=True):
+                         codec="libvpx", audio=True, dry=False):
         timelines = self.main_multi_shape.timelines
         if not timelines:
             return
@@ -227,9 +227,12 @@ class Document(object):
             ffmpeg_params = ffmpeg_params.split(" ")
         if audio:
             audio_clips = time_line.get_audio_clips()
+            #print audio_clips
             if audio_clips:
                 audio_clip = movie_editor.CompositeAudioClip(audio_clips)
                 video_clip = video_clip.set_audio(audio_clip)
+        if dry:
+            return
         video_clip.write_videofile(
             filename, fps=fps, codec=codec, preset="superslow",
             ffmpeg_params=ffmpeg_params,

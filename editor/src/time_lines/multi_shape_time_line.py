@@ -177,14 +177,13 @@ class MultiShapeTimeLine(object):
                         next_timeline = shape.timelines.get(time_slice.prop_data.get("timeline"))
                     else:
                         next_timeline = None
-                    if next_timeline and t+time_slice.duration<slice_start_at and t<slice_end_at:
+                    if next_timeline and t+time_slice.duration>slice_start_at and t<=slice_end_at:
                         tm_start = max(slice_start_at, t)
                         tm_end = min(t+time_slice.duration, slice_end_at)
 
                         scale = (time_slice.end_value-time_slice.start_value)
                         scale *= next_timeline.duration/time_slice.duration
                         scale *= pre_scale
-
                         audio_clips.extend(
                             next_timeline.get_audio_clips(
                                 abs_time_offset=abs_time_offset+(tm_start-slice_start_at)/pre_scale,
@@ -214,8 +213,11 @@ class MultiShapeTimeLine(object):
                     duration = (tm_end-tm_start)/pre_scale
 
                     clip = AudioClipGenerator(
-                        abs_time_offset+(tm_start-slice_start_at)/pre_scale,
-                        scale, duration, time_slice
+                        time_offset=abs_time_offset+(tm_start-slice_start_at)/pre_scale,
+                        slice_offset=max(0, slice_start_at-t),
+                        scale=scale,
+                        duration=duration,
+                        time_slice=time_slice
                     )
                     clip = clip.set_start(clip.time_offset)
                     audio_clips.append(clip)

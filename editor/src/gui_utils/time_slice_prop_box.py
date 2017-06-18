@@ -109,7 +109,9 @@ class TimeSlicePropBox(Gtk.Frame):
                 if "pose" in prop_data:
                     self.prop_data_widgets["pose"].build_and_set_model(sorted(self.shape.poses.keys()))
                 if "timeline" in prop_data:
-                    self.prop_data_widgets["timeline"].build_and_set_model(sorted(self.shape.timelines.keys()))
+                    timelines = sorted(self.shape.timelines.keys())
+                    timelines.insert(0, "")
+                    self.prop_data_widgets["timeline"].build_and_set_model(timelines)
                 if "start_form" in prop_data:
                     self.prop_data_widgets["start_form"].build_and_set_model(sorted(self.shape.forms.keys()))
                 if "end_form" in prop_data:
