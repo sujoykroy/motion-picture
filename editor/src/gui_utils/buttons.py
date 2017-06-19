@@ -1,7 +1,5 @@
 from .. import settings
-from ..commons.colors import *
-from ..commons import Rect
-from ..commons.draw_utils import *
+from ..commons import *
 from ..document import Document
 from gi.repository import Gtk, GdkPixbuf, GObject, Gdk
 from name_value_combo_box import NameValueComboBox
@@ -9,7 +7,7 @@ import os, cairo
 
 def create_new_image_button(icon_name, desc=None, border_scale=1., size=20):
     if desc is None:
-        desc = icon_name[0].upper() + icon_name[1:]
+        desc = get_displayble_prop_name(icon_name)
     image_widget = create_new_image_widget(icon_name, border_scale, size=size)
     if image_widget:
         button = Gtk.Button()
@@ -102,7 +100,6 @@ class ColorButton(Gtk.HBox):
                 self.color_type = "Radial"
             elif isinstance(color, LinearGradientColor):
                 self.color_type = "Linear"
-
         self.color_types_combobox.set_value(self.color_type)
         self.emit("color-changed")
         self.color_button.queue_draw()

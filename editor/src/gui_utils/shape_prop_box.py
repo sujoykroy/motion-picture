@@ -76,7 +76,7 @@ class ShapePropBox(object):
             for widget in prop_widget.widgets:
                 widget.show()
             value = self.prop_object.get_prop_value(prop_name)
-            if value is None: continue
+            #if value is None: continue
             if isinstance(prop_widget, Gtk.SpinButton):
                 prop_widget.set_value(value)
             elif isinstance(prop_widget, ColorButton):

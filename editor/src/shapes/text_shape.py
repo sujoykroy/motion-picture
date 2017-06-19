@@ -77,8 +77,8 @@ class TextShape(RectangleShape):
         return shape
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = TextShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
-                            self.fill_color.copy(), self.width, self.height,self.corner_radius,
+        newob = TextShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
+                            copy_value(self.fill_color), self.width, self.height,self.corner_radius,
                             self.x_align, self.y_align, self.text, self.font, self.font_color,
                             self.line_align)
         self.copy_into(newob, copy_name, all_fields=True)

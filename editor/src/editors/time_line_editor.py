@@ -9,6 +9,7 @@ from ..time_line_boxes import *
 from ..gui_utils import buttons, YesNoDialog
 from ..settings import EditingChoice
 from .. import settings as Settings
+from ..gui_utils.buttons import *
 
 EDITOR_LINE_COLOR = "ff0000"
 TIME_SLICE_START_X = PropTimeLineBox.TOTAL_LABEL_WIDTH + SHAPE_LINE_LEFT_PADDING
@@ -229,7 +230,10 @@ class TimeLineEditor(Gtk.VBox):
         info_hbox.pack_start(self.time_line_name_label, expand=False, fill=False, padding=5)
 
         self.play_head_time_label = Gtk.Label()
-        self.play_head_time_label.set_size_request(100, -1)
+        #self.play_head_time_label.set_size_request(100, -1)
+        info_hbox.pack_end(
+            create_new_image_widget("playhead", border_scale=3, size=24),
+                expand=False, fill=False, padding=5)
         info_hbox.pack_end(self.play_head_time_label, expand=False, fill=False, padding=5)
 
         self.play_button = buttons.create_new_image_button("play")
@@ -239,6 +243,19 @@ class TimeLineEditor(Gtk.VBox):
         self.pause_button.connect("clicked", self.on_play_pause_button_click, False)
         info_hbox.pack_end(self.pause_button, expand=False, fill=False, padding=5)
 
+        self.play_1x_speed_button=create_new_image_button("play_1x_speed", size=24)
+        self.play_1x_speed_button.connect("clicked", self.play_1x_speed_button_clicked)
+        info_hbox.pack_end(self.play_1x_speed_button, expand=False, fill=False, padding=5)
+
+        self.speed_scale_slider = Gtk.Scale.new(Gtk.Orientation.HORIZONTAL, None)
+        self.speed_scale_slider.set_range(0, 2)
+        self.speed_scale_slider.set_increments(.01, -1)
+        self.speed_scale_slider.set_digits(2)
+        self.speed_scale_slider.set_value(1)
+        self.speed_scale_slider.connect("change-value", self.speed_scale_slider_changed)
+        self.speed_scale_slider.set_size_request(200, -1)
+        info_hbox.pack_end(self.speed_scale_slider, expand=False, fill=False, padding=5)
+        info_hbox.pack_end(create_new_image_widget("play_speedx", size=24), expand=False, fill=False, padding=5)
 
         self.multi_shape_time_line_box = None
 
@@ -265,8 +282,18 @@ class TimeLineEditor(Gtk.VBox):
         self.is_playing = False
         self.last_play_updated_at = 0
         self.selected_shape = None
+        self.speed_scale = 1.
 
         self.time_marker_boxes = dict()
+        self.show_current_play_head_time()
+
+    def play_1x_speed_button_clicked(self, widget):
+        self.speed_scale_slider.set_value(1)
+        self.speed_scale = 1.
+
+    def speed_scale_slider_changed(self, widget_range, scroll, value):
+        self.speed_scale = value
+        return False
 
     def set_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line = multi_shape_time_line
@@ -301,7 +328,7 @@ class TimeLineEditor(Gtk.VBox):
 
     def show_current_play_head_time(self):
         self.play_head_time_label.set_markup(
-            "Playhead at: <span color=\"#cc6600\">{0:.2f}</span> sec".format(self.play_head_time))
+            "<span color=\"#cc6600\">{0:.2f}</span> sec".format(self.play_head_time))
 
     def move_play_head_to_time(self, value, force_visible=False):
         if value is not None:
@@ -527,7 +554,7 @@ class TimeLineEditor(Gtk.VBox):
         current_time = time.time()
         if self.last_play_updated_at>0:
             #diff = current_time - self.last_play_updated_at
-            diff = MOVE_TO_INCREMENT
+            diff = MOVE_TO_INCREMENT*self.speed_scale
             value = self.play_head_time + diff
             if self.time_line.duration == 0:
                 value = 0
