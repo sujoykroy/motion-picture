@@ -6,6 +6,7 @@ from curve_shape import CurveShape
 from polygon_shape import PolygonShape
 from multi_shape import MultiShape
 from image_shape import ImageShape
+from av_base import AVBase
 from audio_shape import AudioShape
 from video_shape import VideoShape
 from camera_shape import CameraShape

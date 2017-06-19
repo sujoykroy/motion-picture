@@ -11,6 +11,8 @@ class TimeSlicePropBox(Gtk.Frame):
     LIST = 3
     NUMBERS = 4
     AUDIO_FILE = 5
+    VIDEO_FILE = 6
+    IMAGE_FILE = 7
 
     def __init__(self, draw_callback):
         Gtk.Frame.__init__(self)
@@ -43,7 +45,9 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "start_form", self.LIST)
         self.add_editable_item("prop_data", "end_form", self.LIST)
         self.add_editable_item("prop_data", "text", self.TEXT)
-        self.add_editable_item("prop_data", "av_filename", self.AUDIO_FILE)
+        self.add_editable_item("prop_data", "audio_path", self.AUDIO_FILE)
+        self.add_editable_item("prop_data", "video_path", self.VIDEO_FILE)
+        self.add_editable_item("prop_data", "image_path", self.IMAGE_FILE)
         self.add_editable_item("prop_data", "follow_curve", self.TEXT)
         self.add_editable_item("prop_data", "follow_angle", self.BOOLEAN)
         self.add_editable_item("prop_data", "camera", self.TEXT)
@@ -211,6 +215,14 @@ class TimeSlicePropBox(Gtk.Frame):
             item_widget = entry
         elif item_type == self.AUDIO_FILE:
             file_chooser = FileSelect(file_types="audio")
+            file_chooser.connect("file-selected", self.item_widget_changed)
+            item_widget = file_chooser
+        elif item_type == self.VIDEO_FILE:
+            file_chooser = FileSelect(file_types="video")
+            file_chooser.connect("file-selected", self.item_widget_changed)
+            item_widget = file_chooser
+        elif item_type == self.IMAGE_FILE:
+            file_chooser = FileSelect(file_types="image")
             file_chooser.connect("file-selected", self.item_widget_changed)
             item_widget = file_chooser
 

@@ -34,14 +34,31 @@ class ImageShape(RectangleShape):
         shape.alpha = float(elm.attrib.get("alpha", 1.))
         return shape
 
-    def set_image_path(self, image_path):
-        self.image_path = image_path
-        try:
-            self.image_pixbuf = Pixbuf.new_from_file(image_path)
-        except:
-            self.image_pixbuf = None
+    def set_prop_value(self, prop_name, prop_value, prop_data=None):
+        if prop_name == "alpha":
+            self.set_alpha(prop_value, prop_data)
+        else:
+            super(ImageShape, self).set_prop_value(prop_name, prop_value, prop_data)
 
-    def draw_image(self, ctx):
+    def set_image_path(self, image_path):
+        if self.image_path != image_path:
+            self.image_path = image_path
+            if image_path == "//":
+                self.image_pixbuf = None
+            elif image_path:
+                try:
+                    self.image_pixbuf = Pixbuf.new_from_file(image_path)
+                except:
+                    self.image_pixbuf = None
+
+    def set_alpha(self, value, prop_data = None):
+        if prop_data and "image_path" in prop_data:
+            image_path = prop_data.get("image_path")
+            self.set_image_path(image_path)
+
+        self.alpha = value
+
+    def draw_image(self, ctx, root_shape=None):
         if self.image_pixbuf:
             ctx.save()
             ctx.scale(self.width/float(self.image_pixbuf.get_width()),

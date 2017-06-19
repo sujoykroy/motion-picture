@@ -27,6 +27,11 @@ class FileOp(object):
         if file_types == "audio":
             file_types = [["Audio", "audio/*"]]
             dialog.set_preview_audio(True)
+        elif file_types == "video":
+            file_types = [["Video", "video/*"]]
+        elif file_types == "image":
+            file_types = [["Image", "image/*"]]
+
         for file_name, mime_type in file_types:
             if file_name == "Audio":
                 dialog.set_preview_audio(True)
@@ -57,15 +62,22 @@ class FileSelect(Gtk.HBox):
         Gtk.HBox.__init__(self)
         self.selection_entry = Gtk.Entry()
         self.selection_entry.set_editable(False)
+
         self.select_button = Gtk.Button("S")
         self.select_button.connect("clicked", self.select_button_clicked)
+
         self.clear_button = Gtk.Button("C")
         self.clear_button.connect("clicked", self.clear_button_clicked)
+
+        self.blank_button = Gtk.Button("B")
+        self.blank_button.connect("clicked", self.blank_button_clicked)
+
         self.file_types = file_types
         self.set_filename(None)
 
         self.pack_start(self.selection_entry, expand=True, fill=True, padding=0)
         self.pack_end(self.clear_button, expand=False, fill=True, padding=0)
+        self.pack_end(self.blank_button, expand=False, fill=True, padding=0)
         self.pack_end(self.select_button, expand=False, fill=True, padding=0)
 
     def set_filename(self, filename):
@@ -86,6 +98,10 @@ class FileSelect(Gtk.HBox):
 
     def clear_button_clicked(self, widget):
         self.set_filename(None)
+        self.emit("file-selected")
+
+    def blank_button_clicked(self, widget):
+        self.set_filename("//")
         self.emit("file-selected")
 
 class FileChooserDialog(Gtk.FileChooserDialog):

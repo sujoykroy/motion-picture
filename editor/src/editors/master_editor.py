@@ -101,6 +101,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_prop_box = MultiShapePropBox(self, self.redraw, self.insert_time_slice)
         self.curve_smooth_prop_box = CurveSmoothPropBox(
                             self.recreate_shape_editor, self.get_shape_manager)
+        self.image_shape_prop_box = ImageShapePropBox(self, self.redraw, self.insert_time_slice)
         self.audio_shape_prop_box = AudioShapePropBox(self, self.redraw, self.insert_time_slice)
         self.video_shape_prop_box = VideoShapePropBox(self, self.redraw, self.insert_time_slice)
         self.threed_shape_prop_box = ThreeDShapePropBox(self, self.redraw, self.insert_time_slice)
@@ -134,6 +135,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.text_shape_prop_box,
             self.shape_form_prop_box,
             self.curve_smooth_prop_box,
+            self.image_shape_prop_box,
             self.audio_shape_prop_box,
             self.video_shape_prop_box,
             self.threed_shape_prop_box,
@@ -207,7 +209,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.camera_viewer_dialog = None
         AudioShape.AUDIO_ICON = Document.get_icon_shape("audio", 20, 20)
-        AudioShape.DONT_PLAY = False
+        AVBase.DONT_PLAY = False
         VideoShape.USE_IMAGE_THREAD = True
         CameraShape.CAMERA_ICON = Document.get_icon_shape("camera", 20, 20)
 
@@ -382,6 +384,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.shape_form_prop_box.hide()
         self.curve_smooth_prop_box.hide()
         self.text_shape_prop_box.hide()
+        self.image_shape_prop_box.hide()
         self.video_shape_prop_box.hide()
         self.audio_shape_prop_box.hide()
         self.camera_shape_prop_box.hide()
@@ -421,7 +424,10 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.threed_shape_prop_box.show()
                 self.threed_shape_prop_box.set_prop_object(shape)
 
-            if isinstance(shape, RectangleShape):
+            if isinstance(shape, ImageShape):
+                self.image_shape_prop_box.show()
+                self.image_shape_prop_box.set_prop_object(shape)
+            elif isinstance(shape, RectangleShape):
                 self.rectangle_shape_prop_box.show()
                 self.rectangle_shape_prop_box.set_prop_object(shape)
             elif isinstance(shape, RingShape):

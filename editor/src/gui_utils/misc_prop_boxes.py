@@ -11,8 +11,6 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("visible", PROP_TYPE_CHECK_BUTTON)
         self.add_prop("renderable", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         #self.add_prop("stage_xy", PROP_TYPE_POINT, None)
-        self.add_prop("alpha", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=0, upper=1.1, step_increment=.1, page_increment=.1, page_size=.1))
 
         self.add_prop("x", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-10000, upper=10000, step_increment=1), related=["xy"])
@@ -145,37 +143,53 @@ class MultiShapePropBox(ShapePropBox):
 
         self.insert_time_slice_callback(self.prop_object, "internal" , 0, 1, prop_data)
 
-class TimePosShapePropBox(RectangleShapePropBox):
+class ImageShapePropBox(RectangleShapePropBox):
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        RectangleShapePropBox.__init__(self, parent_window, draw_callback, self.new_insert_time_slice)
+        self.add_prop("image_path", PROP_TYPE_FILE, dict(file_type=[["Image", "image/*"]]))
+        self.add_prop("alpha", PROP_TYPE_NUMBER_ENTRY, dict(value=1, lower=0, upper=1, step_increment=.1))
+        self.orig_insert_time_slice_callback = insert_time_slice_callback
+
+    def new_insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):
+        if prop_name == "alpha":
+            prop_data = dict(image_path="")
+        self.orig_insert_time_slice_callback(shape, prop_name, start_value, end_value, prop_data)
+
+
+class AVShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         RectangleShapePropBox.__init__(self, parent_window, draw_callback, self.new_insert_time_slice)
         self.add_prop("time_pos", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=3*60*60, step_increment=.01))
         self.orig_insert_time_slice_callback = insert_time_slice_callback
+        self.path_name = None
 
     def new_insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):
         if prop_name == "time_pos":
             start_value = 0
             end_value = self.prop_object.get_duration()
             duration = self.prop_object.get_duration()
-            prop_data = dict(av_filename=self.prop_object.get_av_filename())
+            prop_data = {self.path_name:self.prop_object.get_av_filename()}
         else:
             duration = None
         self.orig_insert_time_slice_callback(shape, prop_name, start_value, end_value, prop_data, duration)
 
-class AudioShapePropBox(TimePosShapePropBox):
+class AudioShapePropBox(AVShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
-        TimePosShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
+        AVShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
         self.add_prop("audio_path", PROP_TYPE_FILE, dict(file_type=[["Audio", "audio/*"], ["Video", "video/*"]]))
         self.add_prop("audio_length", PROP_TYPE_LABEL)
         self.add_prop("audio_active", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
+        self.path_name = "audio_path"
 
-class VideoShapePropBox(TimePosShapePropBox):
+class VideoShapePropBox(AVShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
-        TimePosShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
+        AVShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
         self.add_prop("video_length", PROP_TYPE_LABEL)
         self.add_prop("video_path", PROP_TYPE_FILE, dict(file_type=[["Video", "video/*"]]))
         self.add_prop("use_thread", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         self.add_prop("audio_active", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
+        self.path_name = "video_path"
 
 class ThreeDShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):

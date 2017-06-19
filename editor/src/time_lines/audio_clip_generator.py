@@ -14,7 +14,7 @@ class AudioClipGenerator(movie_editor.AudioClip):
     def make_frame(self, t):
         final_samples = None
         filename = self.time_slice.prop_data["av_filename"]
-        if not filename:
+        if not filename or filename == "//":
             return numpy.zeros((t.shape[0], 2), dtype="f")
         t = (t*self.scale) + self.slice_offset
         t = self.time_slice.value_at(t)

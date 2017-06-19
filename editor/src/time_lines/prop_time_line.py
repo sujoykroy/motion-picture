@@ -28,6 +28,15 @@ class PropTimeLine(object):
         for time_slice_elm in elm.findall(TimeSlice.TAG_NAME):
             time_slice = TimeSlice.create_from_xml_element(time_slice_elm)
             if time_slice:
+                #temporary, transition
+                if prop_name == "time_pos" and "av_filename" in time_slice.prop_data:
+                    class_name = shape.__class__.__name__
+                    if class_name == "AudioShape":
+                        path = "audio"
+                    elif class_name == "VideoShape":
+                        path = "video"
+                    time_slice.prop_data[path + "_path"] = time_slice.prop_data["av_filename"]
+                    del time_slice.prop_data["av_filename"]
                 prop_time_line.time_slices.add(time_slice, time_slice)
         return prop_time_line
 
