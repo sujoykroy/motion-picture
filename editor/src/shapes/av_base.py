@@ -1,4 +1,7 @@
 from ..audio_tools import *
+from ..commons.draw_utils import *
+import time, numpy
+
 
 class AVBase(object):
     DONT_PLAY_AUDIO = True
@@ -9,30 +12,27 @@ class AVBase(object):
         self.audio_queue = None
         self.audio_active = True
         self.last_played_at = 0
+        self.duration = 0
 
     def set_av_filename(self, av_filename):
         if av_filename != self.av_filename:
             self.last_played_at = 0
         self.av_filename = av_filename
 
-    def can_draw_time_slice_for(self, prop_name):
-        return True if prop_name == "time_pos" else False
+    def get_duration(self):
+        return self.duration
+
+    def get_av_filename(self):
+        return self.av_filename
 
     def set_time_pos(self, time_pos, prop_data):
-        if prop_data:
-            av_filename = prop_data.get("av_filename")
-            self.set_av_filename(av_filename)
-
-        if self.av_filename == "//":
-            return
-
         old_time_pos = self.time_pos
         self.time_pos = time_pos
         current_time = time.time()
 
+
         if AVBase.DONT_PLAY_AUDIO or not self.av_filename:
             return
-
         audio_jack = AudioJack.get_thread()
         if not audio_jack:
             return
@@ -43,10 +43,9 @@ class AVBase(object):
         start_at = old_time_pos
         end_at = self.time_pos
         sample_duration = end_at-start_at
-
         if self.last_played_at>0 and sample_duration!=0 and \
             elapsed_time<1:# and abs(sample_duration)<1:
-            audio_file = AudioFileCache.get_file(self.audio_path)
+            audio_file = AudioFileCache.get_file(self.av_filename)
 
             scale = elapsed_time/sample_duration
 
@@ -59,13 +58,8 @@ class AVBase(object):
                 pass
         self.last_played_at = current_time
 
-    def draw_for_time_slice(self, ctx, prop_name, prop_data, visible_time_span,
-                                   time_slice, time_slice_box, pixel_per_second):
-        if prop_name != "time_pos":
-            return
-        filename = prop_data["av_filename"] if prop_data else None
-        if not filename:
-            return
+    def draw_for_time_slice(self, ctx, filename, visible_time_span,
+                                  time_slice, time_slice_box, pixel_per_second):
         wave_file = AudioFileCache.get_file(filename)
         diff_value = abs(time_slice.end_value - time_slice.start_value)
         if diff_value ==0:

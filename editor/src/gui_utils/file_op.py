@@ -120,6 +120,8 @@ class FileChooserDialog(Gtk.FileChooserDialog):
     def file_selection_changed(self, widget):
         if self.preview_audio:
             audio_jack = AudioJack.get_thread()
+            if not audio_jack or not audio_jack.attached:
+                return
             audio_jack.clear_all_audio_queues()
             if not self.audio_player:
                 self.audio_player = AudioPlayer(10)

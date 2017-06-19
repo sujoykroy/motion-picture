@@ -512,7 +512,7 @@ class ShapeManager(object):
                    border_color="000000",
                    border_width=1, fill_color="cccccc",
                    width=1, height=1, corner_radius=2)
-        shape.set_audio_path(filename)
+        shape.set_av_filename(filename)
         shape.set_time_pos(0)
         shape.place_anchor_at_center()
 
@@ -527,7 +527,7 @@ class ShapeManager(object):
                    border_color="000000",
                    border_width=1, fill_color="cccccc",
                    width=1, height=1, corner_radius=2)
-        shape.set_video_path(filename)
+        shape.set_av_filename(filename)
         shape.set_time_pos(0)
         if shape.image_pixbuf:
             w = float(shape.image_pixbuf.get_width())

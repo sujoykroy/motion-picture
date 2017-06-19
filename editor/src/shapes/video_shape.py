@@ -41,6 +41,7 @@ class VideoShape(RectangleShape, AVBase):
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius):
         RectangleShape.__init__(self, anchor_at, border_color, border_width,
                                 fill_color, width, height, corner_radius)
+        AVBase.__init__(self)
         self.image_pixbuf = None
         self.alpha = 1.
 
@@ -75,7 +76,7 @@ class VideoShape(RectangleShape, AVBase):
         shape.audio_active = bool(int(elm.attrib.get("audio_active", 1)))
         return shape
 
-    def set_av_filenmae(self, av_filename):
+    def set_av_filename(self, av_filename):
         if av_filename == "//":
             self.duration = 0
             self.image_pixbuf = None
@@ -91,14 +92,31 @@ class VideoShape(RectangleShape, AVBase):
     def get_video_length(self):
         return "{0:.2f} sec".format(self.duration)
 
+    def get_video_path(self):
+        return self.av_filename
+
+    def set_video_path(self, filename):
+        self.set_av_filename(filename)
+
+    def set_prop_value(self, prop_name, prop_value, prop_data=None):
+        if prop_name == "time_pos":
+            self.set_time_pos(prop_value, prop_data)
+        else:
+            super(VideoShape, self).set_prop_value(prop_name, prop_value, prop_data)
+
     def set_time_pos(self, time_pos, prop_data=None):
+        if prop_data:
+            av_filename = prop_data.get("video_path")
+            self.set_av_filename(av_filename)
+        print self.av_filename
+        if self.av_filename == "//":
+            return
         AVBase.set_time_pos(self, time_pos, prop_data)
 
         if self.duration == 0:#it will handle self.av_filename == "//"
             return
-
         if self.video_clip is None:
-            self.video_clip = VideoFileClip(self.video_path)
+            self.video_clip = VideoFileClip(self.av_filename)
             self.duration = self.video_clip.duration
 
         if time_pos>self.video_clip.duration:
@@ -153,6 +171,21 @@ class VideoShape(RectangleShape, AVBase):
             else:
                 ctx.paint()
             ctx.restore()
+
+    def can_draw_time_slice_for(self, prop_name):
+        return True if prop_name == "time_pos" else False
+
+    def draw_for_time_slice(self, ctx, prop_name, prop_data, visible_time_span,
+                                   time_slice, time_slice_box, pixel_per_second):
+        if prop_name != "time_pos":
+            return
+        filename = prop_data["video_path"] if prop_data else None
+        if not filename or filename == "//":
+            return
+
+        AVBase.draw_for_time_slice(
+            self, ctx, filename, visible_time_span,
+                       time_slice, time_slice_box, pixel_per_second)
 
     def cleanup(self):
         RectangleShape.cleanup(self)

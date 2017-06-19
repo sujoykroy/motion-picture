@@ -137,11 +137,11 @@ class TextShape(RectangleShape):
         self.font = font
         self.readjust_sizes()
 
-    def set_width(self, width):
+    def set_width(self, width, fixed_anchor=True):
         self.width = width
         self.readjust_sizes()
 
-    def set_height(self, height):
+    def set_height(self, height, fixed_anchor=True):
         self.height = height
         self.readjust_sizes()
 

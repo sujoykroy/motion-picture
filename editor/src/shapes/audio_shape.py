@@ -40,11 +40,17 @@ class AudioShape(TextShape, AVBase):
         return shape
 
     def get_duration(self):
-        audio_file = AudioFileCache.get_file(self.audio_path)
+        audio_file = AudioFileCache.get_file(self.av_filename)
         return audio_file.duration
 
     def get_audio_length(self):
         return "{0:.2f} sec".format(self.get_duration())
+
+    def get_audio_path(self):
+        return self.av_filename
+
+    def set_audio_path(self, filename):
+        self.set_av_filename(filename)
 
     def set_prop_value(self, prop_name, prop_value, prop_data=None):
         if prop_name == "time_pos":
@@ -53,6 +59,12 @@ class AudioShape(TextShape, AVBase):
             super(AudioShape, self).set_prop_value(prop_name, prop_value, prop_data)
 
     def set_time_pos(self, time_pos, prop_data=None):
+        if prop_data:
+            av_filename = prop_data.get("audio_path")
+            self.set_av_filename(av_filename)
+
+        if self.av_filename == "//":
+            return
         AVBase.set_time_pos(self, time_pos, prop_data)
 
     def draw_image(self, ctx, root_shape=None):
@@ -69,6 +81,21 @@ class AudioShape(TextShape, AVBase):
         self.AUDIO_ICON.draw(ctx)
         ctx.restore()
 
+    def can_draw_time_slice_for(self, prop_name):
+        return True if prop_name == "time_pos" else False
+
+    def draw_for_time_slice(self, ctx, prop_name, prop_data, visible_time_span,
+                                   time_slice, time_slice_box, pixel_per_second):
+        if prop_name != "time_pos":
+            return
+        filename = prop_data["audio_path"] if prop_data else None
+        if not filename or filename == "//":
+            return
+
+        AVBase.draw_for_time_slice(
+            self, ctx, filename, visible_time_span,
+                       time_slice, time_slice_box, pixel_per_second)
+
     def cleanup(self):
-        super(AudioShape, self).cleanup(self)
+        super(AudioShape, self).cleanup()
         AVBase.cleanup(self)
