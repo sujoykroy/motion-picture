@@ -181,15 +181,15 @@ class MultiShapeTimeLine(object):
                         tm_start = max(slice_start_at, t)
                         tm_end = min(t+time_slice.duration, slice_end_at)
 
-                        scale = (time_slice.end_value-time_slice.start_value)
-                        scale *= next_timeline.duration/time_slice.duration
-                        scale *= pre_scale
+                        lscale = (time_slice.end_value-time_slice.start_value)
+                        lscale *= next_timeline.duration/time_slice.duration
+
                         audio_clips.extend(
                             next_timeline.get_audio_clips(
                                 abs_time_offset=abs_time_offset+(tm_start-slice_start_at)/pre_scale,
-                                pre_scale=scale,
-                                slice_start_at=time_slice.start_value*next_timeline.duration,
-                                slice_end_at=time_slice.end_value*next_timeline.duration
+                                pre_scale=lscale*pre_scale,
+                                slice_start_at=(tm_start-t)*lscale,
+                                slice_end_at=(tm_end-t)*lscale
                             )
                         )
                     t += time_slice.duration

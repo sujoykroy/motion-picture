@@ -18,6 +18,8 @@ import moviepy.editor as movie_editor
 import numpy, time
 
 class Document(object):
+    IdSeed = 0
+
     def __init__(self, filename=None, width=400., height=300.):
         self.filename = filename
         self.width = width
@@ -34,6 +36,11 @@ class Document(object):
         self.main_multi_shape.border_color = None
         self.main_multi_shape.fill_color = None
         self.main_multi_shape.border_width = 0
+        self.id_num = Document.IdSeed
+        Document.IdSeed += 1
+
+    def __eq__(self, other):
+        return isinstance(other, Document) and other.id_num == self.id_num
 
     def is_empty(self):
         return not self.filename and self.reundo.is_empty()
@@ -101,7 +108,6 @@ class Document(object):
             guide = Guide.create_from_xml_element(guide_element)
             if guide:
                 self.guides.append(guide)
-
 
     def save(self, filename=None):
         root = XmlElement("root")
@@ -195,50 +201,6 @@ class Document(object):
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
         return pixbuf
 
-    def make_movie(self, filename, time_line, start_time=0, end_time=None, speed=1, sleep=0,
-                         fps=24, camera=None,
-                         ffmpeg_params="-quality good -qmin 10 -qmax 42", bitrate="640k",
-                         codec="libvpx", audio=True, dry=False):
-        timelines = self.main_multi_shape.timelines
-        if not timelines:
-            return
-        if time_line is None:
-            time_line = timelines.values()[0]
-
-        elif not isinstance(time_line, MultiShapeTimeLine):
-            if time_line in timelines:
-                time_line = timelines[time_line]
-
-        if not time_line:
-            return
-
-        if end_time is None:
-            end_time = time_line.duration
-
-        if camera:
-            camera = self.get_shape_by_name(camera)
-
-        frame_maker = FrameMaker(self, time_line, start_time, end_time,
-                                       camera=camera, speed=speed, sleep=sleep)
-        video_clip = movie_editor.VideoClip(
-                frame_maker.make_frame, duration=frame_maker.get_duration())
-
-        if isinstance(ffmpeg_params, str):
-            ffmpeg_params = ffmpeg_params.split(" ")
-        if audio:
-            audio_clips = time_line.get_audio_clips(
-                slice_start_at=start_time, slice_end_at=end_time)
-            #print audio_clips
-            if audio_clips:
-                audio_clip = movie_editor.CompositeAudioClip(audio_clips)
-                video_clip = video_clip.set_audio(audio_clip)
-        if dry:
-            return
-        video_clip.write_videofile(
-            filename, fps=fps, codec=codec, preset="superslow",
-            ffmpeg_params=ffmpeg_params,
-            bitrate=bitrate)
-
     @staticmethod
     def get_icon_pixbuf(icon_name, scale=None, size=20):
         filename = os.path.join(Settings.ICONS_FOLDER, icon_name + ".xml")
@@ -276,43 +238,153 @@ class Document(object):
             shape.move_to(0,0)
         return shape
 
-class FrameMaker(object):
-    def __init__(self, doc, time_line, start_time, end_time,
-                       camera=None, speed=1, bg_color="FFFFFF", sleep=0):
-        self.doc = doc
-        self.time_line = time_line
-        self.camera = camera
-        self.sleep= sleep
+    @staticmethod
+    def make_movie(doc_movies, filename, speed=1, sleep=0, fps=24,
+                   ffmpeg_params="-quality good -qmin 10 -qmax 42", bitrate="640k",
+                   codec="libvpx", audio=True, dry=False):
 
+        speed = float(speed)
+        doc_movies = list(doc_movies)
+        duration = 0
+        for doc_movie in doc_movies:
+            doc_movie.set_movie_offset(duration)
+            doc_movie.calculate_movie_duration(speed)
+            duration += doc_movie.movie_duration
+
+        frame_maker = FrameMaker(doc_movies, speed=speed, sleep=sleep)
+        video_clip = movie_editor.VideoClip(frame_maker.make_frame, duration=duration)
+        if isinstance(ffmpeg_params, str):
+            ffmpeg_params = ffmpeg_params.split(" ")
+        if audio:
+            audio_clips = []
+            for doc_movie in frame_maker.doc_movies:
+                doc_movie.load_doc()
+                clips = doc_movie.time_line.get_audio_clips(
+                    abs_time_offset = doc_movie.movie_offset,
+                    pre_scale=speed,
+                    slice_start_at=doc_movie.start_time,
+                    slice_end_at=doc_movie.end_time)
+                audio_clips.extend(clips)
+            #print audio_clips
+            if audio_clips:
+                audio_clip = movie_editor.CompositeAudioClip(audio_clips)
+                video_clip = video_clip.set_audio(audio_clip)
+        if dry:
+            return
+        video_clip.write_videofile(
+            filename, fps=fps, codec=codec, preset="superslow",
+            ffmpeg_params=ffmpeg_params,
+            bitrate=bitrate)
+
+class DocMovie(object):
+    def __init__(self, filename, time_line=None, start_time=0, end_time=None, camera=None):
+        doc = Document(filename=filename)
+
+        timelines = doc.main_multi_shape.timelines
+        if not timelines:
+            raise Exception("No timeline is found in {0}".format(doc_filename))
+
+        if time_line is None:
+            if "main" in timelines.keys():
+                time_line = "main"
+            else:
+                time_line = timelines.keys()[0]
+        elif time_line not in timelines:
+            raise Exception("Timeline [{1}] is not found in {0}".format(
+                                        doc_filename, time_line))
+
+        time_line_obj = timelines[time_line]
+
+        if end_time is None:
+            end_time = time_line_obj.duration
+        if camera:
+            if not doc.get_shape_by_name(camera):
+                camera = None
+
+        self.filename = filename
+        self.time_line_name = time_line
         self.start_time = start_time
         self.end_time = end_time
+        self.camera_name = camera
+        self.duration = self.end_time-self.start_time
+        self.movie_offset = 0
+        self.movie_duration = 0
+        self.doc = None
+        self.camera = None
+        self.time_line = None
 
+    def set_movie_offset(self, offset):
+        self.movie_offset = offset
+
+    def calculate_movie_duration(self, speed):
+        self.movie_duration = self.duration/speed
+
+    def load_doc(self):
+        if not self.doc:
+            self.doc = Document(filename=self.filename)
+            self.time_line = self.doc.main_multi_shape.timelines[self.time_line_name]
+            if self.camera_name:
+                self.camera = self.doc.get_shape_by_name(self.camera_name)
+
+    def unload_doc(self):
+        if self.doc:
+            self.doc = None
+            self.camera = None
+
+class FrameMaker(object):
+    def __init__(self, doc_movies, wh=None, speed=1, bg_color="FFFFFF", sleep=0):
+        self.doc_movies = doc_movies
+        self.sleep= sleep
         self.speed = float(speed)
         self.bg_color = bg_color
 
-        if self.camera:
-            self.width, self.height = self.camera.width, self.camera.height
+        if wh:
+            width, height = wh.split("x")
+            self.width = float(width)
+            self.height = float(height)
         else:
-            self.width, self.height = self.doc.width, self.doc.height
+            doc_movie = doc_movies[0]
+            doc_movie.load_doc()
+            if doc_movie.camera:
+                self.width, self.height = doc_movie.camera.width, doc_movie.camera.height
+            else:
+                self.width, self.height = doc_movie.doc.width, doc_movie.doc.height
+            #doc_movie.unload_doc()
+
         self.surface = cairo.ImageSurface(
             cairo.FORMAT_ARGB32, int(self.width), int(self.height))
         self.ctx = cairo.Context(self.surface)
 
-    def get_duration(self):
-        return (self.end_time-self.start_time)/float(self.speed)
-
     def make_frame(self, t):
         if self.sleep:
             time.sleep(self.sleep)
-        self.time_line.move_to(t*self.speed+self.start_time)
+
+        active_doc_movie = None
+        remove_ready = []
+        for i in range(len(self.doc_movies)):
+            doc_movie = self.doc_movies[i]
+            right_end = doc_movie.movie_offset+doc_movie.movie_duration
+            if t>right_end or (t==right_end and i>0):
+                doc_movie.unload_doc()
+                remove_ready.append(doc_movie)
+                continue
+            if t>=doc_movie.movie_offset:
+                doc_movie.load_doc()
+                active_doc_movie = doc_movie
+                t -= doc_movie.movie_offset
+                break
+        for doc_movie in remove_ready:
+            self.doc_movies.remove(doc_movie)
+
+        active_doc_movie.time_line.move_to(t*self.speed+active_doc_movie.start_time)
 
         if self.bg_color:
             self.ctx.rectangle(0, 0, self.width, self.height)
             draw_fill(self.ctx, self.bg_color)
         self.ctx.save()
 
-        camera = self.camera
-        multi_shape = self.doc.main_multi_shape
+        camera = active_doc_movie.camera
+        multi_shape = active_doc_movie.doc.main_multi_shape
         if camera is None:
             camera = multi_shape.camera
 
@@ -320,8 +392,8 @@ class FrameMaker(object):
             view_width = camera.width
             view_height = camera.height
         else:
-            view_width = self.width
-            view_height = self.height
+            view_width = active_doc_movie.doc.width
+            view_height = active_doc_movie.doc.height
 
         dw_width = float(self.width)
         dw_height = float(self.height)
