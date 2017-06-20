@@ -228,6 +228,8 @@ class TimeLineEditor(Gtk.VBox):
 
         self.time_line_name_label = Gtk.Label()
         info_hbox.pack_start(self.time_line_name_label, expand=False, fill=False, padding=5)
+        self.time_line_duration_label = Gtk.Label()
+        info_hbox.pack_start(self.time_line_duration_label, expand=False, fill=False, padding=5)
 
         self.play_head_time_label = Gtk.Label()
         #self.play_head_time_label.set_size_request(100, -1)
@@ -314,6 +316,7 @@ class TimeLineEditor(Gtk.VBox):
             self.time_line_name_label.set_markup(Text.markup(self.time_line.name,
                     color=Settings.TOP_INFO_BAR_TEXT_COLOR, weight="bold"))
             self.time_line.get_duration()
+            self.show_time_line_duration()
             self.multi_shape_time_line_box = MultiShapeTimeLineBox(multi_shape_time_line)
 
             for time_marker in self.time_line.time_markers.values():
@@ -329,6 +332,9 @@ class TimeLineEditor(Gtk.VBox):
     def show_current_play_head_time(self):
         self.play_head_time_label.set_markup(
             "<span color=\"#cc6600\">{0:.2f}</span> sec".format(self.play_head_time))
+
+    def show_time_line_duration(self):
+        self.time_line_duration_label.set_text("[{0:.2f} sec]".format(self.time_line.duration))
 
     def move_play_head_to_time(self, value, force_visible=False):
         if value is not None:
@@ -485,6 +491,7 @@ class TimeLineEditor(Gtk.VBox):
             self.play_head_box.height = self.drawing_area.get_allocated_height()
 
             self.update_time_marker_boxes()
+            self.show_time_line_duration()
 
         self.mouse_position_box.height = self.drawing_area.get_allocated_height()
         self.redraw()

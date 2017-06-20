@@ -15,6 +15,12 @@ class VideoProcessThread(threading.Thread):
         self.clip = clip
         self.should_stop = False
         self.period = .1
+        self.lock = threading.RLock()
+
+    def set_video_clip(self, video_clip):
+        self.lock.acquire()
+        self.clip = video_clip
+        self.lock.release()
 
     def run(self):
         while not self.should_stop:
@@ -24,7 +30,9 @@ class VideoProcessThread(threading.Thread):
             except Queue.Empty as e:
                 time_pos = -1
             if time_pos>=0:
+                self.lock.acquire()
                 frame = self.clip.get_frame(time_pos)
+                self.lock.release()
                 try:
                     self.frame_queue.put(frame, block=False)
                 except Queue.Full as e:
@@ -60,7 +68,7 @@ class VideoShape(RectangleShape, AVBase):
         return newob
 
     def get_xml_element(self):
-        elm = RectangleShape.get_xml_element(self)
+        elm = super(VideoShape, self).get_xml_element()
         elm.attrib["video_path"] = self.av_filename
         elm.attrib["alpha"] = "{0}".format(self.alpha)
         elm.attrib["duration"] = "{0}".format(self.duration)
@@ -108,16 +116,18 @@ class VideoShape(RectangleShape, AVBase):
         if prop_data:
             av_filename = prop_data.get("video_path")
             self.set_av_filename(av_filename)
-        print self.av_filename
         if self.av_filename == "//":
             return
         AVBase.set_time_pos(self, time_pos, prop_data)
+
 
         if self.duration == 0:#it will handle self.av_filename == "//"
             return
         if self.video_clip is None:
             self.video_clip = VideoFileClip(self.av_filename)
             self.duration = self.video_clip.duration
+            if self.image_process_thread:
+                self.image_process_thread.set_video_clip(self.video_clip)
 
         if time_pos>self.video_clip.duration:
             time_pos = self.video_clip.duration

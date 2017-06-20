@@ -18,8 +18,11 @@ class AudioFileCache(object):
         if self.samples is not None:
             return
         audioclip = movie_editor.AudioFileClip(self.filename)
-        self.samples = audioclip.to_soundarray(buffersize=1000)\
+        try:
+            self.samples = audioclip.to_soundarray(buffersize=1000)\
                                       .transpose().astype(numpy.float32)
+        except IOError as e:
+            self.samples = numpy.zeros((2, 1), dtype=numpy.float32)
         self.sample_rate = audioclip.fps
         self.duration = audioclip.duration
         AudioFileCache.total_memory  += self.samples.nbytes

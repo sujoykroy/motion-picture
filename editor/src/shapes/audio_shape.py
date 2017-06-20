@@ -26,7 +26,7 @@ class AudioShape(TextShape, AVBase):
         return newob
 
     def get_xml_element(self):
-        elm = super(AudioShape, self).get_xml_element(self)
+        elm = super(AudioShape, self).get_xml_element()
         elm.attrib["audio_path"] = self.av_filename
         if not self.audio_active:
             elm.attrib["audio_active"] = "0"

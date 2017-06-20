@@ -226,7 +226,8 @@ class Document(object):
         if isinstance(ffmpeg_params, str):
             ffmpeg_params = ffmpeg_params.split(" ")
         if audio:
-            audio_clips = time_line.get_audio_clips()
+            audio_clips = time_line.get_audio_clips(
+                slice_start_at=start_time, slice_end_at=end_time)
             #print audio_clips
             if audio_clips:
                 audio_clip = movie_editor.CompositeAudioClip(audio_clips)
