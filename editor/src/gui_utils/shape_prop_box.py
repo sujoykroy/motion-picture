@@ -91,6 +91,8 @@ class ShapePropBox(object):
             elif isinstance(prop_widget, Gtk.Entry) or isinstance(prop_widget, Gtk.Label):
                 if prop_widget.value_type == PROP_TYPE_POINT:
                     value = value.to_text()
+                if value is None:
+                    value = ""
                 prop_widget.set_text(value)
             elif isinstance(prop_widget, Gtk.CheckButton):
                 prop_widget.set_active(value)

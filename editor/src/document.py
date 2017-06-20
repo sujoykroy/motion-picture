@@ -276,6 +276,31 @@ class Document(object):
             ffmpeg_params=ffmpeg_params,
             bitrate=bitrate)
 
+    @staticmethod
+    def load_modules(*items):
+        for item in items:
+            if type(item) in (list, tuple):
+                module_name = item[0]
+                module_path = item[1]
+            else:
+                module_name = os.path.direname(os.path.splitext(item))
+                module_path = item
+        doc_module = DocModule(module_name, module_path)
+
+
+class DocModule(MultiShapeModule):
+    def __init__(self, module_name, module_path):
+        super(DocModule, self).__init__(module_name, module_path)
+
+    def load(self):
+        if not self.root_multi_shape:
+            doc = Document(filename=self.module_path)
+            self.root_multi_shape = doc.main_multi_shape
+
+    def unload(self):
+        if self.root_multi_shape:
+            self.root_multi_shape = None
+
 class DocMovie(object):
     def __init__(self, filename, time_line=None, start_time=0, end_time=None, camera=None):
         doc = Document(filename=filename)

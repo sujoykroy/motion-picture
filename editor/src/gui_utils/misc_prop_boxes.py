@@ -113,12 +113,12 @@ class TextShapePropBox(OvalShapePropBox):
         else:
             super(TextShapePropBox, self).insert_slice_button_clicked(widget, prop_name)
 
-
 class MultiShapePropBox(ShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
         self.poses_combo_box= self.add_prop("pose", PROP_TYPE_IMAGE_LIST, None)
         self.timelines_combo_box= self.add_prop("timeline", PROP_TYPE_TEXT_LIST, None)
+        self.add_prop("imported_from", PROP_TYPE_TEXT)
 
     def set_prop_object(self, prop_object):
         ShapePropBox.set_prop_object(self, prop_object)

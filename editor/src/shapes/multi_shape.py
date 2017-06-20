@@ -35,6 +35,42 @@ class MultiShapePoseRenderer(object):
         pixbuf = multi_shape.get_pixbuf(64, 64)
         return pixbuf
 
+class MultiShapeModule(object):
+    Modules = dict()
+
+    def __init__(self, module_name, module_path):
+        self.module_name = module_name
+        self.module_path = module_path
+        self.root_multi_shape = None
+        print "self.module_name", self.module_name
+        MultiShapeModule.Modules[self.module_name] = self
+
+    def load(self):
+        pass
+
+    def unload(self):
+        pass
+
+    @staticmethod
+    def get_multi_shape(path):
+        names = path.split(".")
+        module = MultiShapeModule.Modules.get(names[0])
+        print module
+        if module:
+            module.load()
+            multi_shape = module.root_multi_shape
+            for i in range(1, len(names)):
+                name = names[i]
+                shape = multi_shape.shapes.get_item_by_name(name)
+                if not isinstance(shape, MultiShape):
+                    module.unload()
+                    return None
+                multi_shape = shape
+            multi_shape = multi_shape.copy(deep_copy=True)
+            module.unload()
+            return multi_shape
+        return None
+
 class MultiShape(Shape):
     TYPE_NAME = "multi_shape"
     POSE_TAG_NAME = "pose"
@@ -52,6 +88,7 @@ class MultiShape(Shape):
         self.custom_props = None
         self.camera = None
         self.pose = None
+        self.imported_from = None
 
     def copy_data_from_linked(self):
         if not self.linked_to: return
@@ -76,27 +113,31 @@ class MultiShape(Shape):
         elm = Shape.get_xml_element(self)
         if self.masked:
             elm.attrib["masked"] = "True"
-        for shape in self.shapes:
-            elm.append(shape.get_xml_element())
 
-        for pose_name, pose in self.poses.items():
-            pose_elm = XmlElement(self.POSE_TAG_NAME)
-            pose_elm.attrib["name"] = pose_name
-            for shape_name, prop_dict in pose.items():
-                pose_shape_elm = XmlElement(self.POSE_SHAPE_TAG_NAME)
-                pose_shape_elm.attrib["name"] = shape_name
-                for prop_name, value in prop_dict.items():
-                    if prop_name in ("form_raw",):
-                        pose_shape_elm.append(value.get_xml_element())
-                    else:
-                        if hasattr(value, "to_text"):
-                            value = value.to_text()
-                        pose_shape_elm.attrib[prop_name] = "{0}".format(value)
-                pose_elm.append(pose_shape_elm)
-            elm.append(pose_elm)
+        if self.imported_from is None:
+            for shape in self.shapes:
+                elm.append(shape.get_xml_element())
 
-        for timeline in self.timelines.values():
-            elm.append(timeline.get_xml_element())
+            for pose_name, pose in self.poses.items():
+                pose_elm = XmlElement(self.POSE_TAG_NAME)
+                pose_elm.attrib["name"] = pose_name
+                for shape_name, prop_dict in pose.items():
+                    pose_shape_elm = XmlElement(self.POSE_SHAPE_TAG_NAME)
+                    pose_shape_elm.attrib["name"] = shape_name
+                    for prop_name, value in prop_dict.items():
+                        if prop_name in ("form_raw",):
+                            pose_shape_elm.append(value.get_xml_element())
+                        else:
+                            if hasattr(value, "to_text"):
+                                value = value.to_text()
+                            pose_shape_elm.attrib[prop_name] = "{0}".format(value)
+                    pose_elm.append(pose_shape_elm)
+                elm.append(pose_elm)
+
+            for timeline in self.timelines.values():
+                elm.append(timeline.get_xml_element())
+        else:
+            elm.attrib["imported_from"] = self.imported_from
         return elm
 
     @classmethod
@@ -177,6 +218,9 @@ class MultiShape(Shape):
         for time_line_elm in elm.findall(MultiShapeTimeLine.TAG_NAME):
             time_line = MultiShapeTimeLine.create_from_xml_element(time_line_elm, shape)
             shape.timelines[time_line.name] = time_line
+
+        shape.imported_from = elm.attrib.get("imported_from", None)
+        shape.sync_with_imported()
         return shape
 
     @classmethod
@@ -202,6 +246,28 @@ class MultiShape(Shape):
         if self.custom_props:
             newob.custom_props = self.custom_props.copy()
         return newob
+
+    def sync_with_imported(self):
+        if not self.imported_from:
+            return
+
+        multi_shape = MultiShapeModule.get_multi_shape(self.imported_from)
+        if not multi_shape:
+            return
+
+        self.shapes.clear()
+        for shape in multi_shape.shapes:
+            shape.parent_shape = self
+            self.shapes.add(shape)
+        self.readjust_sizes()
+
+        self.poses = multi_shape.poses
+        self.timelines = multi_shape.timelines
+        self.anchor_at.copy_from(multi_shape.anchor_at)
+
+    def set_imported_from(self, name):
+        self.imported_from = name
+        self.sync_with_imported()
 
     def save_pose(self, pose_name):
         if not pose_name:
