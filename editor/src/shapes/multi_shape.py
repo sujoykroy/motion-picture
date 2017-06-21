@@ -42,7 +42,6 @@ class MultiShapeModule(object):
         self.module_name = module_name
         self.module_path = module_path
         self.root_multi_shape = None
-        print "self.module_name", self.module_name
         MultiShapeModule.Modules[self.module_name] = self
 
     def load(self):
@@ -55,7 +54,6 @@ class MultiShapeModule(object):
     def get_multi_shape(path):
         names = path.split(".")
         module = MultiShapeModule.Modules.get(names[0])
-        print module
         if module:
             module.load()
             multi_shape = module.root_multi_shape
@@ -246,6 +244,9 @@ class MultiShape(Shape):
         newob.masked = self.masked
         if self.custom_props:
             newob.custom_props = self.custom_props.copy()
+
+        newob.imported_from = self.imported_from
+        newob.imported_anchor_at = copy_value(self.imported_anchor_at)
         return newob
 
     def sync_with_imported(self):
@@ -272,6 +273,13 @@ class MultiShape(Shape):
     def set_imported_from(self, name):
         self.imported_from = name
         self.sync_with_imported()
+
+    def get_is_designable(self):
+        return not bool(self.imported_from)
+
+    def readjust_after_design_edit(self):
+        if self.imported_anchor_at:
+            self.anchor_at.copy_from(self.imported_anchor_at)
 
     def save_pose(self, pose_name):
         if not pose_name:

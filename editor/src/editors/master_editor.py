@@ -463,7 +463,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                     #self.custom_props_box.set_prop_object(multi_shape)
 
     def select_shapes(self, shapes, double_clicked=False):
-        if double_clicked and len(shapes)==1 and isinstance(shapes[0], MultiShape):
+        if double_clicked and len(shapes)==1 and \
+            isinstance(shapes[0], MultiShape) and shapes[0].get_is_designable():
             self.load_multi_shape(shapes[0])
         #elif len(shapes) == 1 and shapes[0] is None and double_clicked:
         #    self.pop_back_to_parent_shape()

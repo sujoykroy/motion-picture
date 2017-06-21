@@ -147,8 +147,9 @@ class ShapeManager(object):
 
     def has_designable_multi_shape_selected(self):
         if self.shape_editor is None: return False
-        if isinstance(self.shape_editor.shape, MultiSelectionShape): return False
-        return isinstance(self.shape_editor.shape, MultiShape)
+        shape = self.shape_editor.shape
+        if isinstance(shape, MultiSelectionShape): return False
+        return isinstance(shape, MultiShape) and shape.get_is_designable()
 
     def is_flippable_shape_selected(self):
         if self.shape_editor is None: return False

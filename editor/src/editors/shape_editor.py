@@ -428,6 +428,8 @@ class ShapeEditor(object):
             self.shape.fit_size_to_include_all()
         elif isinstance(self.shape, TextShape):
             self.shape.readjust_sizes()
+        elif isinstance(self.shape, MultiShape):
+            self.shape.readjust_after_design_edit()
         self.init_shape = self.shape.copy()
         for edit_box in self.all_edit_box_list:
             edit_box.update()
