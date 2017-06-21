@@ -86,7 +86,7 @@ class MultiShapeTimeLine(object):
             if orig_shape == self.multi_shape:
                 new_shape = multi_shape
             else:
-                new_shape = self.multi_shape.shapes[orig_shape.get_name()]
+                new_shape = multi_shape.shapes[orig_shape.get_name()]
             newob.shape_time_lines.add(
                 new_shape,
                 self.shape_time_lines[orig_shape].copy(new_shape))

@@ -89,6 +89,7 @@ class MultiShape(Shape):
         self.camera = None
         self.pose = None
         self.imported_from = None
+        self.imported_anchor_at = None
 
     def copy_data_from_linked(self):
         if not self.linked_to: return
@@ -241,7 +242,7 @@ class MultiShape(Shape):
         if deep_copy:
             newob.poses = copy_dict(self.poses)
             for key, timeline in self.timelines.items():
-                newob.timelines[key] = timeline.copy()
+                newob.timelines[key] = timeline.copy(newob)
         newob.masked = self.masked
         if self.custom_props:
             newob.custom_props = self.custom_props.copy()
@@ -255,6 +256,7 @@ class MultiShape(Shape):
         if not multi_shape:
             return
 
+        self.imported_anchor_at = multi_shape.anchor_at.copy()
         self.shapes.clear()
         for shape in multi_shape.shapes:
             shape.parent_shape = self
@@ -262,8 +264,10 @@ class MultiShape(Shape):
         self.readjust_sizes()
 
         self.poses = multi_shape.poses
-        self.timelines = multi_shape.timelines
-        self.anchor_at.copy_from(multi_shape.anchor_at)
+        self.timelines.clear()
+        for timeline_name, timeline in multi_shape.timelines.items():
+            self.timelines[timeline_name] = timeline.copy(self)
+        #self.anchor_at.copy_from(multi_shape.anchor_at)
 
     def set_imported_from(self, name):
         self.imported_from = name
