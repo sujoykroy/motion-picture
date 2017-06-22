@@ -206,15 +206,15 @@ class Shape(object):
     @classmethod
     def get_params_array_from_xml_element(cls, elm):
         anchor_at_str = elm.attrib.get("anchor_at", Point(0,0).to_text())
-        border_color_str = elm.attrib.get("border_color", Color(0,0,0,1).to_text())
-        border_width_str = elm.attrib.get("border_width", "1")
+        border_color_str = elm.attrib.get("border_color", None)
+        border_width = elm.attrib.get("border_width", 0)
         fill_color_str = elm.attrib.get("fill_color", None)
         width_str = elm.attrib.get("width", "1")
         height_str = elm.attrib.get("height", "1")
         arr = []
         arr.append(Point.from_text(anchor_at_str))
         arr.append(color_from_text(border_color_str))
-        arr.append(float(border_width_str))
+        arr.append(float(border_width))
         arr.append(color_from_text(fill_color_str))
         arr.append(float(width_str))
         arr.append(float(height_str))

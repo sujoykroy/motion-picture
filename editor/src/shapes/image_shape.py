@@ -70,7 +70,7 @@ class ImageShape(RectangleShape):
                 ctx.paint()
             ctx.restore()
 
-    def draw(self, ctx, fixed_border):
+    def draw(self, ctx, fixed_border, root_shape=None):
         if self.fill_color is not None:
             ctx.save()
             self.pre_draw(ctx)

@@ -75,7 +75,7 @@ class MultiShape(Shape):
     POSE_SHAPE_TAG_NAME = "pose_shape"
 
     def __init__(self, anchor_at=None, border_color=None,
-                        border_width=0, fill_color=None, width=1, height=1):
+                       border_width=0, fill_color=None, width=1, height=1):
         if anchor_at is None:
             anchor_at = Point(width*.5, height*.5)
         Shape.__init__(self,  anchor_at, border_color, border_width, fill_color, width, height)
@@ -603,49 +603,30 @@ class MultiShape(Shape):
             self.draw_fill(ctx)
             ctx.restore()
 
-        if self.masked and len(self.shapes)>1:#masking feature needs to be revisited.
-            #here pre_matrix feature is not incorporated here. will do later if required.
-            last_shape = self.shapes.get_at_index(-1)
-            if not isinstance(last_shape, MultiShape):
-                for i in range(len(self.shapes)-1):
-                    shape = self.shapes.get_at_index(i)
-                    masked_surface = cairo.ImageSurface(
+        renderable_shapes_count = len(self.shapes)
+        masked_surface = None
+        if self.masked and len(self.shapes)>1:
+            renderable_shapes_count -= 1
+            masked_surface = cairo.ImageSurface(
                             cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
-                    masked_ctx = cairo.Context(masked_surface)
-                    if isinstance(shape, MultiShape):
-                        shape.draw(masked_ctx, drawing_size, fixed_border)
-                    else:
-                        shape.draw(masked_ctx, fixed_border)
+            masked_ctx = cairo.Context(masked_surface)
+            if pre_matrix:
+                masked_ctx.set_matrix(pre_matrix)
+            orig_ctx = ctx
+            ctx = masked_ctx
 
-                    ctx.set_source_surface(masked_surface)
-                    ctx.save()
-                    last_shape.pre_draw(ctx, root_shape=root_shape)
-                    last_shape.draw_path(ctx)
-                    ctx.clip()
-                    ctx.paint()
-                    ctx.restore()
-
-                ctx.save()
-                last_shape.pre_draw(ctx, root_shape=root_shape)
-                last_shape.draw_path(ctx)
-                if fixed_border:
-                    ctx.restore()
-                    last_shape.draw_border(ctx)
-                else:
-                    last_shape.draw_border(ctx)
-                    ctx.restore()
-                return
-
-        for shape in self.shapes:
+        for i in range(renderable_shapes_count):
+            shape = self.shapes.get_at_index(i)
             if not shape.visible:
                 continue
-            if not self.renderable and not show_non_renderable:
+            if not shape.renderable and not show_non_renderable:
                 continue
             if isinstance(shape, CameraShape) and \
                 (no_camera or (exclude_camera_list and shape in exclude_camera_list)):
                 continue
             if isinstance(shape, MultiShape):
-                shape.draw(ctx, drawing_size, fixed_border, root_shape=root_shape)
+                shape.draw(ctx, drawing_size, fixed_border,
+                        root_shape=root_shape, pre_matrix=pre_matrix)
             else:
                 ctx.save()
                 shape.pre_draw(ctx, root_shape=root_shape)
@@ -686,6 +667,31 @@ class MultiShape(Shape):
                 else:
                     shape.draw_border(ctx)
                     ctx.restore()
+
+        if masked_surface:
+            last_shape = self.shapes.get_at_index(-1)
+            ctx = orig_ctx
+            orig_mat = ctx.get_matrix()
+            if pre_matrix:
+                ctx.set_matrix(cairo.Matrix())
+            ctx.set_source_surface(masked_surface)
+            ctx.set_matrix(orig_mat)
+            ctx.save()
+            last_shape.pre_draw(ctx, root_shape=root_shape)
+            last_shape.draw_path(ctx)
+            ctx.clip()
+            ctx.paint()
+            ctx.restore()
+
+            ctx.save()
+            last_shape.pre_draw(ctx, root_shape=root_shape)
+            last_shape.draw_path(ctx)
+            if fixed_border:
+                ctx.restore()
+                last_shape.draw_border(ctx)
+            else:
+                last_shape.draw_border(ctx)
+                ctx.restore()
 
         if self.border_color is not None:
             ctx.save()

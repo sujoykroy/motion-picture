@@ -379,6 +379,7 @@ class FrameMaker(object):
         self.surface = cairo.ImageSurface(
             cairo.FORMAT_ARGB32, int(self.width), int(self.height))
         self.ctx = cairo.Context(self.surface)
+        self.drawing_size = Point(self.width, self.height)
 
     def make_frame(self, t):
         if self.sleep:
@@ -436,7 +437,8 @@ class FrameMaker(object):
             camera.reverse_pre_draw(self.ctx, root_shape=multi_shape.parent_shape)
 
         pre_matrix = self.ctx.get_matrix()
-        multi_shape.draw(self.ctx, root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
+        multi_shape.draw(self.ctx, drawing_size=self.drawing_size,
+            root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
         self.ctx.restore()
         return ImageHelper.surface2array(self.surface, reformat=True, rgb_only=True)

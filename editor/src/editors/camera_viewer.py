@@ -105,8 +105,10 @@ class CamerViewerBox(Gtk.Box):
             #    view_canvas.get_width(), view_canvas.get_height(), cam_scale=scale)
             camera.reverse_pre_draw(view_ctx, root_shape=multi_shape.parent_shape)
 
+        drawing_size = Point(view_canvas.get_width(), view_canvas.get_height())
         pre_matrix = view_ctx.get_matrix()
-        multi_shape.draw(view_ctx, root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
+        multi_shape.draw(view_ctx, drawing_size=drawing_size,
+            root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
         ctx.set_source_surface(view_canvas)
         ctx.scale(scale, scale)

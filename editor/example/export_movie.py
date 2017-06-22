@@ -23,11 +23,15 @@ if len(sys.argv)>1:
     time_line = None
 
 doc_movies.extend([
+    DocMovie(filename=doc_filename),
+])
+"""
+doc_movies.extend([
     DocMovie(filename=doc_filename, start_time=8, end_time=11, camera=None, time_line=None),
     DocMovie(filename="/home/sujoy/Temporary/audio_test.xml"),
     DocMovie(filename=doc_filename, start_time=5, end_time=8, camera=None, time_line=None),
 ])
-
+"""
 Document.make_movie(
     doc_movies, movie_filename,
     ffmpeg_params="-quality good -qmin 10 -qmax 42",

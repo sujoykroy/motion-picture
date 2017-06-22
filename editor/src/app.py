@@ -164,6 +164,7 @@ class ApplicationWindow(MasterEditor):
             if not filename:
                 return
             if self.shape_manager.create_image_shape(filename):
+                self.rebuild_tree_view()
                 self.redraw()
         elif shape_type == "audio":
             filename = FileOp.choose_file(self, purpose="open",
@@ -171,18 +172,21 @@ class ApplicationWindow(MasterEditor):
             if not filename:
                 return
             if self.shape_manager.create_audio_shape(filename):
+                self.rebuild_tree_view()
                 self.redraw()
         elif shape_type == "video":
             filename = FileOp.choose_file(self, purpose="open", file_types=[["Video", "video/*"]])
             if not filename:
                 return
             if self.shape_manager.create_video_shape(filename):
+                self.rebuild_tree_view()
                 self.redraw()
         elif shape_type == "threed":
             filename = FileOp.choose_file(self, purpose="open", file_types=[["Collada", "*.dae"]])
             if not filename:
                 return
             if self.shape_manager.create_threed_shape(filename):
+                self.rebuild_tree_view()
                 self.redraw()
         else:
             shape_creation_is_done = False
