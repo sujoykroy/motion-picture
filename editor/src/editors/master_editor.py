@@ -106,6 +106,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.video_shape_prop_box = VideoShapePropBox(self, self.redraw, self.insert_time_slice)
         self.threed_shape_prop_box = ThreeDShapePropBox(self, self.redraw, self.insert_time_slice)
         self.camera_shape_prop_box = CameraShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.document_shape_prop_box = DocumentShapePropBox(self, self.redraw, self.insert_time_slice)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
@@ -139,7 +140,8 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.audio_shape_prop_box,
             self.video_shape_prop_box,
             self.threed_shape_prop_box,
-            self.camera_shape_prop_box
+            self.camera_shape_prop_box,
+            self.document_shape_prop_box
         )
         self.left_prop_box.pack_start(self.prop_grid, expand=False, fill=False, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
@@ -389,6 +391,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.audio_shape_prop_box.hide()
         self.camera_shape_prop_box.hide()
         self.threed_shape_prop_box.hide()
+        self.document_shape_prop_box.hide()
         self.new_custom_prop_button.hide()
 
         if shape != None:
@@ -424,7 +427,10 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.threed_shape_prop_box.show()
                 self.threed_shape_prop_box.set_prop_object(shape)
 
-            if isinstance(shape, ImageShape):
+            if isinstance(shape, DocumentShape):
+                self.document_shape_prop_box.show()
+                self.document_shape_prop_box.set_prop_object(shape)
+            elif isinstance(shape, ImageShape):
                 self.image_shape_prop_box.show()
                 self.image_shape_prop_box.set_prop_object(shape)
             elif isinstance(shape, RectangleShape):

@@ -506,10 +506,7 @@ class ShapeManager(object):
                    border_width=1, fill_color="cccccc",
                    width=w, height=h, corner_radius=2)
         shape.set_image_path(filename)
-        self.place_shape_at_zero_position(shape)
-        self.add_shape(shape)
-        shape.set_stage_xy(Point(0, 0))
-        self.multi_shape.readjust_sizes()
+        self.add_new_shape(shape)
         return True
 
     def create_audio_shape(self, filename):
@@ -523,10 +520,7 @@ class ShapeManager(object):
         shape.set_time_pos(0)
         shape.place_anchor_at_center()
 
-        self.place_shape_at_zero_position(shape)
-        self.add_shape(shape)
-        shape.set_stage_xy(Point(0, 0))
-        self.multi_shape.readjust_sizes()
+        self.add_new_shape(shape)
         return True
 
     def create_video_shape(self, filename):
@@ -550,10 +544,7 @@ class ShapeManager(object):
             shape.width = w
             shape.height = h
 
-        self.place_shape_at_zero_position(shape)
-        self.add_shape(shape)
-        shape.set_stage_xy(Point(0, 0))
-        self.multi_shape.readjust_sizes()
+        self.add_new_shape(shape)
         return True
 
     def create_threed_shape(self, filename):
@@ -563,10 +554,25 @@ class ShapeManager(object):
                    width=self.doc.width, height=self.doc.height, corner_radius=0)
         shape.set_filepath(filename)
         shape.set_object_scale(min(self.doc.width, self.doc.height))
-        self.place_shape_at_zero_position(shape)
-        self.add_shape(shape)
-        shape.set_stage_xy(Point(0, 0))
-        self.multi_shape.readjust_sizes()
+        self.add_new_shape(shape)
+        return True
+
+    def create_document_shape(self, filename):
+        shape = DocumentShape(anchor_at=Point(self.doc.width*.5, self.doc.height*.5),
+                   border_color=None,
+                   border_width=0, fill_color=None,
+                   width=self.doc.width, height=self.doc.height, corner_radius=0)
+        shape.set_document_path(filename)
+
+        #sx = float(self.doc.width)/shape.doc_width
+        #sy = float(self.doc.height)/shape.doc_height
+        #scale = min(sx, sy)
+        #shape.set_scale_x(scale)
+        #shape.set_scale_y(scale)
+        #shape.set_width(shape.doc_width, fixed_anchor=True)
+        #shape.set_height(shape.doc_height, fixed_anchor=True)
+
+        self.add_new_shape(shape)
         return True
 
     def delete_shape_editor(self):

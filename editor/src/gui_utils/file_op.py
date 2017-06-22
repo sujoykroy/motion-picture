@@ -31,6 +31,8 @@ class FileOp(object):
             file_types = [["Video", "video/*"]]
         elif file_types == "image":
             file_types = [["Image", "image/*"]]
+        elif file_types == "document":
+            file_types = [["Document", "*.xml"]]
 
         for file_name, mime_type in file_types:
             if file_name == "Audio":

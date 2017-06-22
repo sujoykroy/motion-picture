@@ -13,6 +13,7 @@ from misc_prop_boxes import AudioShapePropBox
 from misc_prop_boxes import VideoShapePropBox
 from misc_prop_boxes import CameraShapePropBox
 from misc_prop_boxes import ThreeDShapePropBox
+from misc_prop_boxes import DocumentShapePropBox
 from misc_prop_boxes import CustomPropsBox
 
 from curve_smooth_prop_box import CurveSmoothPropBox

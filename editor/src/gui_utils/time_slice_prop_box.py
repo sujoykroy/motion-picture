@@ -13,6 +13,7 @@ class TimeSlicePropBox(Gtk.Frame):
     AUDIO_FILE = 5
     VIDEO_FILE = 6
     IMAGE_FILE = 7
+    DOCUMENT_FILE = 8
 
     def __init__(self, draw_callback):
         Gtk.Frame.__init__(self)
@@ -50,6 +51,8 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "image_path", self.IMAGE_FILE)
         self.add_editable_item("prop_data", "follow_curve", self.TEXT)
         self.add_editable_item("prop_data", "follow_angle", self.BOOLEAN)
+        self.add_editable_item("prop_data", "document_path", self.DOCUMENT_FILE)
+        self.add_editable_item("prop_data", "time_line_name", self.TEXT)
         self.add_editable_item("prop_data", "camera", self.TEXT)
 
         self.add_editable_item("attrib", "start_value", self.NUMBERS, syncable=True)
@@ -223,6 +226,10 @@ class TimeSlicePropBox(Gtk.Frame):
             item_widget = file_chooser
         elif item_type == self.IMAGE_FILE:
             file_chooser = FileSelect(file_types="image")
+            file_chooser.connect("file-selected", self.item_widget_changed)
+            item_widget = file_chooser
+        elif item_type == self.DOCUMENT_FILE:
+            file_chooser = FileSelect(file_types="document")
             file_chooser.connect("file-selected", self.item_widget_changed)
             item_widget = file_chooser
 

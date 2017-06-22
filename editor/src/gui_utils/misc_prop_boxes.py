@@ -191,6 +191,33 @@ class VideoShapePropBox(AVShapePropBox):
         self.add_prop("audio_active", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         self.path_name = "video_path"
 
+class DocumentShapePropBox(RectangleShapePropBox):
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        RectangleShapePropBox.__init__(self, parent_window, draw_callback, self.new_insert_time_slice)
+        self.add_prop("time_line_length", PROP_TYPE_LABEL)
+        self.add_prop("document_path", PROP_TYPE_FILE, dict(file_type=[["Document", "*.xml"]]))
+        self.add_prop("time_line_name", PROP_TYPE_TEXT)
+        self.add_prop("camera", PROP_TYPE_TEXT)
+        self.add_prop("time_pos", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0, upper=3*60*60, step_increment=.01))
+        self.orig_insert_time_slice_callback = insert_time_slice_callback
+        self.path_name = None
+
+    def new_insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):
+        if prop_name == "time_pos":
+            start_value = 0
+            end_value = self.prop_object.get_duration()
+            duration = self.prop_object.get_duration()
+            prop_data = dict(
+                document_path=self.prop_object.document_path,
+                time_line_name="",
+                camera=""
+            )
+        else:
+            duration = None
+        self.orig_insert_time_slice_callback(shape, prop_name, start_value, end_value, prop_data, duration)
+
+
 class ThreeDShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         RectangleShapePropBox.__init__(self, parent_window, draw_callback, self.new_insert_time_slice)

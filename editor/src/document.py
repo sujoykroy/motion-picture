@@ -287,6 +287,11 @@ class Document(object):
                 module_path = item
         doc_module = DocModule(module_name, module_path)
 
+    @classmethod
+    def load_and_get_main_multi_shape(cls, filename):
+        doc = cls(filename=filename)
+        return (doc.width, doc.height), doc.main_multi_shape
+
 
 class DocModule(MultiShapeModule):
     def __init__(self, module_name, module_path):

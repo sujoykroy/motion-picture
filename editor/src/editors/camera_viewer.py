@@ -101,8 +101,6 @@ class CamerViewerBox(Gtk.Box):
         draw_fill(view_ctx, "ffffff")
 
         if camera:
-            #self.camera.paint_screen(view_ctx,
-            #    view_canvas.get_width(), view_canvas.get_height(), cam_scale=scale)
             camera.reverse_pre_draw(view_ctx, root_shape=multi_shape.parent_shape)
 
         drawing_size = Point(view_canvas.get_width(), view_canvas.get_height())

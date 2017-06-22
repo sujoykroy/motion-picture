@@ -12,6 +12,7 @@ from audio_shape import AudioShape
 from text_shape import TextShape
 from camera_shape import CameraShape
 from threed_shape import ThreeDShape
+from document_shape import DocumentShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 from custom_props import *
@@ -174,6 +175,8 @@ class MultiShape(Shape):
                 child_shape = MultiShape.create_from_xml_element(shape_element)
             elif shape_type == ThreeDShape.TYPE_NAME:
                 child_shape = ThreeDShape.create_from_xml_element(shape_element)
+            elif shape_type == DocumentShape.TYPE_NAME:
+                child_shape = DocumentShape.create_from_xml_element(shape_element)
             if child_shape is None: continue
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)
@@ -476,7 +479,6 @@ class MultiShape(Shape):
                     pose = prop_data["pose"]
                     self.set_pose(pose)
                 timeline_name = prop_data["timeline"]
-                parent_shape = self.parent_shape
                 self.set_camera(prop_data.get("camera"))
                 if timeline_name in self.timelines:
                     timeline = self.timelines[timeline_name]
@@ -626,9 +628,12 @@ class MultiShape(Shape):
             if isinstance(shape, CameraShape) and \
                 (no_camera or (exclude_camera_list and shape in exclude_camera_list)):
                 continue
-            if isinstance(shape, MultiShape):
-                shape.draw(ctx, drawing_size, fixed_border,
-                        root_shape=root_shape, pre_matrix=pre_matrix)
+            if isinstance(shape, MultiShape) or isinstance(shape, DocumentShape):
+                shape.draw(ctx,
+                        drawing_size = drawing_size, fixed_border=fixed_border,
+                        no_camera=no_camera, exclude_camera_list=exclude_camera_list,
+                        root_shape=root_shape, pre_matrix=pre_matrix,
+                        show_non_renderable=show_non_renderable)
             else:
                 ctx.save()
                 shape.pre_draw(ctx, root_shape=root_shape)
@@ -643,7 +648,7 @@ class MultiShape(Shape):
                    isinstance(shape, ThreeDShape):
                     ctx.save()
                     shape.pre_draw(ctx, root_shape=root_shape)
-                    shape.draw_path(ctx)
+                    #shape.draw_path(ctx)
                     if isinstance(shape, CameraShape):
                         shape.draw_image(ctx, fixed_border=fixed_border,
                                               exclude_camera_list=exclude_camera_list)

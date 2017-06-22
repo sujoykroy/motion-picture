@@ -14,8 +14,8 @@ class ImageShape(RectangleShape):
         self.alpha = 1.
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = ImageShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
-                        self.fill_color.copy(), self.width, self.height, self.corner_radius)
+        newob = ImageShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
+                        copy_value(self.fill_color), self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
         newob.set_image_path(self.image_path)
         newob.alpha = self.alpha
