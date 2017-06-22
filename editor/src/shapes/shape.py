@@ -251,6 +251,9 @@ class Shape(object):
         self.set_border_dash(elm.attrib.get("border_dash", ""))
 
     def copy_into(self, newob, copy_name=False, all_fields=False):
+        newob.visible = self.visible
+        newob.moveable = self.moveable
+        newob.renderable = self.renderable
         newob.same_xy_scale = self.same_xy_scale
         newob.translation = self.translation.copy()
         newob.angle = self.angle

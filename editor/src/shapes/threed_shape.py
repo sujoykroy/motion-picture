@@ -30,6 +30,16 @@ class ThreeDShape(RectangleShape):
                         copy_value(self.border_width), copy_value(self.fill_color),
                         self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
+        newob.camera.rotation.copy_from(self.camera.rotation)
+        newob.wire_color = copy_value(self.wire_color)
+        newob.wire_width = self.wire_width
+        newob.high_quality = self.high_quality
+        newob.quality_scale = self.quality_scale
+        newob.set_filepath(self.filepath, load_file=False)
+        if deep_copy:
+            newob.d3_object = self.d3_object.copy()
+        newob.d3_object.set_border_color(self.wire_color)
+        newob.d3_object.set_border_width(self.wire_width)
         return newob
 
     def get_xml_element(self):

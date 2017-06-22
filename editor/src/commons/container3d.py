@@ -41,6 +41,19 @@ class Container3d(Object3d):
                     polygon.fill_color.set_resources(texture_resources)
         return newob
 
+    def copy(self):
+        newob = Container3d()
+        self.copy_into(newob)
+        texture_resources = newob.get_texture_resources()
+        for i in range(len(self.items)):
+            item = self.items[i].copy()
+            newob.append(item, self.item_names[i])
+            for polygon in item.polygons:
+                if isinstance(polygon.fill_color, TextureMapColor):
+                    polygon.fill_color.set_resources(texture_resources)
+        newob.item_names = list(self.item_names)
+        return newob
+
     def clear(self):
         del self.items[:]
         del self.item_names[:]

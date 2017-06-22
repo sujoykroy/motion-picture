@@ -14,6 +14,7 @@ from commons.draw_utils import draw_text
 from tasks import *
 from shapes import MultiShape, CurveShape, MultiSelectionShape
 from shapes import get_hierarchy_names, get_shape_at_hierarchy
+from shapes import MultiShapeModule
 from shape_creators import CurveShapeCreator
 
 THIS_FOLDER = os.path.dirname(__file__)
@@ -152,6 +153,17 @@ class ApplicationWindow(MasterEditor):
             self.shape_manager.save_doc(filename)
             self.show_filename()
             self.parent.recent_manager.add_item(filename)
+
+    def import_shape(self, action, parameter):
+        dialog = TextInputDialog(self, "Import Shape", "Name of shape to import")
+        if dialog.run() == Gtk.ResponseType.OK:
+            shape_name = dialog.get_input_text()
+            shape = MultiShapeModule.get_multi_shape(shape_name)
+            if shape:
+                self.shape_manager.add_new_shape(shape)
+                self.rebuild_tree_view()
+                self.redraw()
+        dialog.destroy()
 
     def create_new_shape(self, action, parameter):
         action.set_state(parameter)
@@ -462,7 +474,7 @@ class ApplicationWindow(MasterEditor):
         if not parameter.get_boolean():
             self.shape_manager.delete_eraser()
 
-    def change_canas_size(self, action, parameter):
+    def change_canvas_size(self, action, parameter):
         canvas_size = "{0}x{1}".format(self.doc.width, self.doc.height)
         dialog = TextInputDialog(self, "Canvas Size", "WidthxHeight",input_text=canvas_size)
         if dialog.run() == Gtk.ResponseType.OK:

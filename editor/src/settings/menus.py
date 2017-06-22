@@ -30,6 +30,8 @@ m.add(path="Edit/Shape/Delete", icon="delete_shape",
       action_name="win.delete_shape")
 m.add(path="Edit/Shape/Duplicate", icon="duplicate_shape", accel="<Control>b",
       action_name="win.duplicate_shape", action_param="")
+m.add(path="Edit/Shape/Import", icon="import_shape",
+      action_name="win.import_shape")
 
 m.add(path="View/Zoom To Shape", icon="zoom_to_shape", accel="<Control>m",
       action_name="win.zoom_to_shape", action_param="")
@@ -78,7 +80,7 @@ m.add(path="Edit/Points/Copy", icon="copy_shape",
       action_name="win.copy_points_as_shape", desc="Copy Points As Shape")
 
 m.add(path="Edit/Document/Canvas Size", icon="canvas_size",
-      action_name="win.change_canas_size", desc="Change canvas size")
+      action_name="win.change_canvas_size", desc="Change canvas size")
 m.add(path="Edit/Document/Copy Child Shape Postions",
       icon="copy_child_shape_positions", icon_scale = 1.2,
       action_name="win.copy_child_shape_positions", desc="Copy Positions")
@@ -112,8 +114,6 @@ m.add(path="Shapes/<New>/Camera", icon="camera",
       action_name="win.create_new_shape", action_state="camera")
 m.add(path="Shapes/<New>/3D", icon="3d",
       action_name="win.create_new_shape", action_state="threed")
-m.add(path="Shapes/<New>/Import", icon="import_shape",
-      action_name="win.import_shape", action_state="import_shape")
 
 m.add(path="Shapes/Align/X", icon="x_align", desc="Align shapes along X-axis",
       action_name="win.align_shapes", action_param="x", icon_scale = 1.2)

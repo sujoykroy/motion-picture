@@ -60,11 +60,13 @@ class MultiShapeModule(object):
             for i in range(1, len(names)):
                 name = names[i]
                 shape = multi_shape.shapes.get_item_by_name(name)
-                if not isinstance(shape, MultiShape):
+                if shape is None or not isinstance(shape, MultiShape):
                     module.unload()
                     return None
                 multi_shape = shape
             multi_shape = multi_shape.copy(deep_copy=True)
+            multi_shape.imported_from = path
+            multi_shape.imported_anchor_at = multi_shape.anchor_at.copy()
             module.unload()
             return multi_shape
         return None
@@ -113,7 +115,7 @@ class MultiShape(Shape):
         if self.masked:
             elm.attrib["masked"] = "True"
 
-        if self.imported_from is None:
+        if not self.imported_from:
             for shape in self.shapes:
                 elm.append(shape.get_xml_element())
 

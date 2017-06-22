@@ -34,17 +34,16 @@ class Polygon3d(Object3d):
         if not temporary:
             Polygon3d.Items.append(self)
 
-    """
     def copy(self):
         newob = Polygon3d(
-            parent=self.parent,
-            point_indices=self.point_indices[: -1 if self.closed else None],
+            parent=None,
+            point_indices=self.point_indices,
             closed=self.closed,
-            border_color=self.border_color,
-            fill_color=self.fill_color,
+            border_color=copy_value(self.border_color),
+            fill_color=copy_value(self.fill_color),
             border_width=self.border_width)
+        self.copy_into(newob)
         return newob
-    """
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)

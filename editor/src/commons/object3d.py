@@ -11,7 +11,6 @@ class Object3d(object):
         self.rotation = Point3d(0, 0, 0)
         self.translation = Point3d(0, 0, 0)
         self.scale = Point3d(1, 1, 1)
-        self.rotation_matrix  = None
         self.parent = None
         self.id_num = Object3d.IdSeed
         self.extra_reverse_matrix = None
@@ -22,6 +21,18 @@ class Object3d(object):
         self.border_width = None
 
         Object3d.IdSeed += 1
+
+    def copy_into(self, other):
+        other.rotation.copy_from(self.rotation)
+        other.translation.copy_from(self.translation)
+        other.scale.copy_from(self.scale)
+        #other.border_color = copy_value(self.border_color)
+        #other.fill_color = copy_value(self.fill_color)
+        #other.border_width = self.border_width
+        if self.extra_reverse_matrix is not None:
+            other.extra_reverse_matrix = self.extra_reverse_matrix.copy()
+        if self.texture_resources:
+            other.texture_resources = self.texture_resources.copy()
 
     def get_active_fill_color(self):
         if self.fill_color is None and self.parent:

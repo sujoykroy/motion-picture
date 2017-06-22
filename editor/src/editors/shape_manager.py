@@ -486,6 +486,12 @@ class ShapeManager(object):
             self.shape_creator.begin_movement(point)
         return True
 
+    def add_new_shape(self, new_shape):
+        self.place_shape_at_zero_position(new_shape)
+        self.add_shape(new_shape)
+        new_shape.set_stage_xy(Point(0, 0))
+        self.multi_shape.readjust_sizes()
+
     def create_image_shape(self, filename):
         image_pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename)
         if not image_pixbuf: return False

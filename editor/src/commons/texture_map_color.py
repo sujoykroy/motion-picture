@@ -10,6 +10,12 @@ class TextureResources(object):
         self.paths = []
         self.surfaces = []
 
+    def copy(self):
+        newob = TextureResources()
+        for i in range(len(self.names)):
+            newob.add_resource(self.names[i], self.paths[i])
+        return newob
+
     def add_resource(self, resource_name, resource_path):
         if resource_name in self.names:
             return
@@ -88,7 +94,7 @@ class TextureMapColor(object):
 
     def copy(self):
         newob = TextureMapColor(
-            self.resources, self.resource_index,
+            None, self.resource_index,
             copy_value(self.texcoords), built=self.built)
         return newob
 

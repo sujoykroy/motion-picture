@@ -60,6 +60,11 @@ class Point3d(object):
     def to_text(self, factor=1):
         return "{0},{1},{2}".format(self.values[0]*factor, self.values[1]*factor, self.values[2]*factor)
 
+    def copy_from(self, other):
+        self.values[0] = other.get_x()
+        self.values[1] = other.get_y()
+        self.values[2] = other.get_z()
+
     def load_from_text(self, text):
         try:
             arr = text.split(",")

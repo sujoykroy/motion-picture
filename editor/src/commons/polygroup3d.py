@@ -99,7 +99,7 @@ class PolyGroup3d(Object3d):
 
     def copy(self):
         points = []
-        for point in self.poitns:
+        for point in self.points:
             points.append(point.copy())
 
         polygons = []
@@ -108,10 +108,10 @@ class PolyGroup3d(Object3d):
 
         newob = PolyGroup3d(
             points=points, polygons=polygons, kind=self.kind,
-            border_color=self.border_color,
-            fill_color=self.fill_color,
+            border_color=copy_value(self.border_color),
+            fill_color=copy_value(self.fill_color),
             border_width=self.border_width)
-
+        self.copy_into(newob)
         return newob
 
     def precalculate(self):
