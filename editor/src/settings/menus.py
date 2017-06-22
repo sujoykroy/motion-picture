@@ -112,6 +112,8 @@ m.add(path="Shapes/<New>/Camera", icon="camera",
       action_name="win.create_new_shape", action_state="camera")
 m.add(path="Shapes/<New>/3D", icon="3d",
       action_name="win.create_new_shape", action_state="threed")
+m.add(path="Shapes/<New>/Import", icon="import_shape",
+      action_name="win.import_shape", action_state="import_shape")
 
 m.add(path="Shapes/Align/X", icon="x_align", desc="Align shapes along X-axis",
       action_name="win.align_shapes", action_param="x", icon_scale = 1.2)
