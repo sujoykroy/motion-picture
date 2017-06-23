@@ -19,11 +19,6 @@ class DocumentShape(RectangleShape):
         self.doc_width = 1
         self.doc_height = 1
         self.time_pos = 0
-        self.doc_box = RectangleShape(
-                anchor_at=Point(0, 0),
-                border_color = None, border_width = 0, fill_color= None,
-                width = 1, height = 1, corner_radius=0)
-        self.doc_box.parent_shape = self
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = DocumentShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
@@ -58,7 +53,6 @@ class DocumentShape(RectangleShape):
         if self.document_path and not self.doc_main_multi_shape:
             wh, self.doc_main_multi_shape = \
                     DocumentShape.Loader.load_and_get_main_multi_shape(self.document_path)
-            self.doc_main_multi_shape.parent_shape = self.doc_box
             self.doc_width = wh[0]
             self.doc_height = wh[1]
 
@@ -129,47 +123,51 @@ class DocumentShape(RectangleShape):
         if self.doc_main_multi_shape:
             doc_surface = cairo.ImageSurface(
                         cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
-            self.doc_box.width = self.doc_width
-            self.doc_box.height = self.doc_height
-
-            sx = float(self.width)/self.doc_width
-            sy = float(self.height)/self.doc_height
-            self.doc_box.scale_x = sx
-            self.doc_box.scale_y = sy
-
-            self.doc_box.anchor_at.assign(self.doc_width*.5, self.doc_height*.5)
-            self.doc_box.move_to(self.width*.5, self.height*.5)
 
             camera = self.camera_obj
             if not camera:
                 camera = self.doc_main_multi_shape.camera
-            #camera = None
-            if camera:
-                width = camera.width
-                height = camera.height
-            else:
-                width = self.width
-                height = self.height
 
-            sx = float(width)/self.doc_width
-            sy = float(height)/self.doc_height
+            if camera:
+                sx = float(self.width)/float(camera.width)
+                sy = float(self.height)/float(camera.height)
+            else:
+                sx = float(self.width)/self.doc_width
+                sy = float(self.height)/self.doc_height
 
             doc_ctx = cairo.Context(doc_surface)
             if pre_matrix:
                 doc_ctx.set_matrix(pre_matrix)
+            #doc_ctx = ctx
+            doc_ctx.save()
+            self.pre_draw(doc_ctx, root_shape=root_shape)
+            doc_ctx.scale(sx ,sy)
 
-            #doc_ctx.scale(sx ,sy)
             if camera:
-                camera.reverse_pre_draw(doc_ctx, root_shape=self.doc_box)
+                camera.reverse_pre_draw(doc_ctx, root_shape=root_shape)
+
+            #doc_ctx.save()
             self.doc_main_multi_shape.draw(doc_ctx,
                 drawing_size = drawing_size, fixed_border=fixed_border,
                 pre_matrix=pre_matrix
             )
+            #doc_ctx.restore()
+            """
+            if camera:
+                doc_ctx.save()
+                camera.pre_draw(doc_ctx, root_shape=root_shape)
+                camera.draw_path(doc_ctx)
+                #camera.draw_anchor(doc_ctx)
+                draw_stroke(doc_ctx, 2, "00ff00")
+                doc_ctx.restore()
+            doc_ctx.restore()
+            """
+
             orig_mat = ctx.get_matrix()
-            if pre_matrix:
-                ctx.set_matrix(cairo.Matrix())
+            ctx.set_matrix(cairo.Matrix())
             ctx.set_source_surface(doc_surface)
             ctx.set_matrix(orig_mat)
+
             ctx.save()
             self.pre_draw(ctx, root_shape=root_shape)
             self.draw_path(ctx)
@@ -187,6 +185,8 @@ class DocumentShape(RectangleShape):
             else:
                 self.draw_border(ctx)
                 ctx.restore()
+
+
 
     def cleanup(self):
         if self.doc_main_multi_shape:
