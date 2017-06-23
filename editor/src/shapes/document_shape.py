@@ -60,6 +60,12 @@ class DocumentShape(RectangleShape):
             if self.time_line_name not in timelines and len(timelines)>0:
                 self.set_time_line_name(timelines.keys()[0])
 
+    @classmethod
+    def get_time_line_for(self, document_path, time_line_name):
+        wh, doc_main_multi_shape = \
+                    DocumentShape.Loader.load_and_get_main_multi_shape(document_path)
+        return doc_main_multi_shape.timelines.get(time_line_name)
+
     def unload_document(self):
         if self.doc_main_multi_shape:
             self.doc_main_multi_shape.cleanup()
