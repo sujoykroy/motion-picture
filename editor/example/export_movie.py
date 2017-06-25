@@ -4,7 +4,7 @@ from MotionPicture import *
 
 doc_filename = "/home/sujoy/Devel/MotionPicture/resources/sample_blender_mp.xml"
 movie_filename = "/home/sujoy/Temporary/test.webm"
-
+start_time = 6
 """
 ffmpeg -i input_file.avi -codec:v libvpx -quality good
        -cpu-used 0 -b:v 500k -qmin 10 -qmax 42
@@ -21,9 +21,10 @@ if len(sys.argv)>1:
     movie_filename = os.path.join(os.path.dirname(doc_filename),
         os.path.basename(os.path.splitext(doc_filename)[0]) + ".webm")
     time_line = None
+    start_time = 0
 
 doc_movies.extend([
-    DocMovie(filename=doc_filename),
+    DocMovie(filename=doc_filename, start_time=start_time),
 ])
 """
 doc_movies.extend([
@@ -35,7 +36,7 @@ doc_movies.extend([
 Document.make_movie(
     doc_movies, movie_filename,
     ffmpeg_params="-quality good -qmin 10 -qmax 42",
-    codec="libvpx", audio=True, speed=2, sleep=0, dry=not True)
+    codec="libvpx", audio=True, speed=1, sleep=0, dry=not True)
 
 
 #subprocess.call(["vlc", movie_filename])
