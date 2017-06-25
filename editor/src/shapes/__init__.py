@@ -15,6 +15,7 @@ from ring_shape import RingShape
 from text_shape import TextShape
 from threed_shape import ThreeDShape
 from document_shape import DocumentShape
+from custom_shape import CustomShape
 from edit_shapes import *
 from curve_point_group_shape import CurvePointGroupShape
 

@@ -85,6 +85,8 @@ class ShapePropBox(object):
             elif isinstance(prop_widget, Gtk.FontButton):
                 prop_widget.set_font_name(value)
             elif isinstance(prop_widget, Gtk.TextView):
+                if value is None:
+                    value = ""
                 prop_widget.get_buffer().set_text(value)
             elif isinstance(prop_widget, NameValueComboBox):
                 prop_widget.set_value(value)

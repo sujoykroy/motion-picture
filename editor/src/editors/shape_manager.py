@@ -563,15 +563,15 @@ class ShapeManager(object):
                    border_width=0, fill_color=None,
                    width=self.doc.width, height=self.doc.height, corner_radius=0)
         shape.set_document_path(filename)
+        self.add_new_shape(shape)
+        return True
 
-        #sx = float(self.doc.width)/shape.doc_width
-        #sy = float(self.doc.height)/shape.doc_height
-        #scale = min(sx, sy)
-        #shape.set_scale_x(scale)
-        #shape.set_scale_y(scale)
-        #shape.set_width(shape.doc_width, fixed_anchor=True)
-        #shape.set_height(shape.doc_height, fixed_anchor=True)
-
+    def create_custom_shape(self, filename):
+        shape = CustomShape(anchor_at=Point(self.doc.width*.5, self.doc.height*.5),
+                   border_color=None,
+                   border_width=0, fill_color=None,
+                   width=self.doc.width, height=self.doc.height, corner_radius=0)
+        shape.set_code_path(filename)
         self.add_new_shape(shape)
         return True
 

@@ -650,6 +650,26 @@ class Shape(object):
         if self.fill_color is None: return
         draw_fill(ctx, self.fill_color)
 
+    def fill_shape_area(self, ctx, root_shape=None):
+        if self.fill_color is not None:
+            ctx.save()
+            self.pre_draw(ctx, root_shape=root_shape)
+            self.draw_path(ctx, for_fill=True)
+            self.draw_fill(ctx)
+            ctx.restore()
+
+    def storke_shape_area(self, ctx, root_shape=None, fixed_border=True):
+        if self.border_color is not None:
+            ctx.save()
+            self.pre_draw(ctx, root_shape=root_shape)
+            self.draw_path(ctx, for_fill=False)
+            if fixed_border:
+                ctx.restore()
+                self.draw_border(ctx)
+            else:
+                self.draw_border(ctx)
+                ctx.restore()
+
     def draw(self, ctx, fixed_border=True, root_shape=None):
         if self.fill_color is not None:
             ctx.save()

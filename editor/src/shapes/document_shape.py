@@ -145,7 +145,7 @@ class DocumentShape(RectangleShape):
             if pre_matrix:
                 doc_ctx.set_matrix(pre_matrix)
             #doc_ctx = ctx
-            doc_ctx.save()
+            #doc_ctx.save()
             self.pre_draw(doc_ctx, root_shape=root_shape)
             doc_ctx.scale(sx ,sy)
 

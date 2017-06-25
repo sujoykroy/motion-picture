@@ -207,6 +207,13 @@ class ApplicationWindow(MasterEditor):
             if self.shape_manager.create_document_shape(filename):
                 self.rebuild_tree_view()
                 self.redraw()
+        elif shape_type == "custom":
+            filename = FileOp.choose_file(self, purpose="open", file_types=[["Python", "*.py"]])
+            if not filename:
+                return
+            if self.shape_manager.create_custom_shape(filename):
+                self.rebuild_tree_view()
+                self.redraw()
         else:
             shape_creation_is_done = False
             self.set_shape_creation_mode(shape_type)

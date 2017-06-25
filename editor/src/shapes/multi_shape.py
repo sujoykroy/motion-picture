@@ -13,6 +13,7 @@ from text_shape import TextShape
 from camera_shape import CameraShape
 from threed_shape import ThreeDShape
 from document_shape import DocumentShape
+from custom_shape import CustomShape
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 from custom_props import *
@@ -177,6 +178,8 @@ class MultiShape(Shape):
                 child_shape = ThreeDShape.create_from_xml_element(shape_element)
             elif shape_type == DocumentShape.TYPE_NAME:
                 child_shape = DocumentShape.create_from_xml_element(shape_element)
+            elif shape_type == CustomShape.TYPE_NAME:
+                child_shape = CustomShape.create_from_xml_element(shape_element)
             if child_shape is None: continue
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)
@@ -225,6 +228,7 @@ class MultiShape(Shape):
 
         shape.imported_from = elm.attrib.get("imported_from", None)
         shape.sync_with_imported()
+
         return shape
 
     @classmethod
@@ -634,6 +638,9 @@ class MultiShape(Shape):
                         no_camera=no_camera, exclude_camera_list=exclude_camera_list,
                         root_shape=root_shape, pre_matrix=pre_matrix,
                         show_non_renderable=show_non_renderable)
+            elif isinstance(shape, CustomShape):
+                shape.draw(ctx, drawing_size = drawing_size, root_shape=root_shape,
+                                fixed_border=fixed_border, pre_matrix=pre_matrix)
             else:
                 ctx.save()
                 shape.pre_draw(ctx, root_shape=root_shape)

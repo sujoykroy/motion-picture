@@ -191,6 +191,14 @@ class VideoShapePropBox(AVShapePropBox):
         self.add_prop("audio_active", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         self.path_name = "video_path"
 
+class CustomShapePropBox(RectangleShapePropBox):
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        RectangleShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
+        self.add_prop("progress", PROP_TYPE_NUMBER_ENTRY,
+                dict(step_increment=.01, value=0, lower=0, upper=1))
+        self.add_prop("code_path", PROP_TYPE_FILE, dict(file_type=[["Python", "*.py"]]))
+        self.add_prop("params", PROP_TYPE_LONG_TEXT)
+
 class DocumentShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         RectangleShapePropBox.__init__(self, parent_window, draw_callback, self.new_insert_time_slice)

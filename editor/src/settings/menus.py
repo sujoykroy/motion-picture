@@ -116,6 +116,8 @@ m.add(path="Shapes/<New>/3D", icon="3d",
       action_name="win.create_new_shape", action_state="threed")
 m.add(path="Shapes/<New>/Document", icon="new_document_shape",
       action_name="win.create_new_shape", action_state="document")
+m.add(path="Shapes/<New>/Custom", icon="custom_shape",
+      action_name="win.create_new_shape", action_state="custom")
 
 m.add(path="Shapes/Align/X", icon="x_align", desc="Align shapes along X-axis",
       action_name="win.align_shapes", action_param="x", icon_scale = 1.2)
