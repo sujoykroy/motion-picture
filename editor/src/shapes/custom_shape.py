@@ -1,6 +1,7 @@
 from rectangle_shape import RectangleShape
 from ..commons import *
 import parser
+import imp
 
 class CustomShape(RectangleShape):
     TYPE_NAME = "custom"
@@ -43,15 +44,9 @@ class CustomShape(RectangleShape):
         self.code_path = filepath
         if not os.path.isfile(filepath):
             return
-        f = open(filepath)
-        source = f.read()
-        f.close()
-        code = compile(source, filepath, 'exec')
-        local_vars = dict(drawer_klcass=None)
-        exec(code, globals(), local_vars)
-        drawer_klass = local_vars.get("drawer_klass")
-        if drawer_klass:
-            self.drawer = drawer_klass()
+        self.drawer_module = imp.load_source("modu", filepath)
+        if hasattr(self.drawer_module, "Drawer"):
+            self.drawer = self.drawer_module.Drawer()
 
     def set_params(self, params):
         self.params = params
@@ -76,10 +71,11 @@ class CustomShape(RectangleShape):
             if pre_matrix:
                 custom_ctx.set_matrix(pre_matrix)
             self.pre_draw(custom_ctx, root_shape=root_shape)
-            custom_ctx.scale(self.width, self.height)
-            anchor_at_scaled = self.anchor_at.copy()
-            anchor_at_scaled.scale(1./self.width, 1./self.height)
-            self.drawer.draw(custom_ctx, anchor_at_scaled)
+
+            try:
+                self.drawer.draw(custom_ctx, self.anchor_at.copy(), self.width, self.height)
+            except BaseException as error:
+                print('An exception occurred: {}'.format(error))
 
             orig_mat = ctx.get_matrix()
             ctx.set_matrix(cairo.Matrix())
