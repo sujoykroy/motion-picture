@@ -38,6 +38,7 @@ class Document(object):
         self.main_multi_shape.border_width = 0
         self.id_num = Document.IdSeed
         Document.IdSeed += 1
+        Settings.Directory.add_new(filename)
 
     def __eq__(self, other):
         return isinstance(other, Document) and other.id_num == self.id_num
@@ -81,7 +82,7 @@ class Document(object):
 
     def load_from_xml_file(self):
         try:
-            tree = ET.parse(self.filename)
+            tree = ET.parse(Settings.Directory.get_full_path(self.filename))
         except IOError as e:
             return
         except ET.ParseError as e:

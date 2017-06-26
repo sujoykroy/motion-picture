@@ -189,7 +189,7 @@ class ShapePropBox(object):
             widgets.append(insert_slice_button)
             prop_widget.widgets.append(insert_slice_button)
 
-            apply_on_poses_button = Gtk.Button("P")
+            apply_on_poses_button = create_new_image_button("apply_on_poses", size=16)
             apply_on_poses_button.connect("clicked", self.apply_on_poses_button_clicked, prop_name)
             widgets.append(apply_on_poses_button)
             prop_widget.widgets.append(apply_on_poses_button)

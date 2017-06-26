@@ -1,6 +1,7 @@
 from gi.repository import Gtk, GObject
 import Queue
 from ..audio_tools import *
+from buttons import create_new_image_button
 
 class FileOp(object):
     @staticmethod
@@ -63,23 +64,20 @@ class FileSelect(Gtk.HBox):
     def __init__(self, file_types=[]):
         Gtk.HBox.__init__(self)
         self.selection_entry = Gtk.Entry()
-        self.selection_entry.set_editable(False)
+        self.selection_entry.connect("activate", self.selection_entry_activated)
+        #self.selection_entry.set_editable(False)
 
-        self.select_button = Gtk.Button("S")
+        self.select_button = create_new_image_button("file_select")
         self.select_button.connect("clicked", self.select_button_clicked)
 
-        self.clear_button = Gtk.Button("C")
-        self.clear_button.connect("clicked", self.clear_button_clicked)
-
-        self.blank_button = Gtk.Button("B")
-        self.blank_button.connect("clicked", self.blank_button_clicked)
+        self.refresh_button = create_new_image_button("refresh")
+        self.refresh_button.connect("clicked", self.refresh_button_clicked)
 
         self.file_types = file_types
         self.set_filename(None)
 
         self.pack_start(self.selection_entry, expand=True, fill=True, padding=0)
-        self.pack_end(self.clear_button, expand=False, fill=True, padding=0)
-        self.pack_end(self.blank_button, expand=False, fill=True, padding=0)
+        self.pack_end(self.refresh_button, expand=False, fill=True, padding=0)
         self.pack_end(self.select_button, expand=False, fill=True, padding=0)
 
     def set_filename(self, filename):
@@ -92,18 +90,18 @@ class FileSelect(Gtk.HBox):
     def get_filename(self):
         return self.filename
 
+    def selection_entry_activated(self, widget):
+        self.set_filename(self.selection_entry.get_text())
+        self.emit("file-selected")
+
     def select_button_clicked(self, widget):
         filename = FileOp.choose_file(widget.get_toplevel(), "open", self.file_types, filename=self.filename)
         if filename:
             self.set_filename(filename)
             self.emit("file-selected")
 
-    def clear_button_clicked(self, widget):
-        self.set_filename(None)
-        self.emit("file-selected")
-
-    def blank_button_clicked(self, widget):
-        self.set_filename("//")
+    def refresh_button_clicked(self, widget):
+        self.set_filename(self.filename)
         self.emit("file-selected")
 
 class FileChooserDialog(Gtk.FileChooserDialog):
