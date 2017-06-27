@@ -61,6 +61,17 @@ class TopMenu(object):
             last_item = item
         return last_item
 
+    @classmethod
+    def create_from_dict_list(cls, dict_list):
+        top_menu = cls(id=dict_list.get_name())
+        for item in dict_list:
+            top_menu.add(
+                path=item.get("path"), icon=item.get("icon"),
+                accel=item.get("accel"), action_name=item.get("action_name"),
+                action_param=item.get("action_param"), action_state=item.get("action_state"),
+                icon_scale=item.get("icon_scale", 1.), desc=item.get("desc"))
+        return top_menu
+
 class Submenu(object):
     def __init__(self, label):
         self.name = label.replace("_", "")
@@ -189,10 +200,10 @@ class MenuItem(object):
 
 class MenuBar(object):
     def __init__(self, top_menu, predrawn_folder):
-        self.top_menu = top_menu
+        self.top_menu = TopMenu.create_from_dict_list(top_menu)
         self.actions = self.top_menu.actions
         self.tool_rows = top_menu.tool_rows
-        self.menu_items = top_menu.menu_items
+        self.menu_items = self.top_menu.menu_items
 
         for filename in os.listdir(predrawn_folder):
             name = ".".join(os.path.basename(filename).split(".")[:-1])

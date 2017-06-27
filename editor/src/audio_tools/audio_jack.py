@@ -1,5 +1,5 @@
 import threading, jack, numpy,Queue, time, tempfile, shutil
-from audio_file_writer  import *
+from audio_file_writer import WaveFileWriter
 
 class AudioJack(threading.Thread):
     _running_thread = None

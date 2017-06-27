@@ -1,7 +1,6 @@
 import moviepy.editor as movie_editor
 import numpy
 from ..commons import *
-from audio_utils import *
 
 class AudioFileSamples(object):
     def __init__(self, filename):

@@ -9,7 +9,7 @@ from ..commons.draw_utils import *
 
 from ..shapes import *
 from ..shape_creators import *
-from guides import *
+from ..commons.guides import *
 from ..tasks import *
 from .. import settings
 from ..settings import EditingChoice

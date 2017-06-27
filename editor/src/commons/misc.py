@@ -175,3 +175,18 @@ class ImageHelper(object):
         if rgb_only:
             rgb_array = rgb_array[:,:, :3]
         return rgb_array
+
+class DictList(object):
+    def __init__(self, name):
+        self.name = name
+        self.items = []
+
+    def add(self, **kwd):
+        self.items.append(kwd)
+
+    def get_name(self):
+        return self.name
+
+    def __iter__(self):
+        for item in self.items:
+            yield item

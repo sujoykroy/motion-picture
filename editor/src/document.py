@@ -10,7 +10,7 @@ import cairo, os
 import settings as Settings
 from commons import *
 from shapes import *
-from editors.guides import Guide
+from commons.guides import Guide
 from tasks import TaskManager
 from time_lines import MultiShapeTimeLine
 

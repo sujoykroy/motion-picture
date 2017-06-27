@@ -1,6 +1,6 @@
-from ..gui_utils.menu_builder import *
+from ..commons import DictList
 
-TopMenuItem = m = TopMenu("menubar")
+TopMenuItem = m = DictList("menubar")
 m.add(path="File/New/Icon", icon="file_new_icon", desc="Create New Icon",
       action_name="app.create_new_document", action_param="400x400")
 m.add(path="File/New/Document", icon="file_new_document", desc="Create New Document",
