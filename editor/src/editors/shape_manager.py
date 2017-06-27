@@ -1216,7 +1216,7 @@ class ShapeManager(object):
             newly_added_shapes = []
             for shape in merged_shapes:
                 if flat_merge:
-                    new_shape = shape.copy()
+                    new_shape = shape.copy(deep_copy=True)
                     shape.copy_into(new_shape, all_fields=True)
                     mega_shape.add_shape(new_shape)
                     newly_added_shapes.append(new_shape)
@@ -1231,6 +1231,8 @@ class ShapeManager(object):
         if not self.shape_editor: return False
         shape = self.shape_editor.shape
         if isinstance(shape, MultiSelectionShape): return False
+        if isinstance(shape, ThreeDShape):
+            return self.break_threeDShape()
         if not isinstance(shape, MultiShape): return False
         task = MultiShapeBreakTask(self.doc, shape)
         freed_shapes = []
@@ -1244,6 +1246,26 @@ class ShapeManager(object):
         self.multi_shape.readjust_sizes()
         task.save(self.doc, self.multi_shape)
         self.reload_shapes()
+        return True
+
+    def break_threeDShape(self):
+        if not self.shape_editor: return False
+        shape = self.shape_editor.shape
+        if not isinstance(shape, ThreeDShape): return False
+        #self.delete_shape_editor()
+        threeDShapes = shape.split()
+        if not threeDShapes:
+            return False
+        multi_shape = MultiShape(anchor_at=Point(0, 0))
+        multi_shape.be_like_shape(shape)
+        for threeDShape in threeDShapes:
+            #threeDShape.parent_shape=self.multi_shape
+            multi_shape.add_shape(threeDShape, transform=False, resize=False)
+            threeDShape.move_to(shape.anchor_at.x, shape.anchor_at.y)
+        self.add_shape(multi_shape)
+        #self.multi_shape.readjust_sizes()
+        abs_anchor_at = shape.get_abs_anchor_at()
+        multi_shape.move_to(abs_anchor_at.x, abs_anchor_at.y    )
         return True
 
     def save_doc(self, filename=None):

@@ -15,7 +15,7 @@ class ThreeDShape(RectangleShape):
         self.image_canvas = None
         self.d3_object = Container3d()
         self.camera = Camera3d()
-        self.camera.rotate_deg((-120, 0, -20))
+        self.camera.rotate_deg((75, 0, 120))
         self.should_rebuild_d3 = True
         self.should_rebuild_camera = True
         self.should_rebuild_image = True
@@ -41,6 +41,28 @@ class ThreeDShape(RectangleShape):
         newob.d3_object.set_border_color(self.wire_color)
         newob.d3_object.set_border_width(self.wire_width)
         return newob
+
+    def split(self):
+        if self.d3_object.get_item_count()==1:
+            return None
+        d3_objects = self.d3_object.split()
+        threeDshapes = []
+        for d3_object in d3_objects:
+            newob = ThreeDShape(self.anchor_at.copy(), copy_value(self.border_color),
+                        copy_value(self.border_width), copy_value(self.fill_color),
+                        self.width, self.height, self.corner_radius)
+            self.copy_into(newob, copy_name=True)
+            newob.camera.rotation.copy_from(self.camera.rotation)
+            newob.wire_color = copy_value(self.wire_color)
+            newob.wire_width = self.wire_width
+            newob.high_quality = self.high_quality
+            newob.quality_scale = self.quality_scale
+            newob.d3_object = d3_object
+            newob.d3_object.set_border_color(self.wire_color)
+            newob.d3_object.set_border_width(self.wire_width)
+            newob.rename(newob.d3_object.item_names[0])
+            threeDshapes.append(newob)
+        return threeDshapes
 
     def get_xml_element(self):
         elm = super(ThreeDShape, self).get_xml_element()
@@ -115,12 +137,12 @@ class ThreeDShape(RectangleShape):
         self.camera.rotation.set_z(value*DEG2PI)
         self.should_rebuild_camera = True
 
-    def set_width(self, value):
-        super(ThreeDShape, self).set_width(value)
+    def set_width(self, value, fixed_anchor=True):
+        super(ThreeDShape, self).set_width(value, fixed_anchor=fixed_anchor)
         self.should_rebuild_image = True
 
-    def set_height(self, value):
-        super(ThreeDShape, self).set_height(value)
+    def set_height(self, value, fixed_anchor=True):
+        super(ThreeDShape, self).set_height(value, fixed_anchor=fixed_anchor)
         self.should_rebuild_image = True
 
     def set_anchor_x(self, value):

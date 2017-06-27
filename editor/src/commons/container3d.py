@@ -18,6 +18,9 @@ class Container3d(Object3d):
         self.items = []
         self.item_names = []
 
+    def get_item_count(self):
+        return len(self.items)
+
     def get_xml_element(self, exclude_border_fill=False):
         elm = XmlElement(self.TAG_NAME)
         self.load_xml_elements(elm, exclude_border_fill=exclude_border_fill)
@@ -53,6 +56,20 @@ class Container3d(Object3d):
                     polygon.fill_color.set_resources(texture_resources)
         newob.item_names = list(self.item_names)
         return newob
+
+    def split(self):
+        newobs = []
+        for i in range(len(self.items)):
+            newob = Container3d()
+            self.copy_into(newob)
+            texture_resources = newob.get_texture_resources()
+            item = self.items[i].copy()
+            newob.append(item, self.item_names[i])
+            for polygon in item.polygons:
+                if isinstance(polygon.fill_color, TextureMapColor):
+                    polygon.fill_color.set_resources(texture_resources)
+            newobs.append(newob)
+        return newobs
 
     def clear(self):
         del self.items[:]
