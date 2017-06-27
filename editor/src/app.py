@@ -6,6 +6,7 @@ import sys, os, cairo
 from editors import MasterEditor, ShapeEditor
 from gui_utils import *
 from gui_utils.menu_builder import MenuItem
+from gui_utils.helper_dialogs import NoticeDialog
 from document import Document
 import settings as Settings
 from settings import EditingChoice
@@ -138,14 +139,17 @@ class ApplicationWindow(MasterEditor):
         change_action_tool_buttons(border_fixed_action)
 
     def save_document(self, action, parameter):
+        result = False
         if not self.doc.filename:
             filename = FileOp.choose_file(self, purpose="save")
             if filename:
-                self.shape_manager.save_doc(filename)
+                result=self.shape_manager.save_doc(filename)
                 self.show_filename()
                 self.parent.recent_manager.add_item(filename)
         else:
-            self.shape_manager.save_doc()
+            result=self.shape_manager.save_doc()
+        if not result:
+            dialog = NoticeDialog(self, "Unable to save file.", "Error in Saving")
 
     def save_as_document(self, action, parameter):
         filename = FileOp.choose_file(self, purpose="save_as", filename=self.doc.filename)

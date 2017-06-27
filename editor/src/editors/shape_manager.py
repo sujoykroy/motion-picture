@@ -1275,13 +1275,14 @@ class ShapeManager(object):
                 shapes.append(shape)
             self.delete_shape_editor()
 
-        self.doc.save(filename)
+        result = self.doc.save(filename)
         if shapes:
             multi_selection_shape = MultiSelectionShape()
             for shape in shapes:
                 multi_selection_shape.add_shape(shape)
             self.add_shape(multi_selection_shape)
             self.shape_editor = ShapeEditor(multi_selection_shape)
+        return result
 
     def update_linked_shapes(self):
         if not self.shape_editor: return False

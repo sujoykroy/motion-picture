@@ -1,6 +1,7 @@
 from ..commons import *
 from shape import Shape
 from rectangle_shape import RectangleShape
+from .. import settings as Settings
 
 import math, time
 DEG2PI = math.pi/180.
@@ -66,7 +67,8 @@ class ThreeDShape(RectangleShape):
 
     def get_xml_element(self):
         elm = super(ThreeDShape, self).get_xml_element()
-        elm.attrib["filepath"] = self.filepath
+        if self.filepath:
+            elm.attrib["filepath"] = self.filepath
         elm.attrib["camera_rotation"] = self.camera.rotation.to_text(factor=1/DEG2PI)
         if self.wire_color:
             elm.attrib["wire_color"] = self.wire_color.to_text()
@@ -182,7 +184,7 @@ class ThreeDShape(RectangleShape):
         if not load_file:
             return
         self.d3_object.clear()
-        self.d3_object.load_from_file(self.filepath)
+        self.d3_object.load_from_file(Settings.Directory.get_full_path(self.filepath))
 
         self.should_rebuild_d3 = True
         self.should_rebuild_camera = True

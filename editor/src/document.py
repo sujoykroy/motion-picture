@@ -21,7 +21,7 @@ class Document(object):
     IdSeed = 0
 
     def __init__(self, filename=None, width=400., height=300.):
-        self.filename = filename
+        self.filename = Settings.Directory.get_full_path(filename)
         self.width = width
         self.height = height
         self.main_multi_shape = None
@@ -82,7 +82,7 @@ class Document(object):
 
     def load_from_xml_file(self):
         try:
-            tree = ET.parse(Settings.Directory.get_full_path(self.filename))
+            tree = ET.parse(self.filename)
         except IOError as e:
             return
         except ET.ParseError as e:
@@ -111,6 +111,7 @@ class Document(object):
                 self.guides.append(guide)
 
     def save(self, filename=None):
+        result = False
         root = XmlElement("root")
 
         app = XmlElement("app")
@@ -145,6 +146,7 @@ class Document(object):
         #tree.write(self.filename)
         try:
             tree.write(self.filename)
+            result = True
         except TypeError as e:
             if backup_file:
                 os.rename(backup_file, filename)
@@ -152,6 +154,7 @@ class Document(object):
 
         if backup_file:
             os.remove(backup_file)
+        return True
 
     def add_linked_clone_elements(self, multi_shape, root):
         for shape in multi_shape.shapes:
@@ -313,7 +316,7 @@ class DocMovie(object):
 
         timelines = doc.main_multi_shape.timelines
         if not timelines:
-            raise Exception("No timeline is found in {0}".format(doc_filename))
+            raise Exception("No timeline is found in {0}".format(filename))
 
         if time_line is None:
             if "main" in timelines.keys():
@@ -322,7 +325,7 @@ class DocMovie(object):
                 time_line = timelines.keys()[0]
         elif time_line not in timelines:
             raise Exception("Timeline [{1}] is not found in {0}".format(
-                                        doc_filename, time_line))
+                                        filename, time_line))
 
         time_line_obj = timelines[time_line]
 
