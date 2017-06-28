@@ -237,7 +237,8 @@ class ShapeManager(object):
         self.document_area_box.draw_axis(ctx)
 
         ctx.save()
-        self.doc.main_multi_shape.draw(ctx, drawing_size, self.doc.fixed_border, no_camera=False)
+        self.doc.main_multi_shape.draw(ctx, drawing_size,
+                fixed_border=self.doc.fixed_border, no_camera=False)
         ctx.restore()
 
         if self.multi_shape != self.doc.main_multi_shape:
@@ -1132,6 +1133,7 @@ class ShapeManager(object):
         if not self.shape_editor: return False
         new_shape = None
         old_shape = self.shape_editor.shape
+        self.delete_shape_editor()
         if shape_type == "polygon":
             if isinstance(old_shape, RectangleShape) and old_shape.corner_radius == 0:
                 new_shape = PolygonShape.create_from_rectangle_shape(old_shape)
@@ -1143,7 +1145,7 @@ class ShapeManager(object):
             elif isinstance(old_shape, PolygonShape):
                 new_shape = CurveShape.create_from_polygon_shape(old_shape)
         if new_shape:
-            task = ShapeConvertTask(self.doc, self.shape_editor.shape)
+            task = ShapeConvertTask(self.doc, old_shape)
             self.add_shape(new_shape)
             old_shape.copy_into(new_shape)
             self.remove_shape(old_shape)

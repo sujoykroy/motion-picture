@@ -59,7 +59,7 @@ class TimeSlice(object):
             elm.append(self.change_type.get_xml_element())
         if self.prop_data:
             for key, value in self.prop_data.items():
-                if value is None: continue
+                #if value is None: continue
                 prop_data_elm = XmlElement(self.PROP_DATA_TAG_NAME)
                 prop_data_elm.attrib["key"] = "{0}".format(key)
                 prop_data_elm.attrib["value"] = "{0}".format(value)
@@ -109,6 +109,8 @@ class TimeSlice(object):
                     value = float(value)
                 elif value_type == 'bool':
                     value = (value == "True")
+                elif value_type == "NoneType":
+                    value = None
                 prop_data[key] = value
         time_slice = cls(start_value, end_value, duration, change_type, prop_data)
         time_slice.linked_to_next = linked_to_next

@@ -446,7 +446,7 @@ class FrameMaker(object):
             camera.reverse_pre_draw(self.ctx, root_shape=multi_shape.parent_shape)
 
         pre_matrix = self.ctx.get_matrix()
-        multi_shape.draw(self.ctx, drawing_size=self.drawing_size,
+        multi_shape.draw(self.ctx, drawing_size=self.drawing_size, fixed_border=True,
             root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
         self.ctx.restore()
