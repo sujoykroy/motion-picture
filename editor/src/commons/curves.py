@@ -188,53 +188,7 @@ class NaturalCurve(object):
             mod_roots.append(root)
         return mod_roots
 
-    def get_closest_control_point(self, point, width, height):
-        last_dest = self.origin
-        for bezier_point_index in range(len(self.bezier_points)):
-            bezier_point = self.bezier_points[bezier_point_index]
-
-            p0 = last_dest
-            p1 = bezier_point.control_1
-            p2 = bezier_point.control_2
-            p3 = bezier_point.dest
-            last_dest = p3
-
-            x_coeff = [(-p0.x+3*p1.x-3*p2.x+p3.x), (3*p0.x-6*p1.x+3*p2.x),
-                       (-3*p0.x+3*p1.x), p0.x-point.x]
-            y_coeff = [(-p0.y+3*p1.y-3*p2.y+p3.y), (3*p0.y-6*p1.y+3*p2.y),
-                       (-3*p0.y+3*p1.y), p0.y-point.y]
-
-            for i in range(len(x_coeff)):
-                x_coeff[i] *= width
-                if abs(x_coeff[i])<5: x_coeff[i] = 0
-            for i in range(len(y_coeff)):
-                y_coeff[i] *= height
-                if abs(y_coeff[i])<5: y_coeff[i] = 0
-
-            x_roots = numpy.roots(x_coeff)
-            y_roots = numpy.roots(y_coeff)
-
-            mod_x_roots = self.get_reals(x_roots)
-            mod_y_roots = self.get_reals(y_roots)
-
-            x_roots = mod_x_roots
-            y_roots = mod_y_roots
-
-            if not x_roots and mod_y_roots and any((cf==0 for cf in x_coeff)) \
-                           and abs(x_coeff[-1])<5:#horizontal
-                return bezier_point_index, mod_y_roots[0]
-            if not y_roots and mod_x_roots and any((cf==0 for cf in y_coeff)) \
-                           and abs(y_coeff[-1])<5:#vertical
-                return bezier_point_index, mod_x_roots[0]
-
-            for x_root in x_roots:
-                for y_root in y_roots:
-                    if abs((x_root-y_root)/x_root)<.1:
-                        return bezier_point_index, x_root
-                        break
-        return None
-
-    def get_baked_points(self, width, height, include_bezier_point_index=False):
+    def get_baked_points(self, width, height, detailed=False):
         """
         This will generate the points along the path of curve.
         Curve has normalized points. So, width and height are provided.
@@ -291,44 +245,27 @@ class NaturalCurve(object):
                     ts *= ts_step
                     nx = prev_tp.x + ts*(tx-prev_tp.x)
                     ny = prev_tp.y + ts*(ty-prev_tp.y)
-                    if include_bezier_point_index:
-                        path_points = numpy.append(path_points, [nx, ny, bezier_point_index])
+                    if detailed:
+                        path_points = numpy.append(path_points, [nx, ny, bezier_point_index, t])
                     else:
                         path_points = numpy.append(path_points, [nx, ny])
 
-        if include_bezier_point_index:
-            path_points.shape =(-1, 3)
+        if detailed:
+            path_points.shape =(-1, 4)
         else:
             path_points.shape =(-1, 2)
         return path_points
 
-    def insert_point_at_location(self, point, width, height, radius=2):
-        baked_points = self.get_baked_points(width, height, include_bezier_point_index=True)
-        point = point.copy()
-        print baked_points.shape
+    def get_closest_control_point(self, point, width, height, tolerance):
+        baked_points = self.get_baked_points(width, height, detailed=True)
         kd_tree = KDTree(baked_points[:, :2])
         distance, index = kd_tree.query([point.x, point.y])
-        print distance, index
-        if distance<=radius:
+        if distance<=tolerance:
             bkp = baked_points[index]
-            bzp = self.bezier_points[bkp]
-            point = Point(bkp[0], bkp[1])
-            beizer_point_index = bkp[1]
-            if index>0:
-                prev_bkp = baked_points[index]
-                prev_point = Point(prev_bkp[0], prev_bkp[1])
-            else:
-                prev_point = point.copy()
-            if index<baked_points.shape[0]-1:
-                next_bkp = baked_points[index+1]
-                next_point = Point(next_bkp[0], next_bkp[1])
-            else:
-                next_point = point.copy()
-            new_bezier_point = BezierPoint(bzp.control_1.copy(), prev_point, point)
-            bzp.control_1.copy_from(next_point)
-            self.insert_bezier_point(bkp, new_bezier_point)
-            return index
-        return -1
+            beizer_point_index = int(bkp[2])
+            t = bkp[3]
+            return beizer_point_index, t
+        return None
 
     def insert_point_at(self, bezier_point_index, t):
         if bezier_point_index>=len(self.bezier_points): return
@@ -630,7 +567,7 @@ class Curve(NaturalCurve):
              (bezier_point.dest.x, bezier_point.dest.y)], axis=0)
 
     def insert_bezier_point(self, index, bezier_point):
-        self.all_points=numpy.insert(self.all_points, index*3,
+        self.all_points=numpy.insert(self.all_points, index*3+1,
             [(bezier_point.control_1.x, bezier_point.control_1.y),
              (bezier_point.control_2.x, bezier_point.control_2.y),
              (bezier_point.dest.x, bezier_point.dest.y)], axis=0)
