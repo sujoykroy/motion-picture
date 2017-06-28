@@ -538,6 +538,12 @@ class Curve(NaturalCurve):
         self.origin = PseudoPoint(self, 0)
         self.bezier_points = PseudoBezierPoints(self)
 
+    def adjust_origin(self):
+        if not self.closed:
+            return
+        self.all_points[0][0] = self.all_points[-1][0]
+        self.all_points[0][1] = self.all_points[-1][1]
+
     def copy(self):
         newob = Curve(self.origin.copy(), closed=self.closed)
         newob.all_points = self.all_points.copy()
@@ -605,6 +611,7 @@ class Curve(NaturalCurve):
     def set_inbetween(self, start_curve, end_curve, frac):
         yc = min(start_curve.all_points.shape[0], end_curve.all_points.shape[0])
         self.all_points = start_curve.all_points[:yc, :]*(1-frac) + end_curve.all_points[:yc, :]*frac
+        self.adjust_origin()
 
     def draw_path(self, ctx):
         ctx.new_path()

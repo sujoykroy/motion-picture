@@ -131,6 +131,7 @@ class CurveShape(Shape, Mirror):
 
             self_curve.copy_from(form_curve)
             self_curve.translate(anchor_at.x, anchor_at.y)
+            self_curve.adjust_origin()
         #self.anchor_at.translate(diff_width, diff_height)
         self.fit_size_to_include_all()
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)

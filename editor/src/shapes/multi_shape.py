@@ -403,6 +403,13 @@ class MultiShape(Shape):
         del self.timelines[timeline_name]
         return True
 
+    def get_timelines_model(self):
+        model = []
+        for name in sorted(self.timelines.keys()):
+            time_line = self.timelines[name]
+            model.append(["{0} [{1:.2f} sec]".format(name, time_line.duration), name])
+        return model
+
     def add_custom_prop(self, prop_name, prop_type):
         if hasattr(self, prop_name):
             return False

@@ -287,9 +287,9 @@ class Document(object):
                 module_name = item[0]
                 module_path = item[1]
             else:
-                module_name = os.path.direname(os.path.splitext(item))
+                module_name = os.path.basename(os.path.splitext(item)[0])
                 module_path = item
-        doc_module = DocModule(module_name, module_path)
+            doc_module = DocModule(module_name, module_path)
 
     @classmethod
     def load_and_get_main_multi_shape(cls, filename):

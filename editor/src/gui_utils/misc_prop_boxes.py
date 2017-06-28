@@ -123,7 +123,7 @@ class MultiShapePropBox(ShapePropBox):
     def set_prop_object(self, prop_object):
         ShapePropBox.set_prop_object(self, prop_object)
         self.poses_combo_box.build_and_set_model(prop_object.get_pose_list())
-        self.timelines_combo_box.build_and_set_model(sorted(prop_object.timelines.keys()))
+        self.timelines_combo_box.build_and_set_model(prop_object.get_timelines_model())
 
     def has_prop(self, prop_name):
         if prop_name in ("pose", "timeline"):

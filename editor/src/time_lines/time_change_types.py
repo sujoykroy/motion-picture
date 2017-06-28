@@ -29,7 +29,7 @@ class TimeChangeType(object):
         if isinstance(start_value, list):
             minv = None
             maxv = None
-            for i in range(len(start_value)):
+            for i in range(min(len(start_value), len(end_value))):
                 minvl = min(start_value[i], end_value[i])
                 maxvl = max(start_value[i], end_value[i])
                 if minv is not  None:
