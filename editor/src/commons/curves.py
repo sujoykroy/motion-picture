@@ -3,7 +3,8 @@ from point import Point, RAD_PER_DEG
 from rect import Rect
 from xml.etree.ElementTree import Element as XmlElement
 import numpy, math
-from scipy.spatial import distance
+from scipy.spatial import distance, KDTree
+
 
 class NaturalCurve(object):
     TAG_NAME = "curve"
@@ -233,7 +234,7 @@ class NaturalCurve(object):
                         break
         return None
 
-    def get_baked_points(self, width, height):
+    def get_baked_points(self, width, height, include_bezier_point_index=False):
         """
         This will generate the points along the path of curve.
         Curve has normalized points. So, width and height are provided.
@@ -290,10 +291,44 @@ class NaturalCurve(object):
                     ts *= ts_step
                     nx = prev_tp.x + ts*(tx-prev_tp.x)
                     ny = prev_tp.y + ts*(ty-prev_tp.y)
-                    path_points = numpy.append(path_points, [nx, ny])
+                    if include_bezier_point_index:
+                        path_points = numpy.append(path_points, [nx, ny, bezier_point_index])
+                    else:
+                        path_points = numpy.append(path_points, [nx, ny])
 
-        path_points.shape =(-1, 2)
+        if include_bezier_point_index:
+            path_points.shape =(-1, 3)
+        else:
+            path_points.shape =(-1, 2)
         return path_points
+
+    def insert_point_at_location(self, point, width, height, radius=2):
+        baked_points = self.get_baked_points(width, height, include_bezier_point_index=True)
+        point = point.copy()
+        print baked_points.shape
+        kd_tree = KDTree(baked_points[:, :2])
+        distance, index = kd_tree.query([point.x, point.y])
+        print distance, index
+        if distance<=radius:
+            bkp = baked_points[index]
+            bzp = self.bezier_points[bkp]
+            point = Point(bkp[0], bkp[1])
+            beizer_point_index = bkp[1]
+            if index>0:
+                prev_bkp = baked_points[index]
+                prev_point = Point(prev_bkp[0], prev_bkp[1])
+            else:
+                prev_point = point.copy()
+            if index<baked_points.shape[0]-1:
+                next_bkp = baked_points[index+1]
+                next_point = Point(next_bkp[0], next_bkp[1])
+            else:
+                next_point = point.copy()
+            new_bezier_point = BezierPoint(bzp.control_1.copy(), prev_point, point)
+            bzp.control_1.copy_from(next_point)
+            self.insert_bezier_point(bkp, new_bezier_point)
+            return index
+        return -1
 
     def insert_point_at(self, bezier_point_index, t):
         if bezier_point_index>=len(self.bezier_points): return

@@ -377,11 +377,15 @@ class CurveShape(Shape, Mirror):
         return None
 
     def insert_point_at(self, point):
-        found = self.find_point_location(point)
-        if not found: return False
-        curve_index, bezier_point_index, t = found
-        curve = self.curves[curve_index]
-        curve.insert_point_at(bezier_point_index, t)
+        point = point.copy()
+        point.scale(1./self.width, 1./self.height)
+        for curve_index in range(len(self.curves)):
+            curve = self.curves[curve_index]
+            bezier_point_index = curve.insert_point_at_location(point, self.width, self.height)
+            if bezier_point_index>=0:
+                break
+        if bezier_point_index<0:
+            return False
 
         for curve_point_group in self.point_groups:
             curve_point_group.shift(

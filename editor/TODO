@@ -1,3 +1,7 @@
+Known Bugs
+===================================================================
+* After changing canvas-size, linear and gradient colors can not be editing by double clicking.
+When double clicked, an extra node point is inserted.
 
 ===Distant Future TODOs============================================
 * Introducing mirror feature in Multi shape
