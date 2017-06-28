@@ -56,6 +56,10 @@ class DocumentShape(RectangleShape):
             self.doc_width = wh[0]
             self.doc_height = wh[1]
 
+            self.time_line_obj = None
+            self.time_line_name = None
+            self.camera = None
+            self.camera_obj = None
             timelines = self.doc_main_multi_shape.timelines
             if self.time_line_name not in timelines and len(timelines)>0:
                 self.set_time_line_name(timelines.keys()[0])
