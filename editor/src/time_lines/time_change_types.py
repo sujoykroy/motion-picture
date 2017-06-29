@@ -61,6 +61,11 @@ class PeriodicChangeType(TimeChangeType):
         elm.attrib[self.PERIOD_NAME] = "{0}".format(self.period)
         return elm
 
+    def set_period(self, period):
+        if period<=0:
+            period= .00001
+        self.period = period
+
     def copy(self):
         return self.create_new_object(self.amplitude, self.period, self.phase)
 

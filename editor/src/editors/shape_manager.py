@@ -255,7 +255,9 @@ class ShapeManager(object):
             draw_stroke(ctx, 2, "00ff00")
 
             ctx.save()
-            self.multi_shape.draw(ctx, drawing_size, self.doc.fixed_border,
+            self.multi_shape.draw(ctx, design=True,
+                    drawing_size=drawing_size,
+                    fixed_border=self.doc.fixed_border,
                     no_camera=False, show_non_renderable=True)
             ctx.restore()
 

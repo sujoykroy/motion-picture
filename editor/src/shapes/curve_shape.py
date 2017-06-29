@@ -156,7 +156,6 @@ class CurveShape(Shape, Mirror):
             if "start_form" in prop_data:
                 start_form_name = prop_data["start_form"]
                 end_form_name = prop_data.get("end_form")
-
                 if end_form_name is None or end_form_name not in self.forms:
                     self.set_form(start_form_name)
                     return

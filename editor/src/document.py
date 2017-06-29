@@ -15,7 +15,10 @@ from tasks import TaskManager
 from time_lines import MultiShapeTimeLine
 
 import moviepy.editor as movie_editor
-import numpy, time
+import numpy
+import time
+import fnmatch
+import re
 
 class Document(object):
     IdSeed = 0
@@ -288,6 +291,18 @@ class Document(object):
                 module_path = item[1]
             else:
                 module_name = os.path.basename(os.path.splitext(item)[0])
+                prog = re.compile("[\[\]\*\?\!]+")
+                if prog.findall(module_name):
+                    directory = os.path.dirname(item)
+                    basename = os.path.basename(item)
+                    for filename in os.listdir(directory):
+                        if not fnmatch.fnmatch(filename, basename):
+                            continue
+                        filepath = os.path.join(directory, filename)
+                        if not os.path.isfile(filepath):
+                            continue
+                        Document.load_modules(filepath)
+                    return
                 module_path = item
             doc_module = DocModule(module_name, module_path)
 

@@ -609,7 +609,8 @@ class MultiShape(Shape):
     def draw(self, ctx, drawing_size=None,
                         fixed_border=True, no_camera=True,
                         root_shape=None, exclude_camera_list=None,
-                        pre_matrix=None, show_non_renderable=False):
+                        pre_matrix=None, show_non_renderable=False,
+                        design=False):
 
         if self.fill_color is not None:
             ctx.save()
@@ -630,6 +631,7 @@ class MultiShape(Shape):
             orig_ctx = ctx
             ctx = masked_ctx
 
+        last_shape = self.shapes.get_at_index(-1)
         for i in range(renderable_shapes_count):
             shape = self.shapes.get_at_index(i)
             if not shape.visible:
@@ -703,16 +705,16 @@ class MultiShape(Shape):
             ctx.clip()
             ctx.paint()
             ctx.restore()
-
-            ctx.save()
-            last_shape.pre_draw(ctx, root_shape=root_shape)
-            last_shape.draw_path(ctx)
-            if fixed_border:
-                ctx.restore()
-                last_shape.draw_border(ctx)
-            else:
-                last_shape.draw_border(ctx)
-                ctx.restore()
+            if design:
+                ctx.save()
+                last_shape.pre_draw(ctx, root_shape=root_shape)
+                last_shape.draw_path(ctx)
+                if fixed_border:
+                    ctx.restore()
+                    last_shape.draw_border(ctx)
+                else:
+                    last_shape.draw_border(ctx)
+                    ctx.restore()
 
         if self.border_color is not None:
             ctx.save()

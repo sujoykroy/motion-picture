@@ -217,7 +217,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         VideoShape.USE_IMAGE_THREAD = True
         CameraShape.CAMERA_ICON = Document.get_icon_shape("camera", 20, 20)
 
-        self.image_gl_render = None
         self.area_fitted = False
 
     def quit(self, widget, event):
@@ -282,7 +281,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         return doc_point, shape_point
 
     def load_multi_shape(self, multi_shape, recreate_shape_manager=False):
-        self.multi_shape_stack.append(multi_shape)
+        if multi_shape not in self.multi_shape_stack:
+            self.multi_shape_stack.append(multi_shape)
         if not recreate_shape_manager and self.shape_manager and \
             self.shape_manager.doc.filename == self.doc.filename:
             self.shape_manager.load_multi_shape(multi_shape)
@@ -636,15 +636,6 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def on_drawing_area_draw(self, widget, dctx):
         w, h = self.get_drawing_area_size()
-        """
-        if self.image_gl_render and \
-           (self.image_gl_render.width !=w or self.image_gl_render.height != h):
-            del self.image_gl_render
-            self.image_gl_render = None
-        if self.image_gl_render is None:
-            self.image_gl_render = ImageGLRender(w, h)
-        """
-
         img_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(img_surf)
 

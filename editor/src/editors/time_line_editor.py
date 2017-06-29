@@ -184,7 +184,9 @@ class TimeMarkerEditDialog(Gtk.Dialog):
         self.response(TimeMarkerEditDialog.DELETE_MARKER)
 
 class TimeLineEditor(Gtk.VBox):
-    def __init__(self, play_head_callback, time_slice_box_select_callback, keyboard_object, parent_window):
+    def __init__(self, play_head_callback,
+                       time_slice_box_select_callback,
+                       keyboard_object, parent_window):
         Gtk.VBox.__init__(self)
 
         self.keyboard_object = keyboard_object
@@ -288,6 +290,7 @@ class TimeLineEditor(Gtk.VBox):
 
         self.time_marker_boxes = dict()
         self.show_current_play_head_time()
+        self.time_line = None
 
     def play_1x_speed_button_clicked(self, widget):
         self.speed_scale_slider.set_value(1)
@@ -461,6 +464,7 @@ class TimeLineEditor(Gtk.VBox):
             self.move_time_marker(time_marker, time_marker.at, time_to)
             self.update_time_marker_boxes()
         self.time_line.get_duration()
+        self.show_time_line_duration()
 
     def move_time_marker(self, time_marker, old_at, new_at):
         if self.time_line.move_time_marker(old_at, new_at):
@@ -493,6 +497,9 @@ class TimeLineEditor(Gtk.VBox):
             self.update_time_marker_boxes()
             self.show_time_line_duration()
 
+        if self.time_line:
+            self.time_line.get_duration()
+            self.show_time_line_duration()
         self.mouse_position_box.height = self.drawing_area.get_allocated_height()
         self.redraw()
 

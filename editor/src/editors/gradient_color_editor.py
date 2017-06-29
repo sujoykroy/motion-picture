@@ -139,7 +139,11 @@ class GradientColorEditor(object):
         for i in range(1, len(self.gradient_color.color_points)):
             point2 = self.gradient_color.color_points[i].point
             point1 = self.gradient_color.color_points[i-1].point
-            if point1.x<=point.x<=point2.x and point1.y<=point.y<=point2.y:
+            minx = min(point1.x, point2.x)
+            maxx = max(point1.x, point2.x)
+            miny = min(point1.y, point2.y)
+            maxy = max(point1.y, point2.y)
+            if minx<=point.x<=maxx and miny<=point.y<=maxy:
                 frac = point.distance(point1)/point2.distance(point1)
                 new_point = Point(
                     point1.x + (point2.x-point1.x)*frac,
