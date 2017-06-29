@@ -102,12 +102,15 @@ class Container3d(Object3d):
         for item in self.items:
             item.build_projection(camera)
 
-    def load_from_file(self, filepath):
+    def load_from_file(self, filepath, item_names=None):
         filename, file_extension = os.path.splitext(filepath)
+        if item_names and isinstance(item_names, str):
+            item_names = item_names.strip()
+            item_names = item_names.split(",")
         if file_extension == ".dae":
-            self.load_from_collada(filepath)
+            self.load_from_collada(filepath, item_names=item_names)
 
-    def load_from_collada(self, filepath, scale=1):
+    def load_from_collada(self, filepath, scale=1, item_names=None):
         mesh = collada.Collada(filepath)
         geometries = dict()
 
@@ -151,6 +154,8 @@ class Container3d(Object3d):
                 for child in node.children:
                     if isinstance(child, collada.scene.GeometryNode):
                         name = child.geometry.name
+                        if item_names and node.id not in item_names:
+                            continue
                         points, polygons_data = geometries[name]
                         polygons = []
                         for i in range(len(polygons_data)):

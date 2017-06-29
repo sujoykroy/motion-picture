@@ -25,6 +25,7 @@ class ThreeDShape(RectangleShape):
         self.high_quality = False
         self.image_hash = None
         self.quality_scale = .25
+        self.item_names = None
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = ThreeDShape(self.anchor_at.copy(), copy_value(self.border_color),
@@ -41,6 +42,7 @@ class ThreeDShape(RectangleShape):
             newob.d3_object = self.d3_object.copy()
         newob.d3_object.set_border_color(self.wire_color)
         newob.d3_object.set_border_width(self.wire_width)
+        newob.item_names = self.item_names
         return newob
 
     def split(self):
@@ -61,7 +63,9 @@ class ThreeDShape(RectangleShape):
             newob.d3_object = d3_object
             newob.d3_object.set_border_color(self.wire_color)
             newob.d3_object.set_border_width(self.wire_width)
-            newob.rename(newob.d3_object.item_names[0])
+            newob.item_names = newob.d3_object.item_names[0]
+            newob.rename(newob.item_names)
+            newob.filepath = self.filepath
             threeDshapes.append(newob)
         return threeDshapes
 
@@ -76,6 +80,8 @@ class ThreeDShape(RectangleShape):
         elm.attrib["high_quality"] = "{0}".format(int(self.high_quality))
         elm.attrib["quality_scale"] = "{0}".format(self.quality_scale)
         elm.append(self.d3_object.get_xml_element(exclude_border_fill=True))
+        if self.item_names:
+            elm.attrib["item_names"] = "{0}".format(self.item_names)
         return elm
 
     @classmethod
@@ -87,6 +93,7 @@ class ThreeDShape(RectangleShape):
         shape.set_filepath(elm.attrib.get("filepath", ""), load_file=False)
         shape.high_quality = bool(int(elm.attrib["high_quality"]))
         shape.set_quality_scale(float(elm.attrib.get("quality_scale", shape.quality_scale)))
+        shape.item_names = elm.attrib.get("item_names")
 
         container3d_elm = elm.find(Container3d.TAG_NAME)
         if container3d_elm and not shape.d3_object.items:
@@ -184,7 +191,8 @@ class ThreeDShape(RectangleShape):
         if not load_file:
             return
         self.d3_object.clear()
-        self.d3_object.load_from_file(Settings.Directory.get_full_path(self.filepath))
+        full_path = Settings.Directory.get_full_path(self.filepath)
+        self.d3_object.load_from_file(full_path, item_names=self.item_names)
 
         self.should_rebuild_d3 = True
         self.should_rebuild_camera = True

@@ -250,6 +250,7 @@ class ThreeDShapePropBox(RectangleShapePropBox):
                 dict(value=0, lower=0, upper=1000, step_increment=.1))
         self.add_prop("high_quality", PROP_TYPE_CHECK_BUTTON, None)
         self.add_prop("filepath", PROP_TYPE_FILE, dict(file_type=[["Collada", "*.dae"]]))
+        self.add_prop("item_names", PROP_TYPE_TEXT)
         self.orig_insert_time_slice_callback = insert_time_slice_callback
 
     def new_insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):
