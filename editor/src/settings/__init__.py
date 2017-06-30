@@ -13,3 +13,4 @@ class EditingChoice:
     FREE_ERASING = False
     TIME_STEP = .1
     SHOW_POINT_GROUPS = True
+    LOCK_SHAPE_SELECTION = False

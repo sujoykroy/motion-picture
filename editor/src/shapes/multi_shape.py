@@ -631,7 +631,10 @@ class MultiShape(Shape):
             orig_ctx = ctx
             ctx = masked_ctx
 
-        last_shape = self.shapes.get_at_index(-1)
+        if len(self.shapes)>0:
+            last_shape = self.shapes.get_at_index(-1)
+        else:
+            last_shape = None
         for i in range(renderable_shapes_count):
             shape = self.shapes.get_at_index(i)
             if not shape.visible:

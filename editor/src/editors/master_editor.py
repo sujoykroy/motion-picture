@@ -109,7 +109,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.document_shape_prop_box = DocumentShapePropBox(self, self.redraw, self.insert_time_slice)
         self.custom_shape_prop_box = CustomShapePropBox(self, self.redraw, self.insert_time_slice)
 
-        self.shape_form_prop_box = ShapeFormPropBox(self.redraw, self.insert_time_slice)
+        self.shape_form_prop_box = ShapeFormPropBox(self.reselect_selected_shape, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
         self.custom_props_box = None
 
@@ -484,6 +484,12 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.shape_manager.select_shapes(shapes)
             if len(shapes) == 1:
                 self.show_prop_of(shapes[0])
+        self.redraw()
+
+    def reselect_selected_shape(self):
+        shape = self.shape_manager.get_selected_shape(True)
+        if shape:
+            self.shape_manager.select_shape(shape)
         self.redraw()
 
     def update_drawing_area_scrollbars(self):

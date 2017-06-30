@@ -160,6 +160,8 @@ m.add(path="Edit/Preferences/Show All Time Lines", icon="show_all_time_lines",
       action_name="win.show_all_time_lines", action_state=True, icon_scale=1.2)
 m.add(path="Edit/Preferences/Show Point Groups", icon="show_point_groups",
       action_name="win.show_point_groups", action_state=True, icon_scale=1.2)
+m.add(path="Edit/Preferences/Lock Shape Selection", icon="lock_selection",
+      action_name="win.lock_shape_selection", action_state=False, icon_scale=1.2)
 
 m.add(path="Edit/Preferences/Panel Layout/Drawing", icon="panel_drawing",
       desc = "Drawing Panel Layout",

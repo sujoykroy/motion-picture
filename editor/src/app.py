@@ -382,6 +382,11 @@ class ApplicationWindow(MasterEditor):
         self.rebuild_tree_view()
         self.redraw()
 
+    def lock_shape_selection(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.LOCK_SHAPE_SELECTION = parameter.get_boolean()
+        change_action_tool_buttons(action)
+
     def lock_shape_movement(self, action, parameter):
         action.set_state(parameter)
         EditingChoice.LOCK_SHAPE_MOVEMENT = parameter.get_boolean()

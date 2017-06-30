@@ -555,16 +555,10 @@ class Curve(NaturalCurve):
         return newob
 
     def copy_from(self, other_curve):
-        sl = self.all_points.shape[0]
-        ol = other_curve.all_points.shape[0]
-        if sl<ol:
-            self.all_points = other_curve.all_points[:sl].copy()
-        else:
-            self.all_points[:ol] = other_curve.all_points.copy()
-        self.closed = other_curve.closed
-        if self.closed:
-            self.all_points[-1][0] = self.all_points[0][0]
-            self.all_points[-1][1] = self.all_points[0][1]
+        ml = min(self.all_points.shape[0], other_curve.all_points.shape[0])
+        self.all_points[:ml] = numpy.copy(other_curve.all_points[:ml])
+        self.all_points[ml:] = numpy.copy(other_curve.all_points[-1])
+        self.adjust_origin()
 
     def add_bezier_point(self, bezier_point):
         self.all_points=numpy.append(self.all_points,
@@ -609,8 +603,11 @@ class Curve(NaturalCurve):
         self.all_points = numpy.multiply(self.all_points, [sx, sy])
 
     def set_inbetween(self, start_curve, end_curve, frac):
-        yc = min(start_curve.all_points.shape[0], end_curve.all_points.shape[0])
-        self.all_points = start_curve.all_points[:yc, :]*(1-frac) + end_curve.all_points[:yc, :]*frac
+        ml = min(start_curve.all_points.shape[0],
+                 end_curve.all_points.shape[0],
+                 self.all_points.shape[0])
+        self.all_points[:ml] = start_curve.all_points[:ml]*(1-frac) + end_curve.all_points[:ml]*frac
+        self.all_points[ml:] = numpy.copy(self.all_points[ml-1])
         self.adjust_origin()
 
     def draw_path(self, ctx):

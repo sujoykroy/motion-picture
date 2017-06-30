@@ -132,8 +132,11 @@ class ShapeManager(object):
             point = multi_shape.transform_point(point)
         return point
 
-    def get_selected_shape(self):
-        if self.shape_editor: return self.shape_editor.shape
+    def get_selected_shape(self, original_shape_only=False):
+        if self.shape_editor:
+            if original_shape_only and isinstance(shape, MultiSelectionShape):
+                return None
+            return self.shape_editor.shape
         return None
 
     def get_selected_edit_box(self):
@@ -672,9 +675,9 @@ class ShapeManager(object):
 
         if self.shape_editor is not None:
             self.shape_editor.select_item_at(shape_point, multi_select)
-
-        if self.shape_editor is None or \
-                (self.shape_editor is not None and not self.shape_editor.has_selected_box()):
+        if not EditingChoice.LOCK_SHAPE_SELECTION and \
+               (self.shape_editor is None or \
+               (self.shape_editor is not None and not self.shape_editor.has_selected_box())):
             shape = self.get_shape_at(shape_point, multi_select, exclude_invisible=True)
             if shape is None:
                 self.delete_shape_editor()
@@ -718,6 +721,8 @@ class ShapeManager(object):
                     self.guides.append(self.selected_guide)
 
     def select_shapes(self, shapes):
+        if EditingChoice.LOCK_SHAPE_SELECTION:
+            return
         if len(shapes) == 0:
             return
         self.delete_shape_editor()
@@ -736,6 +741,8 @@ class ShapeManager(object):
         self.shape_editor = ShapeEditor(multi_selection_shape)
 
     def select_shape(self, shape):
+        if EditingChoice.LOCK_SHAPE_SELECTION:
+            return
         if shape.parent_shape == self.multi_shape:
             self.delete_shape_editor()
             self.shape_editor = ShapeEditor(shape)
