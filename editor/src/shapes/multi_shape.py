@@ -30,7 +30,7 @@ class MultiShapePoseRenderer(object):
         return self.pose_name
 
     def get_pixbuf(self):
-        multi_shape = self.multi_shape.copy(deep_copy=True)
+        multi_shape = self.multi_shape.copy(deep_copy=True, copy_name=True)
         multi_shape.set_pose_raw(multi_shape.get_pose_by_name(self.pose_name))
         multi_shape.reset_transformations()
         multi_shape.parent_shape = None
@@ -240,7 +240,7 @@ class MultiShape(Shape):
     def copy(self, copy_name=False, copy_shapes=True, deep_copy=False):
         newob = MultiShape(
             anchor_at=self.anchor_at.copy(), width=self.width, height=self.height)
-        Shape.copy_into(self, newob, copy_name=copy_name)
+        Shape.copy_into(self, newob, copy_name=copy_name, all_fields=deep_copy)
         if copy_shapes or deep_copy:
             for shape in self.shapes:
                 child_shape = shape.copy(copy_name=True, deep_copy=deep_copy)

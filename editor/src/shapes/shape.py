@@ -132,7 +132,11 @@ class Shape(object):
                 value = prop_dict[prop_name]
                 if isinstance(value, cairo.Matrix):
                     value = Matrix.copy(value) if value else None
-                self.set_prop_value(prop_name, value)
+                if hasattr(self, prop_name):
+                    #directrly attach the prop value, no transformation is needed.
+                    setattr(self, prop_name, copy_value(value))
+                else:
+                    self.set_prop_value(prop_name, value)
 
     def set_transition_pose_prop_from_dict(self, start_prop_dict, end_prop_dict, frac):
         for prop_name in self.get_pose_prop_names():
@@ -398,6 +402,8 @@ class Shape(object):
     def get_width(self): return self.width
 
     def set_width(self, value, fixed_anchor=True):
+        if value == 0:
+            value = .00001
         if value >0:
             if fixed_anchor:
                 abs_anchor_at = self.get_abs_anchor_at()
@@ -409,7 +415,9 @@ class Shape(object):
     def get_height(self): return self.height
 
     def set_height(self, value, fixed_anchor=True):
-        if value >0:
+        if value == 0:
+            value = .00001
+        if value>0:
             if fixed_anchor:
                 abs_anchor_at = self.get_abs_anchor_at()
                 self.anchor_at.y *= float(value)/self.height

@@ -31,7 +31,7 @@ class RectangleShape(Shape):
     def copy(self, copy_name=False, deep_copy=False):
         newob = RectangleShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
                         copy_value(self.fill_color), self.width, self.height, self.corner_radius)
-        self.copy_into(newob, copy_name)
+        self.copy_into(newob, copy_name, all_fields=deep_copy)
         return newob
 
     def draw_path(self, ctx, for_fill=False):

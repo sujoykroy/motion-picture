@@ -484,6 +484,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.shape_manager.select_shapes(shapes)
             if len(shapes) == 1:
                 self.show_prop_of(shapes[0])
+                self.time_line_editor.set_selected_shape(shapes[0])
         self.redraw()
 
     def reselect_selected_shape(self):

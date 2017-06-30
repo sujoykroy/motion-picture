@@ -746,7 +746,7 @@ class TimeLineEditor(Gtk.VBox):
             if event.type == Gdk.EventType._2BUTTON_PRESS:#double button click
                 if  self.selected_time_slice_box:
                     self.selected_time_slice_box.highlighted = False
-                if self.select_time_slice_box_at(self.mouse_point):
+                if self.mouse_point.y>=0 and self.select_time_slice_box_at(self.mouse_point):
                     return
                 if self.time_line:
                     error_span = self.time_range.get_seconds_per_pixel()*TIME_MARKER_HIT_MULT
