@@ -34,6 +34,7 @@ class TimeSlice(object):
         self.prop_data = prop_data
         self.id_num = TimeSlice.ID_SEED
         self.linked_to_next = False
+        self.end_marker = None
         TimeSlice.ID_SEED += 1
 
     def set_start_value(self, value):
@@ -65,6 +66,8 @@ class TimeSlice(object):
                 prop_data_elm.attrib["value"] = "{0}".format(value)
                 prop_data_elm.attrib["type"] = value.__class__.__name__
                 elm.append(prop_data_elm)
+        if self.end_marker:
+            elm.attrib["end_marker"] = "{0}".format(self.end_marker)
         return elm
 
     @classmethod
@@ -114,6 +117,7 @@ class TimeSlice(object):
                 prop_data[key] = value
         time_slice = cls(start_value, end_value, duration, change_type, prop_data)
         time_slice.linked_to_next = linked_to_next
+        time_slice.end_marker = elm.attrib.get("end_marker")
         return time_slice
 
     def copy(self):

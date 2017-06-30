@@ -89,3 +89,7 @@ class ShapeTimeLine(object):
                 duration = prop_duration
         return duration
 
+    def sync_time_slices_with_time_markers(self, time_markers):
+        for prop_time_line in self.prop_time_lines:
+            prop_time_line.sync_time_slices_with_time_markers(time_markers)
+

@@ -21,6 +21,9 @@ class PropTimeLineBox(Box):
         self.time_line_width = 0.
         self.update()
 
+    def get_multi_shape_time_line(self):
+        return self.parent_box.get_multi_shape_time_line()
+
     def get_time_slice_box_at_index(self, index):
         return self.time_slice_boxes.get_item_at_index(index)
 

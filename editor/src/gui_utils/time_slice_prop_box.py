@@ -3,6 +3,7 @@ from name_value_combo_box import NameValueComboBox
 from ..time_lines.time_change_types import *
 from ..commons import get_displayble_prop_name, Text
 from file_op import *
+from buttons import create_new_image_button
 
 class TimeSlicePropBox(Gtk.Frame):
     NUMBER = 0
@@ -58,6 +59,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("attrib", "start_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "end_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "duration", self.NUMBER)
+        self.add_editable_item("attrib", "end_marker", self.LIST, syncable=True)
         self.add_editable_item("attrib", "linked_to_next", self.BOOLEAN)
         self.add_editable_item("attrib", "change_type_class", self.LIST)
 
@@ -74,6 +76,7 @@ class TimeSlicePropBox(Gtk.Frame):
             ["Triangle", TriangleChangeType],
             ["Loop", LoopChangeType]
         ])
+        self.time_markers = None
 
     def set_time_slice_box(self, time_slice_box):
         self.time_slice_box = time_slice_box
@@ -87,6 +90,9 @@ class TimeSlicePropBox(Gtk.Frame):
             self.shape = None
             self.time_slice = None
             self.hide()
+
+    def set_time_markers(self, values):
+        self.attrib_widgets["end_marker"].build_and_set_model([""] + sorted(values))
 
     def update(self, widget=None):
         if not self.time_slice: return
@@ -251,7 +257,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.grid.attach(label, left=0, top=self.grid_row_count, width=1, height=1)
         self.grid.attach(item_widget, left=1, top=self.grid_row_count, width=1, height=1)
         if syncable:
-            sync_button = Gtk.Button("sync")
+            sync_button = create_new_image_button("sync")
             sync_button.connect("clicked", self.sync_button_clicked, item_widget)
             self.grid.attach(sync_button, left=2, top=self.grid_row_count, width=1, height=1)
         self.grid_row_count += 1
@@ -264,13 +270,21 @@ class TimeSlicePropBox(Gtk.Frame):
     def sync_button_clicked(self, widget, item_widget):
         if not self.time_slice:
             return
-        value = self.shape.get_prop_value(self.prop_name)
-        if value is None:
-            return
-        if hasattr(value, "copy"):
-            value = value.copy()
-        self.set_item_value_for_widget(item_widget, value, parse=False)
-        self.update()
+        if item_widget.source_name == "attrib" and item_widget.item_name == "end_marker":
+            multi_shape_time_line = self.time_slice_box.get_multi_shape_time_line()
+            prop_time_line = self.time_slice_box.get_prop_time_line()
+            multi_shape_time_line.sync_time_slices_with_time_marker(
+                time_marker=item_widget.get_value(), prop_time_line=prop_time_line)
+            self.update()
+            self.draw_callback()
+        else:
+            value = self.shape.get_prop_value(self.prop_name)
+            if value is None:
+                return
+            if hasattr(value, "copy"):
+                value = value.copy()
+            self.set_item_value_for_widget(item_widget, value, parse=False)
+            self.update()
 
     def close_button_clicked(self, widget):
         self.hide()

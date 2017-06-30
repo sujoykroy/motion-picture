@@ -349,6 +349,9 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.time_line_editor.update()
 
     def show_time_slice_props(self, time_slice_box):
+        time_line = self.time_line_editor.time_line
+        if time_line:
+            self.time_slice_prop_box.set_time_markers(time_line.get_time_marker_names())
         self.time_slice_prop_box.set_time_slice_box(time_slice_box)
 
     def set_shape_name(self, shape, name):

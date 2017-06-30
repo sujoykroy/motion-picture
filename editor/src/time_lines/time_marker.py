@@ -21,6 +21,9 @@ class TimeMarker(object):
                 return
             self.at = at
 
+    def get_text(self):
+        return self.text
+
     def get_formatted_at(self):
         return "{0:02}".format(self.at)
 

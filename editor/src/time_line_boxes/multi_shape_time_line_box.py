@@ -10,6 +10,9 @@ class MultiShapeTimeLineBox(Box):
         self.multi_shape_time_line = multi_shape_time_line
         self.shape_time_line_boxes = OrderedDict()
 
+    def get_multi_shape_time_line(self):
+        return self.multi_shape_time_line
+
     def shape_exists(self, shape):
         return self.shape_time_line_boxes.key_exists(shape)
 

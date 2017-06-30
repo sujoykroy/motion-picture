@@ -133,3 +133,17 @@ class PropTimeLine(object):
             if pmin is None or pmin>tmin: pmin = tmin
         return pmin, pmax
 
+    def sync_time_slices_with_time_markers(self, time_markers):
+        slice_count = len(self.time_slices.keys)
+        time_marker_texts = [tm.get_text() for tm in time_markers]
+        elapsed = 0
+        for i in range(slice_count):
+            time_slice = self.time_slices[self.time_slices.keys[i]]
+            if time_slice.end_marker in time_marker_texts:
+                index = time_marker_texts.index(time_slice.end_marker)
+                time_marker = time_markers[index]
+                duration = time_marker.at-elapsed
+                if duration>0:
+                    time_slice.duration = duration
+            elapsed += time_slice.duration
+

@@ -440,6 +440,11 @@ class TimeLineEditor(Gtk.VBox):
 
     def end_movement(self):
         if not self.multi_shape_time_line_box: return
+        if isinstance(self.selected_item, TimeMarkerBox):
+            time_marker_box = self.selected_item
+            time_marker = time_marker_box.time_marker
+            self.time_line.sync_time_slices_with_time_marker(time_marker)
+
         self.selected_item = None
         self.multi_shape_time_line_box.update()
         self.redraw()
@@ -768,6 +773,8 @@ class TimeLineEditor(Gtk.VBox):
                         if response == TimeMarkerEditDialog.MARKER_SAVED:
                             self.move_time_marker(closest_time_marker, old_at, closest_time_marker.at)
                             self.update_time_marker_boxes()
+                            self.time_line.sync_time_slices_with_time_marker(closest_time_marker)
+                            self.update()
                         elif response == TimeMarkerEditDialog.DELETE_MARKER:
                             dialog.destroy()
                             dialog = YesNoDialog(self.parent_window,

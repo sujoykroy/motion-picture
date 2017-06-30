@@ -49,6 +49,18 @@ class MultiShapeTimeLine(object):
                 return self.time_markers[exist_at]
         return None
 
+    def get_time_marker_by_text(self, time_marker_text):
+        for time_marker in self.time_markers.values():
+            if time_marker.text == time_marker_text:
+                return time_marker
+        return None
+
+    def get_time_marker_names(self):
+        names = []
+        for time_marker in self.time_markers.values():
+            names.append(time_marker.text)
+        return names
+
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
         elm.attrib["name"] = self.name
@@ -270,3 +282,22 @@ class MultiShapeTimeLine(object):
                     if t>=slice_end_at:
                         break
         return audio_clips
+
+    def sync_time_slices_with_time_marker(self, time_marker, prop_time_line=None):
+        if isinstance(time_marker, str):
+            time_marker = self.get_time_marker_by_text(time_marker)
+            if not time_marker:
+                return
+        keys = sorted(self.time_markers.keys())
+        if time_marker.at in keys:
+            index = keys.index(time_marker.at)
+            keys = keys[index:]
+            time_markers= [self.time_markers[key] for key in keys]
+        else:
+            return
+
+        if prop_time_line:
+            prop_time_line.sync_time_slices_with_time_markers(time_markers)
+        else:
+            for shape_time_line in self.shape_time_lines:
+                shape_time_line.sync_time_slices_with_time_markers(time_markers)

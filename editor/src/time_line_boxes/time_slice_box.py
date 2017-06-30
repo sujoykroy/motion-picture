@@ -29,6 +29,12 @@ class TimeSliceBox(Box):
             self.right_point_box = None
         self.highlighted = False
 
+    def get_multi_shape_time_line(self):
+        return self.prop_time_line_box.get_multi_shape_time_line()
+
+    def get_prop_time_line(self):
+        return self.prop_time_line_box.prop_time_line
+
     def get_next_time_slice_box(self):
         return self.prop_time_line_box.get_time_slice_box_at_index(self.index+1)
 

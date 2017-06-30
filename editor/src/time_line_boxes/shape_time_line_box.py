@@ -13,6 +13,9 @@ class ShapeTimeLineBox(Box):
         self.prop_time_line_boxes = OrderedDict()
         self.update()
 
+    def get_multi_shape_time_line(self):
+        return self.parent_box.get_multi_shape_time_line()
+
     def update(self):
         for prop_name in self.prop_time_line_boxes.keys:
             if not self.shape_time_line.prop_time_lines.key_exists(prop_name):
