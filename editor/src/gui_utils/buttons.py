@@ -30,6 +30,27 @@ def create_new_image_widget(icon_name, border_scale=1., size=20, desc=None):
         return image
     return None
 
+class EditingChoiceCheckWidget(Gtk.Box):
+    def __init__(self, icon_name, choice_name, desc=None, border_scale=1.):
+        Gtk.Box.__init__(self, Gtk.Orientation.HORIZONTAL)
+        self.choice_name = choice_name
+
+        self.pack_start(
+            create_new_image_widget(icon_name, border_scale=border_scale),
+            expand=False, fill=False, padding=5)
+
+        self.check_button = Gtk.CheckButton()
+        if not desc:
+            desc = get_displayble_prop_name(icon_name)
+        self.check_button.set_tooltip_text(desc)
+        self.check_button.set_active(getattr(settings.EditingChoice, self.choice_name))
+        self.check_button.connect("toggled", self.check_button_toggled)
+
+        self.pack_start(self.check_button, expand=False, fill=False, padding=5)
+
+    def check_button_toggled(self, widget):
+        setattr(settings.EditingChoice, self.choice_name, self.check_button.get_active())
+
 class ColorButton(Gtk.HBox):
     def __init__(self):
         Gtk.HBox.__init__(self)

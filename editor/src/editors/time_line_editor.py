@@ -278,6 +278,13 @@ class TimeLineEditor(Gtk.VBox):
         self.cohesive_toggle.set_active(EditingChoice.COHESIVE_MARKER_MOVEMENT)
         self.cohesive_toggle.connect("toggled", self.cohesive_toggle_clicked)
 
+        self.lock_markers_check = buttons.EditingChoiceCheckWidget(
+            icon_name="lock_markers",
+            choice_name="LOCK_MARKERS",
+            border_scale=2.
+        )
+        info_hbox.pack_start(self.lock_markers_check, expand=False, fill=False, padding=5)
+
         self.multi_shape_time_line_box = None
 
         self.mouse_pressed = False
@@ -476,13 +483,14 @@ class TimeLineEditor(Gtk.VBox):
         diff_point.translate(self.init_selected_item.left, self.init_selected_item.top)
 
         if isinstance(self.selected_item, TimeMarkerBox):
-            self.selected_item.move_to(diff_point, None)
-            time_marker_box = self.selected_item
-            time_marker = time_marker_box.time_marker
-            extra_x = time_marker_box.get_x()-TIME_SLICE_START_X
-            time_to = self.time_range.get_time_for_extra_x(extra_x)
-            self.move_time_marker(time_marker, time_marker.at, time_to)
-            self.multi_shape_time_line_box.update()
+            if not EditingChoice.LOCK_MARKERS:
+                self.selected_item.move_to(diff_point, None)
+                time_marker_box = self.selected_item
+                time_marker = time_marker_box.time_marker
+                extra_x = time_marker_box.get_x()-TIME_SLICE_START_X
+                time_to = self.time_range.get_time_for_extra_x(extra_x)
+                self.move_time_marker(time_marker, time_marker.at, time_to)
+                self.multi_shape_time_line_box.update()
         else:
             self.selected_item.move_to(diff_point, self.on_move_to)
 
@@ -490,9 +498,12 @@ class TimeLineEditor(Gtk.VBox):
         self.show_time_line_duration()
 
     def move_time_marker(self, time_marker, old_at, new_at):
-        if self.time_line.move_time_marker(old_at, new_at,
+        if not EditingChoice.LOCK_MARKERS and \
+           self.time_line.move_time_marker(old_at, new_at,
                 move_others=EditingChoice.COHESIVE_MARKER_MOVEMENT):
                 self.update_time_marker_boxes()
+                return True
+        return False
 
     def move_prop_line(self, direction):
         if not self.selected_time_slice_box:
@@ -568,12 +579,14 @@ class TimeLineEditor(Gtk.VBox):
     def zoom_vertical(self, value, point):
         if not self.multi_shape_time_line_box: return
         scale_y = 1+ value
-
-        for shape_line_box in self.multi_shape_time_line_box.shape_time_line_boxes:
-            for prop_line_box in shape_line_box.prop_time_line_boxes:
-                if prop_line_box.is_within(point):
-                    prop_line_box.set_vertical_multiplier(scale_y)
-                    break
+        if point.x>TIME_SLICE_START_X:
+            for shape_line_box in self.multi_shape_time_line_box.shape_time_line_boxes:
+                for prop_line_box in shape_line_box.prop_time_line_boxes:
+                    if prop_line_box.is_within(point):
+                        prop_line_box.set_vertical_multiplier(scale_y)
+                        return
+        else:
+            self.multi_shape_time_line_box.scale_y *= scale_y
 
     def on_play_pause_button_click(self, widget, play):
         if self.time_line.duration == 0:
@@ -789,12 +802,15 @@ class TimeLineEditor(Gtk.VBox):
                         self.update_time_marker_boxes()
                     else:
                         dialog_title = "Edit Marker At{0:.02f}".format(closest_time_marker.at)
-                        old_at = closest_time_marker.at
                         dialog = TimeMarkerEditDialog(
                                 self.parent_window, dialog_title, closest_time_marker.copy())
                         response = dialog.run()
                         if response == TimeMarkerEditDialog.MARKER_SAVED:
-                            self.move_time_marker(closest_time_marker, old_at, dialog.time_marker.at)
+                            old_at = closest_time_marker.at
+                            new_at = dialog.time_marker.at
+                            if old_at != new_at:
+                                if not self.move_time_marker(closest_time_marker, old_at, new_at):
+                                    dialog.time_marker.set_at(old_at)
                             self.time_line.update_time_marker(closest_time_marker, dialog.time_marker)
                             self.update_time_marker_boxes()
                             self.time_line.sync_time_slices_with_time_marker(closest_time_marker)
