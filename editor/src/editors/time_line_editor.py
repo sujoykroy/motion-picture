@@ -156,6 +156,11 @@ class TimeMarkerEditDialog(Gtk.Dialog):
         self.at_entry.set_text("{0}".format(time_marker.at))
         label_box.pack_start(self.at_entry, expand=True, fill=True, padding=10)
 
+        self.fixed_check_button = Gtk.CheckButton()
+        self.fixed_check_button.set_label("Fixed")
+        self.fixed_check_button.set_active(time_marker.fixed)
+        label_box.pack_start(self.fixed_check_button, expand=True, fill=True, padding=10)
+
         button_box = Gtk.Box(orientation=0)
         box.pack_end(button_box, expand=False, fill=False, padding=10)
 
@@ -175,6 +180,7 @@ class TimeMarkerEditDialog(Gtk.Dialog):
     def save_button_clicked(self, widget):
         self.time_marker.set_text(self.text_entry.get_text())
         self.time_marker.set_at(self.at_entry.get_text())
+        self.time_marker.set_fixed(self.fixed_check_button.get_active())
         self.response(TimeMarkerEditDialog.MARKER_SAVED)
 
     def cancel_button_clicked(self, widget):
@@ -467,14 +473,13 @@ class TimeLineEditor(Gtk.VBox):
             extra_x = time_marker_box.get_x()-TIME_SLICE_START_X
             time_to = self.time_range.get_time_for_extra_x(extra_x)
             self.move_time_marker(time_marker, time_marker.at, time_to)
-            self.update_time_marker_boxes()
         self.time_line.get_duration()
         self.show_time_line_duration()
 
     def move_time_marker(self, time_marker, old_at, new_at):
-        if self.time_line.move_time_marker(old_at, new_at):
-            self.time_marker_boxes[new_at] = self.time_marker_boxes[old_at]
-            del self.time_marker_boxes[old_at]
+        if self.time_line.move_time_marker(old_at, new_at,
+                move_others=EditingChoice.COHESIVE_MARKER_MOVEMENT):
+                self.update_time_marker_boxes()
 
     def move_prop_line(self, direction):
         if not self.selected_time_slice_box:
@@ -515,9 +520,14 @@ class TimeLineEditor(Gtk.VBox):
                 prop_line_box.set_time_multiplier(scale_x)
 
     def update_time_marker_boxes(self):
-        for marker_at in self.time_line.time_markers:
+        marker_boxes = self.time_marker_boxes.values()
+        self.time_marker_boxes.clear()
+        for marker_box in marker_boxes:
+            marker_at = marker_box.time_marker.at
+            self.time_marker_boxes[marker_at] = marker_box
+
             extra_x = self.time_range.get_extra_pixel_for_time(marker_at)
-            self.time_marker_boxes[marker_at].set_x(TIME_SLICE_START_X + extra_x)
+            marker_box.set_x(TIME_SLICE_START_X + extra_x)
 
     def update_slices_left(self):
         if not self.multi_shape_time_line_box:
@@ -768,10 +778,11 @@ class TimeLineEditor(Gtk.VBox):
                         dialog_title = "Edit Marker At{0:.02f}".format(closest_time_marker.at)
                         old_at = closest_time_marker.at
                         dialog = TimeMarkerEditDialog(
-                                self.parent_window, dialog_title, closest_time_marker)
+                                self.parent_window, dialog_title, closest_time_marker.copy())
                         response = dialog.run()
                         if response == TimeMarkerEditDialog.MARKER_SAVED:
-                            self.move_time_marker(closest_time_marker, old_at, closest_time_marker.at)
+                            self.move_time_marker(closest_time_marker, old_at, dialog.time_marker.at)
+                            closest_time_marker.copy_from(dialog.time_marker)
                             self.update_time_marker_boxes()
                             self.time_line.sync_time_slices_with_time_marker(closest_time_marker)
                             self.update()

@@ -14,3 +14,4 @@ class EditingChoice:
     TIME_STEP = .1
     SHOW_POINT_GROUPS = True
     LOCK_SHAPE_SELECTION = False
+    COHESIVE_MARKER_MOVEMENT = True

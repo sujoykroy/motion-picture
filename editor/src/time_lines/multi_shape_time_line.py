@@ -19,6 +19,21 @@ class MultiShapeTimeLine(object):
     def set_name(self, name):
         self.name = name
 
+    def get_time_markers_after(self, time_marker, non_fixed_only=False):
+        keys = sorted(self.time_markers.keys())
+        if time_marker.at in keys:
+            index = keys.index(time_marker.at)
+            keys = keys[index+1:]
+            markers = []
+            for key in keys:
+                tmk = self.time_markers[key]
+                if non_fixed_only and tmk.fixed:
+                    continue
+                markers.append(tmk)
+            return markers
+        else:
+            return []
+
     def add_time_marker(self, at, error_span):
         if at in self.time_markers:
             return None
@@ -32,15 +47,33 @@ class MultiShapeTimeLine(object):
         if at in self.time_markers:
             del self.time_markers[at]
 
-    def move_time_marker(self, at, to):
+    def move_time_marker(self, at, to, move_others):
         if to in self.time_markers:
             return False
         tmk = self.time_markers.get(at)
         if tmk is None:
             return False
-        self.time_markers[to] = tmk
-        self.time_markers[at].at = to
+
+        if not tmk.fixed:
+            after_markers = self.get_time_markers_after(tmk, non_fixed_only=True)
+            keys = []
+            changed_markers = []
+            for after_marker in after_markers:
+                if after_marker.fixed:#over conservative checking :-)
+                    continue
+                distance = after_marker.at-at
+                if distance<=0:#over conservative checking :-)
+                    continue
+                del self.time_markers[after_marker.at]
+                after_marker.at = to+distance
+                changed_markers.append(after_marker)
+
+            for after_marker in changed_markers:
+                self.time_markers[after_marker.at] = after_marker
+
         del self.time_markers[at]
+        tmk.at = to
+        self.time_markers[to] = tmk
         return True
 
     def get_closest_time_marker(self, at, error_span):
@@ -288,13 +321,11 @@ class MultiShapeTimeLine(object):
             time_marker = self.get_time_marker_by_text(time_marker)
             if not time_marker:
                 return
-        keys = sorted(self.time_markers.keys())
-        if time_marker.at in keys:
-            index = keys.index(time_marker.at)
-            keys = keys[index:]
-            time_markers= [self.time_markers[key] for key in keys]
-        else:
+
+        time_markers = self.get_time_markers_after(time_marker)
+        if not time_markers:
             return
+        time_markers.insert(0, time_marker)
 
         if prop_time_line:
             prop_time_line.sync_time_slices_with_time_markers(time_markers)
