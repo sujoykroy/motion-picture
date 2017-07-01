@@ -59,7 +59,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("attrib", "start_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "end_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "duration", self.NUMBER)
-        self.add_editable_item("attrib", "end_marker", self.LIST, syncable=True)
+        self.add_editable_item("attrib", "end_marker", self.LIST)
         self.add_editable_item("attrib", "linked_to_next", self.BOOLEAN)
         self.add_editable_item("attrib", "change_type_class", self.LIST)
 
@@ -270,21 +270,13 @@ class TimeSlicePropBox(Gtk.Frame):
     def sync_button_clicked(self, widget, item_widget):
         if not self.time_slice:
             return
-        if item_widget.source_name == "attrib" and item_widget.item_name == "end_marker":
-            multi_shape_time_line = self.time_slice_box.get_multi_shape_time_line()
-            prop_time_line = self.time_slice_box.get_prop_time_line()
-            multi_shape_time_line.sync_time_slices_with_time_marker(
-                time_marker=item_widget.get_value(), prop_time_line=prop_time_line)
-            self.update()
-            self.draw_callback()
-        else:
-            value = self.shape.get_prop_value(self.prop_name)
-            if value is None:
-                return
-            if hasattr(value, "copy"):
-                value = value.copy()
-            self.set_item_value_for_widget(item_widget, value, parse=False)
-            self.update()
+        value = self.shape.get_prop_value(self.prop_name)
+        if value is None:
+            return
+        if hasattr(value, "copy"):
+            value = value.copy()
+        self.set_item_value_for_widget(item_widget, value, parse=False)
+        self.update()
 
     def close_button_clicked(self, widget):
         self.hide()
@@ -322,6 +314,10 @@ class TimeSlicePropBox(Gtk.Frame):
                 value = bool(value)
 
         self.set_item_value(source_object, item_widget.item_name, value)
+        if item_widget.source_name == "attrib" and item_widget.item_name == "end_marker":
+            self.time_slice_box.sync_with_time_marker(value)
+            self.update()
+            self.draw_callback()
 
     def item_widget_changed(self, widget):
         if not self.time_slice: return

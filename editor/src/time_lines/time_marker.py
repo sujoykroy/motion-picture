@@ -13,11 +13,6 @@ class TimeMarker(object):
         newob.fixed = self.fixed
         return newob
 
-    def copy_from(self, other):
-        self.at = other.at
-        self.text = other.text
-        self.fixed = other.fixed
-
     def set_fixed(self, value):
         self.fixed = value
 
@@ -27,13 +22,11 @@ class TimeMarker(object):
             self.text =text
 
     def set_at(self, at):
-        at = at.strip()
-        if at and len(at)>0:
-            try:
-                at = float(at)
-            except ValueError:
-                return
-            self.at = at
+        try:
+            at = float(at)
+        except ValueError:
+            return
+        self.at = at
 
     def get_text(self):
         return self.text

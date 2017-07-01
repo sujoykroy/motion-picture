@@ -182,4 +182,8 @@ class TimeSliceBox(Box):
             ctx.restore()
             draw_stroke(ctx, 5, "ff000044")
 
-
+    def sync_with_time_marker(self, time_marker):
+        multi_shape_time_line = self.get_multi_shape_time_line()
+        prop_time_line = self.get_prop_time_line()
+        multi_shape_time_line.sync_time_slices_with_time_marker(
+                    time_marker, prop_time_line=prop_time_line)

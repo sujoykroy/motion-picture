@@ -138,6 +138,7 @@ class TimeMarkerEditDialog(Gtk.Dialog):
     def __init__(self, parent, title, time_marker, width=400, height=50):
         Gtk.Dialog.__init__(self, title, parent, 0)
         self.set_default_size(width, height)
+        self.props.resizable = False
         self.time_marker= time_marker
         box = self.get_content_area()
 
@@ -258,6 +259,7 @@ class TimeLineEditor(Gtk.VBox):
         info_hbox.pack_end(self.play_1x_speed_button, expand=False, fill=False, padding=5)
 
         self.speed_scale_slider = Gtk.Scale.new(Gtk.Orientation.HORIZONTAL, None)
+        self.speed_scale_slider.set_tooltip_text("Speed Scale")
         self.speed_scale_slider.set_range(0, 2)
         self.speed_scale_slider.set_increments(.01, -1)
         self.speed_scale_slider.set_digits(2)
@@ -266,6 +268,15 @@ class TimeLineEditor(Gtk.VBox):
         self.speed_scale_slider.set_size_request(200, -1)
         info_hbox.pack_end(self.speed_scale_slider, expand=False, fill=False, padding=5)
         info_hbox.pack_end(create_new_image_widget("play_speedx", size=24), expand=False, fill=False, padding=5)
+
+        info_hbox.pack_start(
+            buttons.create_new_image_widget("cohesive_marker_movement", border_scale=2),
+            expand=False, fill=False, padding=5)
+        self.cohesive_toggle = Gtk.CheckButton()
+        self.cohesive_toggle.set_tooltip_text("Move Marker Cohevsively")
+        info_hbox.pack_start(self.cohesive_toggle, expand=False, fill=False, padding=5)
+        self.cohesive_toggle.set_active(EditingChoice.COHESIVE_MARKER_MOVEMENT)
+        self.cohesive_toggle.connect("toggled", self.cohesive_toggle_clicked)
 
         self.multi_shape_time_line_box = None
 
@@ -301,6 +312,9 @@ class TimeLineEditor(Gtk.VBox):
     def play_1x_speed_button_clicked(self, widget):
         self.speed_scale_slider.set_value(1)
         self.speed_scale = 1.
+
+    def cohesive_toggle_clicked(self, widget):
+        EditingChoice.COHESIVE_MARKER_MOVEMENT = widget.get_active()
 
     def speed_scale_slider_changed(self, widget_range, scroll, value):
         self.speed_scale = value
@@ -446,11 +460,6 @@ class TimeLineEditor(Gtk.VBox):
 
     def end_movement(self):
         if not self.multi_shape_time_line_box: return
-        if isinstance(self.selected_item, TimeMarkerBox):
-            time_marker_box = self.selected_item
-            time_marker = time_marker_box.time_marker
-            self.time_line.sync_time_slices_with_time_marker(time_marker)
-
         self.selected_item = None
         self.multi_shape_time_line_box.update()
         self.redraw()
@@ -465,14 +474,18 @@ class TimeLineEditor(Gtk.VBox):
             diff_point = end_point.diff(start_point)
 
         diff_point.translate(self.init_selected_item.left, self.init_selected_item.top)
-        self.selected_item.move_to(diff_point, self.on_move_to)
 
         if isinstance(self.selected_item, TimeMarkerBox):
+            self.selected_item.move_to(diff_point, None)
             time_marker_box = self.selected_item
             time_marker = time_marker_box.time_marker
             extra_x = time_marker_box.get_x()-TIME_SLICE_START_X
             time_to = self.time_range.get_time_for_extra_x(extra_x)
             self.move_time_marker(time_marker, time_marker.at, time_to)
+            self.multi_shape_time_line_box.update()
+        else:
+            self.selected_item.move_to(diff_point, self.on_move_to)
+
         self.time_line.get_duration()
         self.show_time_line_duration()
 
@@ -782,7 +795,7 @@ class TimeLineEditor(Gtk.VBox):
                         response = dialog.run()
                         if response == TimeMarkerEditDialog.MARKER_SAVED:
                             self.move_time_marker(closest_time_marker, old_at, dialog.time_marker.at)
-                            closest_time_marker.copy_from(dialog.time_marker)
+                            self.time_line.update_time_marker(closest_time_marker, dialog.time_marker)
                             self.update_time_marker_boxes()
                             self.time_line.sync_time_slices_with_time_marker(closest_time_marker)
                             self.update()

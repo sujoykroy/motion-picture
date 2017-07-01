@@ -147,3 +147,7 @@ class PropTimeLine(object):
                     time_slice.duration = duration
             elapsed += time_slice.duration
 
+    def rename_time_slice_end_markers(self, old_marker, new_marker):
+        for time_slice in self.time_slices:
+            if time_slice.end_marker == old_marker:
+                time_slice.end_marker = new_marker

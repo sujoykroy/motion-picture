@@ -93,3 +93,6 @@ class ShapeTimeLine(object):
         for prop_time_line in self.prop_time_lines:
             prop_time_line.sync_time_slices_with_time_markers(time_markers)
 
+    def rename_time_slice_end_markers(self, old_marker, new_marker):
+        for prop_time_line in self.prop_time_lines:
+            prop_time_line.rename_time_slice_end_markers(old_marker, new_marker)

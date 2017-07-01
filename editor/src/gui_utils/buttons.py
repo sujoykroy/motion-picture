@@ -5,25 +5,29 @@ from gi.repository import Gtk, GdkPixbuf, GObject, Gdk
 from name_value_combo_box import NameValueComboBox
 import os, cairo
 
-def create_new_image_button(icon_name, desc=None, border_scale=1., size=20):
+def create_new_image_button(icon_name,
+                desc=None, border_scale=1., size=20, button_class = Gtk.Button):
     if desc is None:
         desc = get_displayble_prop_name(icon_name)
     image_widget = create_new_image_widget(icon_name, border_scale, size=size)
     if image_widget:
-        button = Gtk.Button()
+        button = button_class()
         button.set_image(image_widget)
         button.set_tooltip_text(desc)
     else:
         button = Gtk.Button(desc)
     return button
 
-def create_new_image_widget(icon_name, border_scale=1., size=20):
+def create_new_image_widget(icon_name, border_scale=1., size=20, desc=None):
     filename = os.path.join(settings.ICONS_FOLDER, icon_name + ".xml")
     if os.path.isfile(filename):
         doc = Document(filename=filename)
         doc.main_multi_shape.scale_border_width(border_scale)
         pixbuf = doc.get_pixbuf(width=size, height=size, bg_color=False)
-        return Gtk.Image.new_from_pixbuf(pixbuf)
+        image = Gtk.Image.new_from_pixbuf(pixbuf)
+        if desc:
+            image.set_tooltip_text(desc)
+        return image
     return None
 
 class ColorButton(Gtk.HBox):

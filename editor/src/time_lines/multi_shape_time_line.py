@@ -54,7 +54,7 @@ class MultiShapeTimeLine(object):
         if tmk is None:
             return False
 
-        if not tmk.fixed:
+        if not tmk.fixed and move_others:
             after_markers = self.get_time_markers_after(tmk, non_fixed_only=True)
             keys = []
             changed_markers = []
@@ -74,6 +74,7 @@ class MultiShapeTimeLine(object):
         del self.time_markers[at]
         tmk.at = to
         self.time_markers[to] = tmk
+        self.sync_time_slices_with_time_marker(tmk)
         return True
 
     def get_closest_time_marker(self, at, error_span):
@@ -93,6 +94,16 @@ class MultiShapeTimeLine(object):
         for time_marker in self.time_markers.values():
             names.append(time_marker.text)
         return names
+
+    def update_time_marker(self, orig_time_marker, other_time_marker):
+        exist_time_marker = self.get_time_marker_by_text(other_time_marker.text)
+        if exist_time_marker is None:
+            old_text = orig_time_marker.text
+            orig_time_marker.set_text(other_time_marker.text)
+            for shape_time_line in self.shape_time_lines:
+                shape_time_line.rename_time_slice_end_markers(old_text, other_time_marker.text)
+        orig_time_marker.set_at(other_time_marker.at)
+        orig_time_marker.set_fixed(other_time_marker.fixed)
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -323,8 +334,6 @@ class MultiShapeTimeLine(object):
                 return
 
         time_markers = self.get_time_markers_after(time_marker)
-        if not time_markers:
-            return
         time_markers.insert(0, time_marker)
 
         if prop_time_line:
