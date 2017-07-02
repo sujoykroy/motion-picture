@@ -54,6 +54,16 @@ class MultiShapeTimeLine(object):
         if tmk is None:
             return False
 
+        if not tmk.fixed:
+            keys = sorted(self.time_markers.keys())
+            index = keys.index(at)
+            for i in range(index-1, -1, -1):
+                prev_tmk = self.time_markers.get(keys[i])
+                if not prev_tmk.fixed:
+                    if to<= prev_tmk.at:
+                        return False
+                    break
+
         if not tmk.fixed and move_others:
             after_markers = self.get_time_markers_after(tmk, non_fixed_only=True)
             keys = []

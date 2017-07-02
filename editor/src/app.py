@@ -433,6 +433,7 @@ class ApplicationWindow(MasterEditor):
 
     def change_shape_depth(self, action, parameter):
         if self.shape_manager.change_shape_depth(int(parameter.get_string())):
+            self.rebuild_tree_view()
             self.redraw()
 
     def copy_shape_action(self, action, parameter):

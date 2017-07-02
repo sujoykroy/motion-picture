@@ -136,6 +136,8 @@ class PropTimeLine(object):
         return pmin, pmax
 
     def change_time_slice_duration(self, time_slice, duration):
+        if time_slice.end_marker:
+            return time_slice.duration
         slice_count = len(self.time_slices.keys)
         for i in range(slice_count):
             tmslc = self.time_slices[self.time_slices.keys[i]]
@@ -144,7 +146,7 @@ class PropTimeLine(object):
                 if i<slice_count-1:
                     next_time_slice = self.time_slices[self.time_slices.keys[i+1]]
                     if next_time_slice.end_marker:
-                        if increment>next_time_slice.duration:
+                        if increment>=next_time_slice.duration:
                             duration = time_slice.duration
                         else:
                             next_time_slice.duration -= increment
