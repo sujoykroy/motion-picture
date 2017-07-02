@@ -77,16 +77,7 @@ class TimeSliceBox(Box):
     def right_expand_move_to_callback(self, expand_box, point):
         duration = point.x/PIXEL_PER_SECOND
         if duration>0:
-            next_time_slice_box = self.get_next_time_slice_box()
-            if next_time_slice_box:
-                next_time_slice = next_time_slice_box.time_slice
-                increment = duration-self.time_slice.duration
-                if next_time_slice.end_marker:
-                    if increment>=next_time_slice.duration:
-                        duration = self.time_slice.duration
-                    else:
-                        next_time_slice.duration -= increment
-            self.time_slice.duration = duration
+            self.change_duration(duration)
         self.prop_time_line_box.update()
 
     def update(self):
@@ -196,6 +187,10 @@ class TimeSliceBox(Box):
             draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, 0)
             ctx.restore()
             draw_stroke(ctx, 5, "ff000044")
+
+    def change_duration(self, duration):
+        prop_time_line = self.get_prop_time_line()
+        return prop_time_line.change_time_slice_duration(self.time_slice, duration)
 
     def sync_with_time_marker(self, time_marker):
         multi_shape_time_line = self.get_multi_shape_time_line()

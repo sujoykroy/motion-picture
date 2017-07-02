@@ -380,6 +380,30 @@ class DocMovie(object):
             self.doc = None
             self.camera = None
 
+    @classmethod
+    def create_from_params(cls, filename, params):
+        time_line=None
+        start_time=0
+        end_time=None
+        camera=None
+        for i in range(len(params)):
+            param = params[i]
+            arr = param.split("=")
+            if len(arr) == 1:
+                continue
+            param_name = arr[0]
+            param_value = arr[1]
+            if param_name == "time_line":
+                time_line = param_value
+            elif param_name == "start_time":
+                start_time = Text.parse_number(param_value, 0)
+            elif param_name == "end_time":
+                end_time = Text.parse_number(param_value, None)
+            elif param_name == "camera":
+                camera = param_value
+        return cls(filename=filename, time_line=time_line,
+                   start_time=start_time, end_time=end_time, camera=camera)
+
 class FrameMaker(object):
     def __init__(self, doc_movies, wh=None, speed=1, bg_color="FFFFFF", sleep=0):
         self.doc_movies = doc_movies

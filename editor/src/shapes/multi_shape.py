@@ -609,8 +609,7 @@ class MultiShape(Shape):
     def draw(self, ctx, drawing_size=None,
                         fixed_border=True, no_camera=True,
                         root_shape=None, exclude_camera_list=None,
-                        pre_matrix=None, show_non_renderable=False,
-                        design=False):
+                        pre_matrix=None, show_non_renderable=False):
 
         if self.fill_color is not None:
             ctx.save()
@@ -708,7 +707,7 @@ class MultiShape(Shape):
             ctx.clip()
             ctx.paint()
             ctx.restore()
-            if design:
+            if last_shape.renderable or show_non_renderable:
                 ctx.save()
                 last_shape.pre_draw(ctx, root_shape=root_shape)
                 last_shape.draw_path(ctx)

@@ -313,6 +313,8 @@ class TimeSlicePropBox(Gtk.Frame):
             elif item_widget.item_type == self.BOOLEAN:
                 value = bool(value)
 
+        if item_widget.source_name == "attrib" and item_widget.item_name == "duration":
+            value = self.time_slice_box.change_duration(value)
         self.set_item_value(source_object, item_widget.item_name, value)
         if item_widget.source_name == "attrib" and item_widget.item_name == "end_marker":
             self.time_slice_box.sync_with_time_marker(value)
