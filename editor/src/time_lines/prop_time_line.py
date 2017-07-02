@@ -73,6 +73,8 @@ class PropTimeLine(object):
                         exist_time_slice.end_value = time_slice.start_value
                         exist_time_slice.linked_to_next = True
                         time_slice.linked_to_next = True
+                    time_slice.end_marker = exist_time_slice.end_marker
+                    exist_time_slice.end_marker = None
                     self.time_slices.insert_after(exist_time_slice, time_slice, time_slice)
                 inserted = True
                 break

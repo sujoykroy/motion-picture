@@ -29,6 +29,12 @@ class TimeSliceBox(Box):
             self.right_point_box = None
         self.highlighted = False
 
+
+    def is_moveable_edit_box(self, edit_box):
+        if edit_box == self.right_expand_box and self.time_slice.end_marker:
+            return False
+        return True
+
     def get_multi_shape_time_line(self):
         return self.prop_time_line_box.get_multi_shape_time_line()
 
@@ -71,6 +77,15 @@ class TimeSliceBox(Box):
     def right_expand_move_to_callback(self, expand_box, point):
         duration = point.x/PIXEL_PER_SECOND
         if duration>0:
+            next_time_slice_box = self.get_next_time_slice_box()
+            if next_time_slice_box:
+                next_time_slice = next_time_slice_box.time_slice
+                increment = duration-self.time_slice.duration
+                if next_time_slice.end_marker:
+                    if increment>=next_time_slice.duration:
+                        duration = self.time_slice.duration
+                    else:
+                        next_time_slice.duration -= increment
             self.time_slice.duration = duration
         self.prop_time_line_box.update()
 

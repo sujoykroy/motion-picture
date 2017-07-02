@@ -1,6 +1,8 @@
 from ..commons import *
 
 class Box(object):
+    IdSeed = 0
+
     def __init__(self, parent_box=None):
         self.scale_x = 1.
         self.scale_y = 1.
@@ -10,6 +12,12 @@ class Box(object):
         self.height = 1.
         self.parent_box = parent_box
         self.index = -1
+        self.moveable = True
+        self.id_num = Box.IdSeed
+        Box.IdSeed += 1
+
+    def __eq__(self, other):
+        return isinstance(other, Box) and other.id_num == self.id_num
 
     def copy_into(self, other):
         other.scale_x = self.scale_x

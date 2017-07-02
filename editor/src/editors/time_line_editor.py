@@ -428,7 +428,8 @@ class TimeLineEditor(Gtk.VBox):
                 for prop_line_box in shape_line_box.prop_time_line_boxes:
                     for time_slice_box in prop_line_box.time_slice_boxes:
                         for edit_box in reversed(time_slice_box.edit_boxes):
-                            if edit_box.is_within(point):
+                            if edit_box.is_within(point) and \
+                               time_slice_box.is_moveable_edit_box(edit_box):
                                 self.selected_item = edit_box
                                 break
         if self.selected_item:
