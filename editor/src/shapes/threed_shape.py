@@ -322,7 +322,7 @@ class ThreeDShape(RectangleShape):
         ctx.restore()
 
         ctx.save()
-        if self.high_quality:
+        if self.high_quality or ThreeDShape.HQRender:
             mat = ctx.get_matrix()
             if pre_matrix:
                 ctx.set_matrix(pre_matrix)

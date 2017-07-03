@@ -55,7 +55,13 @@ class NaturalCurve(object):
             self_bzpoint.control_2.copy_from(other_bzpoint.control_2)
             self_bzpoint.dest.copy_from(other_bzpoint.dest)
 
-    def set_inbetween(self, start_curve, end_curve, frac):
+    def set_inbetween(self, start_curve, start_wh, end_curve, end_wh, frac, this_wh):
+        start_curve = start_curve.copy()
+        start_curve.scale(start_wh[0], start_wh[1])
+
+        end_curve = end_curve.copy()
+        end_curve.scale(end_wh[0], end_wh[1])
+
         self.origin.set_inbetween(start_curve.origin, end_curve.origin, frac)
         minp = min(len(self.bezier_points), \
                         len(start_curve.bezier_points), \
@@ -69,6 +75,8 @@ class NaturalCurve(object):
             self_bzpoint.control_1.set_inbetween( start_bzpoint.control_1, end_bzpoint.control_1, frac)
             self_bzpoint.control_2.set_inbetween(start_bzpoint.control_2, end_bzpoint.control_2, frac)
             self_bzpoint.dest.set_inbetween(start_bzpoint.dest, end_bzpoint.dest, frac)
+
+        self.scale(1./this_wh[0], 1./this_wh[1])
 
     def reverse_copy(self):
         newob = Curve(self.bezier_points[-1].dest.copy(), closed=self.closed)
@@ -583,7 +591,7 @@ class Curve(NaturalCurve):
             self.all_points=numpy.delete(self.all_points, [i*3+0+1, i*3+1+1, i*3+2+1], axis=0)
 
     def update_bezier_point_index(self, index):
-        pass
+        pass1
 
     def update_origin(self):
         pass
@@ -602,12 +610,14 @@ class Curve(NaturalCurve):
     def scale(self, sx ,sy):
         self.all_points = numpy.multiply(self.all_points, [sx, sy])
 
-    def set_inbetween(self, start_curve, end_curve, frac):
+    def set_inbetween(self, start_curve, start_wh, end_curve, end_wh, frac, this_wh):
         ml = min(start_curve.all_points.shape[0],
                  end_curve.all_points.shape[0],
                  self.all_points.shape[0])
-        self.all_points[:ml] = start_curve.all_points[:ml]*(1-frac) + end_curve.all_points[:ml]*frac
+        self.all_points[:ml] = (start_curve.all_points[:ml]*start_wh)*(1-frac) + \
+                               (end_curve.all_points[:ml]*end_wh)*frac
         self.all_points[ml:] = numpy.copy(self.all_points[ml-1])
+        self.all_points = numpy.multiply(self.all_points, (1./this_wh[0], 1./this_wh[1]))
         self.adjust_origin()
 
     def draw_path(self, ctx):

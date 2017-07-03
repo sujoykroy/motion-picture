@@ -191,7 +191,10 @@ class CurveShape(Shape, Mirror):
                 end_form_curve = end_form_curves[i]
                 i += 1
 
-                self_curve.set_inbetween(start_form_curve, end_form_curve, value)
+                self_curve.set_inbetween(
+                    start_form_curve, (start_form.width, start_form.height),
+                    end_form_curve, (end_form.width, end_form.height),
+                    value, (self.width, self.height))
                 self_curve.translate(anchor_at.x, anchor_at.y)
 
             self.fit_size_to_include_all()
