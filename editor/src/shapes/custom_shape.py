@@ -2,6 +2,7 @@ from rectangle_shape import RectangleShape
 from ..commons import *
 import parser
 import imp
+from .. import settings as Settings
 
 class CustomShape(RectangleShape):
     TYPE_NAME = "custom"
@@ -42,11 +43,14 @@ class CustomShape(RectangleShape):
 
     def set_code_path(self, filepath):
         self.code_path = filepath
+        filepath = Settings.Directory.get_full_path(filepath)
         if not os.path.isfile(filepath):
             return
-        self.drawer_module = imp.load_source("modu", filepath)
+        self.drawer_module = imp.load_source("drawer_module", filepath)
         if hasattr(self.drawer_module, "Drawer"):
             self.drawer = self.drawer_module.Drawer()
+            self.set_params(self.params)
+            self.set_progress(self.progress)
 
     def set_params(self, params):
         self.params = params
@@ -73,7 +77,7 @@ class CustomShape(RectangleShape):
             self.pre_draw(custom_ctx, root_shape=root_shape)
 
             try:
-                self.drawer.draw(custom_ctx, self.anchor_at.copy(), self.width, self.height)
+                self.drawer.draw(custom_ctx, self.anchor_at.copy(), self.width, self.height, self)
             except BaseException as error:
                 print('An exception occurred: {}'.format(error))
 

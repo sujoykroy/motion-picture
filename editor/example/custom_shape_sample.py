@@ -25,7 +25,7 @@ class Drawer(object):
     def set_progress(self, value):
         self.progress = value
 
-    def draw(self, ctx, anchor_at, width, height):
+    def draw(self, ctx, anchor_at, width, height, parent_shape):
         t = self.progress*10
 
         W,H = 256, 256

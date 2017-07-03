@@ -61,6 +61,8 @@ class CurveShape(Shape, Mirror):
         return point_group
 
     def copy_data_from_linked(self):
+        super(CurveShape, self).copy_data_from_linked()
+
         if not self.linked_to: return
         del self.curves[:]
 

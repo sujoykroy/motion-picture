@@ -73,6 +73,7 @@ class Shape(object):
         self.translation = Point(0,0)
         self.angle = 0
         self.pre_matrix = None
+        self.anchor_at.assign(0,0)
 
     def get_prop_type(self, prop_name):
         if prop_name == "xy":
@@ -104,7 +105,13 @@ class Shape(object):
             self.linked_clones.remove(linked_clone)
 
     def copy_data_from_linked(self):
-        pass
+        if not self.linked_to: return
+        self.border_color = copy_value(self.linked_to.border_color)
+        self.border_width = copy_value(self.linked_to.border_width)
+        self.fill_color = copy_value(self.linked_to.fill_color)
+        self.width = self.linked_to.width
+        self.height = self.linked_to.height
+
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -730,7 +737,7 @@ class Shape(object):
     def get_outline(self, padding):
         return Rect(-padding, -padding, self.width+2*padding, self.height+2*padding, padding)
 
-    def get_abs_outline(self, padding):
+    def get_abs_outline(self, padding=0):
         outline = self.get_outline(padding)
         points = []
         points.append(Point(outline.left, outline.top))

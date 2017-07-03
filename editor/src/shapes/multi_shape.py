@@ -354,8 +354,10 @@ class MultiShape(Shape):
                 old_prop_dict[prop_name] = current_shape_prop_dict[prop_name]
 
     def set_pose_transition(self, start_pose, end_pose, value):
-        start_pose = self.poses[start_pose]
-        end_pose = self.poses[end_pose]
+        start_pose = self.poses.get(start_pose)
+        end_pose = self.poses.get(end_pose)
+        if not start_pose or not end_pose:
+            return
         anchor_at = self.anchor_at.copy()
         for shape_name, start_prop_dict in start_pose.items():
             if shape_name not in end_pose.keys(): continue
