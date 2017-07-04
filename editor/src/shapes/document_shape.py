@@ -159,7 +159,7 @@ class DocumentShape(RectangleShape):
             #doc_ctx.save()
             self.doc_main_multi_shape.draw(doc_ctx,
                 drawing_size = drawing_size, fixed_border=fixed_border,
-                pre_matrix=pre_matrix
+                pre_matrix=doc_ctx.get_matrix()
             )
             #doc_ctx.restore()
             """
