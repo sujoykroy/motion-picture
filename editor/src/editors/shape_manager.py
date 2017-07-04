@@ -241,7 +241,8 @@ class ShapeManager(object):
 
         ctx.save()
         self.doc.main_multi_shape.draw(ctx, drawing_size,
-                fixed_border=self.doc.fixed_border, no_camera=False)
+                fixed_border=self.doc.fixed_border, no_camera=False,
+                show_non_renderable=True)
         ctx.restore()
 
         if self.multi_shape != self.doc.main_multi_shape:
@@ -656,7 +657,8 @@ class ShapeManager(object):
                 self.eraser_box.move_to(shape_point.x, shape_point.y)
                 return
 
-        if self.shape_editor is not None:
+        #selection in point-group-shape-editor
+        if not EditingChoice.LOCK_POINT_GROUP and self.shape_editor is not None:
             selected_shape = self.shape_editor.shape
             if self.point_group_shape_editor:
                 point_group_shape_point = selected_shape.transform_point(shape_point)

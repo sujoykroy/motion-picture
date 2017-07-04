@@ -133,13 +133,14 @@ class Shape(object):
             prop_dict[prop_name] = value
         return prop_dict
 
-    def set_pose_prop_from_dict(self, prop_dict):
+    def set_pose_prop_from_dict(self, prop_dict, non_direct_props=None):
         for prop_name in self.get_pose_prop_names():
             if prop_name in prop_dict:
                 value = prop_dict[prop_name]
                 if isinstance(value, cairo.Matrix):
                     value = Matrix.copy(value) if value else None
-                if hasattr(self, prop_name):
+                if hasattr(self, prop_name) and \
+                   (non_direct_props is None or prop_name not in non_direct_props):
                     #directrly attach the prop value, no transformation is needed.
                     setattr(self, prop_name, copy_value(value))
                 else:
@@ -159,7 +160,7 @@ class Shape(object):
             elif prop_name == "form_name":
                 prop_data=dict(start_form=start_value, end_form=end_value)
                 self.set_prop_value("internal", frac, prop_data)
-            elif type(start_value) in (int, float):
+            elif type(start_value) in (int, float, bool):
                 self.set_prop_value(prop_name, start_value+(end_value-start_value)*frac)
             elif type(start_value) in (str, ):
                 self.set_prop_value(prop_name, start_value)

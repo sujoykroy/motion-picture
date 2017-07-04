@@ -26,7 +26,6 @@ class CurveFormRenderer(object):
 class CurveShape(Shape, Mirror):
     TYPE_NAME = "curve_shape"
 
-
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height):
         Shape.__init__(self, anchor_at, border_color, border_width, fill_color, width, height)
         Mirror.__init__(self)

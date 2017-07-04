@@ -200,7 +200,7 @@ class MultiShape(Shape):
                         value = color_from_text(value)
                     elif prop_name == "pre_matrix":
                         value = Matrix.from_text(value)
-                    elif prop_name == "pose":
+                    elif prop_name in ("pose", "text", "font"):
                         value = value
                     elif prop_name == "visible":
                         if value == "True":
@@ -345,6 +345,10 @@ class MultiShape(Shape):
                 abs_anchor_at.translate(anchor_at.x, anchor_at.y)
                 shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.readjust_sizes()
+
+    def set_pose_prop_from_dict(self, prop_dict, non_direct_props=None):
+        super(MultiShape, self).set_pose_prop_from_dict(
+            prop_dict, non_direct_props=["pose"])
 
     def set_shape_prop_for_all_poses(self, shape, prop_name):
         for pose in self.poses.values():
@@ -650,7 +654,7 @@ class MultiShape(Shape):
                         drawing_size = drawing_size, fixed_border=fixed_border,
                         no_camera=no_camera, exclude_camera_list=exclude_camera_list,
                         root_shape=root_shape, pre_matrix=pre_matrix,
-                        show_non_renderable=show_non_renderable)
+                        show_non_renderable=False)
             elif isinstance(shape, CustomShape):
                 shape.draw(ctx, drawing_size = drawing_size, root_shape=root_shape,
                                 fixed_border=fixed_border, pre_matrix=pre_matrix)

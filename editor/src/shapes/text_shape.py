@@ -63,13 +63,13 @@ class TextShape(RectangleShape):
     def create_from_xml_element(cls, elm):
         arr = Shape.get_params_array_from_xml_element(elm)
         arr.append(float(elm.attrib.get("corner_radius", 0)))
-        arr.append(int(elm.attrib.get("x_align", 0)))
-        arr.append(int(elm.attrib.get("y_align", 0)))
+        arr.append(int(float(elm.attrib.get("x_align", 0))))
+        arr.append(int(float(elm.attrib.get("y_align", 0))))
         arr.append(elm.attrib.get("text", ""))
         arr.append(elm.attrib.get("font", ""))
 
         arr.append(color_from_text(elm.attrib.get("font_color", None)))
-        arr.append(int(elm.attrib.get("line_align", 0)))
+        arr.append(int(float(elm.attrib.get("line_align", 0))))
         shape = cls(*arr)
         shape.set_exposure(float(elm.attrib.get("exposure", 1.)))
         shape.set_char_width(int(float(elm.attrib.get("max_width_chars", -1))))
@@ -182,7 +182,7 @@ class TextShape(RectangleShape):
         pango_font_desc = pango.FontDescription(self.font)
         layout.set_wrap(WRAP_MODE)
         layout.set_font_description(pango_font_desc)
-        layout.set_alignment(self.line_align)
+        layout.set_alignment(int(self.line_align))#from "pose", line-align may become float
         if (self.max_width_chars>0):
             layout.set_width(int(self.max_width_chars*pango_font_desc.get_size()))
 

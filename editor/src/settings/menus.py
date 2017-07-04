@@ -138,6 +138,8 @@ m.add(path="Shapes/Group/Create Point Group", icon="create_point_group", desc="G
       action_name="win.create_point_group")
 m.add(path="Shapes/Group/Break Point Group", icon="break_point_group", desc="Break points together",
       action_name="win.break_point_group")
+m.add(path="Shapes/Group/Lock Point Group", icon="lock_point_group",
+      action_name="win.lock_point_group", action_state=False, icon_scale=1.2)
 
 m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert into Polygon",
       action_name="win.convert_shape_to", action_param="polygon", icon_scale=1.2)
@@ -174,9 +176,9 @@ m.add(path="Windows/Camera Viewer", icon="camera_viewer", desc = "Camera Viewer"
 
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "View", "Edit/Preferences/Lock Movement",
-     "Edit/TimeLine", "Edit/Preferences", "Edit/Shape/<Linked>",
-     "Edit/Preferences/Panel Layout", "Edit/Document", "Shapes/Pre-Drawn", "Windows"],
-    ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip", "Shapes/<New>",
+     "Edit/Preferences", "Edit/Shape/<Linked>",
+     "Edit/Preferences/Panel Layout", "Edit/Document", "Windows"],
+    ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip",
      "Shapes/Align", "Shapes/Convert To", "Edit/Points"],
-    []
+    ["Shapes/<New>", "Shapes/Pre-Drawn", "Edit/TimeLine"]
 ]

@@ -387,6 +387,11 @@ class ApplicationWindow(MasterEditor):
         EditingChoice.LOCK_SHAPE_SELECTION = parameter.get_boolean()
         change_action_tool_buttons(action)
 
+    def lock_point_group(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.LOCK_POINT_GROUP = parameter.get_boolean()
+        change_action_tool_buttons(action)
+
     def lock_shape_movement(self, action, parameter):
         action.set_state(parameter)
         EditingChoice.LOCK_SHAPE_MOVEMENT = parameter.get_boolean()
