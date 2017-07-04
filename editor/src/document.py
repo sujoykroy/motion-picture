@@ -246,7 +246,7 @@ class Document(object):
         return shape
 
     @staticmethod
-    def make_movie(doc_movies, filename, speed=1, sleep=0, fps=24,
+    def make_movie(doc_movies, filename, speed=1, sleep=0, fps=24, wh=None,
                    ffmpeg_params="-quality good -qmin 10 -qmax 42", bitrate="640k",
                    codec="libvpx", audio=True, dry=False):
 
@@ -258,7 +258,7 @@ class Document(object):
             doc_movie.calculate_movie_duration(speed)
             duration += doc_movie.movie_duration
 
-        frame_maker = FrameMaker(doc_movies, speed=speed, sleep=sleep)
+        frame_maker = FrameMaker(doc_movies, wh=wh, speed=speed, sleep=sleep)
         video_clip = movie_editor.VideoClip(frame_maker.make_frame, duration=duration)
         if isinstance(ffmpeg_params, str):
             ffmpeg_params = ffmpeg_params.split(" ")
@@ -278,11 +278,13 @@ class Document(object):
                 video_clip = video_clip.set_audio(audio_clip)
         if dry:
             return
+        start_time = time.time()
         video_clip.write_videofile(
             filename, fps=fps, codec=codec, preset="superslow",
             ffmpeg_params=ffmpeg_params,
             bitrate=bitrate)
-
+        elapsed_time = time.time()-start_time
+        print "Video is maded in {0:.2f} sec".format(elapsed_time)
     @staticmethod
     def load_modules(*items):
         for item in items:
@@ -319,6 +321,7 @@ class DocModule(MultiShapeModule):
     def load(self):
         if not self.root_multi_shape:
             doc = Document(filename=self.module_path)
+            doc.main_multi_shape.translation.assign(0, 0)
             self.root_multi_shape = doc.main_multi_shape
 
     def unload(self):

@@ -240,12 +240,14 @@ class TimeLineEditor(Gtk.VBox):
         self.time_line_duration_label = Gtk.Label()
         info_hbox.pack_start(self.time_line_duration_label, expand=False, fill=False, padding=5)
 
-        self.play_head_time_label = Gtk.Label()
-        #self.play_head_time_label.set_size_request(100, -1)
+        self.play_head_time_entry = Gtk.Entry()
+        self.play_head_time_entry.set_width_chars(10)
+        self.play_head_time_entry.connect("activate", self.play_head_time_entry_activated)
+        #self.play_head_time_entry.set_size_request(100, -1)
         info_hbox.pack_end(
             create_new_image_widget("playhead", border_scale=3, size=24),
                 expand=False, fill=False, padding=5)
-        info_hbox.pack_end(self.play_head_time_label, expand=False, fill=False, padding=5)
+        info_hbox.pack_end(self.play_head_time_entry, expand=False, fill=False, padding=5)
 
         self.play_button = buttons.create_new_image_button("play")
         self.play_button.connect("clicked", self.on_play_pause_button_click, True)
@@ -327,6 +329,21 @@ class TimeLineEditor(Gtk.VBox):
         self.speed_scale = value
         return False
 
+    def play_head_time_entry_activated(self, widget):
+        if not self.time_line:
+            return
+        text = self.play_head_time_entry.get_text()
+        value = Text.parse_number(text, None)
+        if value is None:
+            marker = self.time_line.get_time_marker_by_text(text)
+            if marker:
+                value = marker.at
+            else:
+                return
+        #value %= self.time_line.duration
+        self.move_play_head_to_time(value)
+        self.redraw()
+
     def set_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line = multi_shape_time_line
         self.time_marker_boxes = dict()
@@ -360,8 +377,9 @@ class TimeLineEditor(Gtk.VBox):
         self.is_playing = False
 
     def show_current_play_head_time(self):
-        self.play_head_time_label.set_markup(
-            "<span color=\"#cc6600\">{0:.2f}</span> sec".format(self.play_head_time))
+        #self.play_head_time_entry.set_markup(
+        #    "<span color=\"#cc6600\">{0:.2f}</span> sec".format(self.play_head_time))
+        self.play_head_time_entry.set_text("{0:.2f}".format(self.play_head_time))
 
     def show_time_line_duration(self):
         self.time_line_duration_label.set_text("[{0:.2f} sec]".format(self.time_line.duration))
