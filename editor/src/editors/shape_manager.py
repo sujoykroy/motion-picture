@@ -672,11 +672,12 @@ class ShapeManager(object):
                 if point_group_shape:
                     self.point_group_shape_editor = ShapeEditor(point_group_shape)
 
+        if self.shape_editor is not None:
+            self.shape_editor.select_item_at(shape_point, multi_select)
+
         if self.point_group_shape_editor:
             return
 
-        if self.shape_editor is not None:
-            self.shape_editor.select_item_at(shape_point, multi_select)
         if not EditingChoice.LOCK_SHAPE_SELECTION and \
                (self.shape_editor is None or \
                (self.shape_editor is not None and not self.shape_editor.has_selected_box())):

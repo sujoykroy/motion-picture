@@ -134,12 +134,17 @@ m.add(path="Shapes/Group/Break", icon="break_shape_group", icon_scale=1.5,
       action_name="win.break_shape_group", desc="Break shape group")
 m.add(path="Shapes/Group/Merge", icon="merge_shapes", icon_scale=1.5,
       action_name="win.merge_shapes", desc="Merge shapes")
-m.add(path="Shapes/Group/Create Point Group", icon="create_point_group", desc="Group points together",
+
+m.add(path="Shapes/Point Group/Create Point Group", icon="create_point_group", desc="Group points together",
       action_name="win.create_point_group")
-m.add(path="Shapes/Group/Break Point Group", icon="break_point_group", desc="Break points together",
+m.add(path="Shapes/Point Group/Break Point Group", icon="break_point_group", desc="Break points together",
       action_name="win.break_point_group")
-m.add(path="Shapes/Group/Lock Point Group", icon="lock_point_group",
+m.add(path="Shapes/Point Group/Lock Point Group", icon="lock_point_group",
       action_name="win.lock_point_group", action_state=False, icon_scale=1.2)
+m.add(path="Shapes/Point Group/Add Point to Point Group", icon="add_to_point_group",
+      action_name="win.add_point_to_point_group", icon_scale=1.2)
+m.add(path="Shapes/Point Group/Remove Point from Point Group", icon="lock_point_group",
+      action_name="win.remove_point_from_point_group", icon_scale=1.2)
 
 m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert into Polygon",
       action_name="win.convert_shape_to", action_param="polygon", icon_scale=1.2)
@@ -178,7 +183,7 @@ m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "View", "Edit/Preferences/Lock Movement",
      "Edit/Preferences", "Edit/Shape/<Linked>",
      "Edit/Preferences/Panel Layout", "Edit/Document", "Windows"],
-    ["Shapes/Group", "Edit/<Layer>", "Edit/Shape/Flip",
+    ["Shapes/Group", "Shapes/Point Group", "Edit/<Layer>", "Edit/Shape/Flip",
      "Shapes/Align", "Shapes/Convert To", "Edit/Points"],
     ["Shapes/<New>", "Shapes/Pre-Drawn", "Edit/TimeLine"]
 ]
