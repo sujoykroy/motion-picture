@@ -495,7 +495,7 @@ class ShapeEditor(object):
                     curve_point = CurvePoint(edit_box.curve_index, edit_box.bezier_point_index, point_type)
                     curve_point_group.add_point(curve_point)
             del self.selected_edit_boxes[:]
-            return self.shape.add_point_group(curve_point_group)
+            return self.shape.add_new_point_group_shape(curve_point_group)
         return False
 
     def copy_points_as_shape(self):

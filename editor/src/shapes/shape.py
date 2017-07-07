@@ -141,7 +141,7 @@ class Shape(object):
                     value = Matrix.copy(value) if value else None
                 if hasattr(self, prop_name) and \
                    (non_direct_props is None or prop_name not in non_direct_props):
-                    #directrly attach the prop value, no transformation is needed.
+                    #directly attach the prop value, no transformation is needed.
                     setattr(self, prop_name, copy_value(value))
                 else:
                     self.set_prop_value(prop_name, value)

@@ -14,33 +14,22 @@ class CurvePointGroupShape(RectangleShape):
         RectangleShape.__init__(self, anchor_at=Point(0,0), border_color="00ff00",
                                       border_width=1, fill_color=None, width=1, height=1, corner_radius=0)
         self.curve_point_group = curve_point_group
-        self.curve_shape = curve_shape
         self.parent_shape = curve_shape
-        self.curve_rel_points = []
-        self.update()
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = CurvePointGroupShape(self.curve_shape, self.curve_point_group)
+        newob = CurvePointGroupShape(self.parent_shape, self.curve_point_group.copy())
         self.copy_into(newob, copy_name, all_fields=True)
         return newob
 
-    def get_point_group(self):
-        return self.curve_point_group
+    def build(self):
+        w = self.parent_shape.get_width()
+        h = self.parent_shape.get_height()
 
-    def update(self):
-        self.reset_transformations()
-        self.anchor_at.assign(0, 0)
-
-        w = self.curve_shape.get_width()
-        h = self.curve_shape.get_height()
-        refix_anchor = (len(self.curve_rel_points) != 0)
         points = []
-        del self.curve_rel_points [:]
-
         for curve_point in self.curve_point_group.points:
-            if curve_point.curve_index>=len(self.curve_shape.curves):
+            if curve_point.curve_index>=len(self.parent_shape.curves):
                 continue
-            curve = self.curve_shape.curves[curve_point.curve_index]
+            curve = self.parent_shape.curves[curve_point.curve_index]
             if curve_point.point_index>= len(curve.bezier_points):
                 continue
             bezier_point = curve.bezier_points[curve_point.point_index]
@@ -53,57 +42,45 @@ class CurvePointGroupShape(RectangleShape):
             elif curve_point.point_type == CurvePoint.POINT_TYPE_ORIGIN:
                 point = curve.origin
 
-            curve_rel_point = CurveRelPoint(curve_point=curve_point, rel=point.copy())
-            curve_rel_point.rel.scale(w, h)
-            self.curve_rel_points.append(curve_rel_point)
-            points.append(curve_rel_point.rel)
+            point = point.copy()
+            point.scale(w, h)
+            curve_point.position.copy_from(point)
+            points.append(point)
 
         outline = Polygon(points).get_outline()
         if outline is None:
             return
 
+        self.anchor_at.assign(0, 0)
         self.move_to(outline.left, outline.top)
         self.width = outline.width
         self.height = outline.height
-        if self.curve_point_group.abs_anchor_at is None:
-            anchor_at = self.reverse_transform_point(Point(self.width*.5, self.height*.5))
-            self.curve_point_group.set_abs_anchor_at(anchor_at.x, anchor_at.y)
+        anchor_at = self.transform_point(Point(self.width*.5, self.height*.5))
+        self.anchor_at.copy_from(anchor_at)
 
-        sx = 1./self.width
-        sy = 1./self.height
+    def set_width(self, value, fixed_anchor=False):
+        super(CurvePointGroupShape, self).set_width(value, fixed_anchor)
+        self.update()
 
-        for curve_rel_point in self.curve_rel_points:
-            curve_rel_point.rel.translate(-outline.left, -outline.top)
-            curve_rel_point.rel.scale(sx, sy)
+    def set_height(self, value, fixed_anchor=False):
+        super(CurvePointGroupShape, self).set_height(value, fixed_anchor)
+        self.update()
 
-        anchor_at = self.transform_point(self.curve_point_group.abs_anchor_at)
-        super(CurvePointGroupShape, self).set_anchor_at(anchor_at.x, anchor_at.y)
+    def set_angle(self, value):
+        super(CurvePointGroupShape, self).set_angle(value)
+        self.update()
 
-    def set_anchor_x(self, x):
-        super(CurvePointGroupShape, self).set_anchor_x(x)
-        self.update_group_anchor()
+    def move_to(self, x, y):
+        super(CurvePointGroupShape, self).move_to(x, y)
+        self.update()
 
-    def set_anchor_y(self, y):
-        super(CurvePointGroupShape, self).set_anchor_y(y)
-        self.update_group_anchor()
-
-    def update_group_anchor(self):
-        anchor_at = self.get_abs_anchor_at()
-        self.curve_point_group.set_abs_anchor_at(anchor_at.x, anchor_at.y)
-
-    def translate_anchor(self, dx, dy):
-        self.curve_point_group.abs_anchor_at.translate(dx, dy)
-
-    def update_rel_points(self):
-        curve_sx = 1./self.curve_shape.get_width()
-        curve_sy = 1./self.curve_shape.get_height()
-        for curve_rel_point in self.curve_rel_points:
-            point = curve_rel_point.rel.copy()
-            point.scale(self.width, self.height)
+    def update(self):
+        curve_sx = 1./self.parent_shape.get_width()
+        curve_sy = 1./self.parent_shape.get_height()
+        for curve_point in self.curve_point_group.points:
+            point = curve_point.position.copy()
             point = self.reverse_transform_point(point)
             point.scale(curve_sx, curve_sy)
-            curve_point = curve_rel_point.curve_point
-            curve = self.curve_shape.curves[curve_point.curve_index]
+            curve = self.parent_shape.curves[curve_point.curve_index]
             curve_point.get_point(curve).copy_from(point)
-
-        self.curve_point_group.update_closed_curves(self.curve_shape.curves)
+        self.curve_point_group.update_closed_curves(self.parent_shape.curves)

@@ -643,6 +643,12 @@ class CurvePoint(object):
         self.curve_index = curve_index
         self.point_index = point_index
         self.point_type = point_type
+        self.position = Point(0, 0)
+
+    def copy(self):
+        newob = CurvePoint(self.curve_index, self.point_index, self.point_type)
+        newob.position.copy_from(self.position)
+        return newob
 
     def get_point(self, curve):
         bezier_point = curve.bezier_points[self.point_index]
@@ -683,23 +689,12 @@ class CurvePointGroup(object):
     def __init__(self):
         self.points = []
         self.point_indices = dict()
-        self.abs_anchor_at = None
 
-    def set_abs_anchor_x(self, x):
-        if self.abs_anchor_at is None:
-            self.abs_anchor_at = Point(0,0)
-        self.abs_anchor_at.x = x
-
-    def set_abs_anchor_y(self, y):
-        if self.abs_anchor_at is None:
-            self.abs_anchor_at = Point(0,0)
-        self.abs_anchor_at.y = y
-
-    def set_abs_anchor_at(self, x, y):
-        if self.abs_anchor_at is None:
-            self.abs_anchor_at = Point(0,0)
-        self.abs_anchor_at.x = x
-        self.abs_anchor_at.y = y
+    def copy(self):
+        newob = CurvePointGroup()
+        for curve_point in self.points:
+            newob.add_point(curve_point.copy())
+        return newob
 
     def add_point(self, curve_point):
         self.points.append(curve_point)
@@ -716,8 +711,6 @@ class CurvePointGroup(object):
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
-        if self.abs_anchor_at:
-            elm.attrib["anchor_at"] = self.abs_anchor_at.to_text()
         for point in self.points:
             elm.append(point.get_xml_element())
         return elm
@@ -772,9 +765,6 @@ class CurvePointGroup(object):
     @classmethod
     def create_from_xml_element(cls, elm):
         point_group = cls()
-        anchor_at_str = elm.attrib.get("anchor_at", None)
-        if anchor_at_str:
-            point_group.abs_anchor_at = Point.from_text(anchor_at_str)
         for point_elm in elm.findall(CurvePoint.TAG_NAME):
             point = CurvePoint.create_from_xml_element(point_elm)
             if point:

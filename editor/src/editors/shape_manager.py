@@ -40,7 +40,6 @@ class ShapeManager(object):
         self.out_width = doc.width
         self.out_height = doc.height
 
-        self.point_group_shapes = []
         self.point_group_shape_editor = None
 
         self.load_multi_shape(multi_shape)
@@ -52,7 +51,6 @@ class ShapeManager(object):
         self.document_area_box.place_anchor_at_center()
 
     def load_multi_shape(self, multi_shape):
-        del self.point_group_shapes[:]
         self.point_group_shape_editor = None
 
         self.multi_shape = multi_shape
@@ -81,28 +79,8 @@ class ShapeManager(object):
         self.color_editor = None
         self.eraser_box = None
 
-    def load_point_group_shapes(self):
-        del self.point_group_shapes[:]
-        self.point_group_shape_editor = None
-        if not self.shape_editor:
-            return
-        selected_shape = self.shape_editor.shape
-        if not isinstance(selected_shape, CurveShape):
-            return
-        for curve_point_group_shape in selected_shape.point_group_shapes.values():
-            #curve_point_group_shape = CurvePointGroupShape(selected_shape, curve_point_group)
-            self.point_group_shapes.append(curve_point_group_shape)
-
-    def update_point_group_shapes(self):
-        for point_group_shape in self.point_group_shapes:
-            point_group_shape.update()
-
     def show_hide_point_groups(self):
-        if EditingChoice.SHOW_POINT_GROUPS:
-            if not self.point_group_shapes:
-                self.load_point_group_shapes()
-        else:
-            del self.point_group_shapes[:]
+        if not EditingChoice.SHOW_POINT_GROUPS:
             self.point_group_shape_editor = None
 
     def create_eraser(self, size=5.):
@@ -223,8 +201,10 @@ class ShapeManager(object):
         return None
 
     def get_point_group_shape_at(self, selected_shape, point):
+        if not isinstance(selected_shape, CurveShape):
+            return None
         point = selected_shape.transform_point(point)
-        for point_group_shape in reversed(self.point_group_shapes):
+        for point_group_shape in selected_shape.point_group_shapes:
             if point_group_shape.is_within(point):
                 return point_group_shape
         return None
@@ -268,13 +248,14 @@ class ShapeManager(object):
         if not EditingChoice.HIDE_AXIS:
             self.multi_shape.draw_axis(ctx)
 
-        for curve_point_group_shape in self.point_group_shapes:
-            curve_point_group_shape.draw(ctx)
-
         if self.shape_editor:
-            if isinstance(self.shape_editor.shape, MultiSelectionShape):
-                self.shape_editor.shape.draw(ctx)
+            selected_shape = self.shape_editor.shape
+            if isinstance(selected_shape, MultiSelectionShape):
+                selected_shape.draw(ctx)
             self.shape_editor.draw(ctx)
+            if EditingChoice.SHOW_POINT_GROUPS and isinstance(selected_shape, CurveShape) :
+                for point_group_shape in selected_shape.point_group_shapes:
+                    point_group_shape.draw(ctx)
 
         if self.point_group_shape_editor:
             self.point_group_shape_editor.shape.draw(ctx)
@@ -584,7 +565,6 @@ class ShapeManager(object):
 
     def delete_shape_editor(self):
         if self.shape_editor is None: return
-        del self.point_group_shapes[:]
         self.point_group_shape_editor = None
 
         if isinstance(self.shape_editor.shape, MultiSelectionShape) :
@@ -664,7 +644,7 @@ class ShapeManager(object):
                 point_group_shape_point = selected_shape.transform_point(shape_point)
                 self.point_group_shape_editor.select_item_at(point_group_shape_point, multi_select=False)
 
-            if (self.point_group_shape_editor is None and self.point_group_shapes) or \
+            if (self.point_group_shape_editor is None and isinstance(selected_shape, CurveShape)) or \
                (self.point_group_shape_editor is not None and \
                 not self.point_group_shape_editor.has_selected_box()):
                 self.point_group_shape_editor = None
@@ -827,7 +807,6 @@ class ShapeManager(object):
                 point_group_shape_end_point = selected_shape.transform_point(shape_end_point)
                 self.point_group_shape_editor.move_active_item(
                     point_group_shape_start_point, point_group_shape_end_point)
-                self.point_group_shape_editor.shape.update_rel_points()
                 self.shape_editor.update_edit_boxes()
             else:
                 if self.eraser_box is not None:
@@ -905,8 +884,6 @@ class ShapeManager(object):
                         self.shape_editor.end_movement()
                         self.multi_shape.readjust_sizes()
                         self.shape_editor.reinit_shape()
-                        if self.point_group_shapes:
-                            self.load_point_group_shapes()
                 if self.current_task:
                     self.current_task.save(self.doc, self.shape_editor.shape)
                     self.current_task = None
@@ -1025,19 +1002,14 @@ class ShapeManager(object):
 
     def create_point_group(self):
         if not self.shape_editor: return False
-        if self.shape_editor.create_point_group():
-            self.load_point_group_shapes()
-            return True
-        return False
+        return self.shape_editor.create_point_group()
 
     def break_point_group(self):
         if not self.shape_editor: return False
         if not self.point_group_shape_editor: return False
         selected_shape = self.shape_editor.shape
         point_group_shape = self.point_group_shape_editor.shape
-        point_group = point_group_shape.get_point_group()
-        if selected_shape.delete_point_group(point_group):
-            self.point_group_shapes.remove(point_group_shape)
+        if selected_shape.delete_point_group_shape(point_group_shape):
             self.point_group_shape_editor = None
             return True
         return False

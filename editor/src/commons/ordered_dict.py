@@ -59,6 +59,11 @@ class OrderedDict(object):
         if index>=len(self.keys) or index<0: return None
         return self.items[self.keys[index]]
 
+    def remove_item_at_index(self, index):
+        if index>=len(self.keys) or index<0: return None
+        del self.items[self.keys[index]]
+        self.keys.remove(index)
+
     def get_last_item(self):
         return self.items[self.keys[-1]]
 
