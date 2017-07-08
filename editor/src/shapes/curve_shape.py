@@ -57,6 +57,12 @@ class CurveShape(Shape, Mirror):
     def delete_point_group_shape(self, point_group_shape):
         self.point_group_shapes.remove(point_group_shape)
 
+    def get_point_group_shapes_model(self):
+        model = []
+        for shape in self.point_group_shape:
+            model.append((shape.get_name(), shape))
+        return model
+
     def copy_data_from_linked(self):
         super(CurveShape, self).copy_data_from_linked()
 

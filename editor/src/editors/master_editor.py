@@ -578,7 +578,7 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.time_line_editor.set_selected_shape(self.shape_manager.get_selected_shape())
                 if self.shape_manager.get_selected_edit_box() is not None:
                     return
-            self.show_prop_of(self.shape_manager.get_selected_shape())
+            self.show_prop_of(self.shape_manager.get_deepest_selected_shape())
         elif event.button == 2:
             self.shape_manager.select_document_area_box()
         self.redraw()
@@ -587,7 +587,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         had_shape_creator = (self.shape_manager.shape_creator is not None)
         self.shape_manager.end_movement()
         self.drawing_area_mouse_pressed = False
-        self.show_prop_of(self.shape_manager.get_selected_shape())
+        self.show_prop_of(self.shape_manager.get_deepest_selected_shape())
         self.update_drawing_area_scrollbars()
         if had_shape_creator:
             self.rebuild_tree_view()

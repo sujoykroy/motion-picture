@@ -112,10 +112,23 @@ class ShapeManager(object):
 
     def get_selected_shape(self, original_shape_only=False):
         if self.shape_editor:
+            shape = self.shape_editor.shape
             if original_shape_only and isinstance(shape, MultiSelectionShape):
                 return None
             return self.shape_editor.shape
         return None
+
+    def get_deepest_selected_shape(self, original_shape_only=False):
+        if self.point_group_shape_editor:
+            shape = self.point_group_shape_editor.shape
+        elif self.shape_editor:
+            shape = self.shape_editor.shape
+        else:
+            return None
+
+        if original_shape_only and isinstance(shape, MultiSelectionShape):
+            return None
+        return shape
 
     def get_selected_edit_box(self):
         if self.shape_editor:

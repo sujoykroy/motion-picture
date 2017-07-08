@@ -44,6 +44,9 @@ class Shape(object):
         self.followed_upto = 0.
         self.renderable = True
 
+    def get_class_name(self):
+        return self.__class__.__name__
+
     def set_followed_upto(self, value, prop_data=None):
         self.followed_upto = value
         if prop_data:

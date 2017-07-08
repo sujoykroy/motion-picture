@@ -28,7 +28,6 @@ class ShapeFormPropBox(object):
         self.form_button_box.pack_start(self.delete_form_button, expand=False, fill=False, padding=0)
         self.form_button_box.pack_start(self.new_form_button, expand=False, fill=False, padding=0)
 
-
         self.insert_slice_button = create_new_image_button("insert_time_slice")
         self.insert_slice_button.connect("clicked", self.insert_slice_button_clicked)
         self.form_button_box.pack_start(self.insert_slice_button, expand=False, fill=False, padding=0)

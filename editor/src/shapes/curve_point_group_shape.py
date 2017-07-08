@@ -26,6 +26,7 @@ class CurvePointGroupShape(RectangleShape):
         h = self.parent_shape.get_height()
 
         points = []
+        points_positions = []
         for curve_point in self.curve_point_group.points:
             if curve_point.curve_index>=len(self.parent_shape.curves):
                 continue
@@ -44,7 +45,7 @@ class CurvePointGroupShape(RectangleShape):
 
             point = point.copy()
             point.scale(w, h)
-            curve_point.position.copy_from(point)
+            points_positions.append((point, curve_point.position))
             points.append(point)
 
         outline = Polygon(points).get_outline()
@@ -52,11 +53,15 @@ class CurvePointGroupShape(RectangleShape):
             return
 
         self.anchor_at.assign(0, 0)
-        self.move_to(outline.left, outline.top)
+        self.move_to(outline.left, outline.top, update=False)
         self.width = outline.width
         self.height = outline.height
-        anchor_at = self.transform_point(Point(self.width*.5, self.height*.5))
+        anchor_at = Point(self.width*.5, self.height*.5)
         self.anchor_at.copy_from(anchor_at)
+
+        for point, position in points_positions:
+            point = self.transform_point(point)
+            position.copy_from(point)
 
     def set_width(self, value, fixed_anchor=False):
         super(CurvePointGroupShape, self).set_width(value, fixed_anchor)
@@ -70,9 +75,10 @@ class CurvePointGroupShape(RectangleShape):
         super(CurvePointGroupShape, self).set_angle(value)
         self.update()
 
-    def move_to(self, x, y):
+    def move_to(self, x, y, update=True):
         super(CurvePointGroupShape, self).move_to(x, y)
-        self.update()
+        if update:
+            self.update()
 
     def update(self):
         curve_sx = 1./self.parent_shape.get_width()
