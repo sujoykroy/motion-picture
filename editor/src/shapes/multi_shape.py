@@ -14,6 +14,7 @@ from camera_shape import CameraShape
 from threed_shape import ThreeDShape
 from document_shape import DocumentShape
 from custom_shape import CustomShape
+from curves_form import CurvesForm
 from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 from custom_props import *
@@ -76,7 +77,6 @@ class MultiShapeModule(object):
 class MultiShape(Shape):
     TYPE_NAME = "multi_shape"
     POSE_TAG_NAME = "pose"
-    POSE_SHAPE_TAG_NAME = "pose_shape"
 
     def __init__(self, anchor_at=None, border_color=None,
                        border_width=0, fill_color=None, width=1, height=1):
@@ -125,15 +125,7 @@ class MultiShape(Shape):
                 pose_elm = XmlElement(self.POSE_TAG_NAME)
                 pose_elm.attrib["name"] = pose_name
                 for shape_name, prop_dict in pose.items():
-                    pose_shape_elm = XmlElement(self.POSE_SHAPE_TAG_NAME)
-                    pose_shape_elm.attrib["name"] = shape_name
-                    for prop_name, value in prop_dict.items():
-                        if prop_name in ("form_raw",):
-                            pose_shape_elm.append(value.get_xml_element())
-                        else:
-                            if hasattr(value, "to_text"):
-                                value = value.to_text()
-                            pose_shape_elm.attrib[prop_name] = "{0}".format(value)
+                    pose_shape_elm = self.get_pose_prop_xml_element(shape_name, prop_dict)
                     pose_elm.append(pose_shape_elm)
                 elm.append(pose_elm)
 
@@ -188,33 +180,7 @@ class MultiShape(Shape):
             pose_name = pose_elm.attrib["name"]
             pose = dict()
             for pose_shape_elm in pose_elm.findall(cls.POSE_SHAPE_TAG_NAME):
-                prop_dict = dict()
-                shape_name = None
-                for prop_name, value in pose_shape_elm.attrib.items():
-                    if prop_name == "name":
-                        shape_name = value
-                        continue
-                    if prop_name in ("anchor_at", "translation", "abs_anchor_at", "rel_abs_anchor_at"):
-                        value = Point.from_text(value)
-                    elif prop_name in ("fill_color", "border_color"):
-                        value = color_from_text(value)
-                    elif prop_name == "pre_matrix":
-                        value = Matrix.from_text(value)
-                    elif prop_name in ("pose", "text", "font"):
-                        value = value
-                    elif prop_name == "visible":
-                        if value == "True":
-                            value = True
-                        elif value == "False":
-                            value = False
-                        else:
-                            value = bool(int(value))
-                    else:
-                        try:
-                            value = float(value)
-                        except ValueError:
-                            continue
-                    prop_dict[prop_name] = value
+                shape_name, prop_dict = cls.create_pose_prop_dict_from_xml_element(pose_shape_elm)
                 form = pose_shape_elm.find(CurvesForm.TAG_NAME)
                 if form:
                     prop_dict["form_raw"] = CurvesForm.create_from_xml_element(form)

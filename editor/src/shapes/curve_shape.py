@@ -1,5 +1,6 @@
 from ..commons import *
 from shape import Shape
+from curves_form import CurvesForm
 from curve_point_group_shape import CurvePointGroupShape
 from xml.etree.ElementTree import Element as XmlElement
 from mirror import *
@@ -34,6 +35,7 @@ class CurveShape(Shape, Mirror):
         self.show_points = True
         self.point_group_shapes = OrderedDict()
         self.baked_points = None
+        self.point_group_should_update = True
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -49,7 +51,7 @@ class CurveShape(Shape, Mirror):
         self.curves.extend(curves)
 
     def add_new_point_group_shape(self, point_group):
-        point_group_shape = CurvePointGroupShape(self, point_group)
+        point_group_shape = CurvePointGroupShape(curve_shape=self, curve_point_group=point_group)
         point_group_shape.build()
         self.point_group_shapes.add(point_group_shape)
         return point_group_shape
@@ -98,7 +100,18 @@ class CurveShape(Shape, Mirror):
             curve = curve.copy()
             curve.translate(-anchor_at.x, -anchor_at.y)
             curves.append(curve)
-        form = CurvesForm(width=self.width, height=self.height, curves=curves)
+
+        if self.point_group_shapes:
+            shapes_props = dict()
+            for point_group_shape in self.point_group_shapes:
+                prop_dict = point_group_shape.get_pose_prop_dict()
+                shapes_props[point_group_shape.get_name()] = prop_dict
+                rel_abs_anchor_at = point_group_shape.get_abs_anchor_at()
+                rel_abs_anchor_at.translate(-self.anchor_at.x, -self.anchor_at.y)
+                prop_dict["rel_abs_anchor_at"] = rel_abs_anchor_at
+        else:
+            shapes_props = None
+        form = CurvesForm(width=self.width, height=self.height, curves=curves, shapes_props=shapes_props)
         return form
 
     def save_form(self, form_name):
@@ -137,9 +150,21 @@ class CurveShape(Shape, Mirror):
             self_curve.copy_from(form_curve)
             self_curve.translate(anchor_at.x, anchor_at.y)
             self_curve.adjust_origin()
-        #self.anchor_at.translate(diff_width, diff_height)
+
+        if form.shapes_props:
+            for point_group_shape in self.point_group_shapes:
+                shape_name = point_group_shape.get_name()
+                prop_dict = form.shapes_props.get(shape_name)
+                if prop_dict is None:
+                    continue
+                point_group_shape.set_pose_prop_from_dict(prop_dict)
+                if "rel_abs_anchor_at" in prop_dict:
+                    abs_anchor_at = prop_dict["rel_abs_anchor_at"].copy()
+                    abs_anchor_at.translate(self.anchor_at.x, self.anchor_at.y)
+                    point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
+
         self.fit_size_to_include_all()
-        self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+        #self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
     def set_form(self, form_name):
         if form_name not in self.forms:
@@ -202,8 +227,26 @@ class CurveShape(Shape, Mirror):
                     value, (self.width, self.height))
                 self_curve.translate(anchor_at.x, anchor_at.y)
 
+            if start_form.shapes_props and end_form.shapes_props:
+                start_shapes_props = start_form.shapes_props
+                end_shapes_props = end_form.shapes_props
+                for point_group_shape in self.point_group_shapes:
+                    shape_name = point_group_shape.get_name()
+                    start_prop_dict = start_form.shapes_props.get(shape_name)
+                    end_prop_dict = end_form.shapes_props.get(shape_name)
+                    if not start_prop_dict or not end_prop_dict:
+                        continue
+                    self.point_group_should_update = False
+                    point_group_shape.set_transition_pose_prop_from_dict(
+                        start_prop_dict, end_prop_dict, frac=value)
+                    start_rel_abs_anchor_at = start_prop_dict["rel_abs_anchor_at"].copy()
+                    end_rel_abs_anchor_at = end_prop_dict["rel_abs_anchor_at"].copy()
+                    abs_anchor_at = Point(0, 0)
+                    abs_anchor_at.set_inbetween(start_rel_abs_anchor_at, end_rel_abs_anchor_at, value)
+                    abs_anchor_at.translate(self.anchor_at.x, self.anchor_at.y)
+                    self.point_group_should_update = True
+                    point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
             self.fit_size_to_include_all()
-            self.move_to(abs_anchor_at.x, abs_anchor_at.y)
         else:
             Shape.set_prop_value(self, prop_name, value, prop_data)
 
@@ -244,9 +287,9 @@ class CurveShape(Shape, Mirror):
             shape.forms[form.name] = form
 
         for point_group_elm in elm.findall(CurvePointGroupShape.TAG_NAME):
-            point_group_shape = CurvePointGroupShape.create_from_xml_element(point_group_elm)
+            point_group_shape = CurvePointGroupShape.create_from_xml_element(point_group_elm, shape)
             if point_group_shape:
-                self.point_group_shapes.add(point_group_shape)
+                shape.point_group_shapes.add(point_group_shape)
 
         shape.assign_params_from_xml_element(elm)
         return shape
@@ -346,8 +389,7 @@ class CurveShape(Shape, Mirror):
         for point_group_shape in self.point_group_shapes:
             abs_anchor_at = point_group_shape.get_abs_anchor_at()
             abs_anchor_at.translate(shift_w, shift_h)
-            point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
-
+            point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y, update=False)
         self.baked_points = None
 
     def get_baked_point(self, frac, curve_index=0):

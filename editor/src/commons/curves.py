@@ -672,6 +672,7 @@ class CurvePoint(object):
         elm.attrib["ci"] = "{0}".format(self.curve_index)
         elm.attrib["pi"] = "{0}".format(self.point_index)
         elm.attrib["pt"] = "{0}".format(self.point_type)
+        elm.attrib["ps"] = self.position.to_text()
         return elm
 
     @classmethod
@@ -681,7 +682,9 @@ class CurvePoint(object):
         point_type = int(elm.attrib.get("pt", -1))
         if curve_index<0 or point_index<0:
             return None
-        return cls(curve_index, point_index, point_type)
+        curve_point = cls(curve_index, point_index, point_type)
+        curve_point.position.copy_from(Point.from_text(elm.attrib.get("ps", Point(0,0).to_text())))
+        return curve_point
 
 class CurvePointGroup(object):
     TAG_NAME = "curve_point_group"
@@ -773,41 +776,3 @@ class CurvePointGroup(object):
             return None
         return point_group
 
-class CurvesForm(object):
-    TAG_NAME = "form"
-
-    def __init__(self, width, height, curves, name=None):
-        self.width = width
-        self.height = height
-        self.curves = curves
-        self.name = name
-
-    def copy(self):
-        curves = []
-        for curve in self.curves:
-            curves.append(curve.copy())
-        newob = CurvesForm(self.width, self.height, self.curves, self.name)
-        return newob
-
-    def set_name(self, name):
-        self.name = name
-
-    def get_xml_element(self):
-        form_elm = XmlElement(self.TAG_NAME)
-        if self.name:
-            form_elm.attrib["name"] = self.name
-        form_elm.attrib["width"] = "{0}".format(self.width)
-        form_elm.attrib["height"] = "{0}".format(self.height)
-        for curve in self.curves:
-            form_elm.append(curve.get_xml_element())
-        return form_elm
-
-    @classmethod
-    def create_from_xml_element(cls, elm):
-        name = elm.attrib.get("name", None)
-        width = float(elm.attrib["width"])
-        height = float(elm.attrib["height"])
-        curves = []
-        for curve_elm in elm.findall(Curve.TAG_NAME):
-            curves.append(Curve.create_from_xml_element(curve_elm))
-        return CurvesForm(name=name, width=width, height=height, curves=curves)

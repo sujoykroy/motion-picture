@@ -9,6 +9,7 @@ from mirror import Mirror
 class Shape(object):
     ID_SEED = 0
     TAG_NAME = "shape"
+    POSE_SHAPE_TAG_NAME = "pose_shape"
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height):
         self.anchor_at = anchor_at
@@ -149,6 +150,50 @@ class Shape(object):
                 else:
                     self.set_prop_value(prop_name, value)
 
+    @classmethod
+    def get_pose_prop_xml_element(cls, shape_name, prop_dict):
+        pose_shape_elm = XmlElement(cls.POSE_SHAPE_TAG_NAME)
+        pose_shape_elm.attrib["name"] = shape_name
+        for prop_name, value in prop_dict.items():
+            if prop_name in ("form_raw",):
+                pose_shape_elm.append(value.get_xml_element())
+            else:
+                if hasattr(value, "to_text"):
+                    value = value.to_text()
+                pose_shape_elm.attrib[prop_name] = "{0}".format(value)
+        return pose_shape_elm
+
+    @staticmethod
+    def create_pose_prop_dict_from_xml_element(elm):
+        shape_name = None
+        prop_dict = dict()
+        for prop_name, value in elm.attrib.items():
+            if prop_name == "name":
+                shape_name = value
+                continue
+            if prop_name in ("anchor_at", "translation", "abs_anchor_at", "rel_abs_anchor_at"):
+                value = Point.from_text(value)
+            elif prop_name in ("fill_color", "border_color"):
+                value = color_from_text(value)
+            elif prop_name == "pre_matrix":
+                value = Matrix.from_text(value)
+            elif prop_name in ("pose", "text", "font"):
+                value = value
+            elif prop_name == "visible":
+                if value == "True":
+                    value = True
+                elif value == "False":
+                    value = False
+                else:
+                    value = bool(int(value))
+            else:
+                try:
+                    value = float(value)
+                except ValueError:
+                    continue
+            prop_dict[prop_name] = value
+        return (shape_name, prop_dict)
+
     def set_transition_pose_prop_from_dict(self, start_prop_dict, end_prop_dict, frac):
         for prop_name in self.get_pose_prop_names():
             if prop_name not in start_prop_dict or prop_name not in end_prop_dict: continue
@@ -262,7 +307,7 @@ class Shape(object):
             self.width = float(elm.attrib.get("width", 1))
             self.height = float(elm.attrib.get("height", 1))
             #TODO
-            #rest of the fiels needs to be implemted, but later.
+            #rest of the fiels needs to be implemented, but later.
         self.set_border_dash(elm.attrib.get("border_dash", ""))
 
     def copy_into(self, newob, copy_name=False, all_fields=False):

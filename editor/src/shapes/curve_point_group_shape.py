@@ -2,24 +2,44 @@ from ..commons import *
 from shape import Shape
 from rectangle_shape import RectangleShape
 
-class CurveRelPoint(object):
-    def __init__(self, curve_point, rel):
-        self.curve_point = curve_point
-        self.rel = rel
-
 class CurvePointGroupShape(RectangleShape):
     TYPE_NAME = "curve_point_group_shape"
 
-    def __init__(self, curve_shape, curve_point_group):
-        RectangleShape.__init__(self, anchor_at=Point(0,0), border_color="00ff00",
-                                      border_width=1, fill_color=None, width=1, height=1, corner_radius=0)
+    def __init__(self, anchor_at=Point(0,0), border_color="00ff00",
+                       border_width=1, fill_color=None, width=1, height=1, corner_radius=0,
+                       curve_shape=None, curve_point_group=None):
+        RectangleShape.__init__(self, anchor_at, border_color, border_width,
+                                        fill_color, width, height, corner_radius)
         self.curve_point_group = curve_point_group
         self.parent_shape = curve_shape
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = CurvePointGroupShape(self.parent_shape, self.curve_point_group.copy())
+        newob = CurvePointGroupShape(
+                        curve_shape=self.parent_shape,
+                        curve_point_group=self.curve_point_group.copy())
         self.copy_into(newob, copy_name, all_fields=True)
         return newob
+
+    def get_xml_element(self):
+        elm = super(CurvePointGroupShape, self).get_xml_element()
+        elm.append(self.curve_point_group.get_xml_element())
+        return elm
+
+    @classmethod
+    def create_from_xml_element(cls, elm, curve_shape):
+        point_group_elm = elm.find(CurvePointGroup.TAG_NAME)
+        if not point_group_elm:
+            return None
+        point_group = CurvePointGroup.create_from_xml_element(point_group_elm)
+
+        arr = Shape.get_params_array_from_xml_element(elm)
+        arr.append(float(elm.attrib.get("corner_radius", 0)))
+        arr.append(curve_shape)
+        arr.append(point_group)
+
+        shape = cls(*arr)
+        shape.assign_params_from_xml_element(elm)
+        return shape
 
     def build(self):
         w = self.parent_shape.get_width()
@@ -62,6 +82,7 @@ class CurvePointGroupShape(RectangleShape):
         for point, position in points_positions:
             point = self.transform_point(point)
             position.copy_from(point)
+        self.update()
 
     def set_width(self, value, fixed_anchor=False):
         super(CurvePointGroupShape, self).set_width(value, fixed_anchor)
@@ -81,6 +102,8 @@ class CurvePointGroupShape(RectangleShape):
             self.update()
 
     def update(self):
+        if not self.parent_shape.point_group_should_update:
+            return
         curve_sx = 1./self.parent_shape.get_width()
         curve_sy = 1./self.parent_shape.get_height()
         for curve_point in self.curve_point_group.points:
