@@ -143,7 +143,7 @@ m.add(path="Shapes/Point Group/Lock Point Group", icon="lock_point_group",
       action_name="win.lock_point_group", action_state=False, icon_scale=1.2)
 m.add(path="Shapes/Point Group/Add Point to Point Group", icon="add_to_point_group",
       action_name="win.add_point_to_point_group", icon_scale=1.2)
-m.add(path="Shapes/Point Group/Remove Point from Point Group", icon="lock_point_group",
+m.add(path="Shapes/Point Group/Remove Point from Point Group", icon="remove_from_point_group",
       action_name="win.remove_point_from_point_group", icon_scale=1.2)
 
 m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert into Polygon",
