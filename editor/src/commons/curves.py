@@ -650,7 +650,8 @@ class CurvePoint(object):
         newob.position.copy_from(self.position)
         return newob
 
-    def get_point(self, curve):
+    def get_point(self, curves):
+        curve = curves[self.curve_index]
         bezier_point = curve.bezier_points[self.point_index]
         if self.point_type == CurvePoint.POINT_TYPE_DEST:
             point = bezier_point.dest
@@ -700,17 +701,23 @@ class CurvePointGroup(object):
         return newob
 
     def add_point(self, curve_point):
+        if curve_point in self.points:
+            return False
         self.points.append(curve_point)
         if curve_point.curve_index not in self.point_indices:
             self.point_indices[curve_point.curve_index] = dict()
         self.point_indices[curve_point.curve_index][curve_point.point_index] = curve_point
+        return True
 
     def remove_point(self, curve_point):
+        if curve_point not in self.points:
+            return False
         self.points.remove(curve_point)
         if curve_point.curve_index not in self.point_indices:
             self.point_indices[curve_point.curve_index] = dict()
         if curve_point.point_index in self.point_indices[curve_point.curve_index]:
             del self.point_indices[curve_point.curve_index][curve_point.point_index]
+        return True
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)

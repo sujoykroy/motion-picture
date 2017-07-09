@@ -474,26 +474,32 @@ class ShapeEditor(object):
                 self.selected_edit_boxes[1].is_start
             )
 
+    def get_curve_points(self):
+        curve_points = []
+        for edit_box in self.selected_edit_boxes:
+            point_type = None
+            if isinstance(edit_box, DestEditBox):
+                point_type = CurvePoint.POINT_TYPE_DEST
+            elif isinstance(edit_box, ControlEditBox):
+                if edit_box.control_index == 0:
+                    point_type = CurvePoint.POINT_TYPE_CONTROL_1
+                elif edit_box.control_index == 1:
+                    point_type = CurvePoint.POINT_TYPE_CONTROL_2
+            elif isinstance(edit_box, OriginEditBox):
+                point_type = CurvePoint.POINT_TYPE_ORIGIN
+            if point_type is not None:
+                curve_point = CurvePoint(edit_box.curve_index, edit_box.bezier_point_index, point_type)
+                curve_points.append(curve_point)
+        return curve_points
+
     def create_point_group(self):
         if not (isinstance(self.shape, CurveShape) or \
                 isinstance(self.shape, PolygonShape)): return False
         if len(self.selected_edit_boxes) < 2: return False
         if isinstance(self.shape, CurveShape):
             curve_point_group = CurvePointGroup()
-            for edit_box in self.selected_edit_boxes:
-                point_type = None
-                if isinstance(edit_box, DestEditBox):
-                    point_type = CurvePoint.POINT_TYPE_DEST
-                elif isinstance(edit_box, ControlEditBox):
-                    if edit_box.control_index == 0:
-                        point_type = CurvePoint.POINT_TYPE_CONTROL_1
-                    elif edit_box.control_index == 1:
-                        point_type = CurvePoint.POINT_TYPE_CONTROL_2
-                elif isinstance(edit_box, OriginEditBox):
-                    point_type = CurvePoint.POINT_TYPE_ORIGIN
-                if point_type is not None:
-                    curve_point = CurvePoint(edit_box.curve_index, edit_box.bezier_point_index, point_type)
-                    curve_point_group.add_point(curve_point)
+            for curve_point in self.get_curve_points():
+                curve_point_group.add_point(curve_point)
             del self.selected_edit_boxes[:]
             return self.shape.add_new_point_group_shape(curve_point_group)
         return False

@@ -243,6 +243,14 @@ class ApplicationWindow(MasterEditor):
         if self.shape_manager.break_point_group():
             self.redraw()
 
+    def add_point_to_point_group(self, action, parameter):
+        if self.shape_manager.add_point_to_point_group():
+            self.redraw()
+
+    def remove_point_from_point_group(self, action, parameter):
+        if self.shape_manager.remove_point_from_point_group():
+            self.redraw()
+
     def delete_point_of_shape(self, action, parameter):
         if self.shape_manager.delete_point():
             self.redraw()

@@ -651,19 +651,20 @@ class ShapeManager(object):
                 return
 
         #selection in point-group-shape-editor
-        if not EditingChoice.LOCK_POINT_GROUP and self.shape_editor is not None:
+        if self.shape_editor is not None:
             selected_shape = self.shape_editor.shape
             if self.point_group_shape_editor:
                 point_group_shape_point = selected_shape.transform_point(shape_point)
                 self.point_group_shape_editor.select_item_at(point_group_shape_point, multi_select=False)
 
-            if (self.point_group_shape_editor is None and isinstance(selected_shape, CurveShape)) or \
-               (self.point_group_shape_editor is not None and \
-                not self.point_group_shape_editor.has_selected_box()):
-                self.point_group_shape_editor = None
-                point_group_shape = self.get_point_group_shape_at(selected_shape, shape_point)
-                if point_group_shape:
-                    self.point_group_shape_editor = ShapeEditor(point_group_shape)
+            if not EditingChoice.LOCK_POINT_GROUP:
+                if (self.point_group_shape_editor is None and isinstance(selected_shape, CurveShape)) or \
+                   (self.point_group_shape_editor is not None and \
+                    not self.point_group_shape_editor.has_selected_box()):
+                    self.point_group_shape_editor = None
+                    point_group_shape = self.get_point_group_shape_at(selected_shape, shape_point)
+                    if point_group_shape:
+                        self.point_group_shape_editor = ShapeEditor(point_group_shape)
 
         if self.shape_editor is not None:
             self.shape_editor.select_item_at(shape_point, multi_select)
@@ -1026,6 +1027,16 @@ class ShapeManager(object):
             self.point_group_shape_editor = None
             return True
         return False
+
+    def add_point_to_point_group(self):
+        if not self.point_group_shape_editor:
+            return False
+        point_group_shape = self.point_group_shape_editor.shape
+        curve_points = self.shape_editor.get_curve_points()
+        if not curve_points:
+            return False
+        point_group_shape.add_curve_points(curve_points)
+        return True
 
     def delete_point(self):
         if not self.shape_editor: return False
