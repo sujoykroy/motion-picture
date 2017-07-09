@@ -181,6 +181,20 @@ class CurveShape(Shape, Mirror):
             forms.append(CurveFormRenderer(self, form_name))
         return forms
 
+    def update_forms_for_point_group(self, point_group_shape, old_translation, old_anchor_at):
+        translation_shift = point_group_shape.translation.diff(old_translation)
+        anchor_at_shift = point_group_shape.anchor_at.diff(old_anchor_at)
+
+        shape_name = point_group_shape.get_name()
+        for form in self.forms.values():
+            prop_dict = form.shapes_props.get(shape_name)
+            if not prop_dict:
+                continue
+            prop_dict["translation"].translate(translation_shift.x, translation_shift.y)
+            prop_dict["anchor_at"].translate(anchor_at_shift.x, anchor_at_shift.y)
+            prop_dict["width"] = point_group_shape.get_width()
+            prop_dict["height"] = point_group_shape.get_height()
+
     def set_prop_value(self, prop_name, value, prop_data=None):
         if prop_name == "internal":
             if "start_form" in prop_data:

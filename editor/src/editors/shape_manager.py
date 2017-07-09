@@ -1035,8 +1035,33 @@ class ShapeManager(object):
         curve_points = self.shape_editor.get_curve_points()
         if not curve_points:
             return False
-        point_group_shape.add_curve_points(curve_points)
-        return True
+
+        old_translation = point_group_shape.translation.copy()
+        old_anchor_at = point_group_shape.anchor_at.copy()
+
+        if point_group_shape.add_curve_points(curve_points):
+            master_shape = self.shape_editor.shape
+            master_shape.update_forms_for_point_group(
+                point_group_shape, old_translation, old_anchor_at)
+            return True
+        return False
+
+    def remove_point_from_point_group(self):
+        if not self.point_group_shape_editor:
+            return False
+        point_group_shape = self.point_group_shape_editor.shape
+        curve_points = self.shape_editor.get_curve_points()
+        if not curve_points:
+            return False
+        old_translation = point_group_shape.translation.copy()
+        old_anchor_at = point_group_shape.anchor_at.copy()
+
+        if point_group_shape.remove_curve_points(curve_points):
+            master_shape = self.shape_editor.shape
+            master_shape.update_forms_for_point_group(
+                point_group_shape, old_translation, old_anchor_at)
+            return True
+        return False
 
     def delete_point(self):
         if not self.shape_editor: return False

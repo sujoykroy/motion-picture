@@ -42,13 +42,26 @@ class CurvePointGroupShape(RectangleShape):
         return shape
 
     def add_curve_points(self, curve_points):
+        count = 0
         for curve_point in curve_points:
             if self.curve_point_group.add_point(curve_point):
+                count += 1
                 point = curve_point.get_point(self.parent_shape.curves).copy()
                 point.scale(self.parent_shape.width, self.parent_shape.height)
                 point = self.transform_point(point)
                 curve_point.position.copy_from(point)
-        self.fit_size_to_include_all()
+        if count>0:
+            self.fit_size_to_include_all()
+        return count>0
+
+    def remove_curve_points(self, curve_points):
+        count = 0
+        for curve_point in curve_points:
+            if self.curve_point_group.remove_point(curve_point):
+                count += 1
+        if count>0:
+            self.fit_size_to_include_all()
+        return count>0
 
     def fit_size_to_include_all(self):
         positions = []
@@ -58,10 +71,15 @@ class CurvePointGroupShape(RectangleShape):
         outline = Polygon(positions).get_outline()
         if outline is None:
             return
+
+        abs_anchor_at = self.get_abs_anchor_at()
         self.width = outline.width
         self.height = outline.height
-        self.translation.translate(outline.left, outline.top)
         self.anchor_at.translate(-outline.left, -outline.top)
+        self.move_to(abs_anchor_at.x, abs_anchor_at.y, update=False)
+
+        for curve_point in self.curve_point_group.points:
+            curve_point.position.translate(-outline.left, -outline.top)
 
     def build(self):
         w = self.parent_shape.get_width()
@@ -70,21 +88,9 @@ class CurvePointGroupShape(RectangleShape):
         points = []
         points_positions = []
         for curve_point in self.curve_point_group.points:
-            if curve_point.curve_index>=len(self.parent_shape.curves):
+            point = curve_point.get_point(self.parent_shape.curves)
+            if not point:
                 continue
-            curve = self.parent_shape.curves[curve_point.curve_index]
-            if curve_point.point_index>= len(curve.bezier_points):
-                continue
-            bezier_point = curve.bezier_points[curve_point.point_index]
-            if curve_point.point_type == CurvePoint.POINT_TYPE_DEST:
-                point = bezier_point.dest
-            elif curve_point.point_type == CurvePoint.POINT_TYPE_CONTROL_1:
-                point = bezier_point.control_1
-            elif curve_point.point_type == CurvePoint.POINT_TYPE_CONTROL_2:
-                point = bezier_point.control_2
-            elif curve_point.point_type == CurvePoint.POINT_TYPE_ORIGIN:
-                point = curve.origin
-
             point = point.copy()
             point.scale(w, h)
             points_positions.append((point, curve_point.position))
