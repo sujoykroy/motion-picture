@@ -8,7 +8,7 @@ class CurvePointGroupShape(RectangleShape):
     def __init__(self, anchor_at=Point(0,0), border_color="00ff00",
                        border_width=1, fill_color=None, width=1, height=1, corner_radius=0,
                        curve_shape=None, curve_point_group=None):
-        RectangleShape.__init__(self, anchor_at, border_color, border_width,
+        RectangleShape.__init__(self, anchor_at.copy(), border_color, border_width,
                                         fill_color, width, height, corner_radius)
         self.curve_point_group = curve_point_group
         self.parent_shape = curve_shape
