@@ -113,6 +113,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.shape_form_prop_box.parent_window = self
         self.custom_props_box = None
 
+        self.point_group_shape_list_box = PointGroupShapeListBox(self.select_point_group_shape)
+
         self.prop_grid = PropGrid()
         self.prop_grid.set_margin_left(10)
         self.prop_grid.set_margin_right(10)
@@ -136,6 +138,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.multi_shape_prop_box,
             self.text_shape_prop_box,
             self.shape_form_prop_box,
+            self.point_group_shape_list_box,
             self.curve_smooth_prop_box,
             self.image_shape_prop_box,
             self.audio_shape_prop_box,
@@ -389,6 +392,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.ring_shape_prop_box.hide()
         self.multi_shape_prop_box.hide()
         self.shape_form_prop_box.hide()
+        self.point_group_shape_list_box.hide()
         self.curve_smooth_prop_box.hide()
         self.text_shape_prop_box.hide()
         self.image_shape_prop_box.hide()
@@ -461,6 +465,9 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, CurveShape):
                 self.curve_smooth_prop_box.set_curve_shape(shape)
                 self.curve_smooth_prop_box.show()
+                self.point_group_shape_list_box.set_shape_list(shape.get_point_group_shapes_model())
+                self.point_group_shape_list_box.show()
+
         else:
             self.linked_to_hbox.hide()
             self.shape_form_prop_box.set_curve_shape(None)
@@ -489,6 +496,10 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.show_prop_of(shapes[0])
                 self.time_line_editor.set_selected_shape(shapes[0])
         self.redraw()
+
+    def select_point_group_shape(self, point_group_shape):
+        if self.shape_manager.select_point_group_shape(point_group_shape):
+            self.show_prop_of(point_group_shape)
 
     def reselect_selected_shape(self):
         shape = self.shape_manager.get_selected_shape(True)

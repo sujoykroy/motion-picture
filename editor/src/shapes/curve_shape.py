@@ -1,5 +1,6 @@
 from ..commons import *
 from shape import Shape
+from shape_list import ShapeList
 from curves_form import CurvesForm
 from curve_point_group_shape import CurvePointGroupShape
 from xml.etree.ElementTree import Element as XmlElement
@@ -33,7 +34,7 @@ class CurveShape(Shape, Mirror):
         self.curves = []
         self.forms = dict()
         self.show_points = True
-        self.point_group_shapes = OrderedDict()
+        self.point_group_shapes = ShapeList()
         self.baked_points = None
         self.point_group_should_update = True
 
@@ -59,10 +60,21 @@ class CurveShape(Shape, Mirror):
     def delete_point_group_shape(self, point_group_shape):
         self.point_group_shapes.remove(point_group_shape)
 
+    def rename_shape(self, shape, name):
+        old_name = shape.get_name()
+        if self.point_group_shapes.rename(old_name, name):
+            for form in self.forms.values():
+                if not form.shapes_props:
+                    continue
+                if old_name in form.shapes_props:
+                    form.shapes_props[name] = form.shapes_props[old_name]
+                    del form.shapes_props[old_name]
+        return True
+
     def get_point_group_shapes_model(self):
         model = []
-        for shape in self.point_group_shape:
-            model.append((shape.get_name(), shape))
+        for shape in self.point_group_shapes:
+            model.append([shape.get_name(), shape])
         return model
 
     def copy_data_from_linked(self):

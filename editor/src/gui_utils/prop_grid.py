@@ -1,8 +1,9 @@
 from gi.repository import Gtk
 from shape_prop_box import ShapePropBox
-from  shape_form_prop_box import ShapeFormPropBox
+from shape_form_prop_box import ShapeFormPropBox
 from curve_smooth_prop_box import CurveSmoothPropBox
 from misc_prop_boxes import CustomPropsBox
+from point_group_shape_list_box import PointGroupShapeListBox
 
 class PropGrid(Gtk.Grid):
     def __init__(self):
@@ -48,6 +49,13 @@ class PropGrid(Gtk.Grid):
             self.attach(prop_box.spin_button, left=0, top=r+1, width=3, height=1)
             self.attach(prop_box.apply_button, left=0, top=r+2, width=1, height=1)
             self.row_count += 3
+        elif isinstance(item, PointGroupShapeListBox):
+            prop_box = item
+            r = self.row_count
+            self.attach(prop_box.label, left=0, top=r, width=1, height=1)
+            self.attach(prop_box.shape_list_combo_box, left=1, top=r, width=1, height=1)
+            self.attach(prop_box.select_button, left=2, top=r, width=1, height=1)
+            self.row_count += 1
         else:
             self.attach(item, left=0, top=self.row_count, width=3, height=1)
             self.row_count += 1

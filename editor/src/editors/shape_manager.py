@@ -196,8 +196,11 @@ class ShapeManager(object):
 
     def rename_shape(self, shape, name):
         old_name = shape.get_name()
-        if self.multi_shape.rename_shape(shape, name):
-            return self.shapes.rename(old_name, name)
+        if shape.parent_shape.rename_shape(shape, name):
+            if isinstance(shape, CurvePointGroupShape):
+                return True
+            else:
+                return self.shapes.rename(old_name, name)
         return False
 
     def get_shape_at(self, point, multi_select, exclude_invisible=False):
@@ -745,6 +748,16 @@ class ShapeManager(object):
             self.shape_editor = ShapeEditor(shape)
             return True
         return False
+
+    def select_point_group_shape(self, point_group_shape):
+        if not self.shape_editor:
+            return False
+        if not isinstance(self.shape_editor.shape, CurveShape):
+            return False
+        if not self.shape_editor.shape == point_group_shape.parent_shape:
+            return False
+        self.create_point_group_shape_editor(point_group_shape)
+        return True
 
     def move_active_item(self, mouse_start_point, mouse_end_point):
         doc_start_point = self.get_doc_point(mouse_start_point)

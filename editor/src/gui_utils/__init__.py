@@ -33,3 +33,5 @@ from meter_bar import MeterBar
 from multi_shape_tree_view import MultiShapeTreeView
 from prop_grid import PropGrid
 from image_combo_box import ImageComboBox
+
+from point_group_shape_list_box import PointGroupShapeListBox
