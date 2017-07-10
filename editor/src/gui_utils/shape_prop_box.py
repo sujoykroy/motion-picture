@@ -54,7 +54,7 @@ class ShapePropBox(object):
         return self.prop_object.has_prop(prop_name)
 
     def draw_callback(self, prop_widget=None):
-        self.draw_callback_func()
+        self.draw_callback_func(prop_widget)
         if prop_widget and prop_widget.related:
             self.show_prop_values(prop_widget.related)
 

@@ -15,7 +15,6 @@ from threed_shape import ThreeDShape
 from document_shape import DocumentShape
 from custom_shape import CustomShape
 from curves_form import CurvesForm
-from ..time_lines import MultiShapeTimeLine
 from xml.etree.ElementTree import Element as XmlElement
 from custom_props import *
 
@@ -139,7 +138,7 @@ class MultiShape(Shape):
         return elm
 
     @classmethod
-    def create_from_xml_element(cls, elm):
+    def create_from_xml_element(cls, elm, time_line_class):
         arr = Shape.get_params_array_from_xml_element(elm)
         shape = cls(*arr)
         shape.assign_params_from_xml_element(elm)
@@ -168,7 +167,7 @@ class MultiShape(Shape):
             elif shape_type == CameraShape.TYPE_NAME:
                 child_shape = CameraShape.create_from_xml_element(shape_element)
             elif shape_type == MultiShape.TYPE_NAME:
-                child_shape = MultiShape.create_from_xml_element(shape_element)
+                child_shape = MultiShape.create_from_xml_element(shape_element, time_line_class)
             elif shape_type == ThreeDShape.TYPE_NAME:
                 child_shape = ThreeDShape.create_from_xml_element(shape_element)
             elif shape_type == DocumentShape.TYPE_NAME:
@@ -194,8 +193,8 @@ class MultiShape(Shape):
                     pose[shape_name] = prop_dict
             shape.poses[pose_name] = pose
 
-        for time_line_elm in elm.findall(MultiShapeTimeLine.TAG_NAME):
-            time_line = MultiShapeTimeLine.create_from_xml_element(time_line_elm, shape)
+        for time_line_elm in elm.findall(time_line_class.TAG_NAME):
+            time_line = time_line_class.create_from_xml_element(time_line_elm, shape)
             shape.timelines[time_line.name] = time_line
 
         shape.imported_from = elm.attrib.get("imported_from", None)
@@ -357,14 +356,14 @@ class MultiShape(Shape):
             poses.append(pose)
         return poses
 
-    def get_new_timeline(self):
+    def get_new_timeline(self, time_line_class):
         i = len(self.timelines)
         while(True):
             i += 1
             time_line_name = "TimeLine_{0:03}".format(i)
             if time_line_name not in self.timelines:
                 break
-        time_line = MultiShapeTimeLine(name=time_line_name, multi_shape=self)
+        time_line = time_line_class(name=time_line_name, multi_shape=self)
         self.timelines[time_line_name] = time_line
         return time_line
 

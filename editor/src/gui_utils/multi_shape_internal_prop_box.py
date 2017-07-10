@@ -2,6 +2,7 @@ from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
 from image_combo_box import ImageComboBox
 from helper_dialogs import TextInputDialog, YesNoDialog
+from ..time_lines import MultiShapeTimeLine
 from buttons import *
 
 class MultiShapeInternalPropBox(Gtk.VBox):
@@ -149,7 +150,7 @@ class MultiShapeInternalPropBox(Gtk.VBox):
         self.poses_combo_box.set_value(pose_name)
 
     def new_timeline_button_clicked(self, widget):
-        timeline = self.multi_shape.get_new_timeline()
+        timeline = self.multi_shape.get_new_timeline(MultiShapeTimeLine)
         self.update(timelines=True)
         self.timelines_combo_box.set_value(timeline.name)
 

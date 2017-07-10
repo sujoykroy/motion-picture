@@ -101,7 +101,7 @@ class CurvePointGroupShape(RectangleShape):
             return
 
         self.anchor_at.assign(0, 0)
-        self.move_to(outline.left, outline.top, update=False)
+        self.move_to(outline.left, outline.top)
         self.width = outline.width
         self.height = outline.height
         anchor_at = Point(self.width*.5, self.height*.5)
@@ -110,33 +110,30 @@ class CurvePointGroupShape(RectangleShape):
         for point, position in points_positions:
             point = self.transform_point(point)
             position.copy_from(point)
-        self.update()
+        self.update_curve_points()
 
-    def set_width(self, value, fixed_anchor=False):
-        super(CurvePointGroupShape, self).set_width(value, fixed_anchor)
-        self.update()
+    def shift_abs_anchor_at(self, shift):
+        abs_anchor_at = self.get_abs_anchor_at()
+        abs_anchor_at.translate(shift.x, shift.y)
+        self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+        self.update_curve_points()
 
-    def set_height(self, value, fixed_anchor=False):
-        super(CurvePointGroupShape, self).set_height(value, fixed_anchor)
-        self.update()
-
-    def set_angle(self, value):
-        super(CurvePointGroupShape, self).set_angle(value)
-        self.update()
-
-    def move_to(self, x, y, update=True):
-        super(CurvePointGroupShape, self).move_to(x, y)
-        if update:
-            self.update()
-
-    def update(self):
+    def update_curve_points(self):
         if not self.parent_shape.point_group_should_update:
             return
         curve_sx = 1./self.parent_shape.get_width()
         curve_sy = 1./self.parent_shape.get_height()
         for curve_point in self.curve_point_group.points:
             point = curve_point.position.copy()
+            locked_to_shape = self.locked_to_shape
             point = self.reverse_transform_point(point)
+            while locked_to_shape and isinstance(locked_to_shape, CurvePointGroupShape):
+                point = locked_to_shape.reverse_transform_point(point)
+                locked_to_shape = locked_to_shape.locked_to_shape
             point.scale(curve_sx, curve_sy)
             curve_point.get_point(self.parent_shape.curves).copy_from(point)
         self.curve_point_group.update_closed_curves(self.parent_shape.curves)
+
+        if self.locked_shapes:
+            for shape in self.locked_shapes:
+                shape.update_curve_points()

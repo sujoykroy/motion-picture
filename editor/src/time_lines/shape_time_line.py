@@ -1,6 +1,7 @@
 from xml.etree.ElementTree import Element as XmlElement
 from ..commons import *
 from prop_time_line import PropTimeLine
+from ..shapes import CurvePointGroupShape
 
 class ShapeTimeLine(object):
     TAG_NAME = "shape_time_line"
@@ -73,6 +74,8 @@ class ShapeTimeLine(object):
     def move_to(self, t):
         for prop_time_line in self.prop_time_lines:
             prop_time_line.move_to(t)
+        if isinstance(self.shape, CurvePointGroupShape):
+            self.shape.update_curve_points()
 
     def expand_duration(self, duration):
         for prop_time_line in self.prop_time_lines:

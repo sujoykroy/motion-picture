@@ -93,21 +93,34 @@ class MasterEditor(Gtk.ApplicationWindow):
         left_prop_box_container = Gtk.ScrolledWindow()
         left_prop_box_container.add_with_viewport(self.left_prop_box)
 
-        self.common_shape_prop_box = CommonShapePropBox(self, self.redraw, self, self.insert_time_slice)
-        self.rectangle_shape_prop_box = RectangleShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.oval_shape_prop_box = OvalShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.ring_shape_prop_box = RingShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.text_shape_prop_box = TextShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.multi_shape_prop_box = MultiShapePropBox(self, self.redraw, self.insert_time_slice)
+        self.common_shape_prop_box = CommonShapePropBox(
+                    self, self.shape_prop_changed, self, self.insert_time_slice)
+        self.rectangle_shape_prop_box = RectangleShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.oval_shape_prop_box = OvalShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.ring_shape_prop_box = RingShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.text_shape_prop_box = TextShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.multi_shape_prop_box = MultiShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
         self.curve_smooth_prop_box = CurveSmoothPropBox(
-                            self.recreate_shape_editor, self.get_shape_manager)
-        self.image_shape_prop_box = ImageShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.audio_shape_prop_box = AudioShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.video_shape_prop_box = VideoShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.threed_shape_prop_box = ThreeDShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.camera_shape_prop_box = CameraShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.document_shape_prop_box = DocumentShapePropBox(self, self.redraw, self.insert_time_slice)
-        self.custom_shape_prop_box = CustomShapePropBox(self, self.redraw, self.insert_time_slice)
+                    self.recreate_shape_editor, self.get_shape_manager)
+        self.image_shape_prop_box = ImageShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.audio_shape_prop_box = AudioShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.video_shape_prop_box = VideoShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.threed_shape_prop_box = ThreeDShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.camera_shape_prop_box = CameraShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.document_shape_prop_box = DocumentShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
+        self.custom_shape_prop_box = CustomShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.reselect_selected_shape, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
@@ -483,6 +496,11 @@ class MasterEditor(Gtk.ApplicationWindow):
                             shape=multi_shape)
                     self.prop_grid.add(self.custom_props_box)
                     #self.custom_props_box.set_prop_object(multi_shape)
+
+    def shape_prop_changed(self, widget):
+        if isinstance(shape, CurvePointGroupShape):
+            shape.update_curve_points()
+        self.redraw()
 
     def select_shapes(self, shapes, double_clicked=False):
         if double_clicked and len(shapes)==1 and \

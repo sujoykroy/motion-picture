@@ -265,7 +265,6 @@ class CurveShape(Shape, Mirror):
                     end_prop_dict = end_form.shapes_props.get(shape_name)
                     if not start_prop_dict or not end_prop_dict:
                         continue
-                    self.point_group_should_update = False
                     point_group_shape.set_transition_pose_prop_from_dict(
                         start_prop_dict, end_prop_dict, frac=value)
                     start_rel_abs_anchor_at = start_prop_dict["rel_abs_anchor_at"].copy()
@@ -273,8 +272,8 @@ class CurveShape(Shape, Mirror):
                     abs_anchor_at = Point(0, 0)
                     abs_anchor_at.set_inbetween(start_rel_abs_anchor_at, end_rel_abs_anchor_at, value)
                     abs_anchor_at.translate(self.anchor_at.x, self.anchor_at.y)
-                    self.point_group_should_update = True
                     point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
+                    point_group_shape.update_curve_points()
             self.fit_size_to_include_all()
         else:
             Shape.set_prop_value(self, prop_name, value, prop_data)
@@ -395,8 +394,8 @@ class CurveShape(Shape, Mirror):
                 outline.expand_include(curve.get_outline())
         if not outline: return
         abs_anchor_at = self.get_abs_anchor_at()
-        shift_w, shift_h = -self.width*outline.left, -self.height*outline.top
-        self.anchor_at.translate(shift_w, shift_h)
+        shift = Point(-self.width*outline.left, -self.height*outline.top)
+        self.anchor_at.translate(shift.x, shift.y)
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.set_width(outline.width*self.width, fixed_anchor=False)
         self.set_height(outline.height*self.height, fixed_anchor=False)
@@ -416,9 +415,10 @@ class CurveShape(Shape, Mirror):
                 curve.scale(sx, sy)
 
         for point_group_shape in self.point_group_shapes:
-            abs_anchor_at = point_group_shape.get_abs_anchor_at()
-            abs_anchor_at.translate(shift_w, shift_h)
-            point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y, update=False)
+            if point_group_shape.locked_to_shape:
+                continue
+            point_group_shape.shift_abs_anchor_at(shift)
+
         self.baked_points = None
 
     def get_baked_point(self, frac, curve_index=0):
