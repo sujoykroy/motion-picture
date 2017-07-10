@@ -38,6 +38,9 @@ class CurveShape(Shape, Mirror):
         self.baked_points = None
         self.point_group_should_update = True
 
+    def get_interior_shapes(self):
+        return self.point_group_shapes
+
     @classmethod
     def get_pose_prop_names(cls):
         prop_names = super(CurveShape, cls).get_pose_prop_names()

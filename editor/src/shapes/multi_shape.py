@@ -93,6 +93,9 @@ class MultiShape(Shape):
         self.imported_from = None
         self.imported_anchor_at = None
 
+    def get_interior_shapes(self):
+        return self.shapes
+
     def copy_data_from_linked(self):
         if not self.linked_to: return
 
@@ -475,23 +478,6 @@ class MultiShape(Shape):
         elif self.custom_props:
             self.custom_props.set_prop_value(prop_name, value)
 
-    def add_shape(self, shape, transform=True, resize=True):
-        if self.shapes.contain(shape): return
-        if transform:
-            shape_abs_anchor_at = shape.get_abs_anchor_at()
-
-            rel_shape_abs_anchor_at = self.transform_point(shape_abs_anchor_at)
-            shape.move_to(rel_shape_abs_anchor_at.x, rel_shape_abs_anchor_at.y)
-            #if self.get_angle() == 0:
-            #    shape.set_angle(shape.get_angle()-self.get_angle())
-            #else:
-            #    shape.pre_angle -= self.get_angle()
-        shape.parent_shape = self
-
-        self.shapes.add(shape)
-        if resize:
-            self.readjust_sizes()
-
     def readjust_sizes(self):
         outline = None
         for shape in self.shapes:
@@ -518,42 +504,13 @@ class MultiShape(Shape):
         self.anchor_at.y += offset_y
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
-    def build_matrix(self):
-        matrix = cairo.Matrix()
-        matrix.rotate(self.angle*RAD_PER_DEG)
-        matrix.scale(self.post_scale_x, self.post_scale_y)
-        return matrix
+    def add_shape(self, shape, transform=True, resize=True):
+        self.add_interior_shape(shape, transform=transform, lock=False)
+        if resize:
+            self.readjust_sizes()
 
     def remove_shape(self, shape, resize=True):
-        abs_outline = shape.get_abs_outline(0)
-        shape_abs_anchor_at = shape.get_abs_anchor_at()
-        old_translation_point = shape.translation.copy()
-        new_translation_point = self.reverse_transform_point(old_translation_point)
-        angle = shape.get_angle()+self.get_angle()
-
-        point = self.reverse_transform_point(shape.get_abs_anchor_at())
-        if self == shape.parent_shape:
-            shape.parent_shape = None
-
-        if shape.pre_matrix:
-            shape.prepend_pre_matrix(self.build_matrix())
-        else:
-            if self.get_angle()==0:
-                if abs(shape.get_angle())>0:
-                    shape.scale_x *= self.post_scale_x
-                    shape.scale_y *= self.post_scale_y
-                else:
-                    shape.set_width(shape.width*self.post_scale_x, fixed_anchor=False)
-                    shape.set_height(shape.height*self.post_scale_y, fixed_anchor=False)
-                    shape.anchor_at.scale(self.post_scale_x, self.post_scale_y)
-            else:
-                if self.post_scale_x != 1 or self.post_scale_y != 1:
-                    shape.prepend_pre_matrix(self.build_matrix())
-                else:
-                    shape.set_angle(angle)
-        shape.move_to(point.x, point.y)
-
-        self.shapes.remove(shape)
+        shape = self.remove_interior_shape(shape, lock=False)
         if resize:
             self.readjust_sizes()
         return shape

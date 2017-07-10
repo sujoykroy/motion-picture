@@ -1,5 +1,3 @@
-from shape import Shape
-
 class ShapeList(object):
     def __init__(self, shape_list=None):
         self.names = []
@@ -61,9 +59,9 @@ class ShapeList(object):
         return self.items[self.names[index]]
 
     def contain(self, shape):
-        if (isinstance(shape, Shape)):
-            return (shape.get_name() in self.names)
-        return (shape in self.names)
+        if (isinstance(shape, str)):
+            return (shape in self.names)
+        return (shape.get_name() in self.names)
 
     def get_item_by_name(self, name):
         if name not in self.names: return None

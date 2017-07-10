@@ -45,6 +45,9 @@ class Shape(object):
         self.followed_upto = 0.
         self.renderable = True
 
+        self.locked_to_shape = None
+        self.locked_shapes = None
+
     def get_class_name(self):
         return self.__class__.__name__
 
@@ -116,6 +119,88 @@ class Shape(object):
         self.width = self.linked_to.width
         self.height = self.linked_to.height
 
+    def get_angle_post_scale_matrix(self):
+        matrix = cairo.Matrix()
+        matrix.rotate(self.angle*RAD_PER_DEG)
+        matrix.scale(self.post_scale_x, self.post_scale_y)
+        return matrix
+
+    def add_interior_shape(self, shape, transform=True, lock=False):
+        if self.get_interior_shapes().contain(shape): return
+        if transform:
+            shape_abs_anchor_at = shape.get_abs_anchor_at()
+
+            rel_shape_abs_anchor_at = self.transform_point(shape_abs_anchor_at)
+            shape.move_to(rel_shape_abs_anchor_at.x, rel_shape_abs_anchor_at.y)
+            #if self.get_angle() == 0:
+            #    shape.set_angle(shape.get_angle()-self.get_angle())
+            #else:
+            #    shape.pre_angle -= self.get_angle()
+        if lock:
+            shape.locked_to_shape = self
+        else:
+            shape.parent_shape = self
+
+        self.get_interior_shapes().add(shape)
+
+    def remove_interior_shape(self, shape, lock=False):
+        if not self.get_interior_shapes().contain(shape): return None
+
+        abs_outline = shape.get_abs_outline(0)
+        shape_abs_anchor_at = shape.get_abs_anchor_at()
+        old_translation_point = shape.translation.copy()
+        new_translation_point = self.reverse_transform_point(old_translation_point)
+        angle = shape.get_angle()+self.get_angle()
+
+        point = self.reverse_transform_point(shape.get_abs_anchor_at())
+        if lock:
+            if self == shape.locked_to_shape:
+                shape.locked_to_shape = None
+        else:
+            if self == shape.parent_shape:
+                shape.parent_shape = None
+
+        if shape.pre_matrix:
+            shape.prepend_pre_matrix(self.get_angle_post_scale_matrix())
+        else:
+            if self.get_angle()==0:
+                if abs(shape.get_angle())>0:
+                    shape.scale_x *= self.post_scale_x
+                    shape.scale_y *= self.post_scale_y
+                else:
+                    shape.set_width(shape.width*self.post_scale_x, fixed_anchor=False)
+                    shape.set_height(shape.height*self.post_scale_y, fixed_anchor=False)
+                    shape.anchor_at.scale(self.post_scale_x, self.post_scale_y)
+            else:
+                if self.post_scale_x != 1 or self.post_scale_y != 1:
+                    shape.prepend_pre_matrix(self.get_angle_post_scale_matrix())
+                else:
+                    shape.set_angle(angle)
+        shape.move_to(point.x, point.y)
+
+        self.get_interior_shapes().remove(shape)
+        return shape
+
+    def set_locked_to(self, shape_name):
+        if not self.parent_shape:
+            return
+        interior_shapes = self.parent_shape.get_interior_shapes()
+        if shape_name and not interior_shapes.contain(shape_name):
+            return
+        if shape_name:
+            locked_to_shape = interior_shapes[shape_name]
+        else:
+            locked_to_shape = None
+
+        if self.locked_to_shape:
+            self.locked_to_shape.remove_interior_shape(self, lock=True)
+        if locked_to_shape:
+            locked_to_shape.add_interior_shape(self, lock=True)
+
+    def get_locked_to(self):
+        if self.locked_to_shape:
+            return self.locked_to_shape.get_name()
+        return ""
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -524,27 +609,42 @@ class Shape(object):
 
     def get_xy(self):
         xy = self.get_abs_anchor_at()
-        if self.parent_shape:
-            xy.x -= self.parent_shape.anchor_at.x
-            xy.y -= self.parent_shape.anchor_at.y
+        if self.locked_to_shape:
+            parent_shape = self.locked_to_shape
+        else:
+            parent_shape = self.parent_shape
+
+        if parent_shape:
+            xy.x -= parent_shape.anchor_at.x
+            xy.y -= parent_shape.anchor_at.y
         return xy
 
     def set_xy(self, xy):
+        if self.locked_to_shape:
+            parent_shape = self.locked_to_shape
+        else:
+            parent_shape = self.parent_shape
+
         if isinstance(xy, list):
-            if self.parent_shape:
-                self.move_to(xy[0]+self.parent_shape.anchor_at.x, xy[1]+self.parent_shape.anchor_at.y)
+            if parent_shape:
+                self.move_to(xy[0]+parent_shape.anchor_at.x, xy[1]+parent_shape.anchor_at.y)
             else:
                 self.move_to(xy[0], xy[1])
         else:
-            if self.parent_shape:
-                self.move_to(xy.x+self.parent_shape.anchor_at.x, xy.y+self.parent_shape.anchor_at.y)
+            if parent_shape:
+                self.move_to(xy.x+parent_shape.anchor_at.x, xy.y+parent_shape.anchor_at.y)
             else:
                 self.move_to(xy.x, xy.y)
 
     def get_stage_xy(self):
         xy = self.get_abs_anchor_at()
-        if self.parent_shape:
-            parent_anchor = self.parent_shape.anchor_at
+        if self.locked_to_shape:
+            parent_shape = self.locked_to_shape
+        else:
+            parent_shape = self.parent_shape
+
+        if parent_shape:
+            parent_anchor = parent_shape.anchor_at
             xy.translate(-parent_anchor.x, -parent_anchor.y)
         return xy
 
@@ -557,21 +657,36 @@ class Shape(object):
     def set_stage_xy(self, point):
         if not point: return
         xy = point.copy()
-        if self.parent_shape:
-            parent_anchor = self.parent_shape.anchor_at
+        if self.locked_to_shape:
+            parent_shape = self.locked_to_shape
+        else:
+            parent_shape = self.parent_shape
+
+        if parent_shape:
+            parent_anchor = parent_shape.anchor_at
             xy.translate(parent_anchor.x, parent_anchor.y)
         self.move_to(xy.x, xy.y)
 
     def set_stage_x(self, x):
         xy = Point(x, self.get_abs_anchor_at().y)
-        if self.parent_shape:
-            xy.x += self.parent_shape.anchor_at.x
+        if self.locked_to_shape:
+            parent_shape = self.locked_to_shape
+        else:
+            parent_shape = self.parent_shape
+
+        if parent_shape:
+            xy.x += parent_shape.anchor_at.x
         self.move_to(xy.x, xy.y)
 
     def set_stage_y(self, y):
         xy = Point( self.get_abs_anchor_at().x, y)
-        if self.parent_shape:
-            xy.y += self.parent_shape.anchor_at.y
+        if self.locked_to_shape:
+            parent_shape = self.locked_to_shape
+        else:
+            parent_shape = self.parent_shape
+
+        if parent_shape:
+            xy.y += parent_shape.anchor_at.y
         self.move_to(xy.x, xy.y)
 
     def set_scale_x(self, sx):
@@ -664,8 +779,13 @@ class Shape(object):
 
     def abs_reverse_transform_point(self, point, root_shape=None):
         point = self.reverse_transform_point(point)
-        if self.parent_shape and self.parent_shape != root_shape:
-            point = self.parent_shape.abs_reverse_transform_point(point, root_shape=root_shape)
+        if self.locked_to_shape:
+            parent_shape = self.locked_to_shape
+        else:
+            parent_shape = self.parent_shape
+
+        if parent_shape and parent_shape != root_shape:
+            point = parent_shape.abs_reverse_transform_point(point, root_shape=root_shape)
         return point
 
     def abs_angle(self, angle):
@@ -682,8 +802,14 @@ class Shape(object):
     def pre_draw(self, ctx, root_shape=None):
         if self == root_shape:
             return
-        if self.parent_shape:
-            self.parent_shape.pre_draw(ctx, root_shape=root_shape)
+
+        if self.locked_to_shape:
+            parent_shape = self.locked_to_shape
+        else:
+            parent_shape = self.parent_shape
+
+        if parent_shape:
+            parent_shape.pre_draw(ctx, root_shape=root_shape)
         ctx.translate(self.translation.x, self.translation.y)
         if self.pre_matrix:
             ctx.set_matrix(self.pre_matrix*ctx.get_matrix())
@@ -698,8 +824,14 @@ class Shape(object):
         if self.pre_matrix:
             ctx.set_matrix(ctx.get_matrix()*self.pre_matrix)
         ctx.translate(-self.translation.x, -self.translation.y)
-        if self.parent_shape and self.parent_shape != root_shape:
-            self.parent_shape.reverse_pre_draw(ctx, root_shape=root_shape)
+
+        if self.locked_to_shape:
+            parent_shape = self.locked_to_shape
+        else:
+            parent_shape = self.parent_shape
+
+        if parent_shape and parent_shape != root_shape:
+            parent_shape.reverse_pre_draw(ctx, root_shape=root_shape)
 
     def draw_anchor(self, ctx):
         ctx.translate(self.anchor_at.x, self.anchor_at.y)
