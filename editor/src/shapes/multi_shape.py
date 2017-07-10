@@ -179,6 +179,9 @@ class MultiShape(Shape):
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)
 
+        for child_shape in shape.shapes:
+            child_shape.build_locked_to()
+
         for pose_elm in elm.findall(cls.POSE_TAG_NAME):
             pose_name = pose_elm.attrib["name"]
             pose = dict()
@@ -493,6 +496,8 @@ class MultiShape(Shape):
         offset_y = -outline.top
 
         for shape in self.shapes:
+            if shape.locked_to_shape:
+                continue
             shape_abs_anchor_at = shape.get_abs_anchor_at()
             shape_abs_anchor_at.translate(offset_x, offset_y)
             shape.move_to(shape_abs_anchor_at.x, shape_abs_anchor_at.y)
@@ -505,12 +510,12 @@ class MultiShape(Shape):
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
     def add_shape(self, shape, transform=True, resize=True):
-        self.add_interior_shape(shape, transform=transform, lock=False)
+        self.add_interior_shape(shape, self.shapes, transform=transform, lock=False)
         if resize:
             self.readjust_sizes()
 
     def remove_shape(self, shape, resize=True):
-        shape = self.remove_interior_shape(shape, lock=False)
+        shape = self.remove_interior_shape(shape, self.shapes, lock=False)
         if resize:
             self.readjust_sizes()
         return shape

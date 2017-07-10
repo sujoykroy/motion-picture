@@ -5,6 +5,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 import time, cairo
 from xml.etree.ElementTree import Element as XmlElement
 from mirror import Mirror
+from shape_list import ShapeList
 
 class Shape(object):
     ID_SEED = 0
@@ -50,6 +51,10 @@ class Shape(object):
 
     def get_class_name(self):
         return self.__class__.__name__
+
+    def init_locked_shapes(self):
+        if self.locked_shapes is None:
+            self.locked_shapes = ShapeList()
 
     def set_followed_upto(self, value, prop_data=None):
         self.followed_upto = value
@@ -125,8 +130,8 @@ class Shape(object):
         matrix.scale(self.post_scale_x, self.post_scale_y)
         return matrix
 
-    def add_interior_shape(self, shape, transform=True, lock=False):
-        if self.get_interior_shapes().contain(shape): return
+    def add_interior_shape(self, shape, shape_list, transform=True, lock=False):
+        if shape_list.contain(shape): return
         if transform:
             shape_abs_anchor_at = shape.get_abs_anchor_at()
 
@@ -141,10 +146,10 @@ class Shape(object):
         else:
             shape.parent_shape = self
 
-        self.get_interior_shapes().add(shape)
+        shape_list.add(shape)
 
-    def remove_interior_shape(self, shape, lock=False):
-        if not self.get_interior_shapes().contain(shape): return None
+    def remove_interior_shape(self, shape, shape_list, lock=False):
+        if not shape_list.contain(shape): return None
 
         abs_outline = shape.get_abs_outline(0)
         shape_abs_anchor_at = shape.get_abs_anchor_at()
@@ -178,10 +183,17 @@ class Shape(object):
                     shape.set_angle(angle)
         shape.move_to(point.x, point.y)
 
-        self.get_interior_shapes().remove(shape)
+        shape_list.remove(shape)
         return shape
 
-    def set_locked_to(self, shape_name):
+    def build_locked_to(self):
+        if hasattr(self, "_locked_to"):
+            self.set_locked_to(self._locked_to, direct=True)
+            del self._locked_to
+
+    def set_locked_to(self, shape_name, direct=False):
+        if shape_name == self.get_name():
+            return
         if not self.parent_shape:
             return
         interior_shapes = self.parent_shape.get_interior_shapes()
@@ -193,9 +205,17 @@ class Shape(object):
             locked_to_shape = None
 
         if self.locked_to_shape:
-            self.locked_to_shape.remove_interior_shape(self, lock=True)
+            self.locked_to_shape.init_locked_shapes()
+            self.locked_to_shape.remove_interior_shape(
+                    self, self.locked_to_shape.locked_shapes, lock=True)
+
         if locked_to_shape:
-            locked_to_shape.add_interior_shape(self, lock=True)
+            locked_to_shape.init_locked_shapes()
+            if direct:
+                locked_to_shape.locked_shapes.add(self)
+                self.locked_to_shape = locked_to_shape
+            else:
+                locked_to_shape.add_interior_shape(self, locked_to_shape.locked_shapes, lock=True)
 
     def get_locked_to(self):
         if self.locked_to_shape:
@@ -320,6 +340,8 @@ class Shape(object):
         elm.attrib["type"] = self.TYPE_NAME
         elm.attrib["name"] = self._name
         elm.attrib["moveable"] = ("1" if self.moveable else "0")
+        if self.locked_to_shape:
+            elm.attrib["locked_to"] = self.locked_to_shape.get_name()
         if not self.visible:
             elm.attrib["visible"] = "0"
         if not self.renderable:
@@ -372,6 +394,9 @@ class Shape(object):
         self.same_xy_scale = bool(int(elm.attrib.get("same_xy_scale", False)))
         self.scale_x = float(elm.attrib.get("scale_x", 1))
         self.scale_y = float(elm.attrib.get("scale_y", 1))
+        locked_to =  elm.attrib.get("locked_to")
+        if locked_to:
+            self._locked_to = locked_to #this variable will be deleted after call to build_locked_to
 
         translation_str = elm.attrib.get("translation", None)
         if translation_str:

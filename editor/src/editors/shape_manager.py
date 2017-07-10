@@ -212,6 +212,8 @@ class ShapeManager(object):
             if isinstance(shape.parent_shape, MultiSelectionShape) and multi_select:
                 continue
             p = point
+            if shape.locked_to_shape:
+                p = shape.locked_to_shape.transform_point(p)
             if shape.is_within(p):
                 return shape
         return None
