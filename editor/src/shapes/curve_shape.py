@@ -318,7 +318,9 @@ class CurveShape(Shape, Mirror):
             point_group_shape = CurvePointGroupShape.create_from_xml_element(point_group_elm, shape)
             if point_group_shape:
                 shape.point_group_shapes.add(point_group_shape)
-
+        if shape.point_group_shapes:
+            for point_group_shape in shape.point_group_shapes:
+                point_group_shape.build_locked_to()
         shape.assign_params_from_xml_element(elm)
         return shape
 

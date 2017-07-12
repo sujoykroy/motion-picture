@@ -223,6 +223,8 @@ class ShapeManager(object):
             return None
         point = selected_shape.transform_point(point)
         for point_group_shape in selected_shape.point_group_shapes:
+            if point_group_shape.locked_to_shape:
+                point = point_group_shape.transform_locked_shape_point(point)
             if point_group_shape.is_within(point):
                 return point_group_shape
         return None
@@ -685,9 +687,10 @@ class ShapeManager(object):
                 self.delete_shape_editor()
             elif self.shape_editor is None:
                 self.create_shape_editor(shape)
-            elif shape != self.shape_editor.shape:
+            elif shape != self.shape_editor.shape and not shape.locked_to_shape and \
+                 not self.shape_editor.shape.locked_to_shape:
                 if multi_select:
-                    if not isinstance(self.shape_editor.shape, MultiSelectionShape) :
+                    if not isinstance(self.shape_editor.shape, MultiSelectionShape):
                         old_shape = self.shape_editor.shape
                         multi_selection_shape = MultiSelectionShape()
                         multi_selection_shape.be_like_shape(old_shape)

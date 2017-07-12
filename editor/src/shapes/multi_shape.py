@@ -483,6 +483,8 @@ class MultiShape(Shape):
     def readjust_sizes(self):
         outline = None
         for shape in self.shapes:
+            if shape.locked_to_shape:
+                continue
             shape_outline = shape.get_abs_outline(0)
             if outline is None:
                 outline = shape_outline

@@ -790,6 +790,13 @@ class Shape(object):
         point.translate(self.anchor_at.x, self.anchor_at.y)
         return point
 
+    def transform_locked_shape_point(self, point):
+        locked_to_shape = self.locked_to_shape
+        while locked_to_shape and locked_to_shape.parent_shape == self.parent_shape:
+            point = locked_to_shape.transform_point(point)
+            locked_to_shape = locked_to_shape.locked_to_shape
+        return point
+
     def reverse_transform_point(self, point):
         point = Point(point.x, point.y)
         point.translate(-self.anchor_at.x, -self.anchor_at.y)
@@ -820,7 +827,10 @@ class Shape(object):
         while shape:
             points[0] = shape.reverse_transform_point(points[0])
             points[1] = shape.reverse_transform_point(points[1])
-            shape = shape.parent_shape
+            if shape.locked_to_shape:
+                shape = shape.locked_to_shape
+            else:
+                shape = shape.parent_shape
         point = points[1].diff(points[0])
         return math.atan2(point.y, point.x)/RAD_PER_DEG
 
