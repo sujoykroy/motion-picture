@@ -757,9 +757,11 @@ class ShapeManager(object):
     def select_point_group_shape(self, point_group_shape):
         if not self.shape_editor:
             return False
-        if not isinstance(self.shape_editor.shape, CurveShape):
+        up_shape = self.shape_editor.shape
+        if not isinstance(up_shape, CurveShape) and not isinstance(up_shape, CurvePointGroupShape):
             return False
-        if not self.shape_editor.shape == point_group_shape.parent_shape:
+        if up_shape != point_group_shape.parent_shape and \
+           up_shape.parent_shape != point_group_shape.parent_shape:
             return False
         self.create_point_group_shape_editor(point_group_shape)
         return True

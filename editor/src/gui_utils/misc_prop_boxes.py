@@ -9,6 +9,7 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("moveable", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         self.add_prop("masked", PROP_TYPE_CHECK_BUTTON)
         self.add_prop("visible", PROP_TYPE_CHECK_BUTTON)
+        self.add_prop("locked_to", PROP_TYPE_TEXT)
         self.add_prop("renderable", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         #self.add_prop("stage_xy", PROP_TYPE_POINT, None)
 
@@ -50,7 +51,6 @@ class CommonShapePropBox(ShapePropBox):
                 dict(value=0, lower=0, upper=361, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("followed_upto", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1, step_increment=.01))
-        self.add_prop("locked_to", PROP_TYPE_TEXT)
 
     def insert_slice_button_clicked(self, widget, prop_name):
         if prop_name == "followed_upto":

@@ -236,11 +236,13 @@ class ApplicationWindow(MasterEditor):
 
     def create_point_group(self, action, parameter):
         if self.shape_manager.create_point_group():
+            self.show_prop_of(self.shape_manager.get_deepest_selected_shape())
             self.redraw()
             self.lookup_action("show_point_groups").activate(GLib.Variant.new_boolean(True))
 
     def break_point_group(self, action, parameter):
         if self.shape_manager.break_point_group():
+            self.show_prop_of(self.shape_manager.get_deepest_selected_shape())
             self.redraw()
 
     def add_point_to_point_group(self, action, parameter):

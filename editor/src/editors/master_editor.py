@@ -144,6 +144,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.linked_to_hbox.pack_start(self.linked_to_label, expand=False, fill=False, padding=10)
         self.prop_grid.add(self.linked_to_hbox)
         self.prop_grid.add_all(
+            self.point_group_shape_list_box,
             self.common_shape_prop_box,
             self.rectangle_shape_prop_box,
             self.oval_shape_prop_box,
@@ -151,7 +152,6 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.multi_shape_prop_box,
             self.text_shape_prop_box,
             self.shape_form_prop_box,
-            self.point_group_shape_list_box,
             self.curve_smooth_prop_box,
             self.image_shape_prop_box,
             self.audio_shape_prop_box,
@@ -259,8 +259,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.show_prop_of(None)
         self.show_time_slice_props(None)
 
-        self.paned_box_2.set_position(180)
-        self.paned_box_3.set_position(75)
+        self.paned_box_2.set_position(185)#left-side-pane, contains shape-props
+        self.paned_box_3.set_position(75)#right-side-pane, contains time-slice-props
         self.paned_box_1.set_position(180)
         self.paned_box_4.set_position(20)
 
@@ -478,7 +478,15 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, CurveShape):
                 self.curve_smooth_prop_box.set_curve_shape(shape)
                 self.curve_smooth_prop_box.show()
-                self.point_group_shape_list_box.set_shape_list(shape.get_point_group_shapes_model())
+
+            if isinstance(shape, CurveShape) or \
+               isinstance(shape, CurvePointGroupShape):
+                if isinstance(shape, CurvePointGroupShape):
+                    curve_shape = shape.parent_shape
+                else:
+                    curve_shape = shape
+                self.point_group_shape_list_box.set_shape_list(
+                    curve_shape.get_point_group_shapes_model())
                 self.point_group_shape_list_box.show()
 
         else:

@@ -6,14 +6,14 @@ class PointGroupShapeListBox(object):
         self.select_callback = select_callback
 
         self.label = Gtk.Label("Point Groups")
+        self.label.set_halign(Gtk.Align.START)
         self.shape_list_combo_box = NameValueComboBox()
-        self.select_button = Gtk.Button("Select")
-        self.select_button.connect("clicked", self.select_button_clicked)
+        self.shape_list_combo_box.connect("changed", self.point_group_selected)
 
     def set_shape_list(self, shapes_model):
         self.shape_list_combo_box.build_and_set_model(shapes_model)
 
-    def select_button_clicked(self, widget):
+    def point_group_selected(self, widget):
         point_group_shape = self.shape_list_combo_box.get_value()
         if point_group_shape:
             self.select_callback(point_group_shape)
@@ -21,10 +21,7 @@ class PointGroupShapeListBox(object):
     def hide(self):
         self.label.hide()
         self.shape_list_combo_box.hide()
-        self.select_button.hide()
 
     def show(self):
         self.label.show()
         self.shape_list_combo_box.show()
-        self.select_button.show()
-

@@ -53,11 +53,10 @@ class PropGrid(Gtk.Grid):
             prop_box = item
             r = self.row_count
             self.attach(prop_box.label, left=0, top=r, width=1, height=1)
-            self.attach(prop_box.shape_list_combo_box, left=1, top=r, width=1, height=1)
-            self.attach(prop_box.select_button, left=2, top=r, width=1, height=1)
+            self.attach(prop_box.shape_list_combo_box, left=1, top=r, width=3, height=1)
             self.row_count += 1
         else:
-            self.attach(item, left=0, top=self.row_count, width=3, height=1)
+            self.attach(item, left=0, top=self.row_count, width=4, height=1)
             self.row_count += 1
 
         self.added_items.append(item)
