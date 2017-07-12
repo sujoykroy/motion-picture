@@ -498,7 +498,7 @@ class ShapeEditor(object):
     def create_point_group(self):
         if not (isinstance(self.shape, CurveShape) or \
                 isinstance(self.shape, PolygonShape)): return False
-        if len(self.selected_edit_boxes) < 2: return False
+        if len(self.selected_edit_boxes) < 1: return False
         if isinstance(self.shape, CurveShape):
             curve_point_group = CurvePointGroup()
             for curve_point in self.get_curve_points():

@@ -76,7 +76,7 @@ class CurvePointGroupShape(RectangleShape):
         self.width = outline.width
         self.height = outline.height
         self.anchor_at.translate(-outline.left, -outline.top)
-        self.move_to(abs_anchor_at.x, abs_anchor_at.y, update=False)
+        self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
         for curve_point in self.curve_point_group.points:
             curve_point.position.translate(-outline.left, -outline.top)
@@ -98,7 +98,12 @@ class CurvePointGroupShape(RectangleShape):
 
         outline = Polygon(points).get_outline()
         if outline is None:
-            return
+            if len(points) == 1:
+                w, h = 2.,2.
+                outline = Rect(left=points[0].x-w*.5, top=points[0].y-h*.5,
+                               width=w, height=h)
+            else:
+                return
 
         self.anchor_at.assign(0, 0)
         self.move_to(outline.left, outline.top)
@@ -136,4 +141,5 @@ class CurvePointGroupShape(RectangleShape):
 
         if self.locked_shapes:
             for shape in self.locked_shapes:
-                shape.update_curve_points()
+                if isinstance(shape, CurvePointGroupShape):
+                    shape.update_curve_points()

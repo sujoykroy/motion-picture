@@ -685,7 +685,7 @@ class CurvePoint(object):
         curve_index = int(elm.attrib.get("ci", -1))
         point_index = int(elm.attrib.get("pi", -1))
         point_type = int(elm.attrib.get("pt", -1))
-        if curve_index<0 or point_index<0:
+        if curve_index<0:
             return None
         curve_point = cls(curve_index, point_index, point_type)
         curve_point.position.copy_from(Point.from_text(elm.attrib.get("ps", Point(0,0).to_text())))
@@ -783,7 +783,7 @@ class CurvePointGroup(object):
             point = CurvePoint.create_from_xml_element(point_elm)
             if point:
                 point_group.add_point(point)
-        if len(point_group.points) < 2:
+        if len(point_group.points) < 1:
             return None
         return point_group
 

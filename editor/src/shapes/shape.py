@@ -130,6 +130,48 @@ class Shape(object):
         matrix.scale(self.post_scale_x, self.post_scale_y)
         return matrix
 
+    def get_interior_shapes(self):
+        return None
+
+    def get_interior_shape(self, shape_path):
+        if isinstance(shape_path, list):
+            shape_names = shape_path
+        else:
+            shape_path = shape_path.strip()
+            shape_names = shape_path.split(".")
+        if not shape_names:
+            return None
+        interior_shapes = self.get_interior_shapes()
+        shape_name = shape_names[0]
+        if not interior_shapes or not interior_shapes.contain(shape_name):
+            return None
+        shape = interior_shapes[shape_name]
+        if len(shape_names)>1:
+            return shape.get_interior_shape(shape_names[1:])
+        return shape
+
+    def get_shape_ancestors(self, root_shape=None, lock=False):
+        shapes = []
+        shape = self
+        while True:
+            if shape == root_shape:
+                break
+            shapes.insert(0, shape)
+            if lock and shape.locked_to_shape:
+                shape = shape.locked_to_shape
+            else:
+                shape = shape.parent_shape
+            if shape is None:
+                break
+        return shapes
+
+    def get_shape_path(self, root_shape=None):
+        shapes = self.get_shape_ancestors(root_shape=root_shape)
+        shape_names = []
+        for shape in shapes:
+            shape_names.append(shape.get_name())
+        return ".".join(shape_names)
+
     def add_interior_shape(self, shape, shape_list, transform=True, lock=False):
         if shape_list.contain(shape): return
         if transform:
@@ -196,13 +238,7 @@ class Shape(object):
             return
         if not self.parent_shape:
             return
-        interior_shapes = self.parent_shape.get_interior_shapes()
-        if shape_name and not interior_shapes.contain(shape_name):
-            return
-        if shape_name:
-            locked_to_shape = interior_shapes[shape_name]
-        else:
-            locked_to_shape = None
+        locked_to_shape = self.parent_shape.get_interior_shape(shape_name)
 
         if self.locked_to_shape:
             self.locked_to_shape.init_locked_shapes()
@@ -219,7 +255,7 @@ class Shape(object):
 
     def get_locked_to(self):
         if self.locked_to_shape:
-            return self.locked_to_shape.get_name()
+            return self.locked_to_shape.get_shape_path(self.parent_shape)
         return ""
 
     @classmethod
@@ -791,10 +827,9 @@ class Shape(object):
         return point
 
     def transform_locked_shape_point(self, point):
-        locked_to_shape = self.locked_to_shape
-        while locked_to_shape and locked_to_shape.parent_shape == self.parent_shape:
-            point = locked_to_shape.transform_point(point)
-            locked_to_shape = locked_to_shape.locked_to_shape
+        ancestors = self.get_shape_ancestors(root_shape=self.parent_shape, lock=True)
+        for shape in ancestors[:-1]:
+            point = shape.transform_point(point)
         return point
 
     def reverse_transform_point(self, point):
