@@ -52,6 +52,15 @@ class Shape(object):
     def get_class_name(self):
         return self.__class__.__name__
 
+    def can_resize(self):
+        return True
+
+    def can_rotate(self):
+        return True
+
+    def can_change_anchor(self):
+        return True
+
     def init_locked_shapes(self):
         if self.locked_shapes is None:
             self.locked_shapes = ShapeList()
@@ -377,7 +386,7 @@ class Shape(object):
         elm.attrib["name"] = self._name
         elm.attrib["moveable"] = ("1" if self.moveable else "0")
         if self.locked_to_shape:
-            elm.attrib["locked_to"] = self.locked_to_shape.get_name()
+            elm.attrib["locked_to"] = self.locked_to_shape.get_shape_path(root_shape=self.parent_shape)
         if not self.visible:
             elm.attrib["visible"] = "0"
         if not self.renderable:

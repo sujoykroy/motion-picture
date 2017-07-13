@@ -280,6 +280,8 @@ class ShapeManager(object):
         if self.point_group_shape_editor:
             self.point_group_shape_editor.shape.draw(ctx)
             self.point_group_shape_editor.draw(ctx)
+            self.shape_editor.show_group_signs(ctx,
+                self.point_group_shape_editor.shape.curve_point_group)
 
         if self.shape_creator:
             self.shape_creator.draw(ctx)

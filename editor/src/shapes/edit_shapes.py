@@ -56,6 +56,14 @@ class EditBox(object):
         self.draw_border(ctx)
         ctx.restore()
 
+    def draw_outer_border(self, ctx, draw_frac=.7,
+                        border_width=1.5,
+                        border_color=Color.from_html("c4238d")):
+        ctx.save()
+        self._draw_path_around(ctx, self.cpoint, draw_frac)
+        draw_stroke(ctx, border_width, border_color)
+        ctx.restore()
+
 class RectEditBox(RectangleShape, EditBox):
     def __init__(self, percent_point, angle=0, is_percent=True, width=10, height=5, offset=None):
         RectangleShape.__init__(self, Point(width*.5,height*.5), Color(0,0,0,1), 1,

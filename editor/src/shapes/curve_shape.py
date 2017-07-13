@@ -202,6 +202,8 @@ class CurveShape(Shape, Mirror):
 
         shape_name = point_group_shape.get_name()
         for form in self.forms.values():
+            if not form.shapes_props:
+                continue
             prop_dict = form.shapes_props.get(shape_name)
             if not prop_dict:
                 continue
@@ -586,9 +588,9 @@ class CurveShape(Shape, Mirror):
     def cleanup_point_groups(self):
         i = 0
         while i <len(self.point_group_shapes):
-            point_group_shape = self.point_group_shape.get_item_at_index(i)
+            point_group_shape = self.point_group_shapes.get_item_at_index(i)
             point_group = point_group_shape.curve_point_group
-            if len(point_group.points)<2:
+            if len(point_group.points)<1:
                 self.point_group_shape.remove_at_index(i)
             else:
                 i += 1

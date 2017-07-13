@@ -31,12 +31,19 @@ class ControlEditBox(OvalEditBox):
         self.control_index = control_index
         self.is_start = False
 
+        if control_index == 0:
+            point_type = CurvePoint.POINT_TYPE_CONTROL_1
+        else:
+            point_type = CurvePoint.POINT_TYPE_CONTROL_2
+        self.curve_point = CurvePoint(curve_index, self.bezier_point_index, point_type)
+
 class DestEditBox(OvalEditBox):
     def __init__(self, percent_point, curve_index, bezier_point_index):
         OvalEditBox.__init__(self, percent_point)
         self.curve_index = curve_index
         self.bezier_point_index = bezier_point_index
         self.is_start = False
+        self.curve_point = CurvePoint(curve_index, self.bezier_point_index, CurvePoint.POINT_TYPE_DEST)
 
 class OriginEditBox(OvalEditBox):
     def __init__(self, percent_point, curve_index):
@@ -44,6 +51,7 @@ class OriginEditBox(OvalEditBox):
         self.curve_index = curve_index
         self.bezier_point_index = -1
         self.is_start = True
+        self.curve_point = CurvePoint(curve_index, self.bezier_point_index, CurvePoint.POINT_TYPE_ORIGIN)
 
 class PolygonPointEditBox(OvalEditBox):
     def __init__(self, percent_point, polygon_index, point_index):
@@ -57,7 +65,7 @@ class ShapeEditor(object):
         self.shape = shape
         self.selected_edit_boxes = []
         self.edit_box_can_move = False
-        self.init_shape = shape.copy()
+        self.reinit_shape()
 
         self.all_edit_box_list = []
         self.named_edit_boxes = dict()
@@ -78,28 +86,31 @@ class ShapeEditor(object):
             outline_color = Color.from_html("73D216")
         self.outline_edit_box.border_color = outline_color
 
-        self.new_edit_box(OvalEditBox(Point(0.0, 0.0), offset=Point(-margin, -margin)),
-                    OUTER, ROTATION_TOP_LEFT, self.rotation_edit_boxes)
-        self.new_edit_box(OvalEditBox(Point(1.0, 0.0), offset=Point(margin, -margin)),
-                    OUTER, ROTATION_TOP_RIGHT, self.rotation_edit_boxes)
-        #self.new_edit_box(OvalEditBox(Point(1.0, 1.0), offset=Point(margin, margin)),
-        #            OUTER, ROTATION_BOTTOM_RIGHT, self.rotation_edit_boxes)
-        self.new_edit_box(OvalEditBox(Point(0.0, 1.0), offset=Point(-margin, margin)),
-                    OUTER, ROTATION_LEFT_BOTTOM, self.rotation_edit_boxes)
+        if self.shape.can_rotate():
+            self.new_edit_box(OvalEditBox(Point(0.0, 0.0), offset=Point(-margin, -margin)),
+                        OUTER, ROTATION_TOP_LEFT, self.rotation_edit_boxes)
+            self.new_edit_box(OvalEditBox(Point(1.0, 0.0), offset=Point(margin, -margin)),
+                        OUTER, ROTATION_TOP_RIGHT, self.rotation_edit_boxes)
+            #self.new_edit_box(OvalEditBox(Point(1.0, 1.0), offset=Point(margin, margin)),
+            #            OUTER, ROTATION_BOTTOM_RIGHT, self.rotation_edit_boxes)
+            self.new_edit_box(OvalEditBox(Point(0.0, 1.0), offset=Point(-margin, margin)),
+                        OUTER, ROTATION_LEFT_BOTTOM, self.rotation_edit_boxes)
 
-        self.new_edit_box(RectEditBox(Point(0.5, 0.0), angle=0, offset=Point(0, -margin)),
-                          OUTER, RESIZING_TOP)
-        self.new_edit_box(RectEditBox(Point(1.0, 0.5), angle=90, offset=Point(margin, 0)),
-                          OUTER, RESIZING_RIGHT)
-        self.new_edit_box(RectEditBox(Point(0.5, 1.0), angle=180, offset=Point(0, margin)),
-                          OUTER, RESIZING_BOTTOM)
-        self.new_edit_box(RectEditBox(Point(0.0, 0.5), angle=270, offset=Point(-margin, 0)),
-                          OUTER, RESIZING_LEFT)
-        self.new_edit_box(RectEditBox(Point(1.0, 1.0), angle=0,
-                          offset=Point(margin, margin), height=10.),
-                          OUTER, RESIZING_BOTTOM_RIGHT)
+        if self.shape.can_resize():
+            self.new_edit_box(RectEditBox(Point(0.5, 0.0), angle=0, offset=Point(0, -margin)),
+                              OUTER, RESIZING_TOP)
+            self.new_edit_box(RectEditBox(Point(1.0, 0.5), angle=90, offset=Point(margin, 0)),
+                              OUTER, RESIZING_RIGHT)
+            self.new_edit_box(RectEditBox(Point(0.5, 1.0), angle=180, offset=Point(0, margin)),
+                              OUTER, RESIZING_BOTTOM)
+            self.new_edit_box(RectEditBox(Point(0.0, 0.5), angle=270, offset=Point(-margin, 0)),
+                              OUTER, RESIZING_LEFT)
+            self.new_edit_box(RectEditBox(Point(1.0, 1.0), angle=0,
+                              offset=Point(margin, margin), height=10.),
+                              OUTER, RESIZING_BOTTOM_RIGHT)
 
-        self.new_edit_box(AnchorEditBox(self.shape), INNER, ANCHOR)
+        if self.shape.can_change_anchor():
+            self.new_edit_box(AnchorEditBox(self.shape), INNER, ANCHOR)
 
         control_1_fill_color = Color(1,1,0,1)
         control_2_fill_color = Color(1,0,0,1)
@@ -179,7 +190,9 @@ class ShapeEditor(object):
                     self.deletable_point_edit_boxes.append(point_eb)
 
     def set_anchor_prop_value(self, prop, value):
-        self.named_edit_boxes[ANCHOR].set_prop_value(prop, value)
+        anchor_box = self.named_edit_boxes.get(ANCHOR)
+        if anchor_box:
+            anchor_box.set_prop_value(prop, value)
 
     def update_edit_boxes(self):
         for edit_box in self.moveable_point_edit_boxes:
@@ -291,7 +304,9 @@ class ShapeEditor(object):
 
         self.outline_edit_box.draw(ctx)
 
-        self.named_edit_boxes[ANCHOR].set_point(self.shape.anchor_at)
+        anchor_box = self.named_edit_boxes.get(ANCHOR)
+        if anchor_box:
+            anchor_box.set_point(self.shape.anchor_at)
 
         for edit_box in self.outer_edit_boxes:
             edit_box.reposition(outer_rect)
@@ -322,6 +337,9 @@ class ShapeEditor(object):
             ctx.restore()
 
     def move_active_item(self, start_point, end_point):
+        if self.init_shape.locked_to_shape:
+            start_point = self.init_shape.transform_locked_shape_point(start_point)
+            end_point = self.init_shape.transform_locked_shape_point(end_point)
         if self.selected_edit_boxes:
             rel_start_point = self.init_shape.transform_point(start_point)
             rel_end_point = self.init_shape.transform_point(end_point)
@@ -433,12 +451,13 @@ class ShapeEditor(object):
             self.shape.readjust_sizes()
         elif isinstance(self.shape, MultiShape):
             self.shape.readjust_after_design_edit()
-        self.init_shape = self.shape.copy()
+        self.reinit_shape()
         for edit_box in self.all_edit_box_list:
             edit_box.update()
 
     def reinit_shape(self):
         self.init_shape = self.shape.copy()
+        self.init_shape.locked_to_shape = self.shape.locked_to_shape
 
     def insert_break(self):
         if not (isinstance(self.shape, CurveShape) or \
@@ -506,6 +525,14 @@ class ShapeEditor(object):
             del self.selected_edit_boxes[:]
             return self.shape.add_new_point_group_shape(curve_point_group)
         return False
+
+    def show_group_signs(self, ctx, point_group):
+        for edit_box in self.moveable_point_edit_boxes:
+            if not hasattr(edit_box, "curve_point"):
+                continue
+            if not point_group.contain(edit_box.curve_point):
+                continue
+            edit_box.draw_outer_border(ctx)
 
     def copy_points_as_shape(self):
         if not (isinstance(self.shape, CurveShape) or \

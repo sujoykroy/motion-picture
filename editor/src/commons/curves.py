@@ -704,6 +704,9 @@ class CurvePointGroup(object):
             newob.add_point(curve_point.copy())
         return newob
 
+    def contain(self, curve_point):
+        return curve_point in self.points
+
     def add_point(self, curve_point):
         if curve_point in self.points:
             return False
