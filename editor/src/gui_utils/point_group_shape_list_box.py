@@ -15,8 +15,7 @@ class PointGroupShapeListBox(object):
 
     def point_group_selected(self, widget):
         point_group_shape = self.shape_list_combo_box.get_value()
-        if point_group_shape:
-            self.select_callback(point_group_shape)
+        self.select_callback(point_group_shape)
 
     def hide(self):
         self.label.hide()

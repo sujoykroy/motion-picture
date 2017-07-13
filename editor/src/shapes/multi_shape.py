@@ -178,9 +178,6 @@ class MultiShape(Shape):
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)
 
-        for child_shape in shape.shapes:
-            child_shape.build_locked_to()
-
         for pose_elm in elm.findall(cls.POSE_TAG_NAME):
             pose_name = pose_elm.attrib["name"]
             pose = dict()
@@ -201,6 +198,11 @@ class MultiShape(Shape):
         shape.sync_with_imported()
 
         return shape
+
+    def build_locked_to(self):
+        super(MultiShape, self).build_locked_to()
+        for child_shape in self.shapes:
+            child_shape.build_locked_to()
 
     @classmethod
     def get_pose_prop_names(cls):

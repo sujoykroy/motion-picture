@@ -62,6 +62,7 @@ class CurveShape(Shape, Mirror):
 
     def delete_point_group_shape(self, point_group_shape):
         self.point_group_shapes.remove(point_group_shape)
+        return True
 
     def rename_shape(self, shape, name):
         old_name = shape.get_name()
@@ -75,7 +76,7 @@ class CurveShape(Shape, Mirror):
         return True
 
     def get_point_group_shapes_model(self):
-        model = []
+        model = [["", None]]
         for shape in self.point_group_shapes:
             model.append([shape.get_name(), shape])
         return model
@@ -320,11 +321,14 @@ class CurveShape(Shape, Mirror):
             point_group_shape = CurvePointGroupShape.create_from_xml_element(point_group_elm, shape)
             if point_group_shape:
                 shape.point_group_shapes.add(point_group_shape)
-        if shape.point_group_shapes:
-            for point_group_shape in shape.point_group_shapes:
-                point_group_shape.build_locked_to()
         shape.assign_params_from_xml_element(elm)
         return shape
+
+    def build_locked_to(self):
+        super(CurveShape, self).build_locked_to()
+        if self.point_group_shapes:
+            for point_group_shape in self.point_group_shapes:
+                point_group_shape.build_locked_to()
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = CurveShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
@@ -588,7 +592,7 @@ class CurveShape(Shape, Mirror):
     def cleanup_point_groups(self):
         i = 0
         while i <len(self.point_group_shapes):
-            point_group_shape = self.point_group_shapes.get_item_at_index(i)
+            point_group_shape = self.point_group_shapes.get_at_index(i)
             point_group = point_group_shape.curve_point_group
             if len(point_group.points)<1:
                 self.point_group_shape.remove_at_index(i)

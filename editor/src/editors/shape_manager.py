@@ -221,10 +221,12 @@ class ShapeManager(object):
     def get_point_group_shape_at(self, selected_shape, point):
         if not isinstance(selected_shape, CurveShape):
             return None
-        point = selected_shape.transform_point(point)
+        parent_point = selected_shape.transform_point(point)
         for point_group_shape in selected_shape.point_group_shapes:
             if point_group_shape.locked_to_shape:
-                point = point_group_shape.transform_locked_shape_point(point)
+                point = point_group_shape.transform_locked_shape_point(parent_point)
+            else:
+                point = parent_point
             if point_group_shape.is_within(point):
                 return point_group_shape
         return None
@@ -603,6 +605,9 @@ class ShapeManager(object):
     def create_point_group_shape_editor(self, point_group_shape):
         self.point_group_shape_editor = ShapeEditor(point_group_shape)
         self.point_group_shape_editor.set_anchor_prop_value("fill_color", Color.from_html("97E122"))
+
+    def delete_point_group_shape_editor(self):
+        self.point_group_shape_editor = None
 
     def select_document_area_box(self):
         self.document_area_box_selected = True

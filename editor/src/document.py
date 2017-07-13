@@ -106,6 +106,7 @@ class Document(object):
         shape_type = shape_element.attrib.get("type", None)
         if shape_type == MultiShape.TYPE_NAME:
             self.main_multi_shape = MultiShape.create_from_xml_element(shape_element, MultiShapeTimeLine)
+            self.main_multi_shape.build_locked_to()
         self.read_linked_clone_element(root)
 
         for guide_element in root.findall(Guide.TAG_NAME):

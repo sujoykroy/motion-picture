@@ -506,6 +506,7 @@ class MasterEditor(Gtk.ApplicationWindow):
                     #self.custom_props_box.set_prop_object(multi_shape)
 
     def shape_prop_changed(self, widget):
+        shape = self.shape_manager.get_deepest_selected_shape()
         if isinstance(shape, CurvePointGroupShape):
             shape.update_curve_points()
         self.redraw()
@@ -524,8 +525,11 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.redraw()
 
     def select_point_group_shape(self, point_group_shape):
-        if self.shape_manager.select_point_group_shape(point_group_shape):
-            self.show_prop_of(point_group_shape)
+        if point_group_shape:
+            self.shape_manager.select_point_group_shape(point_group_shape)
+        else:
+            self.shape_manager.delete_point_group_shape_editor()
+        self.show_prop_of(self.shape_manager.get_deepest_selected_shape())
 
     def reselect_selected_shape(self):
         shape = self.shape_manager.get_selected_shape(True)
