@@ -102,6 +102,8 @@ class CurvePointGroupShape(RectangleShape):
                 continue
             point = point.copy()
             point.scale(w, h)
+            if self.locked_to_shape:
+                point = self.transform_locked_shape_point(point)
             points_positions.append((point, curve_point.position))
             points.append(point)
 

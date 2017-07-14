@@ -245,6 +245,14 @@ class ApplicationWindow(MasterEditor):
             self.show_prop_of(self.shape_manager.get_deepest_selected_shape())
             self.redraw()
 
+    def rebuild_point_group(self, action, parameter):
+        if self.shape_manager.point_group_shape_editor:
+            point_group_shape = self.shape_manager.point_group_shape_editor.shape
+            self.shape_manager.delete_point_group_shape_editor()
+            point_group_shape.build()
+            self.shape_manager.create_point_group_shape_editor(point_group_shape)
+            self.redraw()
+
     def add_point_to_point_group(self, action, parameter):
         if self.shape_manager.add_point_to_point_group():
             self.redraw()

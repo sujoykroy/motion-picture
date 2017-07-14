@@ -530,6 +530,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         else:
             self.shape_manager.delete_point_group_shape_editor()
         self.show_prop_of(self.shape_manager.get_deepest_selected_shape())
+        self.redraw()
 
     def reselect_selected_shape(self):
         shape = self.shape_manager.get_selected_shape(True)

@@ -32,6 +32,7 @@ class ShapePropBox(object):
         self.widget_rows = []
         self.id_num = ShapePropBox.IdSeed
         ShapePropBox.IdSeed += 1
+        self.prop_set_mode = False
 
     def __eq__(self, other):
         return isinstance(other, ShapePropBox) and self.id_num == other.id_num
@@ -54,6 +55,8 @@ class ShapePropBox(object):
         return self.prop_object.has_prop(prop_name)
 
     def draw_callback(self, prop_widget=None):
+        if self.prop_set_mode:
+            return
         self.draw_callback_func(prop_widget)
         if prop_widget and prop_widget.related:
             self.show_prop_values(prop_widget.related)
@@ -63,6 +66,7 @@ class ShapePropBox(object):
         self.show_prop_values()
 
     def show_prop_values(self, prop_keys=None):
+        self.prop_set_mode = True
         if prop_keys is None:
             prop_keys = self.prop_boxes.keys()
         for prop_name in prop_keys:
@@ -100,6 +104,7 @@ class ShapePropBox(object):
                 prop_widget.set_active(value)
             elif isinstance(prop_widget, FileSelect):
                 prop_widget.set_filename(value)
+        self.prop_set_mode = False
 
     def add_prop(self, prop_name, value_type, values=None, can_insert_slice = True,
                        related=None):
