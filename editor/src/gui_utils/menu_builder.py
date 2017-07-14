@@ -153,7 +153,10 @@ class MenuItem(object):
         lines.append(create_attribute_xml("label", self.label))
         lines.append(create_attribute_xml("action", self.action))
         if self.target is not None:
-            lines.append(create_attribute_xml("target", self.target))
+            target = self.target
+            if isinstance(target, bool):
+                target = "{0}".format(target).upper()
+            lines.append(create_attribute_xml("target", target))
         if self.accel:
             lines.append(create_attribute_xml("accel",
                 self.accel.replace("<", "&lt;").replace(">", "&gt;")))
@@ -222,8 +225,13 @@ class MenuBar(object):
         lines.extend(self.top_menu.get_xml_lines())
         lines.append("</interface>")
         xml_string = "\n".join(lines)
+
+        """
+        #Debugging
         f = open("/home/sujoy/Temporary/output.xml", "w")
         f.write(xml_string)
+        """
+
         builder.add_from_string(xml_string)
         return builder
 

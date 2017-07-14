@@ -192,6 +192,11 @@ class VideoShapePropBox(AVShapePropBox):
         self.add_prop("audio_active", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         self.path_name = "video_path"
 
+class CurvePointGroupShapePropBox(ShapePropBox):
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
+        self.add_prop("show_anchor", PROP_TYPE_CHECK_BUTTON, None, can_insert_slice=False)
+
 class CustomShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         RectangleShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)

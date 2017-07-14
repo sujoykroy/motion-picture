@@ -121,6 +121,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                     self, self.shape_prop_changed, self.insert_time_slice)
         self.custom_shape_prop_box = CustomShapePropBox(
                     self, self.shape_prop_changed, self.insert_time_slice)
+        self.curve_point_group_shape_prop_box = CurvePointGroupShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.reselect_selected_shape, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
@@ -159,7 +161,8 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.threed_shape_prop_box,
             self.camera_shape_prop_box,
             self.document_shape_prop_box,
-            self.custom_shape_prop_box
+            self.custom_shape_prop_box,
+            self.curve_point_group_shape_prop_box
         )
         self.left_prop_box.pack_start(self.prop_grid, expand=False, fill=False, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
@@ -416,6 +419,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.document_shape_prop_box.hide()
         self.custom_shape_prop_box.hide()
         self.new_custom_prop_button.hide()
+        self.curve_point_group_shape_prop_box.hide()
 
         if shape != None:
             if self.custom_props_box:
@@ -449,6 +453,10 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, ThreeDShape):
                 self.threed_shape_prop_box.show()
                 self.threed_shape_prop_box.set_prop_object(shape)
+
+            if isinstance(shape, CurvePointGroupShape):
+                self.curve_point_group_shape_prop_box.show()
+                self.curve_point_group_shape_prop_box.set_prop_object(shape)
 
             if isinstance(shape, CustomShape):
                 self.custom_shape_prop_box.show()

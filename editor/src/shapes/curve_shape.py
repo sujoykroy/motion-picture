@@ -6,6 +6,8 @@ from curve_point_group_shape import CurvePointGroupShape
 from xml.etree.ElementTree import Element as XmlElement
 from mirror import *
 
+REL_ABS_ANCHOR_AT = "rel_abs_anchor_at"
+
 class CurveFormRenderer(object):
     def __init__(self, curve_shape, form_name):
         self.curve_shape = curve_shape
@@ -63,6 +65,11 @@ class CurveShape(Shape, Mirror):
     def delete_point_group_shape(self, point_group_shape):
         self.point_group_shapes.remove(point_group_shape)
         return True
+
+    def update_locked_curve_points(self):
+        for point_group_shape in self.point_group_shapes:
+            if not point_group_shape.locked_to_shape:
+                point_group_shape.update_curve_points()
 
     def rename_shape(self, shape, name):
         old_name = shape.get_name()
@@ -122,9 +129,10 @@ class CurveShape(Shape, Mirror):
             for point_group_shape in self.point_group_shapes:
                 prop_dict = point_group_shape.get_pose_prop_dict()
                 shapes_props[point_group_shape.get_name()] = prop_dict
-                rel_abs_anchor_at = point_group_shape.get_abs_anchor_at()
-                rel_abs_anchor_at.translate(-self.anchor_at.x, -self.anchor_at.y)
-                prop_dict["rel_abs_anchor_at"] = rel_abs_anchor_at
+                if not point_group_shape.locked_to_shape:
+                    rel_abs_anchor_at = point_group_shape.get_abs_anchor_at()
+                    rel_abs_anchor_at.translate(-self.anchor_at.x, -self.anchor_at.y)
+                    prop_dict[REL_ABS_ANCHOR_AT] = rel_abs_anchor_at
         else:
             shapes_props = None
         form = CurvesForm(width=self.width, height=self.height, curves=curves, shapes_props=shapes_props)
@@ -174,11 +182,13 @@ class CurveShape(Shape, Mirror):
                 if prop_dict is None:
                     continue
                 point_group_shape.set_pose_prop_from_dict(prop_dict)
-                if "rel_abs_anchor_at" in prop_dict:
-                    abs_anchor_at = prop_dict["rel_abs_anchor_at"].copy()
-                    abs_anchor_at.translate(self.anchor_at.x, self.anchor_at.y)
-                    point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
+                if not point_group_shape.locked_to_shape:
+                    if REL_ABS_ANCHOR_AT in prop_dict:
+                        abs_anchor_at = prop_dict[REL_ABS_ANCHOR_AT].copy()
+                        abs_anchor_at.translate(self.anchor_at.x, self.anchor_at.y)
+                        point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
+        self.update_locked_curve_points()
         self.fit_size_to_include_all()
         #self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
@@ -270,13 +280,16 @@ class CurveShape(Shape, Mirror):
                         continue
                     point_group_shape.set_transition_pose_prop_from_dict(
                         start_prop_dict, end_prop_dict, frac=value)
-                    start_rel_abs_anchor_at = start_prop_dict["rel_abs_anchor_at"].copy()
-                    end_rel_abs_anchor_at = end_prop_dict["rel_abs_anchor_at"].copy()
-                    abs_anchor_at = Point(0, 0)
-                    abs_anchor_at.set_inbetween(start_rel_abs_anchor_at, end_rel_abs_anchor_at, value)
-                    abs_anchor_at.translate(self.anchor_at.x, self.anchor_at.y)
-                    point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
-                    point_group_shape.update_curve_points()
+                    if not point_group_shape.locked_to_shape and \
+                           REL_ABS_ANCHOR_AT in start_prop_dict and \
+                           REL_ABS_ANCHOR_AT in end_prop_dict:
+                        start_rel_abs_anchor_at = start_prop_dict[REL_ABS_ANCHOR_AT].copy()
+                        end_rel_abs_anchor_at = end_prop_dict[REL_ABS_ANCHOR_AT].copy()
+                        abs_anchor_at = Point(0, 0)
+                        abs_anchor_at.set_inbetween(start_rel_abs_anchor_at, end_rel_abs_anchor_at, value)
+                        abs_anchor_at.translate(self.anchor_at.x, self.anchor_at.y)
+                        point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
+                self.update_locked_curve_points()
             self.fit_size_to_include_all()
         else:
             Shape.set_prop_value(self, prop_name, value, prop_data)

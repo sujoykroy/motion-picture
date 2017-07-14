@@ -12,6 +12,7 @@ class CurvePointGroupShape(RectangleShape):
                                         fill_color, width, height, corner_radius)
         self.curve_point_group = curve_point_group
         self.parent_shape = curve_shape
+        self.show_anchor = True
 
     def can_resize(self):
         return len(self.curve_point_group.points)>1
@@ -20,7 +21,7 @@ class CurvePointGroupShape(RectangleShape):
         return len(self.curve_point_group.points)>1
 
     def can_change_anchor(self):
-        return len(self.curve_point_group.points)>1
+        return self.show_anchor and len(self.curve_point_group.points)>1
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = CurvePointGroupShape(
@@ -32,6 +33,8 @@ class CurvePointGroupShape(RectangleShape):
     def get_xml_element(self):
         elm = super(CurvePointGroupShape, self).get_xml_element()
         elm.append(self.curve_point_group.get_xml_element())
+        if not self.show_anchor:
+            elm.attrib["show_anchor"] = "0"
         return elm
 
     @classmethod
@@ -48,6 +51,8 @@ class CurvePointGroupShape(RectangleShape):
 
         shape = cls(*arr)
         shape.assign_params_from_xml_element(elm)
+
+        shape.show_anchor = bool(int(elm.attrib.get("show_anchor", 1)))
         return shape
 
     def add_curve_points(self, curve_points):
@@ -122,7 +127,6 @@ class CurvePointGroupShape(RectangleShape):
         self.height = outline.height
         anchor_at = Point(self.width*.5, self.height*.5)
         self.anchor_at.copy_from(anchor_at)
-
         for point, position in points_positions:
             point = self.transform_point(point)
             position.copy_from(point)
@@ -134,7 +138,7 @@ class CurvePointGroupShape(RectangleShape):
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
         #self.update_curve_points()
 
-    def update_curve_points(self):
+    def update_curve_points(self, update_locked_shape=True):
         if not self.parent_shape.point_group_should_update:
             return
         curve_sx = 1./self.parent_shape.get_width()
@@ -149,7 +153,13 @@ class CurvePointGroupShape(RectangleShape):
             point.scale(curve_sx, curve_sy)
             curve_point.get_point(self.parent_shape.curves).copy_from(point)
 
-        if self.locked_shapes:
-            for locked_shape in self.locked_shapes:
-                if isinstance(locked_shape, CurvePointGroupShape):
-                    locked_shape.update_curve_points()
+        if update_locked_shape:
+            if self.locked_shapes:
+                for locked_shape in self.locked_shapes:
+                    if isinstance(locked_shape, CurvePointGroupShape):
+                        locked_shape.update_curve_points()
+
+    def update_locked_shapes(self):
+        if self.locked_shape:
+            self.update_curve_points(update_locked_shape=False)
+        super(CurvePointGroupShape, self).update_locked_shapes()

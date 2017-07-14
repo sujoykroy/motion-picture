@@ -74,8 +74,6 @@ class ShapeTimeLine(object):
     def move_to(self, t):
         for prop_time_line in self.prop_time_lines:
             prop_time_line.move_to(t)
-        if isinstance(self.shape, CurvePointGroupShape):
-            self.shape.update_curve_points()
 
     def expand_duration(self, duration):
         for prop_time_line in self.prop_time_lines:
