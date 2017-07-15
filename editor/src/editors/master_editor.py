@@ -3,6 +3,7 @@ import os, math, cairo
 
 from ..shapes import *
 from ..gui_utils import *
+from ..gui_utils.debug_window import DebugWindow
 from ..time_lines import *
 
 from ..audio_tools import AudioJack
@@ -237,6 +238,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         CameraShape.CAMERA_ICON = Document.get_icon_shape("camera", 20, 20)
 
         self.area_fitted = False
+
+        self.debug_window = DebugWindow(self)
 
     def quit(self, widget, event):
         Gtk.main_quit()
