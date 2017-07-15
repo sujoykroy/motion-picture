@@ -108,6 +108,8 @@ class ShapePropBox(object):
 
     def add_prop(self, prop_name, value_type, values=None, can_insert_slice = True,
                        related=None):
+        if values is None:
+            values = dict()
         if value_type == PROP_TYPE_NUMBER_ENTRY:
             step = values["step_increment"]
             adjustment = Gtk.Adjustment(values["value"], values["lower"],
@@ -133,6 +135,7 @@ class ShapePropBox(object):
         elif value_type == PROP_TYPE_POINT:
             point_entry = Gtk.Entry()
             point_entry.connect("changed", self.point_entry_value_changed, prop_name)
+            point_entry.set_editable(values.get("editable", True))
             prop_widget = point_entry
             point_entry.props.width_chars = 10
         elif value_type == PROP_TYPE_NAME_ENTRY:

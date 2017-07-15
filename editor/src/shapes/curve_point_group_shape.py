@@ -14,6 +14,9 @@ class CurvePointGroupShape(RectangleShape):
         self.parent_shape = curve_shape
         self.show_anchor = True
 
+    def set_curve_shape(self, curve_shape):
+        self.parent_shape = curve_shape
+
     def can_resize(self):
         return len(self.curve_point_group.points)>1
 
@@ -25,9 +28,15 @@ class CurvePointGroupShape(RectangleShape):
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = CurvePointGroupShape(
+                        anchor_at=self.anchor_at.copy(),
+                        border_color=copy_value(self.border_color),
+                        border_width=self.border_width,
+                        fill_color=copy_value(self.fill_color),
+                        width=self.width, height=self.height,
+                        corner_radius=self.corner_radius,
                         curve_shape=self.parent_shape,
                         curve_point_group=self.curve_point_group.copy())
-        self.copy_into(newob, copy_name, all_fields=True)
+        self.copy_into(newob, copy_name, all_fields=deep_copy)
         return newob
 
     def get_xml_element(self):
@@ -115,7 +124,7 @@ class CurvePointGroupShape(RectangleShape):
         outline = Polygon(points).get_outline()
         if outline is None:
             if len(points) == 1:
-                w, h = 2.,2.
+                w = h = 5.
                 outline = Rect(left=points[0].x-w*.5, top=points[0].y-h*.5,
                                width=w, height=h)
             else:
@@ -139,8 +148,6 @@ class CurvePointGroupShape(RectangleShape):
         #self.update_curve_points()
 
     def update_curve_points(self, update_locked_shape=True):
-        if not self.parent_shape.point_group_should_update:
-            return
         curve_sx = 1./self.parent_shape.get_width()
         curve_sy = 1./self.parent_shape.get_height()
         for curve_point in self.curve_point_group.points:

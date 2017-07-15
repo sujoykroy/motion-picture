@@ -218,11 +218,14 @@ class ShapeManager(object):
                 return shape
         return None
 
-    def get_point_group_shape_at(self, selected_shape, point):
+    def get_point_group_shape_at(self, selected_shape, point, single_point=False):
         if not isinstance(selected_shape, CurveShape):
             return None
         parent_point = selected_shape.transform_point(point)
         for point_group_shape in selected_shape.point_group_shapes:
+            if single_point:
+                if len(point_group_shape.curve_point_group.points)>1:
+                    continue
             if point_group_shape.locked_to_shape:
                 point = point_group_shape.transform_locked_shape_point(parent_point)
             else:
@@ -676,7 +679,10 @@ class ShapeManager(object):
                    (self.point_group_shape_editor is not None and \
                     not self.point_group_shape_editor.has_selected_box()):
                     self.point_group_shape_editor = None
-                    point_group_shape = self.get_point_group_shape_at(selected_shape, shape_point)
+                    point_group_shape = self.get_point_group_shape_at(
+                        selected_shape, shape_point, single_point=True)
+                    if not point_group_shape:
+                        point_group_shape = self.get_point_group_shape_at(selected_shape, shape_point)
                     if point_group_shape:
                         self.point_group_shape_editor = ShapeEditor(point_group_shape)
 
@@ -745,7 +751,7 @@ class ShapeManager(object):
 
         multi_selection_shape = MultiSelectionShape()
         multi_selection_shape.be_like_shape(shapes[0])
-        for i in range(len(shapes)):
+        for i in xrange(len(shapes)):
             shape = shapes[i]
             multi_selection_shape.add_shape(shape)
         multi_selection_shape.move_anchor_at_center()
@@ -1139,7 +1145,7 @@ class ShapeManager(object):
 
         self.delete_shape_editor()
 
-        for i in range(len(new_shapes)):
+        for i in xrange(len(new_shapes)):
             new_shape = new_shapes[i]
             old_shape = old_shapes[i]
             self.add_shape(new_shape)

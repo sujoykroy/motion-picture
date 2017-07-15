@@ -18,6 +18,8 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("y", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-10000, upper=10000, step_increment=1), related=["xy"])
         self.add_prop("xy", PROP_TYPE_POINT, None, related=["x", "y"])
+        self.add_prop("translation", PROP_TYPE_POINT,
+                    dict(editable=False), can_insert_slice=False)
         self.add_prop("scale_x", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=.001, upper=100, step_increment=.10), related=["scale_y"])
         self.add_prop("scale_y", PROP_TYPE_NUMBER_ENTRY,

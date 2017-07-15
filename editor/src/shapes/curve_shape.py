@@ -38,7 +38,6 @@ class CurveShape(Shape, Mirror):
         self.show_points = True
         self.point_group_shapes = ShapeList()
         self.baked_points = None
-        self.point_group_should_update = True
 
     def get_interior_shapes(self):
         return self.point_group_shapes
@@ -339,9 +338,13 @@ class CurveShape(Shape, Mirror):
 
     def build_locked_to(self):
         super(CurveShape, self).build_locked_to()
+        self.build_interior_locked_to()
+
+    def build_interior_locked_to(self):
         if self.point_group_shapes:
             for point_group_shape in self.point_group_shapes:
                 point_group_shape.build_locked_to()
+        self.update_locked_curve_points()
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = CurveShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
@@ -353,7 +356,10 @@ class CurveShape(Shape, Mirror):
             newob.forms = copy_value(self.forms)
         newob.show_points = self.show_points
         for point_group_shape in self.point_group_shapes:
-            newob.point_group_shapes.add(point_group_shape.copy())
+            point_group_shape = point_group_shape.copy(copy_name=True, deep_copy=True)
+            point_group_shape.set_curve_shape(newob)
+            newob.point_group_shapes.add(point_group_shape)
+        newob.build_interior_locked_to()
         return newob
 
     def is_empty(self):
@@ -446,7 +452,8 @@ class CurveShape(Shape, Mirror):
         if self.baked_points is None:
             self.baked_points = dict()
         if self.baked_points.get(curve_index) is None:
-            self.baked_points[curve_index] = self.curves[curve_index].get_baked_points(self.width, self.height)
+            self.baked_points[curve_index] = \
+                self.curves[curve_index].get_baked_points(self.width, self.height)
         baked_points = self.baked_points[curve_index]
         if frac<0:
             frac += 1

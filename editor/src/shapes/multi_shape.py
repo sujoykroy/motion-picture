@@ -195,7 +195,6 @@ class MultiShape(Shape):
         for time_line_elm in elm.findall(time_line_class.TAG_NAME):
             time_line = time_line_class.create_from_xml_element(time_line_elm, shape)
             shape.timelines[time_line.name] = time_line
-
         shape.imported_from = elm.attrib.get("imported_from", None)
         shape.sync_with_imported()
 
@@ -203,6 +202,9 @@ class MultiShape(Shape):
 
     def build_locked_to(self):
         super(MultiShape, self).build_locked_to()
+        self.build_interior_locked_to()
+
+    def build_interior_locked_to(self):
         for child_shape in self.shapes:
             child_shape.build_locked_to()
 
@@ -221,6 +223,7 @@ class MultiShape(Shape):
                 child_shape = shape.copy(copy_name=True, deep_copy=deep_copy)
                 child_shape.parent_shape = newob
                 newob.shapes.add(child_shape)
+            newob.build_interior_locked_to()
         if deep_copy:
             newob.poses = copy_dict(self.poses)
             for key, timeline in self.timelines.items():

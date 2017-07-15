@@ -474,6 +474,8 @@ class Shape(object):
         newob.visible = self.visible
         newob.moveable = self.moveable
         newob.renderable = self.renderable
+        if self.locked_to_shape:
+            newob._locked_to = self.locked_to_shape.get_shape_path(root_shape=self.parent_shape)
         newob.same_xy_scale = self.same_xy_scale
         newob.translation = self.translation.copy()
         newob.angle = self.angle
