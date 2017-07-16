@@ -483,16 +483,9 @@ class PseudoBezierPoint(BezierPoint):
     def __init__(self, curve, index):
         self.curve = curve
         self.index = index
-
-    def __getattr__(self, name):
-        if name == "control_1":
-            return PseudoPoint(self.curve, self.index*3+0+1)
-        elif name == "control_2":
-            return PseudoPoint(self.curve, self.index*3+1+1)
-        elif name == "dest":
-            return PseudoPoint(self.curve, self.index*3+2+1)
-        else:
-            raise AttributeError
+        self.control_1  = PseudoPoint(self.curve, self.index*3+0+1)
+        self.control_2  = PseudoPoint(self.curve, self.index*3+1+1)
+        self.dest  = PseudoPoint(self.curve, self.index*3+2+1)
 
     def copy(self):
         return BezierPoint(self.control_1.copy(), self.control_2.copy(), self.dest.copy())
@@ -500,11 +493,16 @@ class PseudoBezierPoint(BezierPoint):
 class PseudoBezierPoints(object):
     def __init__(self, curve):
         self.curve = curve
+        self.pseudo_points = dict()
 
     def __getitem__(self, index):
         if index<0:
             index += len(self)
-        return PseudoBezierPoint(self.curve, index)
+        if index>=len(self):
+            return None
+        if index not in self.pseudo_points:
+            self.pseudo_points[index] = PseudoBezierPoint(self.curve, index)
+        return self.pseudo_points[index]
 
     def __len__(self):
         return (len(self.curve.all_points)-1)/3
@@ -591,7 +589,7 @@ class Curve(NaturalCurve):
             self.all_points=numpy.delete(self.all_points, [i*3+0+1, i*3+1+1, i*3+2+1], axis=0)
 
     def update_bezier_point_index(self, index):
-        pass1
+        pass
 
     def update_origin(self):
         pass
@@ -761,10 +759,13 @@ class CurvePointGroup(object):
         i = 0
         while i<len(self.points):
             point = self.points[i]
-            if point.curve_index == curve_index and point.point_index == point_index:
-                del self.points[i]
-            else:
-                i += 1
+            if point.curve_index == curve_index:
+                if point.point_index == point_index:
+                    del self.points[i]
+                    continue
+                elif point.point_index > point_index:
+                    point.point_index -= 1
+            i += 1
 
     def update_closed_curves(self, curves):
         for curve_index in self.point_indices:

@@ -63,7 +63,8 @@ class VideoShape(RectangleShape, AVBase):
         newob = VideoShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
                         copy_value(self.fill_color), self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
-        newob.set_av_filename(self.av_filename)
+        newob.set_av_filename(self.av_filename, recalculate=False)
+        newob.duration = self.duration
         newob.alpha = self.alpha
         return newob
 
@@ -84,16 +85,14 @@ class VideoShape(RectangleShape, AVBase):
         shape.audio_active = bool(int(elm.attrib.get("audio_active", 1)))
         return shape
 
-    def set_av_filename(self, av_filename):
+    def set_av_filename(self, av_filename, recalculate=True):
         if av_filename == "//":
             self.duration = 0
-            self.image_pixbuf = None
-            self.video_clip = None
-        elif av_filename and av_filename != self.av_filename:
-            video_clip = VideoFileClip(av_filename)
+        elif av_filename and av_filename != self.av_filename and recalculate:
+            video_clip = VideoFileClip(av_filename)#memory leak area :-)
             self.duration =  video_clip.duration
-            self.image_pixbuf = None
-            self.video_clip = None
+        self.image_pixbuf = None
+        self.video_clip = None
 
         AVBase.set_av_filename(self, av_filename)
 
@@ -119,7 +118,6 @@ class VideoShape(RectangleShape, AVBase):
         if self.av_filename == "//":
             return
         AVBase.set_time_pos(self, time_pos, prop_data)
-
 
         if self.duration == 0:#it will handle self.av_filename == "//"
             return
