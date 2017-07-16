@@ -562,6 +562,8 @@ class ApplicationWindow(MasterEditor):
         self.time_line_editor.move_prop_line(int(parameter.get_string()))
 
 class Application(Gtk.Application):
+    DEBUG = False
+
     def __init__(self):
         Gtk.Application.__init__(self,
                 application_id="bk2suz.motion_picture",
@@ -594,6 +596,7 @@ class Application(Gtk.Application):
                 break
         if win is None:
             win = self.new_app_window()
+        win.DEBUG = self.DEBUG
         return win
 
     def open_recent_document(self, action, parameter):
@@ -625,6 +628,7 @@ class Application(Gtk.Application):
 
     def new_app_window(self):
         win = ApplicationWindow(self)
+        win.DEBUG = self.DEBUG
 
         for menu_item in self.menubar.menu_items.values():
             if not menu_item.is_window_action(): continue

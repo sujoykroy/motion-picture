@@ -3,7 +3,7 @@ from ..commons import *
 from ..gui_utils import NameValueComboBox
 
 class DebugWindow(Gtk.Dialog):
-    def __init__(self, parent, title="Viewer", width=400, height = 200):
+    def __init__(self, parent, title="Viewer", width=400, height = 50):
         Gtk.Dialog.__init__(self, title, parent, 0,())
         self.set_default_size(width, height)
         self.connect("delete-event", self.quit)

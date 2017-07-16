@@ -21,6 +21,9 @@ from camera_viewer import CamerViewerBox, CameraViewerDialog
 MODE_NEW_SHAPE_CREATE = "MODE_NEW_SHAPE_CREATE"
 
 class MasterEditor(Gtk.ApplicationWindow):
+    DEBUG = False
+    DEBUG_WINDOW = None
+
     def __init__(self, width=800, height=300, title="MotionPicture"):
         Gtk.ApplicationWindow.__init__(self, title=title, resizable=True)
         self.set_position(Gtk.WindowPosition.CENTER)
@@ -239,8 +242,6 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.area_fitted = False
 
-        self.debug_window = DebugWindow(self)
-
     def quit(self, widget, event):
         Gtk.main_quit()
         if self.shape_manager:
@@ -271,6 +272,9 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.paned_box_4.set_position(20)
 
         self.open_document(None)
+
+        if self.DEBUG and not MasterEditor.DEBUG_WINDOW:
+            MasterEditor.DEBUG_WINDOW = DebugWindow(self)
 
     def set_panel_sizes(self, left, right, bottom):
         self.paned_box_2.set_position(float(left))
