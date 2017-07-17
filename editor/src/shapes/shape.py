@@ -419,6 +419,8 @@ class Shape(object):
             elm.attrib["pre_matrix"] = Matrix.to_text(self.pre_matrix)
         if isinstance(self, Mirror):
             Mirror.set_xml_element(self, elm)
+        if not self.selectable:
+            elm.attrib["sel"] = "0"
         return elm
 
     @classmethod
@@ -470,6 +472,7 @@ class Shape(object):
             #TODO
             #rest of the fiels needs to be implemented, but later.
         self.set_border_dash(elm.attrib.get("border_dash", ""))
+        self.selectable = bool(int(elm.attrib.get("sel", 1)))
 
     def copy_into(self, newob, copy_name=False, all_fields=False):
         newob.visible = self.visible
