@@ -7,6 +7,7 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("name", PROP_TYPE_NAME_ENTRY)
         self.add_prop("show_points", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         self.add_prop("moveable", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
+        self.add_prop("selectable", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         self.add_prop("masked", PROP_TYPE_CHECK_BUTTON)
         self.add_prop("visible", PROP_TYPE_CHECK_BUTTON)
         self.add_prop("locked_to", PROP_TYPE_TEXT)

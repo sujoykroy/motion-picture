@@ -205,6 +205,8 @@ class ShapeManager(object):
 
     def get_shape_at(self, point, multi_select, exclude_invisible=False):
         for shape in self.shapes.reversed_list():
+            if not shape.selectable:
+                continue
             if exclude_invisible and not shape.visible:
                 continue
             if isinstance(shape, MultiSelectionShape) and multi_select:
