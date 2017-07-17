@@ -22,18 +22,18 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("translation", PROP_TYPE_POINT,
                     dict(editable=False), can_insert_slice=False)
         self.add_prop("scale_x", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=.001, upper=100, step_increment=.10), related=["scale_y"])
+                dict(value=0, lower=-100, upper=100, step_increment=.10), related=["scale_y"])
         self.add_prop("scale_y", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=.001, upper=100, step_increment=.01), related=["scale_x"])
+                dict(value=0, lower=-100, upper=100, step_increment=.01), related=["scale_x"])
         self.add_prop("same_xy_scale", PROP_TYPE_CHECK_BUTTON, None, related=["scale_x", "scale_y"])
         self.add_prop("anchor_x", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-10000, upper=10000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("anchor_y", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-10000, upper=10000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("post_scale_x", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=.001, upper=100, step_increment=.10, page_increment=.1, page_size=1))
+                dict(value=0, lower=-100, upper=100, step_increment=.10, page_increment=.1, page_size=1))
         self.add_prop("post_scale_y", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=.001, upper=100, step_increment=.01, page_increment=.1, page_size=1))
+                dict(value=0, lower=-100, upper=100, step_increment=.01, page_increment=.1, page_size=1))
         self.add_prop("border_width", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("border_dash", PROP_TYPE_TEXT, None, can_insert_slice=False)
