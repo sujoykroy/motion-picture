@@ -846,11 +846,13 @@ class Shape(object):
         point.translate(self.anchor_at.x, self.anchor_at.y)
         return point
 
-    def transform_locked_shape_point(self, point, root_shape=None):
+    def transform_locked_shape_point(self, point, root_shape=None, exclude_last=True):
         if root_shape is None:
             root_shape = self.parent_shape
         ancestors = self.get_shape_ancestors(root_shape=root_shape, lock=True)
-        for shape in ancestors[:-1]:
+        if exclude_last:
+            ancestors = ancestors[:-1]
+        for shape in ancestors:
             point = shape.transform_point(point)
         return point
 

@@ -223,7 +223,7 @@ class ShapeManager(object):
     def get_point_group_shape_at(self, selected_shape, point, single_point=False):
         if not isinstance(selected_shape, CurveShape):
             return None
-        parent_point = selected_shape.transform_point(point)
+        parent_point = selected_shape.transform_locked_shape_point(point, exclude_last=False)
         for point_group_shape in selected_shape.point_group_shapes.reversed_list():
             if not point_group_shape.selectable:
                 continue
@@ -675,7 +675,9 @@ class ShapeManager(object):
         if self.shape_editor is not None:
             selected_shape = self.shape_editor.shape
             if self.point_group_shape_editor:
-                point_group_shape_point = selected_shape.transform_point(shape_point)
+                point_group_shape_point = \
+                        selected_shape.transform_locked_shape_point(
+                            shape_point, root_shape=self.multi_shape, exclude_last=False)
                 self.point_group_shape_editor.select_item_at(point_group_shape_point, multi_select=False)
 
             if not EditingChoice.LOCK_POINT_GROUP:
@@ -854,8 +856,10 @@ class ShapeManager(object):
                 self.current_task = ShapeStateTask(self.doc, self.shape_editor.shape)
             selected_shape = self.shape_editor.shape
             if self.point_group_shape_editor is not None:
-                point_group_shape_start_point = selected_shape.transform_point(shape_start_point)
-                point_group_shape_end_point = selected_shape.transform_point(shape_end_point)
+                point_group_shape_start_point = \
+                    selected_shape.transform_locked_shape_point(shape_start_point, exclude_last=False)
+                point_group_shape_end_point = \
+                    selected_shape.transform_locked_shape_point(shape_end_point, exclude_last=False)
                 self.point_group_shape_editor.move_active_item(
                     point_group_shape_start_point, point_group_shape_end_point)
                 self.shape_editor.update_edit_boxes()

@@ -337,9 +337,9 @@ class ShapeEditor(object):
             ctx.restore()
 
     def move_active_item(self, start_point, end_point):
-        if self.init_shape.locked_to_shape:
-            start_point = self.init_shape.transform_locked_shape_point(start_point)
-            end_point = self.init_shape.transform_locked_shape_point(end_point)
+        #if self.init_shape.locked_to_shape:
+        #    start_point = self.init_shape.transform_locked_shape_point(start_point)
+        #    end_point = self.init_shape.transform_locked_shape_point(end_point)
         if self.selected_edit_boxes:
             rel_start_point = self.init_shape.transform_point(start_point)
             rel_end_point = self.init_shape.transform_point(end_point)
