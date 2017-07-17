@@ -615,7 +615,7 @@ class CurveShape(Shape, Mirror):
             point_group_shape = self.point_group_shapes.get_at_index(i)
             point_group = point_group_shape.curve_point_group
             if len(point_group.points)<1:
-                self.point_group_shape.remove_at_index(i)
+                self.point_group_shapes.remove_at_index(i)
             else:
                 i += 1
 

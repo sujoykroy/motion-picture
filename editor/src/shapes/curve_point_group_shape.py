@@ -130,6 +130,8 @@ class CurvePointGroupShape(RectangleShape):
             else:
                 return
 
+        old_translation = self.translation.copy()
+
         self.anchor_at.assign(0, 0)
         self.move_to(outline.left, outline.top)
         self.width = outline.width
@@ -139,6 +141,13 @@ class CurvePointGroupShape(RectangleShape):
         for point, position in points_positions:
             point = self.transform_point(point)
             position.copy_from(point)
+
+        if self.locked_shapes:
+            shift = old_translation.diff(self.translation)
+            for locked_shape in self.locked_shapes:
+                if isinstance(locked_shape, CurvePointGroupShape):
+                    locked_shape.shift_abs_anchor_at(shift)
+
         self.update_curve_points()
 
     def shift_abs_anchor_at(self, shift):

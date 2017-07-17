@@ -224,7 +224,9 @@ class ShapeManager(object):
         if not isinstance(selected_shape, CurveShape):
             return None
         parent_point = selected_shape.transform_point(point)
-        for point_group_shape in selected_shape.point_group_shapes:
+        for point_group_shape in selected_shape.point_group_shapes.reversed_list():
+            if not point_group_shape.selectable:
+                continue
             if single_point:
                 if len(point_group_shape.curve_point_group.points)>1:
                     continue
