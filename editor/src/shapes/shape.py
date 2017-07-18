@@ -856,6 +856,11 @@ class Shape(object):
             point = shape.transform_point(point)
         return point
 
+    def abs_transform_distance(self, d):
+        origin = self.transform_locked_shape_point(Point(0,0), root_shape=0, exclude_last=False)
+        corner = self.transform_locked_shape_point(Point(abs(d), 0), root_shape=0, exclude_last=False)
+        return corner.distance(origin)
+
     def reverse_transform_point(self, point):
         point = Point(point.x, point.y)
         point.translate(-self.anchor_at.x, -self.anchor_at.y)

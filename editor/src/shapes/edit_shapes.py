@@ -23,11 +23,18 @@ class EditBox(object):
         else:
             self.abs_point.x = self.point.x
             self.abs_point.y = self.point.y
-        self.cpoint = self.abs_reverse_transform_point(self.abs_point)
+        cpoint = self.abs_point
         if self.offset:
-            offset = self.offset.copy()
-            offset.rotate_coordinate(-self.abs_angle(0))
-            self.cpoint.translate(offset.x, offset.y)
+            offset_x = self.abs_transform_distance(self.offset.x)
+            if self.offset.x<0:
+                offset_x *= -1
+            offset_y = self.abs_transform_distance(self.offset.y)
+            if self.offset.y<0:
+                offset_y *= -1
+            cpoint = cpoint.copy()
+            cpoint.translate(offset_x, offset_y)
+
+        self.cpoint = self.abs_reverse_transform_point(cpoint)
 
     def add_linked_edit_box(self, edit_box):
         self.linked_edit_boxes.append(edit_box)
@@ -120,24 +127,15 @@ class OutlineEditBox(RectEditBox):
         self.shape = shape
 
     def draw(self, ctx):
+        margin = self.shape.abs_transform_distance(MARGIN)
         points = []
-        points.append(Point(0, 0))
-        points.append(Point(self.shape.width, 0))
-        points.append(Point(self.shape.width, self.shape.height))
-        points.append(Point(0, self.shape.height))
-        angle = self.shape.abs_angle(0)
+        points.append(Point(0-margin, 0-margin))
+        points.append(Point(self.shape.width+margin, 0-margin))
+        points.append(Point(self.shape.width+margin, self.shape.height+margin))
+        points.append(Point(0-margin, self.shape.height+margin))
+
         for i in range(len(points)):
             points[i] = self.shape.abs_reverse_transform_point(points[i])
-            if i == 0:
-                offset = Point(-MARGIN, -MARGIN)
-            elif i == 1:
-                offset = Point(MARGIN, -MARGIN)
-            elif i == 2:
-                offset = Point(MARGIN, MARGIN)
-            elif i == 3:
-                offset = Point(-MARGIN, MARGIN)
-            offset.rotate_coordinate(-angle)
-            points[i].translate(offset.x, offset.y)
 
         cpoint = self.shape.abs_reverse_transform_point(
                     Point(self.shape.width*.5, self.shape.height*.5))
