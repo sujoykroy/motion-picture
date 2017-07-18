@@ -105,12 +105,8 @@ class ShapeManager(object):
         return self.document_area_box.transform_point(point)
 
     def get_shape_point(self, doc_point):
-        point = doc_point.copy()
         return self.multi_shape.transform_locked_shape_point(
                 doc_point, root_shape=self.document_area_box, exclude_last=False)
-        for multi_shape in self.shape_hierarchy:
-            point = multi_shape.transform_point(point)
-        return point
 
     def get_selected_shape(self, original_shape_only=False):
         if self.shape_editor:

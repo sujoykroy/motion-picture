@@ -168,6 +168,7 @@ class CurvePointGroupShape(RectangleShape):
                 locked_to_shape = locked_to_shape.locked_to_shape
             point.scale(curve_sx, curve_sy)
             curve_point.get_point(self.parent_shape.curves).copy_from(point)
+            curve_point.update_original(point, self.parent_shape.curves)
 
         if update_locked_shape:
             if self.locked_shapes:

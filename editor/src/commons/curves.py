@@ -665,6 +665,14 @@ class CurvePoint(object):
             point = curve.origin
         return point
 
+    def update_original(self, point, curves):
+        original_point = self.get_point(curves)
+        original_point.copy_from(point)
+        if self.point_type == CurvePoint.POINT_TYPE_DEST:
+            curve = curves[self.curve_index]
+            if curve.closed and self.point_index == len(curve.bezier_points)-1:
+                curve.origin.copy_from(point)
+
     def __eq__(self, other):
         return (self.curve_index == other.curve_index and \
                 self.point_index == other.point_index and \

@@ -301,9 +301,8 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def get_doc_and_multi_shape_point(self, point):
         doc_point = self.shape_manager.document_area_box.transform_point(point)
-        shape_point = doc_point.copy()
-        for multi_shape in self.multi_shape_stack:
-            shape_point = multi_shape.transform_point(shape_point)
+        shape_point = self.multi_shape_stack[-1].transform_locked_shape_point(
+                doc_point, root_shape=self.shape_manager.document_area_box, exclude_last=False)
         return doc_point, shape_point
 
     def load_multi_shape(self, multi_shape, recreate_shape_manager=False):
