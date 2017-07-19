@@ -63,6 +63,8 @@ m.add(path="Edit/TimeLine/Move Prop Line Up", icon="move_prop_line_up",
       action_name="win.move_prop_time_line", desc="Move Prop Line Up", action_param="-1")
 m.add(path="Edit/TimeLine/Move Prop Line Down", icon="move_prop_line_down",
       action_name="win.move_prop_time_line", desc="Move Prop Line Down", action_param="1")
+m.add(path="Edit/TimeLine/Split Prop Line", icon="split_prop_line",
+      action_name="win.split_prop_time_line", desc="Split Prop Line")
 
 m.add(path="Edit/Points/Join", icon="join_points", desc="Join points together",
       action_name="win.join_points_of_shape")
@@ -76,7 +78,7 @@ m.add(path="Edit/Points/Extend", icon="extend_point", desc="Extend point into ne
       action_name="win.extend_point_of_shape")
 m.add(path="Edit/Points/Center Anchor", icon="center_anchor",
       action_name="win.center_anchor", desc="Place anchor at center")
-m.add(path="Edit/Points/Copy", icon="copy_shape",
+m.add(path="Edit/Points/Copy", icon="copy_points_as_shape",
       action_name="win.copy_points_as_shape", desc="Copy Points As Shape")
 
 m.add(path="Edit/Document/Canvas Size", icon="canvas_size",

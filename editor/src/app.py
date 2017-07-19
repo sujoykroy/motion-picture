@@ -561,6 +561,9 @@ class ApplicationWindow(MasterEditor):
     def move_prop_time_line(self, action, parameter):
         self.time_line_editor.move_prop_line(int(parameter.get_string()))
 
+    def split_prop_time_line(self, action, parameter):
+        self.time_line_editor.split_prop_line()
+
 class Application(Gtk.Application):
     DEBUG = False
 

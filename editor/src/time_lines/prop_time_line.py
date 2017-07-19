@@ -12,7 +12,11 @@ class PropTimeLine(object):
         self.time_slices = OrderedDict()
 
     def is_time_slice_linkable(self):
-        return not self.prop_name in('internal', "time_pos")
+        if self.prop_name in('internal', "time_pos"):
+            return False
+        if self.prop_name.startswith("pose_"):
+            return False
+        return True
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -53,6 +57,32 @@ class PropTimeLine(object):
     def remove_time_slice(self, time_slice):
         self.time_slices.remove(time_slice)
 
+    def _add_time_slice_after(self, time_slice, exist_time_slice, elapsed, t):
+        remaining_time = elapsed+exist_time_slice.duration-t
+        if remaining_time>1/25.:
+            exist_time_slice.duration = t - elapsed
+            time_slice.duration = remaining_time
+            if self.is_time_slice_linkable():
+                exist_time_slice.end_value = time_slice.start_value
+                exist_time_slice.linked_to_next = True
+                time_slice.linked_to_next = True
+            time_slice.end_marker = exist_time_slice.end_marker
+            exist_time_slice.end_marker = None
+            self.time_slices.insert_after(exist_time_slice, time_slice, time_slice)
+
+    def split_time_slice_at(self, time_slice, t):
+        elapsed = 0
+        for i in range(len(self.time_slices.keys)):
+            exist_time_slice = self.time_slices[self.time_slices.keys[i]]
+            if exist_time_slice == time_slice:
+                if t<elapsed or t>=elapsed+time_slice.duration:
+                    return False
+                new_time_slice = copy_value(time_slice)
+                self._add_time_slice_after(new_time_slice, exist_time_slice, elapsed, t)
+                return True
+            elapsed += exist_time_slice.duration
+        return False
+
     def insert_time_slice_at(self, t, time_slice):
         if len(self.time_slices) == 0:
             time_slice.duration += t
@@ -65,17 +95,7 @@ class PropTimeLine(object):
         for i in range(len(self.time_slices.keys)):
             exist_time_slice = self.time_slices[self.time_slices.keys[i]]
             if t<elapsed+exist_time_slice.duration:
-                remaining_time = elapsed+exist_time_slice.duration - t
-                if remaining_time>1/25.:
-                    exist_time_slice.duration = t - elapsed
-                    time_slice.duration = remaining_time
-                    if self.is_time_slice_linkable():
-                        exist_time_slice.end_value = time_slice.start_value
-                        exist_time_slice.linked_to_next = True
-                        time_slice.linked_to_next = True
-                    time_slice.end_marker = exist_time_slice.end_marker
-                    exist_time_slice.end_marker = None
-                    self.time_slices.insert_after(exist_time_slice, time_slice, time_slice)
+                self._add_time_slice_after(time_slice, exist_time_slice, elapsed, t)
                 inserted = True
                 break
             elapsed += exist_time_slice.duration

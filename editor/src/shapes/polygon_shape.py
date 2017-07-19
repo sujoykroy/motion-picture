@@ -155,6 +155,28 @@ class PolygonShape(Shape, Mirror):
         if form_name in self.forms:
             del self.forms[form_name]
 
+    def copy_data_from_linked(self):
+        super(PolygonShape, self).copy_data_from_linked()
+
+        if not self.linked_to: return
+        del self.polygons[:]
+
+        linked_to_anchor_at = self.linked_to.anchor_at.copy()
+        linked_to_anchor_at.scale(1./self.linked_to.width, 1./self.linked_to.height)
+
+        self_anchor_at = self.anchor_at.copy()
+        self_anchor_at.scale(1./self.width, 1./self.height)
+
+        diff_x = self_anchor_at.x-linked_to_anchor_at.x
+        diff_y = self_anchor_at.y-linked_to_anchor_at.y
+
+        for polygon in  self.linked_to.polygons:
+            polygon = polygon.copy()
+            polygon.translate(diff_x, diff_y)
+            self.polygons.append(polygon)
+        self.fit_size_to_include_all()
+        self.forms = copy_value(self.linked_to.forms)
+
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)
         for polygon in self.polygons:

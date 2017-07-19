@@ -133,10 +133,12 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.custom_props_box = None
 
         self.point_group_shape_list_box = PointGroupShapeListBox(self.select_point_group_shape)
+        self.interior_pose_box = InteriorPoseBox(self.insert_time_slice)
 
         self.prop_grid = PropGrid()
         self.prop_grid.set_margin_left(10)
         self.prop_grid.set_margin_right(10)
+        self.prop_grid.set_margin_bottom(10)
 
         self.new_custom_prop_button = Gtk.Button("Add Custom Prop")
         self.new_custom_prop_button.connect("clicked", self.new_custom_prop_button_clicked)
@@ -166,7 +168,8 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.camera_shape_prop_box,
             self.document_shape_prop_box,
             self.custom_shape_prop_box,
-            self.curve_point_group_shape_prop_box
+            self.curve_point_group_shape_prop_box,
+            self.interior_pose_box
         )
         self.left_prop_box.pack_start(self.prop_grid, expand=False, fill=False, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
@@ -426,6 +429,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.custom_shape_prop_box.hide()
         self.new_custom_prop_button.hide()
         self.curve_point_group_shape_prop_box.hide()
+        self.interior_pose_box.hide()
 
         if shape != None:
             if self.custom_props_box:
@@ -503,6 +507,9 @@ class MasterEditor(Gtk.ApplicationWindow):
                     curve_shape.get_point_group_shapes_model())
                 self.point_group_shape_list_box.show()
 
+            if shape.has_poses():
+                self.interior_pose_box.set_shape(shape)
+                self.interior_pose_box.show()
         else:
             self.linked_to_hbox.hide()
             self.shape_form_prop_box.set_curve_shape(None)

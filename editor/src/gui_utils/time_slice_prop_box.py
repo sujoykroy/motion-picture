@@ -1,5 +1,6 @@
 from gi.repository import Gtk
 from name_value_combo_box import NameValueComboBox
+from image_combo_box import ImageComboBox
 from ..time_lines.time_change_types import *
 from ..commons import get_displayble_prop_name, Text
 from file_op import *
@@ -15,6 +16,7 @@ class TimeSlicePropBox(Gtk.Frame):
     VIDEO_FILE = 6
     IMAGE_FILE = 7
     DOCUMENT_FILE = 8
+    IMAGE_LIST = 9
 
     def __init__(self, draw_callback):
         Gtk.Frame.__init__(self)
@@ -40,8 +42,8 @@ class TimeSlicePropBox(Gtk.Frame):
         self.grid_row_count = 0
         self.add(self.grid)
 
-        self.add_editable_item("prop_data", "start_pose", self.LIST)
-        self.add_editable_item("prop_data", "end_pose", self.LIST)
+        self.add_editable_item("prop_data", "start_pose", self.IMAGE_LIST)
+        self.add_editable_item("prop_data", "end_pose", self.IMAGE_LIST)
         self.add_editable_item("prop_data", "pose", self.LIST)
         self.add_editable_item("prop_data", "timeline", self.LIST)
         self.add_editable_item("prop_data", "start_form", self.LIST)
@@ -55,6 +57,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "document_path", self.DOCUMENT_FILE)
         self.add_editable_item("prop_data", "time_line_name", self.TEXT)
         self.add_editable_item("prop_data", "camera", self.TEXT)
+        self.add_editable_item("prop_data", "shape", self.LIST)
 
         self.add_editable_item("attrib", "start_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "end_value", self.NUMBERS, syncable=True)
@@ -109,44 +112,30 @@ class TimeSlicePropBox(Gtk.Frame):
             else:
                 self.show_widgets(self.loop_widgets, False)
                 self.show_widgets(self.periodic_widgets, False)
+
         if widget is None:
             self.show_values(self.attrib_widgets, self.time_slice)
 
             prop_data = self.time_slice.prop_data
             if self.shape and prop_data:
-                if "start_pose" in prop_data:
-                    self.prop_data_widgets["start_pose"].build_and_set_model(sorted(self.shape.poses.keys()))
-                if "end_pose" in prop_data or "start_pose" in prop_data:
-                    self.prop_data_widgets["end_pose"].build_and_set_model(
-                        [""] + sorted(self.shape.poses.keys()))
-                if "pose" in prop_data:
-                    self.prop_data_widgets["pose"].build_and_set_model(
-                         [""] + sorted(self.shape.poses.keys()))
+                if "shape" in prop_data:
+                    widget = self.prop_data_widgets["shape"]
+                    widget.build_and_set_model(self.shape.get_shape_tree_list())
+                self.build_poses()
                 if "timeline" in prop_data:
                     timelines = sorted(self.shape.timelines.keys())
                     timelines.insert(0, "")
                     self.prop_data_widgets["timeline"].build_and_set_model(timelines)
+
                 if "start_form" in prop_data:
-                    self.prop_data_widgets["start_form"].build_and_set_model(
-                        [""] + sorted(self.shape.forms.keys()))
+                    widget = self.prop_data_widgets["start_form"]
+                    widget.build_and_set_model([[None, ""]] + self.shape.get_form_list())
+
                 if "end_form" in prop_data:
-                    self.prop_data_widgets["end_form"].build_and_set_model(
-                        [""] + sorted(self.shape.forms.keys()))
-            for key, widget in self.prop_data_widgets.items():
-                if not prop_data or key not in prop_data:
-                     widget.hide()
-                     widget.label.hide()
-                else:
-                    widget.show()
-                    widget.label.show()
-                    if isinstance(widget, NameValueComboBox):
-                        widget.set_value(prop_data[key])
-                    elif isinstance(widget, FileSelect):
-                        widget.set_filename(prop_data[key])
-                    elif isinstance(widget, Gtk.Entry):
-                        widget.set_text(prop_data[key])
-                    elif isinstance(widget, Gtk.CheckButton):
-                        widget.set_active(prop_data[key])
+                    widget = self.prop_data_widgets["end_form"]
+                    widget.build_and_set_model([[None, ""]] + self.shape.get_form_list())
+
+            self.show_prop_data_values()
 
             if self.prop_name == "internal" and "timeline" in self.time_slice.prop_data:
                 widget = self.prop_data_widgets["camera"]
@@ -156,6 +145,43 @@ class TimeSlicePropBox(Gtk.Frame):
                 widget = self.prop_data_widgets["end_pose"]
                 widget.show()
                 widget.label.show()
+        elif widget.item_name == "shape":
+            self.build_poses()
+            self.show_prop_data_values()
+
+    def build_poses(self):
+        prop_data = self.time_slice.prop_data
+        if "start_pose" in prop_data:
+            widget = self.prop_data_widgets["start_pose"]
+            widget.build_and_set_model(self.shape.get_pose_list(prop_data.get("shape")))
+
+        if "end_pose" in prop_data or "start_pose" in prop_data:
+            widget = self.prop_data_widgets["end_pose"]
+            widget.build_and_set_model(self.shape.get_pose_list(prop_data.get("shape")))
+
+        if "pose" in prop_data:
+            widget = self.prop_data_widgets["pose"]
+            widget.build_and_set_model(self.shape.get_pose_list(prop_data.get("shape")))
+
+    def show_prop_data_values(self):
+        prop_data = self.time_slice.prop_data
+        for key, widget in self.prop_data_widgets.items():
+            if not prop_data or key not in prop_data:
+                 widget.hide()
+                 widget.label.hide()
+            else:
+                widget.show()
+                widget.label.show()
+                if isinstance(widget, NameValueComboBox):
+                    widget.set_value(prop_data[key])
+                elif isinstance(widget, ImageComboBox):
+                    widget.set_value(prop_data[key])
+                elif isinstance(widget, FileSelect):
+                    widget.set_filename(prop_data[key])
+                elif isinstance(widget, Gtk.Entry):
+                    widget.set_text(prop_data[key])
+                elif isinstance(widget, Gtk.CheckButton):
+                    widget.set_active(prop_data[key])
 
     def show_widgets(self, widgets, visible):
         for key, widget in widgets.items():
@@ -217,6 +243,10 @@ class TimeSlicePropBox(Gtk.Frame):
             item_widget = checkbox
         elif item_type == self.LIST:
             combobox = NameValueComboBox()
+            combobox.connect("changed", self.item_widget_changed)
+            item_widget = combobox
+        elif item_type == self.IMAGE_LIST:
+            combobox = ImageComboBox()
             combobox.connect("changed", self.item_widget_changed)
             item_widget = combobox
         elif item_type == self.TEXT:
@@ -329,6 +359,8 @@ class TimeSlicePropBox(Gtk.Frame):
         elif isinstance(widget, Gtk.CheckButton):
             value = widget.get_active()
         elif isinstance(widget, NameValueComboBox):
+            value = widget.get_value()
+        elif isinstance(widget, ImageComboBox):
             value = widget.get_value()
         elif isinstance(widget, FileSelect):
             value = widget.get_filename()

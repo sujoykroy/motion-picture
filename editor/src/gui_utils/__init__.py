@@ -36,3 +36,4 @@ from prop_grid import PropGrid
 from image_combo_box import ImageComboBox
 
 from point_group_shape_list_box import PointGroupShapeListBox
+from interior_pose_box import InteriorPoseBox

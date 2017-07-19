@@ -119,10 +119,12 @@ class MultiShape(Shape):
 
     def get_shape_tree_list(self, prefix=""):
         items = []
+        if not prefix:
+            items.append(None)
         for shape in self.shapes:
-            item_path = prefix+"."+shape.get_name()
+            item_path = prefix+shape.get_name()
             if isinstance(shape, MultiShape):
-                items.extend(shape.get_shape_tree_list(item_path))
+                items.extend(shape.get_shape_tree_list(item_path+"."))
             else:
                 items.append(item_path)
         return items
