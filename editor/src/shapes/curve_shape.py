@@ -50,9 +50,9 @@ class CurveShape(Shape, Mirror):
             self.form_pixbufs[form_name] = pixbuf
         return self.form_pixbufs[form_name]
 
-    def delete_pose_pixbuf(self, pose_name):
-        if pose_name in self.pose_pixbufs:
-            del self.pose_pixbufs[pose_name]
+    def delete_form_pixbuf(self, form_name):
+        if form_name in self.form_pixbufs:
+            del self.form_pixbufs[form_name]
 
     def get_interior_shapes(self):
         return self.point_group_shapes
@@ -166,11 +166,13 @@ class CurveShape(Shape, Mirror):
         form = self.get_form_raw()
         form.set_name(form_name)
         self.forms[form_name] = form
+        self.delete_form_pixbuf(form_name)
         return form_name
 
     def delete_form(self, form_name):
         if form_name in self.forms:
             del self.forms[form_name]
+        self.delete_form_pixbuf(form_name)
 
     def set_form_raw(self, form):
         diff_width = form.width - self.width

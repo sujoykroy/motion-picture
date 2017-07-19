@@ -314,6 +314,7 @@ class MultiShape(Shape):
                     break
 
         self.poses[pose_name] = self.get_pose_raw()
+        self.delete_pose_pixbuf(pose_name)
         return pose_name
 
     def get_pose_by_name(self, pose):
