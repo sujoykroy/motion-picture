@@ -62,6 +62,9 @@ class Shape(object):
     def can_change_anchor(self):
         return True
 
+    def has_poses(self):
+        return False
+
     def init_locked_shapes(self):
         if self.locked_shapes is None:
             self.locked_shapes = ShapeList()

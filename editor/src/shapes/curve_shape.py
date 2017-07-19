@@ -38,9 +38,27 @@ class CurveShape(Shape, Mirror):
         self.show_points = True
         self.point_group_shapes = ShapeList()
         self.baked_points = None
+        self.form_pixbufs = dict()
+
+    def get_form_pixbuf(self, form_name):
+        if form_name not in self.form_pixbufs:
+            curve_shape = self.copy()
+            curve_shape.set_form_raw(self.get_form_by_name(form_name))
+            curve_shape.reset_transformations()
+            curve_shape.parent_shape = None
+            pixbuf = curve_shape.get_pixbuf(64, 64)
+            self.form_pixbufs[form_name] = pixbuf
+        return self.form_pixbufs[form_name]
+
+    def delete_pose_pixbuf(self, pose_name):
+        if pose_name in self.pose_pixbufs:
+            del self.pose_pixbufs[pose_name]
 
     def get_interior_shapes(self):
         return self.point_group_shapes
+
+    def has_poses(self):
+        return True
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -197,14 +215,22 @@ class CurveShape(Shape, Mirror):
         form = self.forms[form_name]
         self.set_form_raw(form)
 
+    #wrapper around set_form
+    def set_pose(self, pose_name):
+        self.set_form(pose_name)
+
     def set_form_name(self, form_name):
         self.set_form(form_name)
 
     def get_form_list(self):
         forms = []
         for form_name in sorted(self.forms.keys()):
-            forms.append(CurveFormRenderer(self, form_name))
+            forms.append([self.get_form_pixbuf(form_name), form_name])
         return forms
+
+    #wrapper around get_form_list
+    def get_pose_list(self, interior_shape=None):
+        return self.get_form_list()
 
     def update_forms_for_point_group(self, point_group_shape, old_translation, old_anchor_at):
         translation_shift = point_group_shape.translation.diff(old_translation)
@@ -221,6 +247,16 @@ class CurveShape(Shape, Mirror):
             prop_dict["anchor_at"].translate(anchor_at_shift.x, anchor_at_shift.y)
             prop_dict["width"] = point_group_shape.get_width()
             prop_dict["height"] = point_group_shape.get_height()
+
+    #wrapper around form transition
+    def set_pose_transition(self, start_pose, end_pose, value):
+        prop_data = dict(start_form=start_pose, end_form=end_pose)
+        self.set_prop_value("internal", value, prop_data)
+
+    #wrapper around form transition
+    def set_pose_transition(self, start_pose, end_pose, value):
+        prop_data = dict(start_form=start_pose, end_form=end_pose)
+        self.set_prop_value("internal", value, prop_data)
 
     def set_prop_value(self, prop_name, value, prop_data=None):
         if prop_name == "internal":
@@ -346,7 +382,7 @@ class CurveShape(Shape, Mirror):
                 point_group_shape.build_locked_to()
         self.update_locked_curve_points()
 
-    def copy(self, copy_name=False, deep_copy=False):
+    def copy(self, copy_name=False, deep_copy=False, form=None):
         newob = CurveShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
                             copy_value(self.fill_color), self.width, self.height)
         self.copy_into(newob, copy_name)

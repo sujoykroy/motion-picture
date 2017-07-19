@@ -93,9 +93,39 @@ class MultiShape(Shape):
         self.pose = None
         self.imported_from = None
         self.imported_anchor_at = None
+        self.pose_pixbufs = dict()
+
+    def get_pose_pixbuf(self, pose_name):
+        if pose_name not in self.pose_pixbufs:
+            multi_shape = self.copy(
+                    deep_copy=True, copy_name=True, copy_pixbufs=False,
+                    copy_poses=False, copy_timelines=False)
+            multi_shape.set_pose_raw(self.get_pose_by_name(pose_name))
+            multi_shape.reset_transformations()
+            multi_shape.parent_shape = None
+            pixbuf = multi_shape.get_pixbuf(64, 64)
+            self.pose_pixbufs[pose_name] = pixbuf
+        return self.pose_pixbufs[pose_name]
+
+    def delete_pose_pixbuf(self, pose_name):
+        if pose_name in self.pose_pixbufs:
+            del self.pose_pixbufs[pose_name]
 
     def get_interior_shapes(self):
         return self.shapes
+
+    def has_poses(self):
+        return True
+
+    def get_shape_tree_list(self, prefix=""):
+        items = []
+        for shape in self.shapes:
+            item_path = prefix+"."+shape.get_name()
+            if isinstance(shape, MultiShape):
+                items.extend(shape.get_shape_tree_list(item_path))
+            else:
+                items.append(item_path)
+        return items
 
     def copy_data_from_linked(self):
         if not self.linked_to: return
@@ -214,7 +244,9 @@ class MultiShape(Shape):
         prop_names.append("pose")
         return prop_names
 
-    def copy(self, copy_name=False, copy_shapes=True, deep_copy=False):
+    def copy(self, copy_name=False, copy_shapes=True,
+                                    deep_copy=False, copy_pixbufs=True,
+                                    copy_poses=True, copy_timelines=True):
         newob = MultiShape(
             anchor_at=self.anchor_at.copy(), width=self.width, height=self.height)
         Shape.copy_into(self, newob, copy_name=copy_name, all_fields=deep_copy)
@@ -225,9 +257,11 @@ class MultiShape(Shape):
                 newob.shapes.add(child_shape)
             newob.build_interior_locked_to()
         if deep_copy:
-            newob.poses = copy_dict(self.poses)
-            for key, timeline in self.timelines.items():
-                newob.timelines[key] = timeline.copy(newob)
+            if copy_poses:
+                newob.poses = copy_dict(self.poses)
+            if copy_timelines:
+                for key, timeline in self.timelines.items():
+                    newob.timelines[key] = timeline.copy(newob)
         newob.masked = self.masked
         if self.custom_props:
             newob.custom_props = self.custom_props.copy()
@@ -306,6 +340,7 @@ class MultiShape(Shape):
 
     def delete_pose(self, pose_name):
         del self.poses[pose_name]
+        self.delete_pose_pixbuf(pose_name)
 
     def set_pose(self, pose_name):
         if pose_name not in self.poses: return
@@ -360,11 +395,14 @@ class MultiShape(Shape):
             shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.readjust_sizes()
 
-    def get_pose_list(self):
+    def get_pose_list(self, interior_shape=None):
+        if interior_shape:
+            shape = self.get_interior_shape(interior_shape)
+            if shape:
+                return shape.get_pose_list()
         poses = [[None, ""]]
         for pose_name in sorted(self.poses.keys()):
-            pose = MultiShapePoseRenderer(self, pose_name)
-            poses.append(pose)
+            poses.append([self.get_pose_pixbuf(pose_name), pose_name])
         return poses
 
     def get_new_timeline(self, time_line_class):
@@ -461,7 +499,14 @@ class MultiShape(Shape):
                 timeline = self.timelines[timeline_name]
                 timeline.move_to(timeline.duration*value)
             return
-        if prop_name == "internal":
+        if prop_name == "internal" or prop_name.startswith("pose_"):
+            shape_name = prop_data.get("shape")
+            if shape_name:
+                shape = self.get_interior_shape(shape_name)
+                if not shape:
+                    shape = self
+            else:
+                shape = self
             if prop_data["type"] == "pose":
                 start_pose = prop_data.get("start_pose")
                 if start_pose is None:
@@ -469,10 +514,12 @@ class MultiShape(Shape):
                     end_pose = prop_data.get("end_pose_raw")
                 else:
                     end_pose = prop_data.get("end_pose")
-                if end_pose:
-                    self.set_pose_transition(start_pose, end_pose, value)
-                else:
-                    self.set_pose(start_pose)
+                if shape.has_poses():
+                    if end_pose:
+                        shape.set_pose_transition(start_pose, end_pose, value)
+                    else:
+                        shape.set_pose(start_pose)
+
             elif prop_data["type"] == "timeline":
                 if "pose" in prop_data:
                     pose = prop_data["pose"]
@@ -701,7 +748,6 @@ class MultiShape(Shape):
                 abs_anchor_at.y = 2*self.anchor_at.y - abs_anchor_at.y
             shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.readjust_sizes()
-
 
     def save_shape_positions_with_order(self):
         positions = OrderedDict()
