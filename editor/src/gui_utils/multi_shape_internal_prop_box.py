@@ -157,7 +157,8 @@ class MultiShapeInternalPropBox(Gtk.VBox):
     def rename_pose_button_clicked(self, widget):
         pose_name = self.poses_combo_box.get_value()
         dialog = TextInputDialog(self.parent_window,
-                "Rename pose", "Rename the pose [{0}] to, -".format(pose_name))
+                "Rename pose", "Rename the pose [{0}] to, -".format(pose_name),
+                input_text=pose_name)
         if dialog.run() == Gtk.ResponseType.OK:
             new_pose_name = dialog.get_input_text().strip()
             if new_pose_name and self.multi_shape.rename_pose(pose_name, new_pose_name):

@@ -93,7 +93,8 @@ class ShapeFormPropBox(object):
     def rename_form_button_clicked(self, widget):
         form_name = self.forms_combo_box.get_value()
         dialog = TextInputDialog(self.parent_window,
-                "Rename form", "Rename the form [{0}] to, -".format(form_name))
+                "Rename form", "Rename the form [{0}] to, -".format(form_name),
+                input_text=form_name)
         if dialog.run() == Gtk.ResponseType.OK:
             new_form_name = dialog.get_input_text().strip()
             if new_form_name and self.curve_shape.rename_form(form_name, new_form_name):

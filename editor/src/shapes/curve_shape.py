@@ -330,10 +330,11 @@ class CurveShape(Shape, Mirror):
             Shape.set_prop_value(self, prop_name, value, prop_data)
 
     def rename_form(self, old_form, new_form):
-        if new_form in self.forms: return
+        if new_form in self.forms: return False
         self.forms[new_form] = self.forms[old_form]
         self.forms[new_form].set_name(new_form)
         del self.forms[old_form]
+        return True
 
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)
