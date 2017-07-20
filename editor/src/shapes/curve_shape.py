@@ -109,23 +109,39 @@ class CurveShape(Shape, Mirror):
         super(CurveShape, self).copy_data_from_linked()
 
         if not self.linked_to: return
-        del self.curves[:]
 
-        linked_to_anchor_at = self.linked_to.anchor_at.copy()
-        linked_to_anchor_at.scale(1./self.linked_to.width, 1./self.linked_to.height)
-
-        self_anchor_at = self.anchor_at.copy()
-        self_anchor_at.scale(1./self.width, 1./self.height)
-
-        diff_x = self_anchor_at.x-linked_to_anchor_at.x
-        diff_y = self_anchor_at.y-linked_to_anchor_at.y
-
-        for curve in  self.linked_to.curves:
-            curve = curve.copy()
-            curve.translate(diff_x, diff_y)
-            self.curves.append(curve)
-        self.fit_size_to_include_all()
         self.forms = copy_value(self.linked_to.forms)
+        self.form_pixbufs.clear()
+        del self.curves[:]
+        self.point_group_shapes.clear()
+
+        if self.linked_to.point_group_shapes:
+            abs_anchor_at = self.get_abs_anchor_at()
+            self.anchor_at.copy_from(self.linked_to.anchor_at)
+            for curve in self.linked_to.curves:
+                self.curves.append(curve.copy())
+            for point_group_shape in self.linked_to.point_group_shapes:
+                point_group_shape = point_group_shape.copy(copy_name=True, deep_copy=True)
+                point_group_shape.set_curve_shape(self)
+                self.point_group_shapes.add(point_group_shape)
+            self.build_interior_locked_to()
+            self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+        else:
+            linked_to_anchor_at = self.linked_to.anchor_at.copy()
+            linked_to_anchor_at.scale(1./self.linked_to.width, 1./self.linked_to.height)
+
+            self_anchor_at = self.anchor_at.copy()
+            self_anchor_at.scale(1./self.width, 1./self.height)
+
+            diff_x = self_anchor_at.x-linked_to_anchor_at.x
+            diff_y = self_anchor_at.y-linked_to_anchor_at.y
+
+            for curve in  self.linked_to.curves:
+                curve = curve.copy()
+                curve.translate(diff_x, diff_y)
+                self.curves.append(curve)
+
+            self.fit_size_to_include_all()
 
     def get_form_by_name(self, form):
         if form in self.forms:
@@ -430,9 +446,8 @@ class CurveShape(Shape, Mirror):
     def draw_path(self, ctx, for_fill=False):
         paths = []
         for curve in self.curves:
-            if not for_fill or (for_fill and curve.closed):
-                self._draw_curve(ctx, curve)
-                paths.append(ctx.copy_path())
+            self._draw_curve(ctx, curve)
+            paths.append(ctx.copy_path())
         if self.mirror != 0:
             scales, rotations = self.get_scales_n_rotations()
 
@@ -553,24 +568,42 @@ class CurveShape(Shape, Mirror):
                 return True
             else:
                 return False
-        bezier_point = prev_curve.bezier_points[bezier_point_index]
-        new_curve = Curve(origin=bezier_point.dest.copy(),
-                          bezier_points=prev_curve.bezier_points[bezier_point_index+1:])
-        prev_curve.remove_bezier_point_indices(bezier_point_index+1, len(prev_curve.bezier_points))
-        prev_curve.closed = False
+        bezier_points_count = len(prev_curve.bezier_points)
 
-        self.curves.insert(curve_index+1, new_curve)
+        if prev_curve.closed:
+            prev_curve.closed = False
+            prev_curve.add_bezier_points(prev_curve.bezier_points[:bezier_point_index+1])
+            prev_curve.remove_bezier_point_indices(0, bezier_point_index)
+            prev_curve.origin.copy_from(prev_curve.bezier_points[0].dest)
+            prev_curve.remove_bezier_point_index(0)
 
-        for point_group_shape in self.point_group_shapes:
-            curve_point_group = point_group_shape.curve_point_group
-            curve_point_group.shift(
-                    curve_index=curve_index,
-                    from_point_index=bezier_point_index+1,
-                    curve_index_shift=1)
-            curve_point_group.shift(
-                    curve_index=curve_index+1,
-                    from_point_index=bezier_point_index+1,
-                    point_index_shift=-bezier_point_index-1)
+            for point_group_shape in self.point_group_shapes:
+                curve_point_group = point_group_shape.curve_point_group
+                curve_point_group.shift(
+                        curve_index=curve_index,
+                        from_point_index=0, to_point_index=bezier_point_index+1,
+                        point_index_shift=bezier_points_count)
+                curve_point_group.shift(
+                        curve_index=curve_index,
+                        from_point_index=0,
+                        point_index_shift=-bezier_point_index-1)
+        else:
+            bezier_point = prev_curve.bezier_points[bezier_point_index]
+            new_curve = Curve(origin=bezier_point.dest.copy(),
+                              bezier_points=prev_curve.bezier_points[bezier_point_index+1:])
+            prev_curve.remove_bezier_point_indices(bezier_point_index+1, len(prev_curve.bezier_points))
+            self.curves.insert(curve_index+1, new_curve)
+
+            for point_group_shape in self.point_group_shapes:
+                curve_point_group = point_group_shape.curve_point_group
+                curve_point_group.shift(
+                        curve_index=curve_index,
+                        from_point_index=bezier_point_index+1,
+                        curve_index_shift=1)
+                curve_point_group.shift(
+                        curve_index=curve_index+1,
+                        from_point_index=bezier_point_index+1,
+                        point_index_shift=-bezier_point_index-1)
 
         return True
 
@@ -654,7 +687,7 @@ class CurveShape(Shape, Mirror):
             point_group_shape = self.point_group_shapes.get_at_index(i)
             point_group = point_group_shape.curve_point_group
             if len(point_group.points)<1:
-                self.point_group_shapes.remove_at_index(i)
+                self.point_group_shapes.remove(point_group_shape)
             else:
                 i += 1
 

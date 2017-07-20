@@ -325,11 +325,11 @@ class ShapeManager(object):
         if self.color_editor:
             self.color_editor.draw(ctx)
 
-        for guide in self.guides:
-            ctx.save()
-            guide.draw(ctx, self.out_width, self.out_height)
-            ctx.restore()
-
+        if not EditingChoice.HIDE_GUIDES:
+            for guide in self.guides:
+                ctx.save()
+                guide.draw(ctx, self.out_width, self.out_height)
+                ctx.restore()
 
     def zoom(self, scale, point, out_width, out_height):
         scale = 1. + scale*.1
@@ -649,7 +649,7 @@ class ShapeManager(object):
             self.selection_box.move_to(shape_point.x, shape_point.y)
             return
 
-        if not EditingChoice.LOCK_GUIDES:
+        if not EditingChoice.LOCK_GUIDES and not EditingChoice.HIDE_GUIDES:
             for guide in self.guides:
                 if guide.is_within(doc_point):
                     self.selected_guide = guide

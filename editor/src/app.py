@@ -427,6 +427,12 @@ class ApplicationWindow(MasterEditor):
         EditingChoice.LOCK_GUIDES = parameter.get_boolean()
         change_action_tool_buttons(action)
 
+    def hide_guides(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.HIDE_GUIDES = parameter.get_boolean()
+        change_action_tool_buttons(action)
+        self.redraw()
+
     def hide_control_points(self, action, parameter):
         action.set_state(parameter)
         EditingChoice.HIDE_CONTROL_POINTS = parameter.get_boolean()

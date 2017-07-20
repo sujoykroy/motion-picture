@@ -167,7 +167,9 @@ class CurvePointGroupShape(RectangleShape):
                 point = locked_to_shape.reverse_transform_point(point)
                 locked_to_shape = locked_to_shape.locked_to_shape
             point.scale(curve_sx, curve_sy)
-            curve_point.get_point(self.parent_shape.curves).copy_from(point)
+            orig_point = curve_point.get_point(self.parent_shape.curves)
+            if orig_point:
+                orig_point.copy_from(point)
             curve_point.update_original(point, self.parent_shape.curves)
 
         if update_locked_shape:

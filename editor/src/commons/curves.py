@@ -496,6 +496,24 @@ class PseudoBezierPoints(object):
         self.pseudo_points = dict()
 
     def __getitem__(self, index):
+        if isinstance(index, slice):
+            if index.start is None:
+                start_i = 0
+            else:
+                start_i = index.start
+            if index.stop is None:
+                stop_i = len(self)
+            else:
+                stop_i = index.stop
+
+            if index.step is None:
+                if start_i<stop_i:
+                    step_i = 1
+                else:
+                    step_i = -1
+            else:
+                step_i = inde.step
+            return [self[i] for i in xrange(start_i, stop_i, step_i)]
         if index<0:
             index += len(self)
         if index>=len(self):
@@ -559,6 +577,11 @@ class Curve(NaturalCurve):
         newob = Curve(self.bezier_points[-1].dest.copy(), closed=self.closed)
         newob.all_points = self.all_points[::-1].copy()
         return newob
+
+    def append_curve(self, other):
+        if self.closed or other.closed:
+            return
+        self.all_points = self.all_points + other.all_points[1:]
 
     def copy_from(self, other_curve):
         ml = min(self.all_points.shape[0], other_curve.all_points.shape[0])
@@ -739,11 +762,13 @@ class CurvePointGroup(object):
         return elm
 
     def shift(self, curve_index, from_point_index=0,
-             point_index_shift=0, curve_index_shift=0):
+             point_index_shift=0, curve_index_shift=0, to_point_index=-1):
         for point in self.points:
             if point.curve_index != curve_index:
                 continue
             if point.point_index<from_point_index:
+                continue
+            if to_point_index>=0 and point.point_index>=to_point_index:
                 continue
             point.point_index += point_index_shift
             point.curve_index += curve_index_shift

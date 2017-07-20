@@ -165,6 +165,8 @@ m.add(path="Edit/Preferences/Lock Movement/Y", icon="y_only_movement", desc="Mov
       action_name="win.lock_xy_movement", action_state="y", accel="<Control>e")
 m.add(path="Edit/Preferences/Lock Guides", icon="lock_guides",
       action_name="win.lock_guides", action_state=False)
+m.add(path="Edit/Preferences/Hide Guides", icon="hide_guides",
+      action_name="win.hide_guides", action_state=False)
 m.add(path="Edit/Preferences/Hide Control Points", icon="hide_control_points",
       action_name="win.hide_control_points", action_state=False, icon_scale=2.)
 m.add(path="Edit/Preferences/Show All Time Lines", icon="show_all_time_lines",
