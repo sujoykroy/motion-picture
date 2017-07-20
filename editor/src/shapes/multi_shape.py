@@ -14,6 +14,7 @@ from camera_shape import CameraShape
 from threed_shape import ThreeDShape
 from document_shape import DocumentShape
 from custom_shape import CustomShape
+from curve_joiner_shape import CurveJoinerShape
 from curves_form import CurvesForm
 from xml.etree.ElementTree import Element as XmlElement
 from custom_props import *
@@ -639,7 +640,9 @@ class MultiShape(Shape):
             if isinstance(shape, CameraShape) and \
                 (no_camera or (exclude_camera_list and shape in exclude_camera_list)):
                 continue
-            if isinstance(shape, MultiShape) or isinstance(shape, DocumentShape):
+            if isinstance(shape, CurveJoinerShape):
+                shape.draw(ctx, root_shape=root_shape, fixed_border=fixed_border)
+            elif isinstance(shape, MultiShape) or isinstance(shape, DocumentShape):
                 shape.draw(ctx,
                         drawing_size = drawing_size, fixed_border=fixed_border,
                         no_camera=no_camera, exclude_camera_list=exclude_camera_list,

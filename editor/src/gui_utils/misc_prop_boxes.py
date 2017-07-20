@@ -308,3 +308,16 @@ class CustomPropsBox(ShapePropBox):
 
     def edit_button_clicked(self, widget, prop_name):
         self.edit_callback(prop_name)
+
+class CurveJoinerShapePropBox(ShapePropBox):
+    def __init__(self, parent_window, draw_callback, shape_name_checker, insert_time_slice_callback):
+        ShapePropBox.__init__(self, parent_window, draw_callback,
+                                shape_name_checker, insert_time_slice_callback)
+        self.add_prop("name", PROP_TYPE_NAME_ENTRY)
+        self.add_prop("curve_1", PROP_TYPE_TEXT)
+        self.add_prop("curve_2", PROP_TYPE_TEXT)
+        self.add_prop("border_width", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
+        self.add_prop("border_dash", PROP_TYPE_TEXT, None, can_insert_slice=False)
+        self.add_prop("border_color", PROP_TYPE_COLOR, None)
+        self.add_prop("fill_color", PROP_TYPE_COLOR, None)

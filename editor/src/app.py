@@ -218,6 +218,10 @@ class ApplicationWindow(MasterEditor):
             if self.shape_manager.create_custom_shape(filename):
                 self.rebuild_tree_view()
                 self.redraw()
+        elif shape_type == "curve_joiner":
+            if self.shape_manager.create_curve_joiner_shape():
+                self.rebuild_tree_view()
+                self.redraw()
         else:
             shape_creation_is_done = False
             self.set_shape_creation_mode(shape_type)

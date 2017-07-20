@@ -18,6 +18,7 @@ from document_shape import DocumentShape
 from custom_shape import CustomShape
 from edit_shapes import *
 from curve_point_group_shape import CurvePointGroupShape
+from curve_joiner_shape import CurveJoinerShape
 
 def get_hierarchy_names(shape):
     names = [shape.get_name()]

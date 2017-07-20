@@ -97,6 +97,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         left_prop_box_container = Gtk.ScrolledWindow()
         left_prop_box_container.add_with_viewport(self.left_prop_box)
 
+        self.curve_joiner_shape_prop_box = CurveJoinerShapePropBox(
+                    self, self.shape_prop_changed, self, self.insert_time_slice)
         self.common_shape_prop_box = CommonShapePropBox(
                     self, self.shape_prop_changed, self, self.insert_time_slice)
         self.rectangle_shape_prop_box = RectangleShapePropBox(
@@ -152,6 +154,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.linked_to_hbox.pack_start(self.linked_to_label, expand=False, fill=False, padding=10)
         self.prop_grid.add(self.linked_to_hbox)
         self.prop_grid.add_all(
+            self.curve_joiner_shape_prop_box,
             self.point_group_shape_list_box,
             self.common_shape_prop_box,
             self.rectangle_shape_prop_box,
@@ -411,6 +414,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.show_prop_of(None)
 
     def show_prop_of(self, shape):
+        self.curve_joiner_shape_prop_box.hide()
         self.common_shape_prop_box.hide()
         self.rectangle_shape_prop_box.hide()
         self.oval_shape_prop_box.hide()
@@ -441,6 +445,12 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.linked_to_hbox.show()
             else:
                 self.linked_to_hbox.hide()
+
+            if isinstance(shape, CurveJoinerShape):
+                self.curve_joiner_shape_prop_box.set_prop_object(shape)
+                self.curve_joiner_shape_prop_box.show()
+                return
+
             self.common_shape_prop_box.show()
             self.common_shape_prop_box.set_prop_object(shape)
 

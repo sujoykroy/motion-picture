@@ -592,6 +592,13 @@ class ShapeManager(object):
         self.add_new_shape(shape)
         return True
 
+    def create_curve_joiner_shape(self):
+        shape = CurveJoinerShape(anchor_at=Point(self.doc.width*.5, self.doc.height*.5),
+                   border_color=None, border_width=0, fill_color=None,
+                   width=1, height=1)
+        self.add_new_shape(shape)
+        return True
+
     def delete_shape_editor(self):
         if self.shape_editor is None: return
         self.point_group_shape_editor = None
