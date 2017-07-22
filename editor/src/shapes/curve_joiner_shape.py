@@ -47,11 +47,9 @@ class CurveJoinerShape(Shape):
         return ""
 
     def set_curve_1(self, value):
-        print value
         self.curve_shape_1 = self.parent_shape.get_interior_shape(value)
 
     def set_curve_2(self, value):
-        print value
         self.curve_shape_2 = self.parent_shape.get_interior_shape(value)
 
     def draw(self, ctx, fixed_border=True, root_shape=None):
@@ -66,7 +64,14 @@ class CurveJoinerShape(Shape):
         if self.curve_shape_2:
             ctx.save()
             self.curve_shape_2.pre_draw(ctx, root_shape=root_shape)
+            origin = self.curve_shape_2.curves[0].origin
+            ctx.line_to(origin.x, origin.y)
             self.curve_shape_2.draw_path(ctx, for_fill=True)
+            ctx.restore()
+            ctx.save()
+            self.curve_shape_1.pre_draw(ctx, root_shape=root_shape)
+            origin = self.curve_shape_1.curves[0].origin
+            ctx.line_to(origin.x, origin.y)
             ctx.restore()
             paths.append(ctx.copy_path())
 

@@ -340,8 +340,8 @@ class ShapeEditor(object):
         start_point = self.init_shape.transform_locked_shape_point(start_point)
         end_point = self.init_shape.transform_locked_shape_point(end_point)
         if self.selected_edit_boxes:
-            rel_start_point = self.init_shape.transform_point(start_point)
-            rel_end_point = self.init_shape.transform_point(end_point)
+            rel_start_point = self.init_shape.transform_locked_shape_point(start_point)
+            rel_end_point = self.init_shape.transform_locked_shape_point(end_point)
             rel_dpoint = rel_end_point.diff(rel_start_point)
 
             for edit_box in self.selected_edit_boxes:
@@ -439,8 +439,7 @@ class ShapeEditor(object):
                 init_abs_anchor_at = self.init_shape.get_abs_anchor_at()
                 self.shape.move_to(init_abs_anchor_at.x+diff_point.x, init_abs_anchor_at.y+diff_point.y)
 
-        if isinstance(self.shape, CurvePointGroupShape):
-            self.shape.update_curve_points()
+        self.shape.update_locked_shapes()
 
     def end_movement(self):
         self.edit_box_can_move = (len(self.selected_edit_boxes)>0)

@@ -67,7 +67,7 @@ class Shape(object):
 
     def init_locked_shapes(self):
         if self.locked_shapes is None:
-            self.locked_shapes = ShapeList()
+            self.locked_shapes = ShapeList(unique=False)
 
     def set_followed_upto(self, value, prop_data=None):
         self.followed_upto = value
@@ -147,14 +147,23 @@ class Shape(object):
         return None
 
     def get_interior_shape(self, shape_path):
+        shape = self
         if isinstance(shape_path, list):
             shape_names = shape_path
         else:
             shape_path = shape_path.strip()
-            shape_names = shape_path.split(".")
+            shape_path = shape_path.split("\\")
+            for i in xrange(len(shape_path)):
+                if shape_path[i] is '':
+                    shape = shape.parent_shape
+                else:
+                    shape_names = shape_path[i].split(".")
+                    break
+            if shape is None:
+                return None
         if not shape_names:
             return None
-        interior_shapes = self.get_interior_shapes()
+        interior_shapes = shape.get_interior_shapes()
         shape_name = shape_names[0]
         if not interior_shapes or not interior_shapes.contain(shape_name):
             return None
@@ -163,11 +172,13 @@ class Shape(object):
             return shape.get_interior_shape(shape_names[1:])
         return shape
 
-    def get_shape_ancestors(self, root_shape=None, lock=False):
+    def get_shape_ancestors(self, root_shape=None, lock=False, include_root=False):
         shapes = []
         shape = self
         while True:
             if shape == root_shape:
+                if include_root:
+                    shapes.insert(0, shape)
                 break
             shapes.insert(0, shape)
             if lock and shape.locked_to_shape:
@@ -179,11 +190,23 @@ class Shape(object):
         return shapes
 
     def get_shape_path(self, root_shape=None):
-        shapes = self.get_shape_ancestors(root_shape=root_shape)
+        shapes = self.get_shape_ancestors(root_shape=root_shape, lock=False, include_root=True)
         shape_names = []
+        ups = []
+        if shapes and root_shape and shapes[0] != root_shape:
+            rel_root_shape = root_shape
+            while rel_root_shape:
+                if rel_root_shape in shapes:
+                    root_shape_index = shapes.index(rel_root_shape)
+                    shapes = shapes[root_shape_index+1:]
+                    break
+                rel_root_shape = rel_root_shape.parent_shape
+                if rel_root_shape:
+                    ups.append("\\")
+        ups = "".join(ups)
         for shape in shapes:
             shape_names.append(shape.get_name())
-        return ".".join(shape_names)
+        return ups + (".".join(shape_names))
 
     def add_interior_shape(self, shape, shape_list, transform=True, lock=False):
         if shape_list.contain(shape): return
@@ -247,7 +270,7 @@ class Shape(object):
         return shape
 
     def build_locked_to(self):
-        if hasattr(self, "_locked_to"):
+        if hasattr(self, "_locked_to") and not self.locked_to_shape:
             self.set_locked_to(self._locked_to, direct=True)
             del self._locked_to
 
@@ -257,7 +280,6 @@ class Shape(object):
         if not self.parent_shape:
             return
         locked_to_shape = self.parent_shape.get_interior_shape(shape_name)
-
         if self.locked_to_shape:
             self.locked_to_shape.init_locked_shapes()
             self.locked_to_shape.remove_interior_shape(
@@ -275,6 +297,17 @@ class Shape(object):
         if self.locked_to_shape:
             return self.locked_to_shape.get_shape_path(self.parent_shape)
         return ""
+
+    def update_locked_shapes(self):
+        if self.locked_shapes:
+            for shape in self.locked_shapes:
+                shape.update_locked_shapes()
+
+    def replace_locked_to_shape(self, replacements):
+        if self.locked_to_shape and self.locked_to_shape in replacements:
+            locked_to_shape = replacements[self.locked_to_shape]
+            copied.locked_to_shape = locked_to_shape
+            locked_to_shape.locked_shapes.add(self)
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -852,10 +885,51 @@ class Shape(object):
     def transform_locked_shape_point(self, point, root_shape=None, exclude_last=True):
         if root_shape is None:
             root_shape = self.parent_shape
-        ancestors = self.get_shape_ancestors(root_shape=root_shape, lock=True)
+        ancestors = self.get_shape_ancestors(root_shape=root_shape, lock=True, include_root=True)
+        if ancestors and root_shape and root_shape != ancestors[0]:
+            rel_root_shape = root_shape
+            while rel_root_shape:
+                if rel_root_shape in ancestors:
+                    root_shape_index = ancestors.index(rel_root_shape)
+                    ancestors = ancestors[root_shape_index:]
+                    break
+                if rel_root_shape.locked_to_shape:
+                    rel_root_shape = rel_root_shape.locked_to_shape
+                else:
+                    rel_root_shape = rel_root_shape.parent_shape
+                if rel_root_shape:
+                    point = rel_root_shape.reverse_transform_point(point)
+
         if exclude_last:
             ancestors = ancestors[:-1]
-        for shape in ancestors:
+        for shape in ancestors[1:]:
+            point = shape.transform_point(point)
+        return point
+
+    def reverse_transform_locked_shape_point(self, point, root_shape=None, exclude_root=True):
+        if root_shape is None:
+            root_shape = self.parent_shape
+        ancestors = self.get_shape_ancestors(root_shape=root_shape, lock=True, include_root=True)
+        transformers = []
+        if ancestors and root_shape and root_shape != ancestors[0]:
+            rel_root_shape = root_shape
+            while rel_root_shape:
+                if rel_root_shape in ancestors:
+                    root_shape_index = ancestors.index(rel_root_shape)
+                    ancestors = ancestors[root_shape_index:]
+                    break
+                transformers.insert(0, rel_root_shape)
+                if rel_root_shape.locked_to_shape:
+                    rel_root_shape = rel_root_shape.locked_to_shape
+                else:
+                    rel_root_shape = rel_root_shape.parent_shape
+
+        #if exclude_root:
+        #    ancestors = ancestors[1:]
+
+        for shape in reversed(ancestors[1:]):
+            point = shape.reverse_transform_point(point)
+        for shape in transformers:
             point = shape.transform_point(point)
         return point
 

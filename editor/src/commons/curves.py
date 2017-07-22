@@ -174,8 +174,9 @@ class NaturalCurve(object):
             self.bezier_points[index].scale(sx, sy)
             self.update_bezier_point_index(index)
 
-    def draw_path(self, ctx):
-        ctx.new_path()
+    def draw_path(self, ctx, new_path=True):
+        if new_path:
+            ctx.new_path()
         ctx.move_to(self.origin.x, self.origin.y)
         for bezier_point in self.bezier_points:
             ctx.curve_to(
@@ -641,8 +642,9 @@ class Curve(NaturalCurve):
         self.all_points = numpy.multiply(self.all_points, (1./this_wh[0], 1./this_wh[1]))
         self.adjust_origin()
 
-    def draw_path(self, ctx):
-        ctx.new_path()
+    def draw_path(self, ctx, new_path=True):
+        if new_path:
+            ctx.new_path()
         ctx.move_to(self.all_points[0][0], self.all_points[0][1])
         for i in range(1, len(self.all_points), 3):
             ctx.curve_to(
@@ -651,6 +653,7 @@ class Curve(NaturalCurve):
                 self.all_points[i+2][0], self.all_points[i+2][1])
         if len(self.all_points) > 2 and self.closed:
             ctx.close_path()
+
 
 class CurvePoint(object):
     TAG_NAME="curve_point"
@@ -690,8 +693,11 @@ class CurvePoint(object):
 
     def update_original(self, point, curves):
         original_point = self.get_point(curves)
-        original_point.copy_from(point)
+        if original_point:
+            original_point.copy_from(point)
         if self.point_type == CurvePoint.POINT_TYPE_DEST:
+            if self.curve_index>=len(curves):
+                return
             curve = curves[self.curve_index]
             if curve.closed and self.point_index == len(curve.bezier_points)-1:
                 curve.origin.copy_from(point)
