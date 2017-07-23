@@ -153,6 +153,7 @@ class Shape(object):
         else:
             shape_path = shape_path.strip()
             shape_path = shape_path.split("\\")
+            shape_names = None
             for i in xrange(len(shape_path)):
                 if shape_path[i] is '':
                     shape = shape.parent_shape
@@ -198,13 +199,13 @@ class Shape(object):
             while rel_root_shape:
                 if rel_root_shape in shapes:
                     root_shape_index = shapes.index(rel_root_shape)
-                    shapes = shapes[root_shape_index+1:]
+                    shapes = shapes[root_shape_index:]
                     break
                 rel_root_shape = rel_root_shape.parent_shape
                 if rel_root_shape:
                     ups.append("\\")
         ups = "".join(ups)
-        for shape in shapes:
+        for shape in shapes[1:]:
             shape_names.append(shape.get_name())
         return ups + (".".join(shape_names))
 
@@ -212,13 +213,20 @@ class Shape(object):
         if shape_list.contain(shape): return
         if transform:
             shape_abs_anchor_at = shape.get_abs_anchor_at()
-
+            """
             if self.locked_to_shape:
                 rel_shape_abs_anchor_at = self.transform_locked_shape_point(
                     shape_abs_anchor_at, root_shape=shape.parent_shape)
                 rel_shape_abs_anchor_at = self.transform_point(rel_shape_abs_anchor_at)
             else:
                 rel_shape_abs_anchor_at = self.transform_point(shape_abs_anchor_at)
+            rel_shape_abs_anchor_at = self.transform_locked_shape_point(
+                            shape_abs_anchor_at, root_shape=shape.parent_shape)
+            """
+            rel_shape_abs_anchor_at = self.transform_locked_shape_point(
+                    shape_abs_anchor_at,
+                    root_shape=shape.get_active_parent_shape(),
+                    exclude_last=False)
             shape.move_to(rel_shape_abs_anchor_at.x, rel_shape_abs_anchor_at.y)
             #if self.get_angle() == 0:
             #    shape.set_angle(shape.get_angle()-self.get_angle())
@@ -236,15 +244,21 @@ class Shape(object):
 
         abs_outline = shape.get_abs_outline(0)
         shape_abs_anchor_at = shape.get_abs_anchor_at()
-        old_translation_point = shape.translation.copy()
-        new_translation_point = self.reverse_transform_point(old_translation_point)
-        angle = shape.get_angle()+self.get_angle()
+        #old_translation_point = shape.translation.copy()
+        #if lock:
+        #    new_translation_point = self.reverse_transform_locked_shape_point(
+        #        old_translation_point, root_shape=shape.get_active_parent_shape())
+        #else:
+        #    new_translation_point = self.reverse_transform_point(old_translation_point)
+        #angle = shape.get_angle()+self.get_angle()
 
-        point = self.reverse_transform_point(shape.get_abs_anchor_at())
         if lock:
+            abs_anchor_at = self.reverse_transform_locked_shape_point(
+                shape_abs_anchor_at, root_shape=shape.parent_shape)
             if self == shape.locked_to_shape:
                 shape.locked_to_shape = None
         else:
+            abs_anchor_at = self.reverse_transform_point(shape_abs_anchor_at)
             if self == shape.parent_shape:
                 shape.parent_shape = None
 
@@ -264,7 +278,7 @@ class Shape(object):
                     shape.prepend_pre_matrix(self.get_angle_post_scale_matrix())
                 else:
                     shape.set_angle(angle)
-        shape.move_to(point.x, point.y)
+        shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
         shape_list.remove(shape)
         return shape
@@ -297,6 +311,9 @@ class Shape(object):
         if self.locked_to_shape:
             return self.locked_to_shape.get_shape_path(self.parent_shape)
         return ""
+
+    def update_to_locked_shape(self):
+        pass
 
     def update_locked_shapes(self):
         if self.locked_to_shape:
@@ -888,6 +905,11 @@ class Shape(object):
         point.translate(self.anchor_at.x, self.anchor_at.y)
         return point
 
+    def get_active_parent_shape(self):
+        if self.locked_to_shape:
+            return self.locked_to_shape
+        return self.parent_shape
+
     def transform_locked_shape_point(self, point, root_shape=None, exclude_last=True):
         if root_shape is None:
             root_shape = self.parent_shape
@@ -910,7 +932,7 @@ class Shape(object):
             point = shape.transform_point(point)
         return point
 
-    def reverse_transform_locked_shape_point(self, point, root_shape=None, exclude_root=True):
+    def reverse_transform_locked_shape_point(self, point, root_shape=None):
         if root_shape is None:
             root_shape = self.parent_shape
         ancestors = self.get_shape_ancestors(root_shape=root_shape, lock=True, include_root=True)
@@ -927,9 +949,6 @@ class Shape(object):
                     rel_root_shape = rel_root_shape.locked_to_shape
                 else:
                     rel_root_shape = rel_root_shape.parent_shape
-
-        #if exclude_root:
-        #    ancestors = ancestors[1:]
 
         for shape in reversed(ancestors[1:]):
             point = shape.reverse_transform_point(point)
