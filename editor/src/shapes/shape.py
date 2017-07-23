@@ -299,8 +299,14 @@ class Shape(object):
         return ""
 
     def update_locked_shapes(self):
+        if self.locked_to_shape:
+            self.update_to_locked_shape()
         if self.locked_shapes:
             for shape in self.locked_shapes:
+                shape.update_locked_shapes()
+        interior_shapes = self.get_interior_shapes()
+        if interior_shapes:
+            for shape in interior_shapes:
                 shape.update_locked_shapes()
 
     def replace_locked_to_shape(self, replacements):
@@ -893,13 +899,11 @@ class Shape(object):
                     root_shape_index = ancestors.index(rel_root_shape)
                     ancestors = ancestors[root_shape_index:]
                     break
+                point = rel_root_shape.reverse_transform_point(point)
                 if rel_root_shape.locked_to_shape:
                     rel_root_shape = rel_root_shape.locked_to_shape
                 else:
                     rel_root_shape = rel_root_shape.parent_shape
-                if rel_root_shape:
-                    point = rel_root_shape.reverse_transform_point(point)
-
         if exclude_last:
             ancestors = ancestors[:-1]
         for shape in ancestors[1:]:
