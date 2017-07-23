@@ -1,13 +1,41 @@
 from shape import Shape
 from ..commons import Rect, copy_value, draw_fill, draw_stroke
 
+class JoinerItem(object):
+    def __init__(self, joiner_shape, curve_name):
+        if curve_name[0] == "-":
+            self.reversed = True
+            self.curve_name = curve_name[1:]
+        else:
+            self.reversed = False
+            self.curve_name = curve_name
+        self.curve_shape = joiner_shape.parent_shape.get_interior_shape(self.curve_name)
+
+    def draw_path(self, ctx, join, root_shape):
+       if self.curve_shape:
+            ctx.save()
+            self.curve_shape.pre_draw(ctx, root_shape=root_shape)
+            ctx.scale(self.curve_shape.width, self.curve_shape.height)
+            curve = self.curve_shape.curves[0]
+            if self.reversed:
+                if join:
+                    start_point = curve.bezier_points[-1].dest
+                    ctx.line_to(start_point.x, start_point.y)
+                curve.reverse_draw_path(ctx)
+            else:
+                if join:
+                    start_point = curve.origin
+                    ctx.line_to(start_point.x, start_point.y)
+                curve.draw_path(ctx, new_path=False)
+            ctx.restore()
+
 class CurveJoinerShape(Shape):
     TYPE_NAME = "curve_joiner"
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height):
         Shape.__init__(self, anchor_at, border_color, border_width, fill_color, width, width)
-        self.curve_shape_1 = None
-        self.curve_shape_2 = None
+        self.joiner_items = []
+        self.joined_names = ""
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -36,60 +64,34 @@ class CurveJoinerShape(Shape):
         self.copy_into(newob, copy_name, all_fields=deep_copy)
         return newob
 
-    def get_curve_1(self):
-        if self.curve_shape_1:
-            return self.curve_shape_1.get_name()
-        return "1"
-
-    def get_curve_2(self):
-        if self.curve_shape_2:
-            return self.curve_shape_2.get_name()
-        return ""
-
-    def set_curve_1(self, value):
-        self.curve_shape_1 = self.parent_shape.get_interior_shape(value)
-
-    def set_curve_2(self, value):
-        self.curve_shape_2 = self.parent_shape.get_interior_shape(value)
+    def set_joined_names(self, value):
+        self.joined_names = value
+        del self.joiner_items[:]
+        for name in value.split(","):
+            name = name.strip()
+            if not name:
+                continue
+            self.joiner_items.append(JoinerItem(self, name))
 
     def draw(self, ctx, fixed_border=True, root_shape=None):
-        paths = []
-        if self.curve_shape_1:
-            ctx.save()
-            self.curve_shape_1.pre_draw(ctx, root_shape=root_shape)
-            self.curve_shape_1.draw_path(ctx, for_fill=True)
-            ctx.restore()
-            paths.append(ctx.copy_path())
-
-        if self.curve_shape_2:
-            ctx.save()
-            self.curve_shape_2.pre_draw(ctx, root_shape=root_shape)
-            origin = self.curve_shape_2.curves[0].origin
-            ctx.line_to(origin.x, origin.y)
-            self.curve_shape_2.draw_path(ctx, for_fill=True)
-            ctx.restore()
-            ctx.save()
-            self.curve_shape_1.pre_draw(ctx, root_shape=root_shape)
-            origin = self.curve_shape_1.curves[0].origin
-            ctx.line_to(origin.x, origin.y)
-            ctx.restore()
-            paths.append(ctx.copy_path())
-
+        ctx.new_path()
+        join = False
+        for joiner_item in self.joiner_items:
+            joiner_item.draw_path(ctx, join, root_shape)
+            join = True
+        path = ctx.copy_path()
 
         if self.fill_color:
             ctx.save()
             ctx.new_path()
-            for path in paths:
-                ctx.append_path(path)
-            ctx.close_path()
+            ctx.append_path(path)
             ctx.restore()
             draw_fill(ctx, self.fill_color)
 
         if self.border_width>0 and self.border_color:
             ctx.save()
             ctx.new_path()
-            for path in paths:
-                ctx.append_path(path)
+            ctx.append_path(path)
             ctx.restore()
             draw_stroke(ctx, self.border_width, self.border_color)
 

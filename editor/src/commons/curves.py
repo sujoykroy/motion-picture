@@ -654,6 +654,16 @@ class Curve(NaturalCurve):
         if len(self.all_points) > 2 and self.closed:
             ctx.close_path()
 
+    def reverse_draw_path(self, ctx):
+        ctx.move_to(self.all_points[-3][0], self.all_points[-3][1])
+        for i in range(len(self.all_points)-1, 2,-1):
+            ctx.curve_to(
+                self.all_points[i][0], self.all_points[i][1],
+                self.all_points[i-1][0], self.all_points[i-1][1],
+                self.all_points[i-2][0], self.all_points[i-2][1])
+        if len(self.all_points) > 2 and self.closed:
+            ctx.close_path()
+
 
 class CurvePoint(object):
     TAG_NAME="curve_point"
