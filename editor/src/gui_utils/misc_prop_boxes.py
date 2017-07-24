@@ -315,6 +315,7 @@ class CurveJoinerShapePropBox(ShapePropBox):
                                 shape_name_checker, insert_time_slice_callback)
         self.add_prop("name", PROP_TYPE_NAME_ENTRY)
         self.add_prop("joined_names", PROP_TYPE_LONG_TEXT)
+        self.add_prop("show_ends", PROP_TYPE_CHECK_BUTTON)
         self.add_prop("border_width", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("border_dash", PROP_TYPE_TEXT, None, can_insert_slice=False)

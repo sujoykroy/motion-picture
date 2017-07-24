@@ -209,6 +209,8 @@ class MultiShape(Shape):
                 child_shape = DocumentShape.create_from_xml_element(shape_element)
             elif shape_type == CustomShape.TYPE_NAME:
                 child_shape = CustomShape.create_from_xml_element(shape_element)
+            elif shape_type == CurveJoinerShape.TYPE_NAME:
+                child_shape = CurveJoinerShape.create_from_xml_element(shape_element)
             if child_shape is None: continue
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)
@@ -240,6 +242,13 @@ class MultiShape(Shape):
     def build_interior_locked_to(self):
         for child_shape in self.shapes:
             child_shape.build_locked_to()
+
+    def perform_post_create_from_xml(self):
+        for shape in self.shapes:
+            if isinstance(shape, CurveJoinerShape):
+                shape.build_joiner_items()
+            elif isinstance(shape, MultiShape):
+                shape.perform_post_create_from_xml()
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -547,6 +556,8 @@ class MultiShape(Shape):
         for shape in self.shapes:
             if shape.locked_to_shape:
                 continue
+            if not shape.has_outline:
+                continue
             shape_outline = shape.get_abs_outline(0)
             if outline is None:
                 outline = shape_outline
@@ -560,6 +571,8 @@ class MultiShape(Shape):
 
         for shape in self.shapes:
             if shape.locked_to_shape:
+                continue
+            if not shape.has_outline:
                 continue
             shape_abs_anchor_at = shape.get_abs_anchor_at()
             shape_abs_anchor_at.translate(offset_x, offset_y)

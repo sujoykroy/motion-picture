@@ -642,10 +642,13 @@ class Curve(NaturalCurve):
         self.all_points = numpy.multiply(self.all_points, (1./this_wh[0], 1./this_wh[1]))
         self.adjust_origin()
 
-    def draw_path(self, ctx, new_path=True):
+    def draw_path(self, ctx, new_path=True, line_to=False):
         if new_path:
             ctx.new_path()
-        ctx.move_to(self.all_points[0][0], self.all_points[0][1])
+        if line_to:
+            ctx.line_to(self.all_points[0][0], self.all_points[0][1])
+        else:
+            ctx.move_to(self.all_points[0][0], self.all_points[0][1])
         for i in range(1, len(self.all_points), 3):
             ctx.curve_to(
                 self.all_points[i][0], self.all_points[i][1],
@@ -654,16 +657,21 @@ class Curve(NaturalCurve):
         if len(self.all_points) > 2 and self.closed:
             ctx.close_path()
 
-    def reverse_draw_path(self, ctx):
-        ctx.move_to(self.all_points[-3][0], self.all_points[-3][1])
-        for i in range(len(self.all_points)-1, 2,-1):
+    def reverse_draw_path(self, ctx, line_to=False):
+        if line_to:
+            ctx.line_to(self.all_points[-1][0], self.all_points[-1][1])
+        else:
+            ctx.move_to(self.all_points[-1][0], self.all_points[-1][1])
+        for i in range(len(self.all_points)-2, 1,-3):
+            c1 = self.all_points[i]
+            c2 = self.all_points[i-1]
+            ds = self.all_points[i-2]
             ctx.curve_to(
-                self.all_points[i][0], self.all_points[i][1],
-                self.all_points[i-1][0], self.all_points[i-1][1],
-                self.all_points[i-2][0], self.all_points[i-2][1])
+                c1[0], c1[1],
+                c2[0], c2[1],
+                ds[0], ds[1])
         if len(self.all_points) > 2 and self.closed:
             ctx.close_path()
-
 
 class CurvePoint(object):
     TAG_NAME="curve_point"

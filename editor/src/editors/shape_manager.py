@@ -205,6 +205,8 @@ class ShapeManager(object):
         for shape in self.shapes.reversed_list():
             if not shape.selectable:
                 continue
+            if not shape.has_outline:
+                continue
             if exclude_invisible and not shape.visible:
                 continue
             if isinstance(shape, MultiSelectionShape) and multi_select:
@@ -774,7 +776,8 @@ class ShapeManager(object):
             return
         if shape.parent_shape == self.multi_shape:
             self.delete_shape_editor()
-            self.shape_editor = ShapeEditor(shape)
+            if shape.has_outline:
+                self.shape_editor = ShapeEditor(shape)
             return True
         return False
 

@@ -49,6 +49,7 @@ class Shape(object):
         self.locked_to_shape = None
         self.locked_shapes = None
         self.selectable = True
+        self.has_outline = True
 
     def get_class_name(self):
         return self.__class__.__name__
