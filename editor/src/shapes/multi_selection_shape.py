@@ -1,12 +1,13 @@
 from multi_shape import MultiShape
 from ..commons.draw_utils import draw_rounded_rectangle
+from ..commons import Point
 from shape import Shape
 
 MULTI_SELECTION_SHAPE = "MULTI_SELECTION_SHAPE"
 
 class MultiSelectionShape(MultiShape):
     def __init__(self):
-        MultiShape.__init__(self)
+        MultiShape.__init__(self, anchor_at=Point(0., 0.))
         self._name = MULTI_SELECTION_SHAPE
         self.parent_list = dict()
 
@@ -23,9 +24,9 @@ class MultiSelectionShape(MultiShape):
             newob.parent_list[new_shape] = self.parent_list[shape]
         return newob
 
-    def add_shape(self, shape, resize=True):
+    def add_shape(self, shape, transform=True, resize=True):
         self.parent_list[shape] = shape.parent_shape
-        MultiShape.add_shape(self, shape, resize)
+        MultiShape.add_shape(self, shape, transform=transform, resize=resize)
 
     def remove_shape(self, shape, resize=True):
         MultiShape.remove_shape(self, shape, resize)

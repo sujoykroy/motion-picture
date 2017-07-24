@@ -500,6 +500,12 @@ class CurveShape(Shape, Mirror):
                 continue
             point_group_shape.shift_abs_anchor_at(shift)
 
+        if self.locked_shapes:
+            for shape in self.locked_shapes:
+                if shape.locked_to_shape:
+                    continue
+                shape.shift_abs_anchor_at(shift)
+
         self.baked_points = None
 
     def get_baked_point(self, frac, curve_index=0):

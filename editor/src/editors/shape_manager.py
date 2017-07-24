@@ -184,7 +184,7 @@ class ShapeManager(object):
 
     def add_shape(self, shape):
         if not isinstance(shape, MultiSelectionShape):
-            self.multi_shape.add_shape(shape)
+            self.multi_shape.add_shape(shape, transform=False, resize=True)
         shape.parent_shape = self.multi_shape
         self.shapes.add(shape)
 
@@ -497,10 +497,10 @@ class ShapeManager(object):
         if self.shape_creator:
             self.last_doc_point = doc_point.copy()
             #self.place_shape_at_zero_position(self.shape_creator.shape)
-            self.shape_creator.set_relative_to(self.multi_shape)
             if not self.multi_shape.shapes.contain(self.shape_creator.get_shape()):
                 self.current_task = ShapeAddTask(self.doc, self.multi_shape)
                 self.add_shape(self.shape_creator.get_shape())
+                self.shape_creator.set_relative_to(self.multi_shape)
                 #task.save(self.doc, self.shape_creator.shape)
             self.shape_creator.begin_movement(point)
         return True
@@ -719,12 +719,13 @@ class ShapeManager(object):
                     if not isinstance(self.shape_editor.shape, MultiSelectionShape):
                         old_shape = self.shape_editor.shape
                         multi_selection_shape = MultiSelectionShape()
-                        multi_selection_shape.be_like_shape(old_shape)
-                        self.place_shape_at_zero_position(multi_selection_shape)
+                        self.add_shape(multi_selection_shape)
+
+                        abs_anchor_at = old_shape.get_abs_anchor_at()
+                        #multi_selection_shape.be_like_shape(old_shape)
                         if old_shape != shape:
                             multi_selection_shape.add_shape(old_shape)
-
-                        self.add_shape(multi_selection_shape)
+                        #multi_selection_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
                         self.shape_editor = ShapeEditor(multi_selection_shape)
                     else:
                         multi_selection_shape = self.shape_editor.shape
@@ -1022,7 +1023,7 @@ class ShapeManager(object):
     def insert_point_in_shape_at(self, point):
         if not self.selected_shape_supports_point_insert(): return False
         shape = self.shape_editor.shape
-        point = shape.transform_point(point)
+        point = shape.transform_locked_shape_point(point, exclude_last=False)
         task = ShapeStateTask(self.doc, self.shape_editor.shape)
         if shape.insert_point_at(point):
             task.save(self.doc, shape)

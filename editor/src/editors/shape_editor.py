@@ -255,7 +255,7 @@ class ShapeEditor(object):
             point = edit_box.point.copy()
             if edit_box.is_percent:
                 point.scale(self.shape.width, self.shape.height)
-            point = self.shape.reverse_transform_point(point)
+            point = self.shape.reverse_transform_locked_shape_point(point)
             if rect.left<=point.x and point.x<=rect.left+rect.width and \
                rect.top<=point.y and point.y<=rect.top+rect.height:
                 self.selected_edit_boxes.append(edit_box)

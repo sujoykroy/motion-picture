@@ -35,7 +35,7 @@ class CurveShapeCreator(object):
 
     def set_relative_to(self, multi_shape):
         if self.new_shape:
-            self.shape.move_to(multi_shape.translation.x, multi_shape.translation.y)
+            self.shape.move_to(0, 0)
         for edit_box in self.edit_boxes:
             edit_box.parent_shape = multi_shape
         for edit_line in self.edit_lines:
@@ -52,16 +52,17 @@ class CurveShapeCreator(object):
     def _reverse_transform_point(self, point):
         point = point.copy()
         point.scale(self.shape.width, self.shape.height)
-        return self.shape.reverse_transform_point(point)
+        return self.shape.reverse_transform_locked_shape_point(point)
 
     def do_movement (self, start_point, end_point):
         if self.curve is None:
-            self.curve = Curve(origin=self.shape.transform_point(end_point))
+            self.curve = Curve(origin=self.shape.transform_locked_shape_point(
+                        end_point, exclude_last=False))
             self.shape.add_curve(self.curve)
             return
         if self.bezier_point is None:
             return
-        end_point = self.shape.transform_point(end_point)
+        end_point = self.shape.transform_locked_shape_point(end_point, exclude_last=False)
         end_point.scale(1./self.shape.width, 1./self.shape.height)
 
         if self.move_dest:

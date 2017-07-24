@@ -251,7 +251,7 @@ class Shape(object):
         #        old_translation_point, root_shape=shape.get_active_parent_shape())
         #else:
         #    new_translation_point = self.reverse_transform_point(old_translation_point)
-        #angle = shape.get_angle()+self.get_angle()
+        angle = shape.get_angle()+self.get_angle()
 
         if lock:
             abs_anchor_at = self.reverse_transform_locked_shape_point(
@@ -886,6 +886,11 @@ class Shape(object):
 
     def set_abs_anchor_at(self, point):
         self.move_to(point.x, point.y)
+
+    def shift_abs_anchor_at(self, shift):
+        abs_anchor_at = self.get_abs_anchor_at()
+        abs_anchor_at.translate(shift.x, shift.y)
+        self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
     def move_to(self, x, y):
         point = Point(x,y)

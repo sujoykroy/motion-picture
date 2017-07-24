@@ -11,7 +11,7 @@ class RectangleShapeCreator(object):
         self.edit_boxes.append(RectEditBox(Point(0, 0), width=5, height=5, is_percent = False))
 
     def set_relative_to(self, multi_shape):
-        self.shape.move_to(multi_shape.translation.x, multi_shape.translation.y)
+        self.shape.move_to(0, 0)
         for edit_box in self.edit_boxes:
             edit_box.parent_shape = multi_shape
 

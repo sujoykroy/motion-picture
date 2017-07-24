@@ -149,12 +149,6 @@ class CurvePointGroupShape(RectangleShape):
 
         self.update_curve_points()
 
-    def shift_abs_anchor_at(self, shift):
-        abs_anchor_at = self.get_abs_anchor_at()
-        abs_anchor_at.translate(shift.x, shift.y)
-        self.move_to(abs_anchor_at.x, abs_anchor_at.y)
-        #self.update_curve_points()
-
     def update_curve_points(self, update_locked_shape=True):
         curve_sx = 1./self.parent_shape.get_width()
         curve_sy = 1./self.parent_shape.get_height()
