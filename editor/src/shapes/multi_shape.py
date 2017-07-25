@@ -406,6 +406,7 @@ class MultiShape(Shape):
             abs_anchor_at.set_inbetween(start_rel_abs_anchor_at, end_rel_abs_anchor_at, value)
             abs_anchor_at.translate(anchor_at.x, anchor_at.y)
             shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
+        self.update_locked_shapes()
         self.readjust_sizes()
 
     def get_pose_list(self, interior_shape=None):

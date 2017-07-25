@@ -51,7 +51,8 @@ class CurvePointGroupShape(RectangleShape):
         point_group_elm = elm.find(CurvePointGroup.TAG_NAME)
         if not point_group_elm:
             return None
-        point_group = CurvePointGroup.create_from_xml_element(point_group_elm)
+        point_group = CurvePointGroup.create_from_xml_element(
+                point_group_elm, curve_shape.curves)
 
         arr = Shape.get_params_array_from_xml_element(elm)
         arr.append(float(elm.attrib.get("corner_radius", 0)))

@@ -687,6 +687,10 @@ class CurvePoint(object):
         self.point_type = point_type
         self.position = Point(0, 0)
 
+    def __repr__(self):
+        return "CurevePoint(curve_index={0}, point_index={1}, point_type={2}".format(
+            self.curve_index, self.point_index, self.point_type)
+
     def copy(self):
         newob = CurvePoint(self.curve_index, self.point_index, self.point_type)
         newob.position.copy_from(self.position)
@@ -751,6 +755,9 @@ class CurvePointGroup(object):
         self.points = []
         self.point_indices = dict()
 
+    def __repr__(self):
+        return "CurvePointGroup([{0}])".format(",\n".join(str(p) for p in self.points))
+
     def copy(self):
         newob = CurvePointGroup()
         for curve_point in self.points:
@@ -778,6 +785,16 @@ class CurvePointGroup(object):
         if curve_point.point_index in self.point_indices[curve_point.curve_index]:
             del self.point_indices[curve_point.curve_index][curve_point.point_index]
         return True
+
+    def remove_bezier_point_index(self, curve_index, point_index):
+        delete_points = []
+        for point in self.points:
+            if point.point_type == CurvePoint.POINT_TYPE_ORIGIN:
+                continue
+            if point.curve_index == curve_index and point_index == index:
+                delete_points.append(point)
+        for point in delete_points:
+            self.points.remove(point)
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -838,13 +855,16 @@ class CurvePointGroup(object):
                 curve.origin.copy_from(last_bezier_point.dest)
 
     @classmethod
-    def create_from_xml_element(cls, elm):
+    def create_from_xml_element(cls, elm, curves):
         point_group = cls()
         for point_elm in elm.findall(CurvePoint.TAG_NAME):
             point = CurvePoint.create_from_xml_element(point_elm)
+            if point.curve_index>=len(curves):
+                continue
+            curve = curves[point.curve_index]
+            if point.point_index>=len(curve.bezier_points):
+                continue
             if point:
                 point_group.add_point(point)
-        if len(point_group.points) < 1:
-            return None
         return point_group
 

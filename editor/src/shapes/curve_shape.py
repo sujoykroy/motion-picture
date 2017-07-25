@@ -599,18 +599,13 @@ class CurveShape(Shape, Mirror):
                               bezier_points=prev_curve.bezier_points[bezier_point_index+1:])
             prev_curve.remove_bezier_point_indices(bezier_point_index+1, len(prev_curve.bezier_points))
             self.curves.insert(curve_index+1, new_curve)
-
             for point_group_shape in self.point_group_shapes:
                 curve_point_group = point_group_shape.curve_point_group
                 curve_point_group.shift(
                         curve_index=curve_index,
                         from_point_index=bezier_point_index+1,
-                        curve_index_shift=1)
-                curve_point_group.shift(
-                        curve_index=curve_index+1,
-                        from_point_index=bezier_point_index+1,
+                        curve_index_shift=1,
                         point_index_shift=-bezier_point_index-1)
-
         return True
 
     def join_points(self, curve_index_1, is_start_1, curve_index_2, is_start_2):

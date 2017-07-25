@@ -1048,6 +1048,7 @@ class ShapeManager(object):
         if self.shape_editor.insert_break():
             task.save(self.doc, self.shape_editor.shape)
             self.shape_editor = ShapeEditor(self.shape_editor.shape)
+            self.delete_point_group_shape_editor()
             return True
         else:
             task.remove(self.doc)
