@@ -1,5 +1,5 @@
 from shape import Shape
-from ..commons import Rect, copy_value, draw_fill, draw_stroke, draw_oval
+from ..commons import Rect, copy_value, draw_fill, draw_stroke, draw_oval, Text
 import math
 from curve_shape import CurveShape
 
@@ -11,6 +11,12 @@ class JoinerItem(object):
         else:
             self.reversed = False
             self.curve_name = curve_name
+        arr = self.curve_name.split("/")
+        if len(arr)>1:
+            self.curve_index = int(Text.parse_number(arr[1], 0))
+            self.curve_name = arr[0]
+        else:
+            self.curve_index = 0
         shape = joiner_shape.parent_shape.get_interior_shape(self.curve_name)
         if not isinstance(shape, CurveShape):
             shape = None
@@ -21,7 +27,7 @@ class JoinerItem(object):
             ctx.save()
             self.curve_shape.pre_draw(ctx, root_shape=root_shape)
             ctx.scale(self.curve_shape.width, self.curve_shape.height)
-            curve = self.curve_shape.curves[0]
+            curve = self.curve_shape.curves[self.curve_index]
             if self.reversed:
                 curve.reverse_draw_path(ctx, line_to=join)
             else:
@@ -30,7 +36,7 @@ class JoinerItem(object):
 
     def draw_start_end(self, ctx, root_shape):
        if self.curve_shape:
-            curve = self.curve_shape.curves[0]
+            curve = self.curve_shape.curves[self.curve_index]
             if self.reversed:
                 start_point = curve.bezier_points[-1].dest
                 end_point = curve.origin
