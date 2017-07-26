@@ -216,6 +216,7 @@ class ShapeEditor(object):
                     if not polygon.closed and (point_index == 0 or point_index==len(polygon.points)-1):
                         self.joinable_point_edit_boxes.append(point_eb)
                     self.deletable_point_edit_boxes.append(point_eb)
+        self.reposition_edit_boxes()
 
     def set_anchor_prop_value(self, prop, value):
         anchor_box = self.named_edit_boxes.get(ANCHOR)
@@ -331,34 +332,28 @@ class ShapeEditor(object):
             del self.selected_edit_boxes[:]
         self.edit_box_can_move = (len(self.selected_edit_boxes)>0)
 
-    def draw(self, ctx):
-        padding = 10+self.shape.get_border_width()*.5
-        outer_rect = self.shape.get_outline(padding*0)
-
-        self.outline_edit_box.draw(ctx)
-
+    def reposition_edit_boxes(self):
+        rect = self.shape.get_outline(0)
         anchor_box = self.named_edit_boxes.get(ANCHOR)
         if anchor_box:
             anchor_box.set_point(self.shape.anchor_at)
 
         for edit_box in self.outer_edit_boxes:
-            edit_box.reposition(outer_rect)
+            edit_box.reposition(rect)
 
-        inner_rect = self.shape.get_outline(0)
         for edit_box in self.inner_edit_boxes:
-            edit_box.reposition(inner_rect)
+            edit_box.reposition(rect)
+
+    def draw(self, ctx):
+        self.reposition_edit_boxes()
+        self.outline_edit_box.draw(ctx)
 
         if False and isinstance(self.shape, CurveShape) and len(self.shape.curves[0].bezier_points)>20:
             return
 
         if not EditingChoice.HIDE_CONTROL_POINTS:
             for line in self.curve_point_lines:
-                #ctx.save()
-                #self.shape.pre_draw(ctx)
-                #line.pre_draw(ctx)
-                #ctx.scale(self.shape.width, self.shape.height)
                 line.draw_line(ctx)
-                #ctx.restore()
                 line.draw_border(ctx)
 
         for edit_box in self.all_edit_box_list:

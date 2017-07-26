@@ -537,9 +537,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                     #self.custom_props_box.set_prop_object(multi_shape)
 
     def shape_prop_changed(self, widget):
-        pass# it is not longer used anymore, but kept for future easiness
         #shape = self.shape_manager.get_deepest_selected_shape()
-        #self.redraw()
+        self.redraw()
 
     def select_shapes(self, shapes, double_clicked=False):
         if double_clicked and len(shapes)==1 and \

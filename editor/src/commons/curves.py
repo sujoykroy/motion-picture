@@ -753,6 +753,17 @@ class CurvePoint(object):
         curve_point.position.copy_from(Point.from_text(elm.attrib.get("ps", Point(0,0).to_text())))
         return curve_point
 
+    @classmethod
+    def get_curve_points_for_curve(cls, curve_index, curves):
+        curve = curves[curve_index]
+        curve_points = []
+        curve_points.append(CurvePoint(curve_index, -1, CurvePoint.POINT_TYPE_ORIGIN))
+        for bpi in xrange(len(curve.bezier_points)):
+            curve_points.append(CurvePoint(curve_index, bpi, CurvePoint.POINT_TYPE_CONTROL_1))
+            curve_points.append(CurvePoint(curve_index, bpi, CurvePoint.POINT_TYPE_CONTROL_2))
+            curve_points.append(CurvePoint(curve_index, bpi, CurvePoint.POINT_TYPE_DEST))
+        return curve_points
+
 class CurvePointGroup(object):
     TAG_NAME = "curve_point_group"
 

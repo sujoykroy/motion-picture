@@ -122,7 +122,6 @@ class CurveShape(Shape, Mirror):
             point_group = point_group_shape.curve_point_group
             for curve_point in point_group.points.values():
                 self.add_curve_point(curve_point, point_group_shape)
-        #print self.curve_point_map.values()
 
     def rename_shape(self, shape, name):
         old_name = shape.get_name()
@@ -606,34 +605,71 @@ class CurveShape(Shape, Mirror):
         for path in paths:
             ctx.append_path(path)
 
+    def get_curve_outline(self, curve_index):
+        curve = self.curves[curve_index]
+        if self.curve_point_map:
+            points = CurvePoint.get_curve_points_for_curve(curve_index, self.curves)
+            for i in xrange(len(points)):
+                points[i] = self.get_point_location(points[i])
+            outline = Polygon(points=points).get_outline()
+        else:
+            outline = curve.get_outline()
+            if outline:
+                outline.scale(self.width, self.height)
+        return outline
+
+    def translate_curve(self, curve_index, dx, dy):
+        curve = self.curves[curve_index]
+        if self.curve_point_map:
+            curve_points = CurvePoint.get_curve_points_for_curve(curve_index, self.curves)
+            for curve_point in curve_points:
+                if self.curve_point_map[curve_point.get_key()] == self:
+                    point = curve_point.get_point(self.curves)
+                    if point:
+                        point.translate(dx, dy)
+        else:
+            curve.translate(dx, dy)
+
+    def scale_curve(self, curve_index, sx, sy):
+        curve = self.curves[curve_index]
+        if self.curve_point_map:
+            curve_points = CurvePoint.get_curve_points_for_curve(curve_index, self.curves)
+            for curve_point in curve_points:
+                if curve_point.get_key() not in self.curve_point_map:
+                    point = curve_point.get_point(self.curves)
+                    if point:
+                        point.scale(sx, sy)
+        else:
+            curve.scale(sx, sy)
+
     def fit_size_to_include_all(self):
         outline = None
-        for curve in self.curves:
+        for curve_index in xrange(len(self.curves)):
             if outline is None:
-                outline = curve.get_outline()
+                outline = self.get_curve_outline(curve_index)
             else:
-                outline.expand_include(curve.get_outline())
+                outline.expand_include(self.get_curve_outline(curve_index))
         if not outline: return
         abs_anchor_at = self.get_abs_anchor_at()
-        shift = Point(-self.width*outline.left, -self.height*outline.top)
+        shift = Point(-outline.left, -outline.top)
         self.anchor_at.translate(shift.x, shift.y)
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
-        self.set_width(outline.width*self.width, fixed_anchor=False)
-        self.set_height(outline.height*self.height, fixed_anchor=False)
 
         if outline.height==0:
             sy = None
         else:
-            sy = 1/outline.height
+            sy = outline.height/self.height
         if outline.width==0:
             sx = None
         else:
-            sx = 1/outline.width
+            sx = outline.width/self.width
 
-        for curve in self.curves:
-            curve.translate(-outline.left, -outline.top)
+        dx = -outline.left/self.width
+        dy = -outline.top/self.height
+        for curve_index in xrange(len(self.curves)):
+            self.translate_curve(curve_index, dx, dy)
             if sx is not None and sy is not None:
-                curve.scale(sx, sy)
+                self.scale_curve(curve_index, sx, sy)
 
         for point_group_shape in self.point_group_shapes:
             if point_group_shape.locked_to_shape:
@@ -642,9 +678,10 @@ class CurveShape(Shape, Mirror):
 
         if self.locked_shapes:
             for shape in self.locked_shapes:
-                if shape.locked_to_shape:
-                    continue
                 shape.shift_abs_anchor_at(shift)
+
+        self.set_width(outline.width, fixed_anchor=False)
+        self.set_height(outline.height, fixed_anchor=False)
 
         self.baked_points = None
 
@@ -701,6 +738,8 @@ class CurveShape(Shape, Mirror):
                     curve_index=curve_index,
                     from_point_index=bezier_point_index,
                     point_index_shift=1)
+
+        self.rebuild_curve_point_map()
         return True
 
     def insert_break_at(self, curve_index, bezier_point_index):
@@ -746,6 +785,8 @@ class CurveShape(Shape, Mirror):
                         from_point_index=bezier_point_index+1,
                         curve_index_shift=1,
                         point_index_shift=-bezier_point_index-1)
+
+        self.rebuild_curve_point_map()
         return True
 
     def join_points(self, curve_index_1, is_start_1, curve_index_2, is_start_2):
