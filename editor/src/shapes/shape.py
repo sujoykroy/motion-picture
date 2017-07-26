@@ -313,26 +313,6 @@ class Shape(object):
             return self.locked_to_shape.get_shape_path(self.parent_shape)
         return ""
 
-    def update_to_locked_shape(self):
-        pass
-
-    def update_locked_shapes(self):
-        if self.locked_to_shape:
-            self.update_to_locked_shape()
-        if self.locked_shapes:
-            for shape in self.locked_shapes:
-                shape.update_locked_shapes()
-        interior_shapes = self.get_interior_shapes()
-        if interior_shapes:
-            for shape in interior_shapes:
-                shape.update_locked_shapes()
-
-    def replace_locked_to_shape(self, replacements):
-        if self.locked_to_shape and self.locked_to_shape in replacements:
-            locked_to_shape = replacements[self.locked_to_shape]
-            copied.locked_to_shape = locked_to_shape
-            locked_to_shape.locked_shapes.add(self)
-
     @classmethod
     def get_pose_prop_names(cls):
         prop_names = ["anchor_at", "border_color", "border_width", "fill_color",

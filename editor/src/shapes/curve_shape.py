@@ -124,11 +124,6 @@ class CurveShape(Shape, Mirror):
                 self.add_curve_point(curve_point, point_group_shape)
         #print self.curve_point_map.values()
 
-    def update_locked_curve_points(self):
-        for point_group_shape in self.point_group_shapes:
-            if not point_group_shape.locked_to_shape:
-                point_group_shape.update_curve_points()
-
     def rename_shape(self, shape, name):
         old_name = shape.get_name()
         if self.point_group_shapes.rename(old_name, name):
@@ -266,7 +261,6 @@ class CurveShape(Shape, Mirror):
                         abs_anchor_at.translate(self.anchor_at.x, self.anchor_at.y)
                         point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
-        self.update_locked_curve_points()
         self.fit_size_to_include_all()
         #self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
@@ -385,7 +379,6 @@ class CurveShape(Shape, Mirror):
                         abs_anchor_at.set_inbetween(start_rel_abs_anchor_at, end_rel_abs_anchor_at, value)
                         abs_anchor_at.translate(self.anchor_at.x, self.anchor_at.y)
                         point_group_shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
-                self.update_locked_curve_points()
             self.fit_size_to_include_all()
         else:
             Shape.set_prop_value(self, prop_name, value, prop_data)
@@ -443,7 +436,6 @@ class CurveShape(Shape, Mirror):
         if self.point_group_shapes:
             for point_group_shape in self.point_group_shapes:
                 point_group_shape.build_locked_to()
-        self.update_locked_curve_points()
 
     def copy(self, copy_name=False, deep_copy=False, form=None):
         newob = CurveShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,

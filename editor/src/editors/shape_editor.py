@@ -37,16 +37,24 @@ class CurvePointEditBox(OvalEditBox):
         self.parent_shape.set_point_location(self.curve_point, self.point)
 
 class CurvePointLine(Shape):
-    def __init__(self, edit_box_1, edit_box_2):
+    def __init__(self, curve_point_1, curve_point_2):
         w = h = 1.0
         Shape.__init__(self, Point(0, 0), Color(0,0,0,1), 1, Color(1,1,1,1), w, h)
-        self.edit_box_1 = edit_box_1
-        self.edit_box_2 = edit_box_2
+        self.curve_point_1 = curve_point_1
+        self.curve_point_2 = curve_point_2
+
+    def get_curve_point_location(self, curve_point):
+        point = self.parent_shape.get_point_location(curve_point)
+        point = self.abs_reverse_transform_point(point)
+        return point
 
     def draw_line(self, ctx):
+        point_1 = self.get_curve_point_location(self.curve_point_1)
+        point_2 = self.get_curve_point_location(self.curve_point_2)
+
         ctx.new_path()
-        ctx.move_to(self.edit_box_1.cpoint.x, self.edit_box_1.cpoint.y)
-        ctx.line_to(self.edit_box_2.cpoint.x, self.edit_box_2.cpoint.y)
+        ctx.move_to(point_1.x, point_1.y)
+        ctx.line_to(point_2.x, point_2.y)
 
 class ControlEditBox(CurvePointEditBox):
     def __init__(self, curve_index, bezier_point_index, control_index):
@@ -164,14 +172,17 @@ class ShapeEditor(object):
 
                     if bpi == 0:
                         if curve.closed:
-                            prev_dest_point = curve.bezier_points[-1].dest
+                            prev_dest_curve_point = CurvePoint(
+                                curve_index,  len(curve.bezier_points)-1, CurvePoint.POINT_TYPE_DEST)
                         else:
-                            prev_dest_point = curve.origin
+                            prev_dest_curve_point = CurvePoint(
+                                curve_index, -1, CurvePoint.POINT_TYPE_ORIGIN)
                     else:
-                        prev_dest_point = curve.bezier_points[bpi-1].dest
-                    if prev_dest_point:
-                        self.new_curve_point_line(control_1_eb, last_dest_eb)
-                    self.new_curve_point_line(control_2_eb, dest_eb)
+                        prev_dest_curve_point = CurvePoint(
+                                curve_index, bpi-1, CurvePoint.POINT_TYPE_DEST)
+                    if prev_dest_curve_point:
+                        self.new_curve_point_line(control_1_eb.curve_point, prev_dest_curve_point)
+                    self.new_curve_point_line(control_2_eb.curve_point, dest_eb.curve_point)
 
                     last_dest_eb = dest_eb
                     if first_control_1_eb is None:
@@ -233,8 +244,13 @@ class ShapeEditor(object):
         edit_box.parent_shape = self.shape
         return edit_box
 
-    def new_curve_point_line(self, edit_box_1, edit_box_2):
-        line = CurvePointLine(edit_box_1, edit_box_2)
+    def get_curve_point_edit_box(self, curve_point):
+        #for edit_box in self.all_edit_box_list
+        pass
+
+    def new_curve_point_line(self, curve_point_1, curve_point_2):
+        line = CurvePointLine(curve_point_1, curve_point_2)
+        line.parent_shape = self.shape
         self.curve_point_lines.append(line)
         return line
 
@@ -458,10 +474,6 @@ class ShapeEditor(object):
                 diff_point = end_point.diff(start_point)
                 init_abs_anchor_at = self.init_shape.get_abs_anchor_at()
                 self.shape.move_to(init_abs_anchor_at.x+diff_point.x, init_abs_anchor_at.y+diff_point.y)
-
-        if isinstance(self.shape, CurvePointGroupShape):
-            self.shape.update_curve_points()
-        self.shape.update_locked_shapes()
 
     def end_movement(self):
         self.edit_box_can_move = (len(self.selected_edit_boxes)>0)

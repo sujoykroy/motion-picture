@@ -154,27 +154,3 @@ class CurvePointGroupShape(RectangleShape):
                 if isinstance(locked_shape, CurvePointGroupShape):
                     locked_shape.shift_abs_anchor_at(shift)
 
-        self.update_curve_points()
-
-    def update_curve_points(self, update_locked_shape=True):
-        return
-        curve_sx = 1./self.parent_shape.get_width()
-        curve_sy = 1./self.parent_shape.get_height()
-        for curve_point in self.curve_point_group.points.values():
-            point = curve_point.position.copy()
-            locked_to_shape = self.locked_to_shape
-            point = self.reverse_transform_locked_shape_point(point)
-            point.scale(curve_sx, curve_sy)
-            orig_point = curve_point.get_point(self.parent_shape.curves)
-            if orig_point:
-                orig_point.copy_from(point)
-            curve_point.update_original(point, self.parent_shape.curves)
-
-        if update_locked_shape:
-            if self.locked_shapes:
-                for locked_shape in self.locked_shapes:
-                    if isinstance(locked_shape, CurvePointGroupShape):
-                        locked_shape.update_curve_points()
-
-    def update_to_locked_shape(self):
-        self.update_curve_points(update_locked_shape=False)
