@@ -19,37 +19,57 @@ ANCHOR = "ANCHOR"
 
 SELECTED_EDIT_BOX_COLOR = Color.from_html("00b100")
 
-class ControlEditBox(OvalEditBox):
-    def __init__(self, percent_point, curve_index, bezier_point_index, control_index):
+class CurvePointEditBox(OvalEditBox):
+    def __init__(self, curve_index, bezier_point_index, fill_color=None):
+        OvalEditBox.__init__(self, Point(0,0), radius=10, fill_color=fill_color, is_percent=False)
+        self.curve_index = curve_index
+        self.bezier_point_index = bezier_point_index
+        self.is_start = False
+        self.curve_point = None
+
+    def reposition(self, rect):
+        curve_point_location = self.parent_shape.get_point_location(self.curve_point)
+        self.point.copy_from(curve_point_location)
+        super(CurvePointEditBox, self).reposition(rect)
+
+    def move_offset(self, dx, dy):
+        super(CurvePointEditBox, self).move_offset(dx, dy)
+        self.parent_shape.set_point_location(self.curve_point, self.point)
+
+class CurvePointLine(Shape):
+    def __init__(self, edit_box_1, edit_box_2):
+        w = h = 1.0
+        Shape.__init__(self, Point(0, 0), Color(0,0,0,1), 1, Color(1,1,1,1), w, h)
+        self.edit_box_1 = edit_box_1
+        self.edit_box_2 = edit_box_2
+
+    def draw_line(self, ctx):
+        ctx.new_path()
+        ctx.move_to(self.edit_box_1.cpoint.x, self.edit_box_1.cpoint.y)
+        ctx.line_to(self.edit_box_2.cpoint.x, self.edit_box_2.cpoint.y)
+
+class ControlEditBox(CurvePointEditBox):
+    def __init__(self, curve_index, bezier_point_index, control_index):
         if control_index == 0:
             fill_color = Color(1,1,0,1)
         else:
             fill_color = Color(1,0,0,1)
-        OvalEditBox.__init__(self, percent_point, radius=10, fill_color=fill_color, is_percent=True)
-        self.curve_index = curve_index
-        self.bezier_point_index = bezier_point_index
+        super(ControlEditBox, self).__init__(curve_index, bezier_point_index, fill_color)
         self.control_index = control_index
-        self.is_start = False
-
         if control_index == 0:
             point_type = CurvePoint.POINT_TYPE_CONTROL_1
         else:
             point_type = CurvePoint.POINT_TYPE_CONTROL_2
         self.curve_point = CurvePoint(curve_index, self.bezier_point_index, point_type)
 
-class DestEditBox(OvalEditBox):
-    def __init__(self, percent_point, curve_index, bezier_point_index):
-        OvalEditBox.__init__(self, percent_point)
-        self.curve_index = curve_index
-        self.bezier_point_index = bezier_point_index
-        self.is_start = False
+class DestEditBox(CurvePointEditBox):
+    def __init__(self, curve_index, bezier_point_index):
+        super(DestEditBox, self).__init__(curve_index, bezier_point_index)
         self.curve_point = CurvePoint(curve_index, self.bezier_point_index, CurvePoint.POINT_TYPE_DEST)
 
-class OriginEditBox(OvalEditBox):
-    def __init__(self, percent_point, curve_index):
-        OvalEditBox.__init__(self, percent_point)
-        self.curve_index = curve_index
-        self.bezier_point_index = -1
+class OriginEditBox(CurvePointEditBox):
+    def __init__(self, curve_index):
+        super(OriginEditBox, self).__init__(curve_index, bezier_point_index=-1)
         self.is_start = True
         self.curve_point = CurvePoint(curve_index, self.bezier_point_index, CurvePoint.POINT_TYPE_ORIGIN)
 
@@ -118,7 +138,7 @@ class ShapeEditor(object):
             for curve_index in xrange(len(self.shape.curves)):
                 curve = self.shape.curves[curve_index]
                 last_dest_eb = None
-                origin_eb = self.new_edit_box(OriginEditBox(curve.origin, curve_index), INNER)
+                origin_eb = self.new_edit_box(OriginEditBox(curve_index), INNER)
                 self.deletable_point_edit_boxes.append(origin_eb)
                 if not curve.closed:
                     last_dest_eb = origin_eb
@@ -128,12 +148,9 @@ class ShapeEditor(object):
                 first_control_1_eb = None
                 for bpi in xrange(len(curve.bezier_points)):
                     bezier_point = curve.bezier_points[bpi]
-                    dest_eb = self.new_edit_box(DestEditBox(
-                        bezier_point.dest, curve_index, bpi), INNER)
-                    control_1_eb = self.new_edit_box(ControlEditBox(
-                        bezier_point.control_1, curve_index, bpi, 0), INNER)
-                    control_2_eb = self.new_edit_box(ControlEditBox(
-                        bezier_point.control_2, curve_index, bpi, 1), INNER)
+                    dest_eb = self.new_edit_box(DestEditBox(curve_index, bpi), INNER)
+                    control_1_eb = self.new_edit_box(ControlEditBox(curve_index, bpi, 0), INNER)
+                    control_2_eb = self.new_edit_box(ControlEditBox(curve_index, bpi, 1), INNER)
                     if last_dest_eb:
                         last_dest_eb.add_linked_edit_box(control_1_eb)
                     dest_eb.add_linked_edit_box(control_2_eb)
@@ -153,8 +170,8 @@ class ShapeEditor(object):
                     else:
                         prev_dest_point = curve.bezier_points[bpi-1].dest
                     if prev_dest_point:
-                        self.new_curve_point_line(bezier_point.control_1, prev_dest_point)
-                    self.new_curve_point_line(bezier_point.control_2, bezier_point.dest)
+                        self.new_curve_point_line(control_1_eb, last_dest_eb)
+                    self.new_curve_point_line(control_2_eb, dest_eb)
 
                     last_dest_eb = dest_eb
                     if first_control_1_eb is None:
@@ -216,8 +233,8 @@ class ShapeEditor(object):
         edit_box.parent_shape = self.shape
         return edit_box
 
-    def new_curve_point_line(self, point_1, point_2):
-        line = EditLine(point_1, point_2)
+    def new_curve_point_line(self, edit_box_1, edit_box_2):
+        line = CurvePointLine(edit_box_1, edit_box_2)
         self.curve_point_lines.append(line)
         return line
 
@@ -320,12 +337,12 @@ class ShapeEditor(object):
 
         if not EditingChoice.HIDE_CONTROL_POINTS:
             for line in self.curve_point_lines:
-                ctx.save()
-                self.shape.pre_draw(ctx)
-                line.pre_draw(ctx)
-                ctx.scale(self.shape.width, self.shape.height)
+                #ctx.save()
+                #self.shape.pre_draw(ctx)
+                #line.pre_draw(ctx)
+                #ctx.scale(self.shape.width, self.shape.height)
                 line.draw_line(ctx)
-                ctx.restore()
+                #ctx.restore()
                 line.draw_border(ctx)
 
         for edit_box in self.all_edit_box_list:
@@ -416,7 +433,10 @@ class ShapeEditor(object):
                     self.shape.set_angle(self.init_shape.angle+dangle)
 
                 elif edit_box in self.moveable_point_edit_boxes:
-                    percent_point = Point(rel_dpoint.x/self.shape.width, rel_dpoint.y/self.shape.height)
+                    if edit_box.is_percent:
+                        point = Point(rel_dpoint.x/self.shape.width, rel_dpoint.y/self.shape.height)
+                    else:
+                        point = rel_dpoint
                     if False and \
                         isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>6:
                         span = 5
@@ -431,7 +451,7 @@ class ShapeEditor(object):
                                 if edb.point_index != point_index: continue
                                 edb.move_offset(pp.x, pp.y)
                                 break
-                    edit_box.move_offset(percent_point.x, percent_point.y)
+                    edit_box.move_offset(point.x, point.y)
             self.named_edit_boxes[ANCHOR].set_point(self.shape.anchor_at)
         elif self.edit_box_can_move is False:
             if not EditingChoice.LOCK_SHAPE_MOVEMENT and self.shape.moveable:
@@ -499,19 +519,8 @@ class ShapeEditor(object):
     def get_curve_points(self):
         curve_points = []
         for edit_box in self.selected_edit_boxes:
-            point_type = None
-            if isinstance(edit_box, DestEditBox):
-                point_type = CurvePoint.POINT_TYPE_DEST
-            elif isinstance(edit_box, ControlEditBox):
-                if edit_box.control_index == 0:
-                    point_type = CurvePoint.POINT_TYPE_CONTROL_1
-                elif edit_box.control_index == 1:
-                    point_type = CurvePoint.POINT_TYPE_CONTROL_2
-            elif isinstance(edit_box, OriginEditBox):
-                point_type = CurvePoint.POINT_TYPE_ORIGIN
-            if point_type is not None:
-                curve_point = CurvePoint(edit_box.curve_index, edit_box.bezier_point_index, point_type)
-                curve_points.append(curve_point)
+            if isinstance(edit_box, CurvePointEditBox):
+                curve_points.append(edit_box.curve_point)
         return curve_points
 
     def create_point_group(self):

@@ -1,5 +1,6 @@
 from shape import Shape
-from ..commons import Rect, copy_value, draw_fill, draw_stroke, draw_oval, Text
+from ..commons import Rect, copy_value, draw_fill, draw_stroke, draw_oval
+from ..commons import Text, CurvePoint
 import math
 from curve_shape import CurveShape
 
@@ -26,23 +27,23 @@ class JoinerItem(object):
        if self.curve_shape:
             ctx.save()
             self.curve_shape.pre_draw(ctx, root_shape=root_shape)
-            ctx.scale(self.curve_shape.width, self.curve_shape.height)
-            curve = self.curve_shape.curves[self.curve_index]
-            if self.reversed:
-                curve.reverse_draw_path(ctx, line_to=join)
-            else:
-                curve.draw_path(ctx, new_path=False, line_to=join)
+            self.curve_shape.draw_curve(ctx,
+                        curve_index=self.curve_index,
+                        line_to=join, reverse=self.reversed, new_path=False)
             ctx.restore()
 
     def draw_start_end(self, ctx, root_shape):
        if self.curve_shape:
             curve = self.curve_shape.curves[self.curve_index]
+            start_curve_point = CurvePoint(
+                self.curve_index, len(curve.bezier_points)-1, CurvePoint.POINT_TYPE_DEST)
+            end_point = CurvePoint(
+                self.curve_index, -1, CurvePoint.POINT_TYPE_ORIGIN)
+            start_point = self.curve_shape.get_point_location(start_curve_point)
+            end_point = self.curve_shape.get_point_location(end_curve_point)
+
             if self.reversed:
-                start_point = curve.bezier_points[-1].dest
-                end_point = curve.origin
-            else:
-                end_point = curve.bezier_points[-1].dest
-                start_point = curve.origin
+                start_point, end_point = end_point, start_point
 
             for point, color in [[start_point, "70ede3"], [end_point, "ea3a84"]]:
                 for i in range(2):
@@ -65,12 +66,14 @@ class JoinerItem(object):
         if self.curve_shape:
             ctx.save()
             self.curve_shape.pre_draw(ctx, root_shape=root_shape)
-            ctx.scale(self.curve_shape.width, self.curve_shape.height)
-            curve = self.curve_shape.curves[0]
+            curve = self.curve_shape.curves[self.curve_index]
             if self.reversed:
-                start_point = curve.bezier_points[-1].dest
+                curve_point = CurvePoint(
+                    self.curve_index, len(curve.bezier_points)-1, CurvePoint.POINT_TYPE_DEST)
             else:
-                start_point = curve.origin
+                curve_point = CurvePoint(
+                    self.curve_index, -1, CurvePoint.POINT_TYPE_ORIGIN)
+            start_point = self.curve_shape.get_point_location(curve_point)
             ctx.line_to(start_point.x, start_point.y)
             ctx.restore()
 

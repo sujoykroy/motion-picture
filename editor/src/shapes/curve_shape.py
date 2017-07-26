@@ -39,6 +39,7 @@ class CurveShape(Shape, Mirror):
         self.point_group_shapes = ShapeList()
         self.baked_points = None
         self.form_pixbufs = dict()
+        self.curve_point_map = dict()
 
     def get_form_pixbuf(self, form_name):
         if form_name not in self.form_pixbufs:
@@ -74,14 +75,54 @@ class CurveShape(Shape, Mirror):
         self.curves.extend(curves)
 
     def add_new_point_group_shape(self, point_group):
+        for curve_point in point_group.points.values():
+            self.delete_curve_point(curve_point)
         point_group_shape = CurvePointGroupShape(curve_shape=self, curve_point_group=point_group)
         point_group_shape.build()
         self.point_group_shapes.add(point_group_shape)
+        self.rebuild_curve_point_map()
         return point_group_shape
 
     def delete_point_group_shape(self, point_group_shape):
         self.point_group_shapes.remove(point_group_shape)
+        for curve_point in point_group_shape.curve_point_group.points.values():
+            self.delete_curve_point(curve_point)
+        self.rebuild_curve_point_map()
         return True
+
+    def add_curve_point(self, curve_point, shape):
+        self.curve_point_map[curve_point.get_key()] = shape
+
+    def delete_curve_point(self, curve_point):
+        if curve_point.get_key() in self.curve_point_map:
+            curve_point_shape = self.curve_point_map[curve_point.get_key()]
+            if curve_point_shape != self:
+                location = self.get_point_location(curve_point)
+                self.curve_point_map[curve_point.get_key()] = self
+                self.set_point_location(curve_point, location)
+        self.rebuild_curve_point_map()
+
+    def rebuild_curve_point_map(self):
+        self.curve_point_map.clear()
+        if not self.point_group_shapes:
+            return
+        for i in xrange(len(self.curves)):
+            curve = self.curves[i]
+            self.add_curve_point(
+                CurvePoint(i, -1, CurvePoint.POINT_TYPE_ORIGIN), self)
+            for j in xrange(len(curve.bezier_points)):
+                self.add_curve_point(
+                    CurvePoint(i, j, CurvePoint.POINT_TYPE_CONTROL_1), self)
+                self.add_curve_point(
+                    CurvePoint(i, j, CurvePoint.POINT_TYPE_CONTROL_2), self)
+                self.add_curve_point(
+                    CurvePoint(i, j, CurvePoint.POINT_TYPE_DEST), self)
+
+        for point_group_shape in self.point_group_shapes:
+            point_group = point_group_shape.curve_point_group
+            for curve_point in point_group.points.values():
+                self.add_curve_point(curve_point, point_group_shape)
+        #print self.curve_point_map.values()
 
     def update_locked_curve_points(self):
         for point_group_shape in self.point_group_shapes:
@@ -142,6 +183,8 @@ class CurveShape(Shape, Mirror):
                 self.curves.append(curve)
 
             self.fit_size_to_include_all()
+
+        self.rebuild_curve_point_map()
 
     def get_form_by_name(self, form):
         if form in self.forms:
@@ -389,6 +432,7 @@ class CurveShape(Shape, Mirror):
             if point_group_shape:
                 shape.point_group_shapes.add(point_group_shape)
         shape.assign_params_from_xml_element(elm)
+        shape.rebuild_curve_point_map()
         return shape
 
     def build_locked_to(self):
@@ -415,6 +459,7 @@ class CurveShape(Shape, Mirror):
             point_group_shape.set_curve_shape(newob)
             newob.point_group_shapes.add(point_group_shape)
         newob.build_interior_locked_to()
+        newob.rebuild_curve_point_map()
         return newob
 
     def is_empty(self):
@@ -424,43 +469,146 @@ class CurveShape(Shape, Mirror):
         self.curves.append(curve)
         self.fit_size_to_include_all()
 
-    def _draw_curve(self, ctx, curve, scale=None, angle=None):
+    def get_curve_point_location(self, curve_point):
+        point = curve_point.get_point(self.curves)
+        point = point.copy()
+        point.scale(self.width, self.height)
+        return point
+
+    def set_curve_point_location(self, curve_point, location):
+        point = curve_point.get_point(self.curves)
+        location = location.copy()
+        location.scale(1./self.width, 1./self.height)
+        point.copy_from(location)
+
+    def get_point_location(self, curve_point):
+        if self.curve_point_map:
+            curve_point_shape = self.curve_point_map[curve_point.get_key()]
+            point = curve_point_shape.get_curve_point_location(curve_point)
+            if curve_point_shape != self:
+                point = self.transform_locked_shape_point(
+                            point, root_shape=curve_point_shape, exclude_last=False)
+                return point
+        return self.get_curve_point_location(curve_point)
+
+    def set_point_location(self, curve_point, location):
+        if self.curve_point_map:
+            curve_point_shape = self.curve_point_map[curve_point.get_key()]
+            point = curve_point_shape.transform_locked_shape_point(
+                        location, root_shape=self, exclude_last=False)
+            point = curve_point_shape.set_curve_point_location(curve_point, location)
+            return
+        self.set_curve_point_location(curve_point, location)
+
+    def draw_curve(self, ctx, curve_index, scale=None, angle=None,
+                              new_path=True, reverse=False, line_to=False):
         ctx.save()
         if angle is not None:
             ctx.translate(self.anchor_at.x, self.anchor_at.y)
             ctx.rotate(angle*RAD_PER_DEG)
             ctx.translate(-self.anchor_at.x, -self.anchor_at.y)
-        ctx.scale(self.width, self.height)
-        if scale:
-            if scale[0] == -1 and scale[1] == 1:
-                ctx.translate(2*self.anchor_at.x/self.width, 0)
-            elif scale[0] == 1 and scale[1] == -1:
-                ctx.translate(0, 2*self.anchor_at.y/self.height)
-            elif scale[0] == -1 and scale[1] == -1:
-                ctx.translate(2*self.anchor_at.x/self.width, 2*self.anchor_at.y/self.height)
-            ctx.scale(*scale)
 
-        curve.draw_path(ctx)
+        curve = self.curves[curve_index]
+        if self.point_group_shapes:
+            #ctx.scale(1./self.width, 1./self.height)
+            origin_curve_point = CurvePoint(curve_index, -1, CurvePoint.POINT_TYPE_ORIGIN)
+            origin_shape = self.curve_point_map.get(origin_curve_point.get_key())
+            origin = origin_shape.get_curve_point_location(origin_curve_point)
+            origin = self.transform_locked_shape_point(origin, root_shape=origin_shape, exclude_last=False)
+
+            if reverse:
+                dest_curve_point = CurvePoint(
+                    curve_index, len(curve.bezier_points)-1, CurvePoint.POINT_TYPE_DEST)
+                dest_shape = self.curve_point_map.get(dest_curve_point.get_key())
+                dest = dest_shape.get_curve_point_location(dest_curve_point)
+                dest = self.transform_locked_shape_point(
+                    dest, root_shape=dest_shape, exclude_last=False)
+                start_point = dest
+            else:
+                start_point = origin
+
+            if new_path:
+                ctx.new_path()
+
+            if line_to:
+                ctx.line_to(start_point.x, start_point.y)
+            else:
+                ctx.move_to(start_point.x, start_point.y)
+
+            if reverse:
+                range_object = xrange(len(curve.bezier_points)-1, -2, -1)
+            else:
+                range_object = xrange(len(curve.bezier_points))
+
+            for point_index in range_object:
+                if reverse and point_index==-1:
+                    dest = origin
+                else:
+                    dest_curve_point = CurvePoint(curve_index, point_index, CurvePoint.POINT_TYPE_DEST)
+                    dest_shape = self.curve_point_map.get(dest_curve_point.get_key())
+                    dest = dest_shape.get_curve_point_location(dest_curve_point)
+                    dest = self.transform_locked_shape_point(
+                        dest, root_shape=dest_shape, exclude_last=False)
+
+                if reverse:
+                    if point_index<len(curve.bezier_points)-1:
+                        ctx.curve_to( c2.x, c2.y, c1.x, c1.y, dest.x, dest.y)
+                    if point_index==-1:
+                        break
+
+                c1_curve_point = CurvePoint(curve_index, point_index, CurvePoint.POINT_TYPE_CONTROL_1)
+                c1_shape = self.curve_point_map.get(c1_curve_point.get_key())
+                c1 = c1_shape.get_curve_point_location(c1_curve_point)
+                c1 = self.transform_locked_shape_point(c1, root_shape=c1_shape, exclude_last=False)
+
+                c2_curve_point = CurvePoint(curve_index, point_index, CurvePoint.POINT_TYPE_CONTROL_2)
+                c2_shape = self.curve_point_map.get(c2_curve_point.get_key())
+                c2 = c2_shape.get_curve_point_location(c2_curve_point)
+                c2 = self.transform_locked_shape_point(c2, root_shape=c2_shape, exclude_last=False)
+
+                if not reverse:
+                    ctx.curve_to( c1.x, c1.y, c2.x, c2.y, dest.x, dest.y)
+
+            if new_path and curve.closed:
+                ctx.close_path()
+        else:
+            ctx.scale(self.width, self.height)
+            if scale:
+                if scale[0] == -1 and scale[1] == 1:
+                    ctx.translate(2*self.anchor_at.x/self.width, 0)
+                elif scale[0] == 1 and scale[1] == -1:
+                    ctx.translate(0, 2*self.anchor_at.y/self.height)
+                elif scale[0] == -1 and scale[1] == -1:
+                    ctx.translate(2*self.anchor_at.x/self.width, 2*self.anchor_at.y/self.height)
+                ctx.scale(*scale)
+
+
+            if reverse:
+                curve.reverse_draw_path(ctx, new_path=new_path, line_to=line_to)
+            else:
+                curve.draw_path(ctx, new_path=new_path, line_to=line_to)
         ctx.restore()
 
     def draw_path(self, ctx, for_fill=False):
         paths = []
-        for curve in self.curves:
-            self._draw_curve(ctx, curve)
+        for curve_index in xrange(len(self.curves)):
+            self.draw_curve(ctx, curve_index)
             paths.append(ctx.copy_path())
         if self.mirror != 0:
             scales, rotations = self.get_scales_n_rotations()
 
             for scale in scales:
-                for curve in self.curves:
+                for curve_index in xrange(len(self.curves)):
+                    curve = slf.curves[curve_index]
                     if not for_fill or (for_fill and curve.closed):
-                        self._draw_curve(ctx, curve, scale=scale)
+                        self.draw_curve(ctx, curve_index)
                         paths.append(ctx.copy_path())
 
             for angle in rotations:
-                for curve in self.curves:
+                for curve_index in xrange(len(self.curves)):
+                    curve = slf.curves[curve_index]
                     if not for_fill or (for_fill and curve.closed):
-                        self._draw_curve(ctx, curve, angle=angle)
+                        self.draw_curve(ctx, curve_index, angle=angle)
                         paths.append(ctx.copy_path())
         ctx.new_path()
         for path in paths:

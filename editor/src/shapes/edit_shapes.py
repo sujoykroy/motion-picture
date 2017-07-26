@@ -92,8 +92,10 @@ class RectEditBox(RectangleShape, EditBox):
                self.height*.5>=point.y and point.y>=-self.height*.5
 
 class OvalEditBox(OvalShape, EditBox):
-    def __init__(self, percent_point, radius=10, fill_color=Color(1,1,1,1),
+    def __init__(self, percent_point, radius=10, fill_color=None,
                        is_percent=True, offset=None):
+        if fill_color is None:
+            fill_color = Color(1,1,1,1)
         w = h = radius*1.
         self.radius = radius
         OvalShape.__init__(self, Point(w/2,h/2), Color(0,0,0,1), 1, fill_color, w, h, 360)

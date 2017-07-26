@@ -78,6 +78,12 @@ class CurvePointGroupShape(RectangleShape):
             self.fit_size_to_include_all()
         return count>0
 
+    def get_curve_point_location(self, curve_point):
+        return self.curve_point_group.get_point(curve_point).position.copy()
+
+    def set_curve_point_location(self, curve_point, location):
+        self.curve_point_group.get_point(curve_point).position.copy_from(location)
+
     def remove_curve_points(self, curve_points):
         count = 0
         for curve_point in curve_points:
@@ -111,7 +117,7 @@ class CurvePointGroupShape(RectangleShape):
 
         points = []
         points_positions = []
-        for curve_point in self.curve_point_group.points:
+        for curve_point in self.curve_point_group.points.values():
             point = curve_point.get_point(self.parent_shape.curves)
             if not point:
                 continue
@@ -151,9 +157,10 @@ class CurvePointGroupShape(RectangleShape):
         self.update_curve_points()
 
     def update_curve_points(self, update_locked_shape=True):
+        return
         curve_sx = 1./self.parent_shape.get_width()
         curve_sy = 1./self.parent_shape.get_height()
-        for curve_point in self.curve_point_group.points:
+        for curve_point in self.curve_point_group.points.values():
             point = curve_point.position.copy()
             locked_to_shape = self.locked_to_shape
             point = self.reverse_transform_locked_shape_point(point)

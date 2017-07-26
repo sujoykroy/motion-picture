@@ -657,12 +657,14 @@ class Curve(NaturalCurve):
         if len(self.all_points) > 2 and self.closed:
             ctx.close_path()
 
-    def reverse_draw_path(self, ctx, line_to=False):
+    def reverse_draw_path(self, ctx, new_path=True, line_to=False):
+        if new_path:
+            ctx.new_path()
         if line_to:
             ctx.line_to(self.all_points[-1][0], self.all_points[-1][1])
         else:
             ctx.move_to(self.all_points[-1][0], self.all_points[-1][1])
-        for i in range(len(self.all_points)-2, 1,-3):
+        for i in xrange(len(self.all_points)-2, 1,-3):
             c1 = self.all_points[i]
             c2 = self.all_points[i-1]
             ds = self.all_points[i-2]
@@ -688,7 +690,7 @@ class CurvePoint(object):
         self.position = Point(0, 0)
 
     def __repr__(self):
-        return "CurevePoint(curve_index={0}, point_index={1}, point_type={2}".format(
+        return "CurvePoint(curve_index={0}, point_index={1}, point_type={2}".format(
             self.curve_index, self.point_index, self.point_type)
 
     def copy(self):
@@ -729,6 +731,9 @@ class CurvePoint(object):
                 self.point_index == other.point_index and \
                 self.point_type == other.point_type)
 
+    def get_key(self):
+        return hash("{0}{1}{2}".format(self.curve_index, self.point_index, self.point_type))
+
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
         elm.attrib["ci"] = "{0}".format(self.curve_index)
@@ -752,7 +757,7 @@ class CurvePointGroup(object):
     TAG_NAME = "curve_point_group"
 
     def __init__(self):
-        self.points = []
+        self.points = dict()
         self.point_indices = dict()
 
     def __repr__(self):
@@ -760,7 +765,7 @@ class CurvePointGroup(object):
 
     def copy(self):
         newob = CurvePointGroup()
-        for curve_point in self.points:
+        for curve_point in self.points.values():
             newob.add_point(curve_point.copy())
         return newob
 
@@ -768,43 +773,46 @@ class CurvePointGroup(object):
         return curve_point in self.points
 
     def add_point(self, curve_point):
-        if curve_point in self.points:
+        if curve_point.get_key() in self.points:
             return False
-        self.points.append(curve_point)
+        self.points[curve_point.get_key()] = curve_point
         if curve_point.curve_index not in self.point_indices:
             self.point_indices[curve_point.curve_index] = dict()
         self.point_indices[curve_point.curve_index][curve_point.point_index] = curve_point
         return True
 
     def remove_point(self, curve_point):
-        if curve_point not in self.points:
+        if curve_point.get_key() not in self.points:
             return False
-        self.points.remove(curve_point)
+        del self.points[curve_point.get_key()]
         if curve_point.curve_index not in self.point_indices:
             self.point_indices[curve_point.curve_index] = dict()
         if curve_point.point_index in self.point_indices[curve_point.curve_index]:
             del self.point_indices[curve_point.curve_index][curve_point.point_index]
         return True
 
+    def get_point(self, curve_point):
+        return self.points.get(curve_point.get_key())
+
     def remove_bezier_point_index(self, curve_index, point_index):
         delete_points = []
-        for point in self.points:
+        for point in self.points.values():
             if point.point_type == CurvePoint.POINT_TYPE_ORIGIN:
                 continue
             if point.curve_index == curve_index and point_index == index:
                 delete_points.append(point)
         for point in delete_points:
-            self.points.remove(point)
+            del self.points[point.get_key()]
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
-        for point in self.points:
+        for point in self.points.values():
             elm.append(point.get_xml_element())
         return elm
 
     def shift(self, curve_index, from_point_index=0,
              point_index_shift=0, curve_index_shift=0, to_point_index=-1):
-        for point in self.points:
+        for point in self.points.values():
             if point.curve_index != curve_index:
                 continue
             if point.point_index<from_point_index:
@@ -815,31 +823,30 @@ class CurvePointGroup(object):
             point.curve_index += curve_index_shift
 
     def reverse_shift(self, curve_index, point_index_max):
-        for point in self.points:
+        for point in self.points.values():
             if point.curve_index != curve_index:
                 continue
             point.point_index = point_index_max-point.point_index
 
     def delete_curve(self, curve_index):
         i = 0
-        while i<len(self.points):
-            point = self.points[i]
+        while key in self.points.keys():
+            point = self.points[key]
             if point.curve_index == curve_index:
-                del self.points[i]
+                del self.points[key]
             else:
                 i += 1
 
     def delete_point_index(self, curve_index, point_index):
         i = 0
-        while i<len(self.points):
-            point = self.points[i]
+        while key in self.points.keys():
+            point = self.points[key]
             if point.curve_index == curve_index:
                 if point.point_index == point_index:
-                    del self.points[i]
+                    del self.points[key]
                     continue
                 elif point.point_index > point_index:
                     point.point_index -= 1
-            i += 1
 
     def update_closed_curves(self, curves):
         for curve_index in self.point_indices:
