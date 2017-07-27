@@ -240,46 +240,50 @@ class Shape(object):
 
         shape_list.add(shape)
 
-    def remove_interior_shape(self, shape, shape_list, lock=False):
+    def remove_interior_shape(self, shape, shape_list, transform=True, lock=False):
         if not shape_list.contain(shape): return None
 
-        abs_outline = shape.get_abs_outline(0)
-        shape_abs_anchor_at = shape.get_abs_anchor_at()
-        #old_translation_point = shape.translation.copy()
-        #if lock:
-        #    new_translation_point = self.reverse_transform_locked_shape_point(
-        #        old_translation_point, root_shape=shape.get_active_parent_shape())
-        #else:
-        #    new_translation_point = self.reverse_transform_point(old_translation_point)
-        angle = shape.get_angle()+self.get_angle()
+        if transform:
+            abs_outline = shape.get_abs_outline(0)
+            shape_abs_anchor_at = shape.get_abs_anchor_at()
+            #old_translation_point = shape.translation.copy()
+            #if lock:
+            #    new_translation_point = self.reverse_transform_locked_shape_point(
+            #        old_translation_point, root_shape=shape.get_active_parent_shape())
+            #else:
+            #    new_translation_point = self.reverse_transform_point(old_translation_point)
+            angle = shape.get_angle()+self.get_angle()
 
         if lock:
-            abs_anchor_at = self.reverse_transform_locked_shape_point(
-                shape_abs_anchor_at, root_shape=shape.parent_shape)
+            if transform:
+                abs_anchor_at = self.reverse_transform_locked_shape_point(
+                    shape_abs_anchor_at, root_shape=shape.parent_shape)
             if self == shape.locked_to_shape:
                 shape.locked_to_shape = None
         else:
-            abs_anchor_at = self.reverse_transform_point(shape_abs_anchor_at)
+            if transform:
+                abs_anchor_at = self.reverse_transform_point(shape_abs_anchor_at)
             if self == shape.parent_shape:
                 shape.parent_shape = None
 
-        if shape.pre_matrix:
-            shape.prepend_pre_matrix(self.get_angle_post_scale_matrix())
-        else:
-            if self.get_angle()==0:
-                if abs(shape.get_angle())>0:
-                    shape.scale_x *= self.post_scale_x
-                    shape.scale_y *= self.post_scale_y
-                else:
-                    shape.set_width(shape.width*self.post_scale_x, fixed_anchor=False)
-                    shape.set_height(shape.height*self.post_scale_y, fixed_anchor=False)
-                    shape.anchor_at.scale(self.post_scale_x, self.post_scale_y)
+        if transform:
+            if shape.pre_matrix:
+                shape.prepend_pre_matrix(self.get_angle_post_scale_matrix())
             else:
-                if self.post_scale_x != 1 or self.post_scale_y != 1:
-                    shape.prepend_pre_matrix(self.get_angle_post_scale_matrix())
+                if self.get_angle()==0:
+                    if abs(shape.get_angle())>0:
+                        shape.scale_x *= self.post_scale_x
+                        shape.scale_y *= self.post_scale_y
+                    else:
+                        shape.set_width(shape.width*self.post_scale_x, fixed_anchor=False)
+                        shape.set_height(shape.height*self.post_scale_y, fixed_anchor=False)
+                        shape.anchor_at.scale(self.post_scale_x, self.post_scale_y)
                 else:
-                    shape.set_angle(angle)
-        shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
+                    if self.post_scale_x != 1 or self.post_scale_y != 1:
+                        shape.prepend_pre_matrix(self.get_angle_post_scale_matrix())
+                    else:
+                        shape.set_angle(angle)
+            shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
         shape_list.remove(shape)
         return shape

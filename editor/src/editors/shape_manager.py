@@ -78,6 +78,7 @@ class ShapeManager(object):
 
         self.color_editor = None
         self.eraser_box = None
+        #self.multi_shape.fit_in_design_area()
 
     def show_hide_point_groups(self):
         if not EditingChoice.SHOW_POINT_GROUPS:
@@ -188,9 +189,9 @@ class ShapeManager(object):
         shape.parent_shape = self.multi_shape
         self.shapes.add(shape)
 
-    def remove_shape(self, shape):
+    def remove_shape(self, shape, transform=True, resize=True):
         self.shapes.remove(shape)
-        self.multi_shape.remove_shape(shape)
+        self.multi_shape.remove_shape(shape, transform=transform, resize=resize)
 
     def rename_shape(self, shape, name):
         old_name = shape.get_name()
@@ -973,32 +974,28 @@ class ShapeManager(object):
         task.save(self.doc, self.shape_editor.shape)
 
     def update(self):
-        self.multi_shape.readjust_sizes()
+        self.multi_shape.fit_in_design_area()
 
     def combine_shapes(self):
         if not self.shape_editor:
             return
         task = ShapeCombineTask(self.doc, self.shape_editor.shape)
         new_shape = MultiShape()
-        self.place_shape_at_zero_position(new_shape)
+        self.add_shape(new_shape)
         if  isinstance(self.shape_editor.shape, MultiSelectionShape):
             multi_select_shape = self.shape_editor.shape
-            new_shape.be_like_shape(multi_select_shape)
-
-            while len(multi_select_shape.shapes)>0:
-                child_shape = multi_select_shape.remove_shape(multi_select_shape.shapes.get_at_index(0))
-                self.remove_shape(child_shape)
-                new_shape.add_shape(child_shape)
+            child_shapes = []
+            for child_shape in multi_select_shape.shapes:
+                child_shapes.append(child_shape)
             self.delete_shape_editor()
+            for child_shape in child_shapes:
+                new_shape.add_shape(child_shape)
+                self.remove_shape(child_shape, transform=False, resize=False)
         else:
             child_shape = self.shape_editor.shape
-            new_shape.be_like_shape(child_shape)
-
-            self.remove_shape(child_shape)
             new_shape.add_shape(child_shape)
-
-        new_shape._name = Shape.new_name()
-        self.add_shape(new_shape)
+            self.remove_shape(child_shape, transform=False, resize=False)
+        new_shape.place_anchor_at_center()
         self.shape_editor = ShapeEditor(new_shape)
         task.save(self.doc, new_shape)
 
@@ -1326,7 +1323,7 @@ class ShapeManager(object):
             child_shape = shape.shapes[child_shape_name]
             shape.remove_shape(child_shape)
             child_shape.recreate_name()
-            self.multi_shape.add_shape(child_shape, transform=False, resize=False)
+            self.add_shape(child_shape)
             freed_shapes.append(child_shape)
         self.remove_shape(shape)
         self.multi_shape.readjust_sizes()
