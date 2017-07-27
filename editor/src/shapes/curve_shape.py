@@ -635,7 +635,7 @@ class CurveShape(Shape, Mirror):
         if self.curve_point_map:
             curve_points = CurvePoint.get_curve_points_for_curve(curve_index, self.curves)
             for curve_point in curve_points:
-                if curve_point.get_key() not in self.curve_point_map:
+                if self.curve_point_map[curve_point.get_key()] == self:
                     point = curve_point.get_point(self.curves)
                     if point:
                         point.scale(sx, sy)
@@ -658,11 +658,11 @@ class CurveShape(Shape, Mirror):
         if outline.height==0:
             sy = None
         else:
-            sy = outline.height/self.height
+            sy = self.height/outline.height
         if outline.width==0:
             sx = None
         else:
-            sx = outline.width/self.width
+            sx = self.width/outline.width
 
         dx = -outline.left/self.width
         dy = -outline.top/self.height
@@ -679,7 +679,6 @@ class CurveShape(Shape, Mirror):
         if self.locked_shapes:
             for shape in self.locked_shapes:
                 shape.shift_abs_anchor_at(shift)
-
         self.set_width(outline.width, fixed_anchor=False)
         self.set_height(outline.height, fixed_anchor=False)
 

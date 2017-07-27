@@ -18,13 +18,16 @@ class CurvePointGroupShape(RectangleShape):
         self.parent_shape = curve_shape
 
     def can_resize(self):
-        return len(self.curve_point_group.points)>1
+        return super(CurvePointGroupShape, self).can_resize() and \
+               len(self.curve_point_group.points)>1
 
     def can_rotate(self):
-        return len(self.curve_point_group.points)>1
+        return super(CurvePointGroupShape, self).can_rotate() and \
+               len(self.curve_point_group.points)>1
 
     def can_change_anchor(self):
-        return self.show_anchor and len(self.curve_point_group.points)>1
+        return super(CurvePointGroupShape, self).can_change_anchor() and \
+               self.show_anchor and len(self.curve_point_group.points)>1
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = CurvePointGroupShape(

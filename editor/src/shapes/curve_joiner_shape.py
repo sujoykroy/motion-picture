@@ -37,7 +37,7 @@ class JoinerItem(object):
             curve = self.curve_shape.curves[self.curve_index]
             start_curve_point = CurvePoint(
                 self.curve_index, len(curve.bezier_points)-1, CurvePoint.POINT_TYPE_DEST)
-            end_point = CurvePoint(
+            end_curve_point = CurvePoint(
                 self.curve_index, -1, CurvePoint.POINT_TYPE_ORIGIN)
             start_point = self.curve_shape.get_point_location(start_curve_point)
             end_point = self.curve_shape.get_point_location(end_curve_point)
@@ -45,22 +45,23 @@ class JoinerItem(object):
             if self.reversed:
                 start_point, end_point = end_point, start_point
 
-            for point, color in [[start_point, "70ede3"], [end_point, "ea3a84"]]:
+            params = [[start_point, "70ede3", "ff0000"], [end_point, "ea3a84", "00ff00"]]
+            for point, fill_color, border_color in params:
                 for i in range(2):
                     ctx.save()
                     ctx.new_path()
                     self.curve_shape.pre_draw(ctx, root_shape=root_shape)
                     #ctx.scale(self.curve_shape.width, self.curve_shape.height)
-                    ctx.translate(self.curve_shape.width*point.x, self.curve_shape.height*point.y)
+                    ctx.translate(point.x, point.y)
                     ctx.scale(10, 10)
                     ctx.move_to(.5,0)
                     ctx.arc(0,0,.5,0, 2*math.pi)
                     ctx.close_path()
                     ctx.restore()
                     if i == 0:
-                        draw_fill(ctx, color)
+                        draw_fill(ctx, fill_color)
                     else:
-                        draw_stroke(ctx, 2, "000000")
+                        draw_stroke(ctx, 2, border_color)
 
     def complete(self, ctx, root_shape):
         if self.curve_shape:

@@ -55,13 +55,13 @@ class Shape(object):
         return self.__class__.__name__
 
     def can_resize(self):
-        return True
+        return self.moveable
 
     def can_rotate(self):
-        return True
+        return self.moveable
 
     def can_change_anchor(self):
-        return True
+        return self.moveable
 
     def has_poses(self):
         return False
@@ -935,9 +935,14 @@ class Shape(object):
                     rel_root_shape = rel_root_shape.locked_to_shape
                 else:
                     rel_root_shape = rel_root_shape.parent_shape
-
-        for shape in reversed(ancestors[1:]):
-            point = shape.reverse_transform_point(point)
+        #if root_shape:
+        #    print "root_shape",  root_shape.get_name()
+        #print [s.get_name()  for s in ancestors]
+        if len(ancestors) == 1 and root_shape is None and False:
+            point = self.reverse_transform_point(point)
+        else:
+            for shape in reversed(ancestors[1:]):
+                point = shape.reverse_transform_point(point)
         for shape in transformers:
             point = shape.transform_point(point)
         return point
@@ -1103,7 +1108,7 @@ class Shape(object):
     def get_outline(self, padding):
         return Rect(-padding, -padding, self.width+2*padding, self.height+2*padding, padding)
 
-    def get_abs_outline(self, padding=0):
+    def get_abs_outline(self, padding=0, root_shape=None):
         outline = self.get_outline(padding)
         points = []
         points.append(Point(outline.left, outline.top))
@@ -1113,7 +1118,11 @@ class Shape(object):
 
         #abs_anchor_at = self.get_abs_anchor_at()
         min_x = max_x = min_y = max_y =  None
+        if root_shape is None:
+            root_shape = self.get_active_parent_shape()
+        #print "get_abs_outline", self.get_name()
         for point in points:
+            #point = self.reverse_transform_locked_shape_point(point, root_shape=root_shape)
             point = self.reverse_transform_point(point)
 
             if min_x is None or min_x>point.x: min_x = point.x
