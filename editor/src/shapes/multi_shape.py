@@ -552,6 +552,14 @@ class MultiShape(Shape):
             self.custom_props.set_prop_value(prop_name, value)
 
     def readjust_sizes(self):
+        for shape in self.shapes:
+            if isinstance(shape, CurveShape):
+               shape.fit_size_to_include_all()
+            elif isinstance(shape, PolygonShape):
+               shape.fit_size_to_include_all()
+            elif isinstance(shape, MultiShape):
+               shape.readjust_sizes()
+
         outline = None
         for shape in self.shapes:
             if not shape.has_outline:
@@ -564,35 +572,28 @@ class MultiShape(Shape):
 
         if outline is None: return
         abs_anchor_at = self.get_abs_anchor_at()
-        offset_x = -outline.left
-        offset_y = -outline.top
+        offset = Point(-outline.left, -outline.top)
 
         for shape in self.shapes:
             if shape.locked_to_shape:
                 continue
             if not shape.has_outline:
                 continue
-            shape_abs_anchor_at = shape.get_abs_anchor_at()
-            shape_abs_anchor_at.translate(offset_x, offset_y)
-            shape.move_to(shape_abs_anchor_at.x, shape_abs_anchor_at.y)
+            shape.shift_abs_anchor_at(offset)
+
+        if self.locked_shapes:
+            for shape in self.locked_shapes:
+                if shape.locked_to_shape:
+                    continue
+                if not shape.has_outline:
+                    continue
+                shape.shift_abs_anchor_at(offset)
 
         self.width = outline.width
         self.height = outline.height
 
-        self.anchor_at.x += offset_x
-        self.anchor_at.y += offset_y
+        self.anchor_at.translate(offset.x, offset.y)
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
-
-    def fit_in_design_area(self):
-        return
-        for shape in self.shapes:
-            if isinstance(shape, CurveShape):
-               shape.fit_size_to_include_all()
-            elif isinstance(shape, PolygonShape):
-               shape.fit_size_to_include_all()
-            elif isinstance(shape, MultiShape):
-               shape.fit_in_design_area()
-        self.readjust_sizes()
 
     def add_shape(self, shape, transform=True, resize=True):
         self.add_interior_shape(shape, self.shapes, transform=transform, lock=False)

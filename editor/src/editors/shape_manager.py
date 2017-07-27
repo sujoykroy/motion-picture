@@ -78,7 +78,7 @@ class ShapeManager(object):
 
         self.color_editor = None
         self.eraser_box = None
-        #self.multi_shape.fit_in_design_area()
+        self.multi_shape.readjust_sizes()
 
     def show_hide_point_groups(self):
         if not EditingChoice.SHOW_POINT_GROUPS:
@@ -974,7 +974,7 @@ class ShapeManager(object):
         task.save(self.doc, self.shape_editor.shape)
 
     def update(self):
-        self.multi_shape.fit_in_design_area()
+        self.multi_shape.readjust_sizes()
 
     def combine_shapes(self):
         if not self.shape_editor:

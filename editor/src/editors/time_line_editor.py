@@ -373,7 +373,7 @@ class TimeLineEditor(Gtk.VBox):
             self.play_button.show()
             self.pause_button.hide()
             self.update()
-            self.move_play_head_to_time(0, force_visible=True)
+            self.move_play_head_to_time(0., force_visible=True)
         self.is_playing = False
 
     def show_current_play_head_time(self):

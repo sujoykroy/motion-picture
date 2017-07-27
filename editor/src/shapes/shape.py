@@ -408,27 +408,29 @@ class Shape(object):
             elif prop_name == "form_name":
                 prop_data=dict(start_form=start_value, end_form=end_value)
                 self.set_prop_value("internal", frac, prop_data)
-            elif type(start_value) in (int, float, bool):
-                self.set_prop_value(prop_name, start_value+(end_value-start_value)*frac)
+            elif type(start_value) in (int, float):
+                self.set_prop_value_direct(prop_name, start_value+(end_value-start_value)*frac)
+            elif type(start_value) in (int, bool):
+                self.set_prop_value_direct(prop_name, bool(int(start_value+(end_value-start_value)*frac)))
             elif type(start_value) in (str, ):
-                self.set_prop_value(prop_name, start_value)
+                self.set_prop_value_direct(prop_name, start_value)
             elif isinstance(start_value, Point):
                 self_point = Point(0,0)
                 self_point.x = start_value.x + (end_value.x-start_value.x)*frac
                 self_point.y = start_value.y + (end_value.y-start_value.y)*frac
-                self.set_prop_value(prop_name, self_point)
+                self.set_prop_value_direct(prop_name, self_point)
             elif isinstance(start_value, Color) or isinstance(start_value, GradientColor):
                 self_color = self.get_prop_value(prop_name)
                 if self_color:
                     self_color = self_color.copy()
                     self_color.set_inbetween(start_value, end_value, frac)
-                    self.set_prop_value(prop_name, self_color)
+                    self.set_prop_value_direct(prop_name, self_color)
             elif isinstance(start_value, cairo.Matrix):
                 if start_value and end_value:
                     current_value = Matrix.interpolate(start_value, end_value, frac)
                 else:
                     current_value = None
-                self.set_prop_value(prop_name, current_value)
+                self.set_prop_value_direct(prop_name, current_value)
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
@@ -587,6 +589,12 @@ class Shape(object):
             getattr(self, set_attr_name)(value)
         elif hasattr(self, prop_name):
             setattr(self, prop_name, value)
+
+    def set_prop_value_direct(self, prop_name, value):
+        if hasattr(self, prop_name):
+            setattr(self, prop_name, copy_value(value))
+        else:
+            self.set_prop_value(prop_name, value)
 
     def get_prop_value(self, prop_name):
         get_attr_name = "get_" + prop_name
@@ -942,7 +950,7 @@ class Shape(object):
         #if root_shape:
         #    print "root_shape",  root_shape.get_name()
         #print [s.get_name()  for s in ancestors]
-        if len(ancestors) == 1 and root_shape is None and False:
+        if len(ancestors) == 1 and root_shape is None:
             point = self.reverse_transform_point(point)
         else:
             for shape in reversed(ancestors[1:]):
@@ -1126,8 +1134,8 @@ class Shape(object):
             root_shape = self.get_active_parent_shape()
         #print "get_abs_outline", self.get_name()
         for point in points:
-            #point = self.reverse_transform_locked_shape_point(point, root_shape=root_shape)
-            point = self.reverse_transform_point(point)
+            point = self.reverse_transform_locked_shape_point(point, root_shape=root_shape)
+            #point = self.reverse_transform_point(point)
 
             if min_x is None or min_x>point.x: min_x = point.x
             if max_x is None or max_x<point.x: max_x = point.x
