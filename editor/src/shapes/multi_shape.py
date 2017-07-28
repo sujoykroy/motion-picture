@@ -583,8 +583,6 @@ class MultiShape(Shape):
 
         if self.locked_shapes:
             for shape in self.locked_shapes:
-                if shape.locked_to_shape:
-                    continue
                 if not shape.has_outline:
                     continue
                 shape.shift_abs_anchor_at(offset)

@@ -36,6 +36,9 @@ class CurvePointEditBox(OvalEditBox):
         super(CurvePointEditBox, self).move_offset(dx, dy)
         self.parent_shape.set_point_location(self.curve_point, self.point)
 
+    def can_move(self):
+        return self.parent_shape.is_curve_point_owned(self.curve_point)
+
 class CurvePointLine(Shape):
     def __init__(self, curve_point_1, curve_point_2):
         w = h = 1.0
@@ -315,7 +318,7 @@ class ShapeEditor(object):
                        selected_edit_box = edit_box
                        break
 
-        if selected_edit_box:
+        if selected_edit_box and selected_edit_box.can_move():
             if multi_select and \
                 (isinstance(self.shape, CurveShape) or isinstance(self.shape, PolygonShape)):
 
@@ -376,6 +379,9 @@ class ShapeEditor(object):
             can_resize = self.shape.can_rotate()
             can_change_anchor = self.shape.can_change_anchor()
             for edit_box in self.selected_edit_boxes:
+                if not edit_box.can_move():
+                    continue
+
                 if can_resize and edit_box == self.named_edit_boxes[RESIZING_BOTTOM]:
                     if isinstance(self.shape, MultiShape):
                         self.shape.post_scale_y = self.init_shape.post_scale_y * \
@@ -466,7 +472,8 @@ class ShapeEditor(object):
                                 edb.move_offset(pp.x, pp.y)
                                 break
                     edit_box.move_offset(point.x, point.y)
-            self.named_edit_boxes[ANCHOR].set_point(self.shape.anchor_at)
+            if self.shape.can_change_anchor():
+                self.named_edit_boxes[ANCHOR].set_point(self.shape.anchor_at)
         elif self.edit_box_can_move is False:
             if not EditingChoice.LOCK_SHAPE_MOVEMENT and self.shape.moveable:
                 diff_point = end_point.diff(start_point)

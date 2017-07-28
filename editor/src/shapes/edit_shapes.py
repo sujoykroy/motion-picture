@@ -71,6 +71,9 @@ class EditBox(object):
         draw_stroke(ctx, border_width, border_color)
         ctx.restore()
 
+    def can_move(self):
+        return True
+
 class RectEditBox(RectangleShape, EditBox):
     def __init__(self, percent_point, angle=0, is_percent=True, width=10, height=5, offset=None):
         RectangleShape.__init__(self, Point(width*.5,height*.5), Color(0,0,0,1), 1,

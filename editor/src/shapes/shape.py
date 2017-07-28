@@ -30,8 +30,7 @@ class Shape(object):
         self.pre_matrix = None
         self.visible = True
 
-        self.id_num = Shape.ID_SEED
-        Shape.ID_SEED += 1
+        self.id_num = self.get_new_id()
 
         self.parent_shape = None
         self._name = self.new_name()
@@ -50,6 +49,12 @@ class Shape(object):
         self.locked_shapes = None
         self.selectable = True
         self.has_outline = True
+
+    @staticmethod
+    def get_new_id():
+        id_num = Shape.ID_SEED
+        Shape.ID_SEED += 1
+        return id_num
 
     def get_class_name(self):
         return self.__class__.__name__
@@ -112,6 +117,13 @@ class Shape(object):
                 linked_clone.set_linked_to(None)
         if self.linked_to:
             self.set_linked_to(None)
+        if self.locked_shapes:
+            for locked_shape in self.locked_shapes:
+                locked_shape.set_locked_to(None)
+        if self.locked_to_shape:
+            self.set_locked_to(None)
+        if hasattr(self, "anchor_shape"):
+            self.anchor_shape.cleanup()
 
     def set_linked_to(self, linked_to_shape):
         if self.linked_to:
@@ -148,6 +160,8 @@ class Shape(object):
         return None
 
     def get_interior_shape(self, shape_path):
+        if not shape_path:
+            return None
         shape = self
         if isinstance(shape_path, list):
             shape_names = shape_path
@@ -167,9 +181,12 @@ class Shape(object):
             return None
         interior_shapes = shape.get_interior_shapes()
         shape_name = shape_names[0]
-        if not interior_shapes or not interior_shapes.contain(shape_name):
-            return None
-        shape = interior_shapes[shape_name]
+        if shape_name == ANCHOR_SHAPE_NAME:
+            shape = self.get_anchor_shape()
+        else:
+            if not interior_shapes or not interior_shapes.contain(shape_name):
+                return None
+            shape = interior_shapes[shape_name]
         if len(shape_names)>1:
             return shape.get_interior_shape(shape_names[1:])
         return shape
@@ -1218,6 +1235,11 @@ class Shape(object):
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
         return pixbuf
 
+    def get_anchor_shape(self):
+        if not hasattr(self, "anchor_shape"):
+            self.anchor_shape = AnchorShape(self)
+        return self.anchor_shape
+
     NAME_SEED = 0
     _APP_EPOCH_TIME = time.mktime(time.strptime("1 Jan 2016", "%d %b %Y"))
 
@@ -1277,4 +1299,16 @@ class Shape(object):
         ctx.stroke()
         ctx.restore()
 
+ANCHOR_SHAPE_NAME = "_anchor_"
+
+class AnchorShape(Shape):
+    def __init__(self, parent_shape):
+        super(AnchorShape, self).__init__(Point(0,0), None, 0., None, 0., 0.)
+        del self.translation
+        self.parent_shape = parent_shape
+        self._name = ANCHOR_SHAPE_NAME
+
+    def __getattr__(self, name):
+        if name == "translation":
+            return self.parent_shape.anchor_at
 

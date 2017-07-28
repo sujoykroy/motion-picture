@@ -102,6 +102,12 @@ class CurveShape(Shape, Mirror):
                 self.set_point_location(curve_point, location)
         self.rebuild_curve_point_map()
 
+    def is_curve_point_owned(self, curve_point):
+        if not self.curve_point_map:
+            return True
+        owner_shape = self.curve_point_map.get(curve_point.get_key())
+        return owner_shape == self
+
     def rebuild_curve_point_map(self):
         self.curve_point_map.clear()
         if not self.point_group_shapes:
