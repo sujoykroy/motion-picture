@@ -182,7 +182,7 @@ class Shape(object):
         interior_shapes = shape.get_interior_shapes()
         shape_name = shape_names[0]
         if shape_name == ANCHOR_SHAPE_NAME:
-            shape = self.get_anchor_shape()
+            shape = shape.get_anchor_shape()
         else:
             if not interior_shapes or not interior_shapes.contain(shape_name):
                 return None
@@ -1236,7 +1236,7 @@ class Shape(object):
 
     def get_anchor_shape(self):
         if not hasattr(self, "anchor_shape"):
-            self.anchor_shape = AnchorShape(self)
+            self.anchor_shape = AnchorShape(parent_shape=self)
         return self.anchor_shape
 
     NAME_SEED = 0
@@ -1310,4 +1310,6 @@ class AnchorShape(Shape):
     def __getattr__(self, name):
         if name == "translation":
             return self.parent_shape.anchor_at
+        else:
+            raise AttributeError
 
