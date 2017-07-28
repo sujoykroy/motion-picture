@@ -433,14 +433,14 @@ class CurveShape(Shape, Mirror):
         shape.rebuild_curve_point_map()
         return shape
 
-    def build_locked_to(self):
-        super(CurveShape, self).build_locked_to()
-        self.build_interior_locked_to()
+    def build_locked_to(self, up=0):
+        super(CurveShape, self).build_locked_to(up)
+        self.build_interior_locked_to(up+1)
 
-    def build_interior_locked_to(self):
+    def build_interior_locked_to(self, up=0):
         if self.point_group_shapes:
             for point_group_shape in self.point_group_shapes:
-                point_group_shape.build_locked_to()
+                point_group_shape.build_locked_to(up)
 
     def copy(self, copy_name=False, deep_copy=False, form=None):
         newob = CurveShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,

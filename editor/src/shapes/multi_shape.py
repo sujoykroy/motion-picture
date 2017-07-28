@@ -235,13 +235,13 @@ class MultiShape(Shape):
 
         return shape
 
-    def build_locked_to(self):
-        super(MultiShape, self).build_locked_to()
-        self.build_interior_locked_to()
+    def build_locked_to(self, up=0):
+        super(MultiShape, self).build_locked_to(up)
+        self.build_interior_locked_to(up+1)
 
-    def build_interior_locked_to(self):
+    def build_interior_locked_to(self, up=0):
         for child_shape in self.shapes:
-            child_shape.build_locked_to()
+            child_shape.build_locked_to(up)
 
     def perform_post_create_from_xml(self):
         for shape in self.shapes:

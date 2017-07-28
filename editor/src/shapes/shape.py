@@ -305,8 +305,11 @@ class Shape(object):
         shape_list.remove(shape)
         return shape
 
-    def build_locked_to(self):
+    def build_locked_to(self, up=0):
         if hasattr(self, "_locked_to") and not self.locked_to_shape:
+            up_parents = "\\"*(up+1)
+            if up_parents and self._locked_to.find(up_parents)==0:
+                return
             self.set_locked_to(self._locked_to, direct=True)
             del self._locked_to
 
@@ -542,7 +545,7 @@ class Shape(object):
         newob.moveable = self.moveable
         newob.renderable = self.renderable
         if self.locked_to_shape:
-            newob._locked_to = self.locked_to_shape.get_shape_path(root_shape=self.parent_shape)
+            newob._locked_to = self.get_locked_to()
         newob.same_xy_scale = self.same_xy_scale
         newob.translation = self.translation.copy()
         newob.angle = self.angle
@@ -964,9 +967,6 @@ class Shape(object):
                     rel_root_shape = rel_root_shape.locked_to_shape
                 else:
                     rel_root_shape = rel_root_shape.parent_shape
-        #if root_shape:
-        #    print "root_shape",  root_shape.get_name()
-        #print [s.get_name()  for s in ancestors]
         if len(ancestors) == 1 and root_shape is None:
             point = self.reverse_transform_point(point)
         else:
@@ -1149,7 +1149,6 @@ class Shape(object):
         min_x = max_x = min_y = max_y =  None
         if root_shape is None:
             root_shape = self.get_active_parent_shape()
-        #print "get_abs_outline", self.get_name()
         for point in points:
             point = self.reverse_transform_locked_shape_point(point, root_shape=root_shape)
             #point = self.reverse_transform_point(point)
