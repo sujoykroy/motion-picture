@@ -222,6 +222,10 @@ class ApplicationWindow(MasterEditor):
             if self.shape_manager.create_curve_joiner_shape():
                 self.rebuild_tree_view()
                 self.redraw()
+        elif shape_type == "mimic":
+            if self.shape_manager.create_mimic_shape():
+                self.rebuild_tree_view()
+                self.redraw()
         else:
             shape_creation_is_done = False
             self.set_shape_creation_mode(shape_type)

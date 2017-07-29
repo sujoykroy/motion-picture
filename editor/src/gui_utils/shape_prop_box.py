@@ -181,6 +181,10 @@ class ShapePropBox(object):
             file_widget.connect("file-selected", self.file_widget_file_selected, prop_name)
             prop_widget = file_widget
             can_insert_slice = False
+
+        if not isinstance(prop_widget, Gtk.Label):
+            prop_widget.set_size_request(150, -1)
+        prop_widget.set_margin_left(10)
         prop_widget.value_type = value_type
         prop_widget.related = related
 

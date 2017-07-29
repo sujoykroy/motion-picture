@@ -99,6 +99,8 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         self.curve_joiner_shape_prop_box = CurveJoinerShapePropBox(
                     self, self.shape_prop_changed, self, self.insert_time_slice)
+        self.mimic_shape_prop_box = MimicShapePropBox(
+                    self, self.shape_prop_changed, self, self.insert_time_slice)
         self.common_shape_prop_box = CommonShapePropBox(
                     self, self.shape_prop_changed, self, self.insert_time_slice)
         self.rectangle_shape_prop_box = RectangleShapePropBox(
@@ -155,6 +157,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.prop_grid.add(self.linked_to_hbox)
         self.prop_grid.add_all(
             self.curve_joiner_shape_prop_box,
+            self.mimic_shape_prop_box,
             self.point_group_shape_list_box,
             self.common_shape_prop_box,
             self.rectangle_shape_prop_box,
@@ -174,7 +177,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.curve_point_group_shape_prop_box,
             self.interior_pose_box
         )
-        self.left_prop_box.pack_start(self.prop_grid, expand=False, fill=False, padding=0)
+        self.left_prop_box.pack_start(self.prop_grid, expand=True, fill=True, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
 
         self.drawing_area = Gtk.DrawingArea()
@@ -415,6 +418,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def show_prop_of(self, shape):
         self.curve_joiner_shape_prop_box.hide()
+        self.mimic_shape_prop_box.hide()
         self.common_shape_prop_box.hide()
         self.rectangle_shape_prop_box.hide()
         self.oval_shape_prop_box.hide()
@@ -449,6 +453,11 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, CurveJoinerShape):
                 self.curve_joiner_shape_prop_box.set_prop_object(shape)
                 self.curve_joiner_shape_prop_box.show()
+                return
+
+            if isinstance(shape, MimicShape):
+                self.mimic_shape_prop_box.set_prop_object(shape)
+                self.mimic_shape_prop_box.show()
                 return
 
             self.common_shape_prop_box.show()

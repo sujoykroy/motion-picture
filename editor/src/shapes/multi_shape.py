@@ -15,9 +15,11 @@ from threed_shape import ThreeDShape
 from document_shape import DocumentShape
 from custom_shape import CustomShape
 from curve_joiner_shape import CurveJoinerShape
+from mimic_shape import MimicShape
 from curves_form import CurvesForm
 from xml.etree.ElementTree import Element as XmlElement
 from custom_props import *
+from mimic_shape import MimicShape
 
 REL_ABS_ANCHOR_AT = "rel_abs_anchor_at"
 
@@ -211,6 +213,8 @@ class MultiShape(Shape):
                 child_shape = CustomShape.create_from_xml_element(shape_element)
             elif shape_type == CurveJoinerShape.TYPE_NAME:
                 child_shape = CurveJoinerShape.create_from_xml_element(shape_element)
+            elif shape_type == MimicShape.TYPE_NAME:
+                child_shape = MimicShape.create_from_xml_element(shape_element)
             if child_shape is None: continue
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)
@@ -247,6 +251,8 @@ class MultiShape(Shape):
         for shape in self.shapes:
             if isinstance(shape, CurveJoinerShape):
                 shape.build_joiner_items()
+            elif isinstance(shape, MimicShape):
+                shape.build_mimic_like_shape()
             elif isinstance(shape, MultiShape):
                 shape.perform_post_create_from_xml()
 
@@ -624,130 +630,167 @@ class MultiShape(Shape):
     def draw_path(self, ctx, for_fill=False):
         draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, 0)
 
+    @staticmethod
+    def draw_shape(shape, ctx, drawing_size=None,
+                         fixed_border=True, no_camera=True,
+                         root_shape=None, exclude_camera_list=None,
+                         pre_matrix=None, show_non_renderable=False):
+        if isinstance(shape, MultiShape):
+            multi_shape = shape
+            if multi_shape.fill_color is not None:
+                ctx.save()
+                multi_shape.pre_draw(ctx, root_shape=root_shape)
+                multi_shape.draw_path(ctx, for_fill=True)
+                multi_shape.draw_fill(ctx)
+                ctx.restore()
+
+            renderable_shapes_count = len(multi_shape.shapes)
+            masked_surface = None
+            if multi_shape.masked and len(multi_shape.shapes)>1:
+                renderable_shapes_count -= 1
+                masked_surface = cairo.ImageSurface(
+                                cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
+                masked_ctx = cairo.Context(masked_surface)
+                if pre_matrix:
+                    masked_ctx.set_matrix(pre_matrix)
+                orig_ctx = ctx
+                ctx = masked_ctx
+
+            if len(multi_shape.shapes)>0:
+                last_shape = multi_shape.shapes.get_at_index(-1)
+            else:
+                last_shape = None
+            for i in xrange(renderable_shapes_count):
+                child_shape = multi_shape.shapes.get_at_index(i)
+                if not child_shape.visible:
+                    continue
+                if not child_shape.renderable and not show_non_renderable:
+                    continue
+                if isinstance(child_shape, MultiShape):
+                    display_non_renderable = False
+                else:
+                    display_non_renderable = show_non_renderable
+                MultiShape.draw_shape(child_shape, ctx,
+                            drawing_size = drawing_size, fixed_border=fixed_border,
+                            no_camera=no_camera, exclude_camera_list=exclude_camera_list,
+                            root_shape=root_shape, pre_matrix=pre_matrix,
+                            show_non_renderable=display_non_renderable)
+
+            if masked_surface:
+                last_shape = self.shapes.get_at_index(-1)
+                ctx = orig_ctx
+                orig_mat = ctx.get_matrix()
+                if pre_matrix:
+                    ctx.set_matrix(cairo.Matrix())
+                ctx.set_source_surface(masked_surface)
+                ctx.set_matrix(orig_mat)
+                ctx.save()
+                last_shape.pre_draw(ctx, root_shape=root_shape)
+                last_shape.draw_path(ctx)
+                ctx.clip()
+                ctx.paint()
+                ctx.restore()
+                if last_shape.renderable or show_non_renderable:
+                    ctx.save()
+                    last_shape.pre_draw(ctx, root_shape=root_shape)
+                    last_shape.draw_path(ctx)
+                    if fixed_border:
+                        ctx.restore()
+                        last_shape.draw_border(ctx)
+                    else:
+                        last_shape.draw_border(ctx)
+                        ctx.restore()
+
+            if multi_shape.border_color is not None:
+                ctx.save()
+                multi_shape.pre_draw(ctx, root_shape=root_shape)
+                multi_shape.draw_path(ctx, for_fill=False)
+                if fixed_border:
+                    ctx.restore()
+                    multi_shape.draw_border(ctx)
+                else:
+                    multi_shape.draw_border(ctx)
+                    ctx.restore()
+        elif isinstance(shape, CameraShape) and \
+            (no_camera or (exclude_camera_list and child_shape in exclude_camera_list)):
+            return
+
+        elif isinstance(shape, CurveJoinerShape):
+            shape.draw(ctx, root_shape=root_shape, fixed_border=fixed_border)
+
+        elif isinstance(shape, MultiShape) or \
+            isinstance(shape, DocumentShape) or \
+            isinstance(shape, MimicShape):
+            if isinstance(shape, MimicShape):
+                shape = shape.mimic_like_shape
+                if not shape:
+                    return
+            MultiShape.draw_shape(shape, ctx,
+                    drawing_size = drawing_size, fixed_border=fixed_border,
+                    no_camera=no_camera, exclude_camera_list=exclude_camera_list,
+                    root_shape=root_shape, pre_matrix=pre_matrix,
+                    show_non_renderable=False)
+
+        elif isinstance(shape, CustomShape):
+            shape.draw(ctx, drawing_size = drawing_size, root_shape=root_shape,
+                            fixed_border=fixed_border, pre_matrix=pre_matrix)
+        elif isinstance(shape, MimicShape):
+            if shape.mimic_like_shape:
+                MultiShape.draw_shape(shape, ctx,
+                    drawing_size = drawing_size, fixed_border=fixed_border,
+                    no_camera=no_camera, exclude_camera_list=exclude_camera_list,
+                    root_shape=root_shape, pre_matrix=pre_matrix,
+                    show_non_renderable=False)
+        else:
+            ctx.save()
+            shape.pre_draw(ctx, root_shape=root_shape)
+            shape.draw_path(ctx, for_fill=True)
+            shape.draw_fill(ctx)
+            ctx.restore()
+
+            if isinstance(shape, ImageShape) or \
+               isinstance(shape, VideoShape) or \
+               isinstance(shape, AudioShape) or \
+               isinstance(shape, CameraShape) or \
+               isinstance(shape, ThreeDShape):
+                ctx.save()
+                shape.pre_draw(ctx, root_shape=root_shape)
+                #shape.draw_path(ctx)
+                if isinstance(shape, CameraShape):
+                    shape.draw_image(ctx, fixed_border=fixed_border,
+                                          exclude_camera_list=exclude_camera_list)
+                elif isinstance(shape, ThreeDShape):
+                    shape.draw_image(ctx, root_shape=root_shape, pre_matrix=pre_matrix)
+                else:
+                    shape.draw_image(ctx, root_shape=root_shape)
+                ctx.restore()
+
+            if isinstance(shape, TextShape):
+                ctx.save()
+                shape.pre_draw(ctx, root_shape=root_shape)
+                shape.draw_path(ctx)
+                shape.draw_text(ctx)
+                ctx.restore()
+
+            ctx.save()
+            shape.pre_draw(ctx, root_shape=root_shape)
+            shape.draw_path(ctx)
+            if fixed_border:
+                ctx.restore()
+                shape.draw_border(ctx)
+            else:
+                shape.draw_border(ctx)
+                ctx.restore()
+
     def draw(self, ctx, drawing_size=None,
                         fixed_border=True, no_camera=True,
                         root_shape=None, exclude_camera_list=None,
                         pre_matrix=None, show_non_renderable=False):
 
-        if self.fill_color is not None:
-            ctx.save()
-            self.pre_draw(ctx, root_shape=root_shape)
-            self.draw_path(ctx, for_fill=True)
-            self.draw_fill(ctx)
-            ctx.restore()
-
-        renderable_shapes_count = len(self.shapes)
-        masked_surface = None
-        if self.masked and len(self.shapes)>1:
-            renderable_shapes_count -= 1
-            masked_surface = cairo.ImageSurface(
-                            cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
-            masked_ctx = cairo.Context(masked_surface)
-            if pre_matrix:
-                masked_ctx.set_matrix(pre_matrix)
-            orig_ctx = ctx
-            ctx = masked_ctx
-
-        if len(self.shapes)>0:
-            last_shape = self.shapes.get_at_index(-1)
-        else:
-            last_shape = None
-        for i in range(renderable_shapes_count):
-            shape = self.shapes.get_at_index(i)
-            if not shape.visible:
-                continue
-            if not shape.renderable and not show_non_renderable:
-                continue
-            if isinstance(shape, CameraShape) and \
-                (no_camera or (exclude_camera_list and shape in exclude_camera_list)):
-                continue
-            if isinstance(shape, CurveJoinerShape):
-                shape.draw(ctx, root_shape=root_shape, fixed_border=fixed_border)
-            elif isinstance(shape, MultiShape) or isinstance(shape, DocumentShape):
-                shape.draw(ctx,
-                        drawing_size = drawing_size, fixed_border=fixed_border,
-                        no_camera=no_camera, exclude_camera_list=exclude_camera_list,
-                        root_shape=root_shape, pre_matrix=pre_matrix,
-                        show_non_renderable=False)
-            elif isinstance(shape, CustomShape):
-                shape.draw(ctx, drawing_size = drawing_size, root_shape=root_shape,
-                                fixed_border=fixed_border, pre_matrix=pre_matrix)
-            else:
-                ctx.save()
-                shape.pre_draw(ctx, root_shape=root_shape)
-                shape.draw_path(ctx, for_fill=True)
-                shape.draw_fill(ctx)
-                ctx.restore()
-
-                if isinstance(shape, ImageShape) or \
-                   isinstance(shape, VideoShape) or \
-                   isinstance(shape, AudioShape) or \
-                   isinstance(shape, CameraShape) or \
-                   isinstance(shape, ThreeDShape):
-                    ctx.save()
-                    shape.pre_draw(ctx, root_shape=root_shape)
-                    #shape.draw_path(ctx)
-                    if isinstance(shape, CameraShape):
-                        shape.draw_image(ctx, fixed_border=fixed_border,
-                                              exclude_camera_list=exclude_camera_list)
-                    elif isinstance(shape, ThreeDShape):
-                        shape.draw_image(ctx, root_shape=root_shape, pre_matrix=pre_matrix)
-                    else:
-                        shape.draw_image(ctx, root_shape=root_shape)
-                    ctx.restore()
-
-                if isinstance(shape, TextShape):
-                    ctx.save()
-                    shape.pre_draw(ctx, root_shape=root_shape)
-                    shape.draw_path(ctx)
-                    shape.draw_text(ctx)
-                    ctx.restore()
-
-                ctx.save()
-                shape.pre_draw(ctx, root_shape=root_shape)
-                shape.draw_path(ctx)
-                if fixed_border:
-                    ctx.restore()
-                    shape.draw_border(ctx)
-                else:
-                    shape.draw_border(ctx)
-                    ctx.restore()
-
-        if masked_surface:
-            last_shape = self.shapes.get_at_index(-1)
-            ctx = orig_ctx
-            orig_mat = ctx.get_matrix()
-            if pre_matrix:
-                ctx.set_matrix(cairo.Matrix())
-            ctx.set_source_surface(masked_surface)
-            ctx.set_matrix(orig_mat)
-            ctx.save()
-            last_shape.pre_draw(ctx, root_shape=root_shape)
-            last_shape.draw_path(ctx)
-            ctx.clip()
-            ctx.paint()
-            ctx.restore()
-            if last_shape.renderable or show_non_renderable:
-                ctx.save()
-                last_shape.pre_draw(ctx, root_shape=root_shape)
-                last_shape.draw_path(ctx)
-                if fixed_border:
-                    ctx.restore()
-                    last_shape.draw_border(ctx)
-                else:
-                    last_shape.draw_border(ctx)
-                    ctx.restore()
-
-        if self.border_color is not None:
-            ctx.save()
-            self.pre_draw(ctx, root_shape=root_shape)
-            self.draw_path(ctx, for_fill=False)
-            if fixed_border:
-                ctx.restore()
-                self.draw_border(ctx)
-            else:
-                self.draw_border(ctx)
-                ctx.restore()
+        MultiShape.draw_shape(self, ctx, drawing_size = drawing_size,
+                        fixed_border=fixed_border, no_camera=no_camera,
+                        root_shape=root_shape, exclude_camera_list=exclude_camera_list,
+                        pre_matrix=pre_matrix, show_non_renderable=show_non_renderable)
 
     def be_like_shape(self, shape):
         self.width = shape.width

@@ -18,6 +18,7 @@ from misc_prop_boxes import CurvePointGroupShapePropBox
 from misc_prop_boxes import CustomShapePropBox
 from misc_prop_boxes import CustomPropsBox
 from misc_prop_boxes import CurveJoinerShapePropBox
+from misc_prop_boxes import MimicShapePropBox
 
 from curve_smooth_prop_box import CurveSmoothPropBox
 

@@ -602,6 +602,11 @@ class ShapeManager(object):
         self.add_new_shape(shape)
         return True
 
+    def create_mimic_shape(self):
+        shape = MimicShape(mimic_like="")
+        self.add_new_shape(shape)
+        return True
+
     def delete_shape_editor(self):
         if self.shape_editor is None: return
         self.point_group_shape_editor = None

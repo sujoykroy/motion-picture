@@ -39,6 +39,12 @@ class CurvePointEditBox(OvalEditBox):
     def can_move(self):
         return self.parent_shape.is_curve_point_owned(self.curve_point)
 
+    def update(self):
+        curve_point_location = self.parent_shape.get_point_location(self.curve_point)
+        self.point.copy_from(curve_point_location)
+        self.init_point.x = self.point.x
+        self.init_point.y = self.point.y
+
 class CurvePointLine(Shape):
     def __init__(self, curve_point_1, curve_point_2):
         w = h = 1.0

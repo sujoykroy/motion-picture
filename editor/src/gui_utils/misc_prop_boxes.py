@@ -5,6 +5,7 @@ class CommonShapePropBox(ShapePropBox):
         ShapePropBox.__init__(self, parent_window, draw_callback,
                                 shape_name_checker, insert_time_slice_callback)
         self.add_prop("name", PROP_TYPE_NAME_ENTRY)
+        self.add_prop("class_name", PROP_TYPE_LABEL)
         self.add_prop("show_points", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         self.add_prop("moveable", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
         self.add_prop("selectable", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
@@ -314,6 +315,7 @@ class CurveJoinerShapePropBox(ShapePropBox):
         ShapePropBox.__init__(self, parent_window, draw_callback,
                                 shape_name_checker, insert_time_slice_callback)
         self.add_prop("name", PROP_TYPE_NAME_ENTRY)
+        self.add_prop("class_name", PROP_TYPE_LABEL)
         self.add_prop("joined_names", PROP_TYPE_LONG_TEXT)
         self.add_prop("show_ends", PROP_TYPE_CHECK_BUTTON)
         self.add_prop("border_width", PROP_TYPE_NUMBER_ENTRY,
@@ -321,3 +323,12 @@ class CurveJoinerShapePropBox(ShapePropBox):
         self.add_prop("border_dash", PROP_TYPE_TEXT, None, can_insert_slice=False)
         self.add_prop("border_color", PROP_TYPE_COLOR, None)
         self.add_prop("fill_color", PROP_TYPE_COLOR, None)
+
+class MimicShapePropBox(ShapePropBox):
+    def __init__(self, parent_window, draw_callback, shape_name_checker, insert_time_slice_callback):
+        ShapePropBox.__init__(self, parent_window, draw_callback,
+                                shape_name_checker, insert_time_slice_callback)
+        self.add_prop("name", PROP_TYPE_NAME_ENTRY)
+        self.add_prop("class_name", PROP_TYPE_LABEL)
+        self.add_prop("mimic_like", PROP_TYPE_TEXT)
+        self.add_prop("visible", PROP_TYPE_CHECK_BUTTON)

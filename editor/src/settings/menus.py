@@ -120,8 +120,10 @@ m.add(path="Shapes/<New>/Document", icon="new_document_shape",
       action_name="win.create_new_shape", action_state="document")
 m.add(path="Shapes/<New>/Custom", icon="custom_shape",
       action_name="win.create_new_shape", action_state="custom")
-m.add(path="Shapes/<New>/Curve Joiner", icon="custom_shape",
+m.add(path="Shapes/<New>/Curve Joiner", icon="curve_joiner",
       action_name="win.create_new_shape", action_state="curve_joiner")
+m.add(path="Shapes/<New>/Mimic", icon="mimic",
+      action_name="win.create_new_shape", action_state="mimic")
 
 m.add(path="Shapes/Align/X", icon="x_align", desc="Align shapes along X-axis",
       action_name="win.align_shapes", action_param="x", icon_scale = 1.2)
