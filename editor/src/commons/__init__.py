@@ -20,6 +20,8 @@ from texture_map_color import TextureResources
 from texture_map_color import TextureMapColor
 from container3d import Container3d
 
+from audio_message import AudioMessage
+
 RAD_PER_DEG = math.pi/180.
 
 def get_displayble_prop_name(prop_name):

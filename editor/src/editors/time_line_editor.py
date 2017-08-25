@@ -10,6 +10,8 @@ from ..gui_utils import buttons, YesNoDialog
 from ..settings import EditingChoice
 from .. import settings as Settings
 from ..gui_utils.buttons import *
+from ..audio_tools import AudioServer, AudioBlock
+import threading
 
 EDITOR_LINE_COLOR = "ff0000"
 TIME_SLICE_START_X = PropTimeLineBox.TOTAL_LABEL_WIDTH + SHAPE_LINE_LEFT_PADDING
@@ -262,7 +264,7 @@ class TimeLineEditor(Gtk.VBox):
 
         self.speed_scale_slider = Gtk.Scale.new(Gtk.Orientation.HORIZONTAL, None)
         self.speed_scale_slider.set_tooltip_text("Speed Scale")
-        self.speed_scale_slider.set_range(0, 2)
+        self.speed_scale_slider.set_range(0.0001, 2)
         self.speed_scale_slider.set_increments(.01, -1)
         self.speed_scale_slider.set_digits(2)
         self.speed_scale_slider.set_value(1)
@@ -317,6 +319,11 @@ class TimeLineEditor(Gtk.VBox):
         self.time_marker_boxes = dict()
         self.show_current_play_head_time()
         self.time_line = None
+
+        self.audio_server = AudioServer.get_default()
+        self.audio_block = TimeLineEditorAudioBlock(self)
+        self.audio_server.add_block(self.audio_block)
+        self.audio_block.pause()
 
     def play_1x_speed_button_clicked(self, widget):
         self.speed_scale_slider.set_value(1)
@@ -634,6 +641,7 @@ class TimeLineEditor(Gtk.VBox):
         else:
             self.play_button.show()
             self.pause_button.hide()
+        self.audio_block.paused = not self.is_playing
 
     def on_playing_timer_movement(self):
         current_time = time.time()
@@ -646,6 +654,7 @@ class TimeLineEditor(Gtk.VBox):
             elif value > self.time_line.duration:
                 value %= self.time_line.duration
             self.move_play_head_to_time(value)
+            self.audio_block.update_time()
         self.last_play_updated_at = current_time
         self.redraw()
         self.play_head_callback()
@@ -938,3 +947,46 @@ class TimeLineEditor(Gtk.VBox):
 
         self.move_play_head_to_time(None)
         self.redraw()
+
+class TimeLineEditorAudioBlock(object):
+    def __init__(self, editor):
+        self.editor = editor
+        self.paused = True
+        self.last_at = 0
+        self.lock = threading.RLock()
+
+    def update_time(self):
+        self.lock.acquire()
+        self.last_at = self.editor.play_head_time
+        self.lock.release()
+
+    def play(self):
+        self.paused = False
+
+    def pause(self):
+        self.paused = True
+
+    def get_samples(self, frame_count, loop):
+        audio_message = AudioMessage()
+        if not self.editor.time_line or self.paused:
+            return audio_message
+
+        self.lock.acquire()
+        start_at = self.last_at
+        end_at = start_at+frame_count*1./AudioBlock.SampleRate
+        self.last_at = end_at
+        self.lock.release()
+
+        clips=self.editor.time_line.get_audio_clips(
+            pre_scale=self.editor.speed_scale,
+            slice_start_at=start_at,
+            slice_end_at=end_at)
+        samples = None
+        for clip in clips:
+            clip_samples = clip.get_samples(frame_count)
+            if samples is None:
+                samples = clip_samples
+            else:
+                samples = samples + clip_samples
+        audio_message.samples = samples
+        return audio_message

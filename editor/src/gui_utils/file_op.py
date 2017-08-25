@@ -1,6 +1,6 @@
 from gi.repository import Gtk, GObject
 import Queue
-from ..audio_tools import *
+from ..audio_tools import AudioServer, AudioFileBlock
 from buttons import create_new_image_button
 
 class FileOp(object):
@@ -109,36 +109,29 @@ class FileChooserDialog(Gtk.FileChooserDialog):
         Gtk.FileChooserDialog.__init__(self, *args, **kwargs)
         self.connect("update-preview", self.file_selection_changed)
         self.file_type = None
-        self.audio_player = None
-        self.audio_jack = None
-        self.audio_file_segment = None
+        self.audio_file_block = None
         self.preview_audio = False
 
     def set_preview_audio(self, value):
         self.preview_audio = value
+        if self.preview_audio:
+            self.audio_server = AudioServer.get_default()
 
     def file_selection_changed(self, widget):
         if self.preview_audio:
-            audio_jack = AudioJack.get_thread()
-            if not audio_jack or not audio_jack.attached:
-                return
-            audio_jack.clear_all_audio_queues()
-            if not self.audio_player:
-                self.audio_player = AudioPlayer(10)
-                self.audio_player.start()
-            if self.audio_file_segment:
-                self.audio_player.remove_segment(self.audio_file_segment)
-                self.audio_file_segment = None
+            if self.audio_file_block:
+                self.audio_server.remove_block(self.audio_file_block)
+            self.audio_file_block = None
+
             filename = self.get_filename()
-            self.audio_player.reset_time()
             if filename:
-                self.audio_file_segment = AudioFileSegment(filename)
-                self.audio_player.add_segment(self.audio_file_segment)
+                self.audio_file_block = AudioFileBlock(filename, preload=True)
+                self.audio_file_block.set_no_loop()
+                self.audio_file_block.play()
+                self.audio_server.play()
+                self.audio_server.add_block(self.audio_file_block)
 
     def destroy(self):
-        if self.audio_player:
-            self.audio_player.should_stop = True
-            if self.audio_player.is_alive():
-                self.audio_player.join()
-            self.audio_player = None
+        if self.audio_file_block:
+            self.audio_server.remove_block(self.audio_file_block)
         super(FileChooserDialog, self).destroy()

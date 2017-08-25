@@ -1,4 +1,4 @@
-from ..audio_tools import *
+from ..audio_tools import AudioFileBlock, AudioFileCache
 from ..commons.draw_utils import *
 import time, numpy
 
@@ -13,11 +13,16 @@ class AVBase(object):
         self.audio_active = True
         self.last_played_at = 0
         self.duration = 0
+        #self.audio_block = None
 
     def set_av_filename(self, av_filename):
         if av_filename != self.av_filename:
             self.last_played_at = 0
         self.av_filename = av_filename
+        #if self.audio_block is None:
+        #    self.audio_block = AudioFileBlock(av_filename)
+        #elif self.audio_block.filename != av_filename:
+        #    self.audio_block.set_filename(av_filename)
 
     def get_duration(self):
         return self.duration
@@ -29,7 +34,7 @@ class AVBase(object):
         old_time_pos = self.time_pos
         self.time_pos = time_pos
         current_time = time.time()
-
+        return
 
         if AVBase.DONT_PLAY_AUDIO or not self.av_filename:
             return

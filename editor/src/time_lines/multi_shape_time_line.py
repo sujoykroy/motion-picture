@@ -242,10 +242,12 @@ class MultiShapeTimeLine(object):
                 t = 0
                 for time_slice in prop_line.time_slices:
                     if time_slice.prop_data and time_slice.prop_data.get("type") == "timeline":
-                        next_timeline = shape.timelines.get(time_slice.prop_data.get("timeline"))
+                        next_timeline = shape.timelines.get(
+                                    time_slice.prop_data.get("timeline"))
                     else:
                         next_timeline = None
-                    if next_timeline and t+time_slice.duration>slice_start_at and t<=slice_end_at:
+                    if next_timeline and \
+                            t+time_slice.duration>slice_start_at and t<=slice_end_at:
                         tm_start = max(slice_start_at, t)
                         tm_end = min(t+time_slice.duration, slice_end_at)
 
