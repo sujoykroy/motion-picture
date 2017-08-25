@@ -6,7 +6,7 @@ from ..gui_utils import *
 from ..gui_utils.debug_window import DebugWindow
 from ..time_lines import *
 
-from ..audio_tools import AudioJack, AudioServer
+from ..audio_tools import AudioServer
 
 from ..document import Document
 from shape_manager import ShapeManager
@@ -255,7 +255,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         Gtk.main_quit()
         if self.shape_manager:
             self.shape_manager.cleanup()
-        AudioJack.close_thread()
         AudioServer.close_all()
         self.hide_camera_viewer()
 

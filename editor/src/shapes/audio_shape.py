@@ -1,5 +1,5 @@
 from ..commons import *
-from ..audio_tools import *
+from ..audio_tools import AudioFileBlock, AudioBlock
 from av_base import AVBase
 from text_shape import *
 import sys, os
@@ -40,8 +40,8 @@ class AudioShape(TextShape, AVBase):
         return shape
 
     def get_duration(self):
-        audio_file = AudioFileCache.get_file(self.av_filename)
-        return audio_file.duration
+        audio_block = AudioFileBlock.get_for_filename(self.av_filename)
+        return audio_block.duration*1./AudioBlock.SampleRate
 
     def get_audio_length(self):
         return "{0:.2f} sec".format(self.get_duration())
@@ -95,7 +95,3 @@ class AudioShape(TextShape, AVBase):
         AVBase.draw_for_time_slice(
             self, ctx, filename, visible_time_span,
                        time_slice, time_slice_box, pixel_per_second)
-
-    def cleanup(self):
-        super(AudioShape, self).cleanup()
-        AVBase.cleanup(self)

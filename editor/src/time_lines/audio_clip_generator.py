@@ -20,10 +20,7 @@ class AudioClipGenerator(movie_editor.AudioClip):
             return numpy.zeros((t.shape[0], 2), dtype="f")
         t = (t*self.scale) + self.slice_offset
         t = self.time_slice.value_at(t)
-        if filename not in AudioFileBlockCache.Files:
-            audio_block = AudioFileBlock(filename)
-        else:
-            audio_block = AudioFileBlockCache.Files[filename]
+        audio_block = AudioFileBlock.get_for_filename(filename)
         t = (t*AudioBlock.SampleRate)
         if isinstance(t, numpy.ndarray):
             t = t.astype(numpy.int)

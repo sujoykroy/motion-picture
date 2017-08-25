@@ -50,7 +50,7 @@ class AudioFileClipSamples(object):
             raise IndexError()
 
 class AudioFileBlock(AudioSamplesBlock):
-    MAX_DURATION_SECONDS = 10*60
+    MAX_DURATION_SECONDS = 2*60
 
     def __init__(self, filename, sample_count=None, preload=True):
         AudioSamplesBlock.__init__(self, samples=AudioBlock.get_blank_data(1))
@@ -158,3 +158,12 @@ class AudioFileBlock(AudioSamplesBlock):
                 continue
             sorted_files = sorted_files[1:]
             first_file.unload_samples()
+
+    @staticmethod
+    def get_for_filename(filename):
+        if filename not in AudioFileBlockCache.Files:
+            audio_block = AudioFileBlock(filename)
+        else:
+            audio_block = AudioFileBlockCache.Files[filename]
+        audio_block.load_samples()
+        return audio_block
