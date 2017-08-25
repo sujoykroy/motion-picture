@@ -27,6 +27,7 @@ class VideoProcessThread(threading.Thread):
             startTime = time.time()
             try:
                 time_pos = self.time_queue.get(block=False)
+                self.time_queue.task_done()
             except Queue.Empty as e:
                 time_pos = -1
             if time_pos>=0:
@@ -88,11 +89,13 @@ class VideoShape(RectangleShape, AVBase):
     def set_av_filename(self, av_filename, recalculate=True):
         if av_filename == "//":
             self.duration = 0
+            self.video_clip = None
+            self.image_pixbuf = None
         elif av_filename and av_filename != self.av_filename and recalculate:
             video_clip = VideoFileClip(av_filename)#memory leak area :-)
             self.duration =  video_clip.duration
-        self.image_pixbuf = None
-        self.video_clip = None
+            self.video_clip = None
+            self.image_pixbuf = None
 
         AVBase.set_av_filename(self, av_filename)
 
@@ -165,10 +168,12 @@ class VideoShape(RectangleShape, AVBase):
         if self.image_process_thread:
             try:
                 frame = self.frame_queue.get(block=False)
+                self.frame_queue.task_done()
             except Queue.Empty as e:
                 frame = None
             if frame is not None:
                 self.image_pixbuf = self.get_pixbuf_from_frame(frame)
+
         if self.image_pixbuf:
             ctx.save()
             ctx.scale(self.width/float(self.image_pixbuf.get_width()),
@@ -190,7 +195,6 @@ class VideoShape(RectangleShape, AVBase):
         filename = prop_data["video_path"] if prop_data else None
         if not filename or filename == "//":
             return
-
         AVBase.draw_for_time_slice(
             self, ctx, filename, visible_time_span,
                        time_slice, time_slice_box, pixel_per_second)
@@ -201,4 +205,3 @@ class VideoShape(RectangleShape, AVBase):
             self.image_process_thread.should_stop = True
             self.image_process_thread.join()
             self.image_process_thread = None
-        AVBase.cleanup(self)

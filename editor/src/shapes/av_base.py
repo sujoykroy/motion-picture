@@ -1,5 +1,6 @@
 from ..audio_tools import AudioBlock, AudioFileBlock
 from ..commons import draw_utils
+import numpy
 
 class AVBase(object):
     DONT_PLAY_AUDIO = True
@@ -27,6 +28,8 @@ class AVBase(object):
     def draw_for_time_slice(self, ctx, filename, visible_time_span,
                                   time_slice, time_slice_box, pixel_per_second):
         audio_block = AudioFileBlock.get_for_filename(filename)
+        if not isinstance(audio_block.samples, numpy.ndarray):
+            return
         diff_value = abs(time_slice.end_value - time_slice.start_value)
         if diff_value ==0:
             diff_value = 0.001
