@@ -226,6 +226,8 @@ class ShapeEditor(object):
                         self.joinable_point_edit_boxes.append(point_eb)
                     self.deletable_point_edit_boxes.append(point_eb)
         self.reposition_edit_boxes()
+        for edit_box in self.all_edit_box_list:
+            edit_box.update()
 
     def set_anchor_prop_value(self, prop, value):
         anchor_box = self.named_edit_boxes.get(ANCHOR)

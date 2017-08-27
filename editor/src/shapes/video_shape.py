@@ -204,4 +204,3 @@ class VideoShape(RectangleShape, AVBase):
         if self.image_process_thread is not None:
             self.image_process_thread.should_stop = True
             self.image_process_thread.join()
-            self.image_process_thread = None

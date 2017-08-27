@@ -18,3 +18,4 @@ class EditingChoice:
     COHESIVE_MARKER_MOVEMENT = True
     LOCK_MARKERS = True
     LOCK_POINT_GROUP = False
+    DISABLE_AUDIO = False

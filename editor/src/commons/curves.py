@@ -174,7 +174,7 @@ class NaturalCurve(object):
             self.bezier_points[index].scale(sx, sy)
             self.update_bezier_point_index(index)
 
-    def draw_path(self, ctx, new_path=True):
+    def draw_path(self, ctx, new_path=True, line_to=False):
         if new_path:
             ctx.new_path()
         ctx.move_to(self.origin.x, self.origin.y)

@@ -321,7 +321,7 @@ class TimeLineEditor(Gtk.VBox):
         self.time_line = None
 
         self.audio_server = None
-        self.audio_block = None
+        self.audio_block = TimeLineEditorAudioBlock(self)
 
     def play_1x_speed_button_clicked(self, widget):
         self.speed_scale_slider.set_value(1)
@@ -639,9 +639,8 @@ class TimeLineEditor(Gtk.VBox):
         else:
             self.play_button.show()
             self.pause_button.hide()
-        if self.audio_block is None:
+        if self.audio_server is None and not EditingChoice.DISABLE_AUDIO:
             self.audio_server = AudioServer.get_default()
-            self.audio_block = TimeLineEditorAudioBlock(self)
             self.audio_server.add_block(self.audio_block)
             self.audio_block.pause()
 
