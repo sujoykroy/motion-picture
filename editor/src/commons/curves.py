@@ -116,6 +116,12 @@ class NaturalCurve(object):
             self.bare_point_xys=numpy.delete(self.bare_point_xys, i, axis=0)
             del self.bezier_points[i]
 
+    def adjust_origin(self):
+        if not self.closed:
+            return
+        self.origin.x = self.bezier_points[-1].dest.x
+        self.origin.y = self.bezier_points[-1].dest.y
+
     def update_bezier_point_index(self, index):
         if index<0:
             index += len(self.bezier_points)
@@ -783,6 +789,14 @@ class CurvePointGroup(object):
     def contain(self, curve_point):
         return curve_point in self.points
 
+    def rebuild(self):
+        all_points = self.points.values()
+        self.points.clear()
+        self.point_indices.clear()
+
+        for point in all_points:
+            self.add_point(point)
+
     def add_point(self, curve_point):
         if curve_point.get_key() in self.points:
             return False
@@ -832,12 +846,14 @@ class CurvePointGroup(object):
                 continue
             point.point_index += point_index_shift
             point.curve_index += curve_index_shift
+        self.rebuild()
 
     def reverse_shift(self, curve_index, point_index_max):
         for point in self.points.values():
             if point.curve_index != curve_index:
                 continue
             point.point_index = point_index_max-point.point_index
+        self.rebuild()
 
     def delete_curve(self, curve_index):
         i = 0

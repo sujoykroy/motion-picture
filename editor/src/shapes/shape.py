@@ -49,6 +49,7 @@ class Shape(object):
         self.locked_shapes = None
         self.selectable = True
         self.has_outline = True
+        self._locked_to = None
 
     @staticmethod
     def get_new_id():
@@ -305,13 +306,16 @@ class Shape(object):
         shape_list.remove(shape)
         return shape
 
+    def clear_pre_locked_to(self):
+        self._locked_to=None
+
     def build_locked_to(self, up=0):
-        if hasattr(self, "_locked_to") and not self.locked_to_shape:
+        if self._locked_to and not self.locked_to_shape:
             up_parents = "\\"*(up+1)
             if up_parents and self._locked_to.find(up_parents)==0:
                 return
             self.set_locked_to(self._locked_to, direct=True)
-            del self._locked_to
+            self._locked_to = None
 
     def set_locked_to(self, shape_name, direct=False):
         if shape_name == self.get_name():
@@ -861,8 +865,9 @@ class Shape(object):
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
     def set_same_xy_scale(self, value):
+        if value and not self.same_xy_scale:
+            self.set_scale_x((self.scale_x+self.scale_y)*.5)
         self.same_xy_scale = bool(value)
-        self.set_scale_x((self.scale_x+self.scale_y)*.5)
 
     def translate(self, dx, dy):
         self.translation.x += dx
@@ -928,7 +933,8 @@ class Shape(object):
             return self.locked_to_shape
         return self.parent_shape
 
-    def transform_locked_shape_point(self, point, root_shape=None, exclude_last=True):
+    def transform_locked_shape_point(self, point, root_shape=None,
+                                           exclude_last=True, include_root=False):
         if root_shape is None:
             root_shape = self.parent_shape
         ancestors = self.get_shape_ancestors(root_shape=root_shape, lock=True, include_root=True)
@@ -946,7 +952,9 @@ class Shape(object):
                     rel_root_shape = rel_root_shape.parent_shape
         if exclude_last:
             ancestors = ancestors[:-1]
-        for shape in ancestors[1:]:
+        if not include_root:
+            ancestors = ancestors[1:]
+        for shape in ancestors:
             point = shape.transform_point(point)
         return point
 
@@ -977,8 +985,10 @@ class Shape(object):
         return point
 
     def abs_transform_distance(self, d):
-        origin = self.transform_locked_shape_point(Point(0,0), root_shape=0, exclude_last=False)
-        corner = self.transform_locked_shape_point(Point(abs(d), 0), root_shape=0, exclude_last=False)
+        origin = self.transform_locked_shape_point(
+                Point(0,0), root_shape=0, exclude_last=False, include_root=True)
+        corner = self.transform_locked_shape_point(
+                Point(abs(d), 0), root_shape=0, exclude_last=False, include_root=True)
         return corner.distance(origin)
 
     def reverse_transform_point(self, point):
