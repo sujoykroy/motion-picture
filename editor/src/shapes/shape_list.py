@@ -8,6 +8,8 @@ class ShapeList(object):
             self.items.extend(shape_list.items)
 
     def clear(self):
+        for item in self.items:
+            item.cleanup()
         del self.names[:]
         del self.items[:]
 
@@ -39,11 +41,13 @@ class ShapeList(object):
         return False
 
     def __iter__(self):
-        for shape in self.items:
+        #wrapping up self.items in list will prevent issue in shape deletion
+        #within this iteration
+        for shape in list(self.items):
             yield shape
 
     def __len__(self):
-        return len(self.names)
+        return len(self.items)
 
     def reversed_list(self):
         for shape in reversed(self.items):

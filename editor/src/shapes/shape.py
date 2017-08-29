@@ -247,10 +247,7 @@ class Shape(object):
                     root_shape=shape.get_active_parent_shape(),
                     exclude_last=False)
             shape.move_to(rel_shape_abs_anchor_at.x, rel_shape_abs_anchor_at.y)
-            #if self.get_angle() == 0:
-            #    shape.set_angle(shape.get_angle()-self.get_angle())
-            #else:
-            #    shape.pre_angle -= self.get_angle()
+            shape.set_angle(shape.get_angle()-self.get_angle())
         if lock:
             shape.locked_to_shape = self
         else:
