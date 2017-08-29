@@ -163,20 +163,34 @@ class CurveShape(Shape, Mirror):
             fresh_point_group_shapes = []
             for pgs in self.linked_to.point_group_shapes:
                 pgs = pgs.copy(copy_name=True, deep_copy=True)
-                pgs.set_curve_shape(self)
                 fresh_point_group_shapes.append(pgs)
+
+                pgs.set_curve_shape(self)
                 exist_pgs = self.point_group_shapes.get_item_by_name(pgs.get_name())
-                continue
-                pgs.clear_pre_locked_to()
-                if exist_pgs and exist_pgs.locked_to_shape:
-                    pgs.set_locked_to(exist_pgs.get_locked_to())
+
+                if exist_pgs:
+                    if exist_pgs.locked_to_shape:
+                        pgs.set_pre_locked_to(exist_pgs.get_locked_to())
+                    elif False:
+                        pgs.build_locked_to()
+                        pgs.set_locked_to(None)
+                    if exist_pgs.locked_shapes:
+                        for locked_shape in exist_pgs.locked_shapes:
+                            locked_shape.set_locked_to(pgs)
                     exist_pgs.set_locked_to(None)
-                else:
+                elif False:
                     pgs.build_locked_to()
                     pgs.set_locked_to(None)
+
+            for pgs in self.point_group_shapes:
+                if pgs.locked_to_shape:
+                    pgs.set_locked_to(None)
             self.point_group_shapes.clear()
-            for point_group_shape in fresh_point_group_shapes:
-                self.point_group_shapes.add(point_group_shape)
+
+            for pgs in fresh_point_group_shapes:
+                self.point_group_shapes.add(pgs)
+            self.build_locked_to()
+
             self.move_to(abs_anchor_at.x, abs_anchor_at.y)
         else:
             linked_to_anchor_at = self.linked_to.anchor_at.copy()

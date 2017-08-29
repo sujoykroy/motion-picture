@@ -309,6 +309,9 @@ class Shape(object):
     def clear_pre_locked_to(self):
         self._locked_to=None
 
+    def set_pre_locked_to(self, shape_name):
+        self._locked_to=shape_name
+
     def build_locked_to(self, up=0):
         if self._locked_to and not self.locked_to_shape:
             up_parents = "\\"*(up+1)
@@ -318,11 +321,16 @@ class Shape(object):
             self._locked_to = None
 
     def set_locked_to(self, shape_name, direct=False):
-        if shape_name == self.get_name():
-            return
-        if not self.parent_shape:
-            return
-        locked_to_shape = self.parent_shape.get_interior_shape(shape_name)
+        if isinstance(shape_name, Shape) or not shape_name:
+            locked_to_shape = shape_name
+            if locked_to_shape == self:
+                return
+        else:
+            if shape_name == self.get_name():
+                return
+            if not self.parent_shape:
+                return
+            locked_to_shape = self.parent_shape.get_interior_shape(shape_name)
         if self.locked_to_shape:
             self.locked_to_shape.init_locked_shapes()
             self.locked_to_shape.remove_interior_shape(
@@ -519,7 +527,7 @@ class Shape(object):
         self.scale_y = float(elm.attrib.get("scale_y", 1))
         locked_to =  elm.attrib.get("locked_to")
         if locked_to:
-            self._locked_to = locked_to #this variable will be deleted after call to build_locked_to
+            self._locked_to = locked_to
 
         translation_str = elm.attrib.get("translation", None)
         if translation_str:
