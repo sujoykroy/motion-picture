@@ -161,6 +161,7 @@ class CurveShape(Shape, Mirror):
             for curve in self.linked_to.curves:
                 self.curves.append(curve.copy())
             fresh_point_group_shapes = []
+            lock_list = []
             for pgs in self.linked_to.point_group_shapes:
                 pgs = pgs.copy(copy_name=True, deep_copy=True)
                 fresh_point_group_shapes.append(pgs)
@@ -172,14 +173,17 @@ class CurveShape(Shape, Mirror):
                         pgs.set_pre_locked_to(exist_pgs.get_locked_to())
                     if exist_pgs.locked_shapes:
                         for locked_shape in exist_pgs.locked_shapes:
-                            locked_shape.set_locked_to(pgs)
+                            locked_shape.set_locked_to(None)
+                            lock_list.append((locked_shape, pgs))
                     exist_pgs.set_locked_to(None)
-
             self.point_group_shapes.clear()
 
             for pgs in fresh_point_group_shapes:
                 self.point_group_shapes.add(pgs)
             self.build_locked_to()
+
+            for locked_shape, locked_to_shape in lock_list:
+                locked_shape.set_locked_to(locked_to_shape)
 
             self.move_to(abs_anchor_at.x, abs_anchor_at.y)
         else:

@@ -932,10 +932,10 @@ class ShapeManager(object):
                         self.delete_shape_editor()
                         if len(selected_shapes)>1:
                             multi_selection_shape = MultiSelectionShape()
+                            self.add_shape(multi_selection_shape)
                             for shape in selected_shapes:
                                 multi_selection_shape.add_shape(shape)
                             selected_shape = multi_selection_shape
-                            self.add_shape(multi_selection_shape)
                         else:
                             selected_shape = selected_shapes[0]
                         self.shape_editor = ShapeEditor(selected_shape)

@@ -84,6 +84,18 @@ class DestEditBox(CurvePointEditBox):
         super(DestEditBox, self).__init__(curve_index, bezier_point_index)
         self.curve_point = CurvePoint(curve_index, self.bezier_point_index, CurvePoint.POINT_TYPE_DEST)
 
+    def move_offset(self, dx, dy):
+        self.point.x = self.init_point.x + dx
+        self.point.y = self.init_point.y + dy
+        self_point_shape = self.parent_shape.get_shape_of_curve_point(self.curve_point)
+        for edit_box in self.linked_edit_boxes:
+            if isinstance(edit_box, ControlEditBox):
+                lshape = self.parent_shape.get_shape_of_curve_point(edit_box.curve_point)
+                if self_point_shape != lshape:
+                    continue
+            edit_box.move_offset(dx, dy)
+        self.parent_shape.set_point_location(self.curve_point, self.point)
+
 class OriginEditBox(CurvePointEditBox):
     def __init__(self, curve_index):
         super(OriginEditBox, self).__init__(curve_index, bezier_point_index=-1)
