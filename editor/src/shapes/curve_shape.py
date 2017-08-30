@@ -8,25 +8,6 @@ from mirror import *
 
 REL_ABS_ANCHOR_AT = "rel_abs_anchor_at"
 
-class CurveFormRenderer(object):
-    def __init__(self, curve_shape, form_name):
-        self.curve_shape = curve_shape
-        self.form_name = form_name
-
-    def get_name(self):
-        return self.form_name
-
-    def get_id(self):
-        return self.form_name
-
-    def get_pixbuf(self):
-        curve_shape = self.curve_shape.copy()
-        curve_shape.set_form_raw(self.curve_shape.get_form_by_name(self.form_name))
-        curve_shape.reset_transformations()
-        curve_shape.parent_shape = None
-        pixbuf = curve_shape.get_pixbuf(64, 64)
-        return pixbuf
-
 class CurveShape(Shape, Mirror):
     TYPE_NAME = "curve_shape"
 
@@ -148,7 +129,6 @@ class CurveShape(Shape, Mirror):
 
     def copy_data_from_linked(self):
         super(CurveShape, self).copy_data_from_linked()
-
         if not self.linked_to: return
 
         self.forms = copy_value(self.linked_to.forms)
@@ -160,32 +140,37 @@ class CurveShape(Shape, Mirror):
             self.anchor_at.copy_from(self.linked_to.anchor_at)
             for curve in self.linked_to.curves:
                 self.curves.append(curve.copy())
-            fresh_point_group_shapes = []
+            fresh_pgs_list = []
             lock_list = []
             for pgs in self.linked_to.point_group_shapes:
                 pgs = pgs.copy(copy_name=True, deep_copy=True)
-                fresh_point_group_shapes.append(pgs)
                 pgs.set_curve_shape(self)
                 exist_pgs = self.point_group_shapes.get_item_by_name(pgs.get_name())
 
+                pre_lock = None
                 if exist_pgs:
                     if exist_pgs.locked_to_shape:
-                        pgs.set_pre_locked_to(exist_pgs.get_locked_to())
+                        pre_lock = exist_pgs.get_locked_to()
                     if exist_pgs.locked_shapes:
                         for locked_shape in exist_pgs.locked_shapes:
+                            if self.point_group_shapes.contain(locked_shape):
+                                continue#ignore the sibling locking
                             locked_shape.set_locked_to(None)
                             lock_list.append((locked_shape, pgs))
-                    exist_pgs.set_locked_to(None)
+                fresh_pgs_list.append((pgs, pre_lock))
+
             self.point_group_shapes.clear()
 
-            for pgs in fresh_point_group_shapes:
+            for pgs, pre_lock in fresh_pgs_list:
+                pgs.set_pre_locked_to(pre_lock)
                 self.point_group_shapes.add(pgs)
+
             self.build_locked_to()
 
             for locked_shape, locked_to_shape in lock_list:
                 locked_shape.set_locked_to(locked_to_shape)
-
             self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+
         else:
             linked_to_anchor_at = self.linked_to.anchor_at.copy()
             linked_to_anchor_at.scale(1./self.linked_to.width, 1./self.linked_to.height)

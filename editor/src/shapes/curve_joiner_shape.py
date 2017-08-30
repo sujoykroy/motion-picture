@@ -108,9 +108,11 @@ class CurveJoinerShape(Shape):
     def copy(self, copy_name=False, deep_copy=False):
         newob = CurveJoinerShape(
                         self.anchor_at.copy(),
-                        copy_value(self.border_color), self.border_width, copy_value(self.fill_color),
+                        copy_value(self.border_color), self.border_width,
+                        copy_value(self.fill_color),
                         self.width, self.height)
         self.copy_into(newob, copy_name, all_fields=deep_copy)
+        newob.joined_names = self.joined_names
         return newob
 
     def build_joiner_items(self):

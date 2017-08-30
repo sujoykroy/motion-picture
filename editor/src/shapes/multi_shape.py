@@ -23,25 +23,6 @@ from mimic_shape import MimicShape
 
 REL_ABS_ANCHOR_AT = "rel_abs_anchor_at"
 
-class MultiShapePoseRenderer(object):
-    def __init__(self, multi_shape, pose_name):
-        self.multi_shape = multi_shape
-        self.pose_name = pose_name
-
-    def get_name(self):
-        return self.pose_name
-
-    def get_id(self):
-        return self.pose_name
-
-    def get_pixbuf(self):
-        multi_shape = self.multi_shape.copy(deep_copy=True, copy_name=True)
-        multi_shape.set_pose_raw(multi_shape.get_pose_by_name(self.pose_name))
-        multi_shape.reset_transformations()
-        multi_shape.parent_shape = None
-        pixbuf = multi_shape.get_pixbuf(64, 64)
-        return pixbuf
-
 class MultiShapeModule(object):
     Modules = dict()
 
@@ -104,6 +85,7 @@ class MultiShape(Shape):
                     deep_copy=True, copy_name=True, copy_pixbufs=False,
                     copy_poses=False, copy_timelines=False)
             multi_shape.set_pose_raw(self.get_pose_by_name(pose_name))
+            multi_shape.perform_post_create_from_xml()
             multi_shape.reset_transformations()
             multi_shape.parent_shape = None
             pixbuf = multi_shape.get_pixbuf(64, 64)
