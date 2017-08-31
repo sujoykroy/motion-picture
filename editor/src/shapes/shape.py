@@ -349,7 +349,7 @@ class Shape(object):
     @classmethod
     def get_pose_prop_names(cls):
         prop_names = ["anchor_at", "border_color", "border_width", "fill_color",
-                      "width", "height", "scale_x", "scale_y", "translation",
+                      "width", "height", "scale_x", "scale_y", "x", "y",
                       "angle", "pre_matrix", "post_scale_x", "post_scale_y", "visible"]
         return prop_names
 
@@ -764,10 +764,10 @@ class Shape(object):
         self.set_xy(xy)
 
     def get_x(self):
-        return self.get_xy().x
+        return float(self.get_xy().x)
 
     def get_y(self):
-        return self.get_xy().y
+        return float(self.get_xy().y)
 
     def get_xy(self):
         xy = self.get_abs_anchor_at()

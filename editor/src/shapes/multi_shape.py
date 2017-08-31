@@ -659,7 +659,7 @@ class MultiShape(Shape):
                             show_non_renderable=display_non_renderable)
 
             if masked_surface:
-                last_shape = self.shapes.get_at_index(-1)
+                last_shape = multi_shape.shapes.get_at_index(-1)
                 ctx = orig_ctx
                 orig_mat = ctx.get_matrix()
                 if pre_matrix:
@@ -700,25 +700,18 @@ class MultiShape(Shape):
         elif isinstance(shape, CurveJoinerShape):
             shape.draw(ctx, root_shape=root_shape, fixed_border=fixed_border)
 
-        elif isinstance(shape, MultiShape) or \
-            isinstance(shape, DocumentShape) or \
-            isinstance(shape, MimicShape):
-            if isinstance(shape, MimicShape):
-                shape = shape.mimic_like_shape
-                if not shape:
-                    return
-            MultiShape.draw_shape(shape, ctx,
+        elif isinstance(shape, DocumentShape):
+            shape.draw(ctx,
                     drawing_size = drawing_size, fixed_border=fixed_border,
                     no_camera=no_camera, exclude_camera_list=exclude_camera_list,
                     root_shape=root_shape, pre_matrix=pre_matrix,
                     show_non_renderable=False)
-
         elif isinstance(shape, CustomShape):
             shape.draw(ctx, drawing_size = drawing_size, root_shape=root_shape,
                             fixed_border=fixed_border, pre_matrix=pre_matrix)
         elif isinstance(shape, MimicShape):
             if shape.mimic_like_shape:
-                MultiShape.draw_shape(shape, ctx,
+                MultiShape.draw_shape(shape.mimic_like_shape, ctx,
                     drawing_size = drawing_size, fixed_border=fixed_border,
                     no_camera=no_camera, exclude_camera_list=exclude_camera_list,
                     root_shape=root_shape, pre_matrix=pre_matrix,

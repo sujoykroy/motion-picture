@@ -26,11 +26,10 @@ $ python example/simple.py
 * PyGObject
 * NumPy
 * MoviePy
-* PyJack
+* PyAudio
 * pycollada
 
-At present audio only works with Jack.
-Also, Python 2.7.3 is used to run these codes.
+Python 2.7.3 is used to run these codes.
 
 # Help
 More documentation and how-tos will be added soon.

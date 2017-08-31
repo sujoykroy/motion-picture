@@ -54,6 +54,8 @@ class ShapeList(object):
             yield shape
 
     def __getitem__(self, key):
+        if key not in self.names:
+            print self.names
         return self.items[self.names.index(key)]
 
     def get_at_index(self, index):

@@ -41,7 +41,7 @@ class ShapeManager(object):
         self.out_height = doc.height
 
         self.point_group_shape_editor = None
-
+        self.selected_shape = None
         self.load_multi_shape(multi_shape)
 
     def update_doc_size(self, width, height):
@@ -62,7 +62,6 @@ class ShapeManager(object):
 
         self.last_doc_point = None
         self.last_shape_point = None
-
         self.selection_box = RectangleShape(Point(0, 0), border_color="00000066", border_width=2,
                                             fill_color=None, width=1., height=1., corner_radius=0.)
         self.selection_box.parent_shape = self.multi_shape
@@ -115,7 +114,7 @@ class ShapeManager(object):
             if original_shape_only and isinstance(shape, MultiSelectionShape):
                 return None
             return self.shape_editor.shape
-        return None
+        return self.selected_shape
 
     def get_deepest_selected_shape(self, original_shape_only=False):
         if self.point_group_shape_editor:
@@ -616,6 +615,7 @@ class ShapeManager(object):
             self.remove_shape(self.shape_editor.shape)
         self.shape_editor = None
         self.color_editor = None
+        self.selected_shape = None
 
     def create_shape_editor(self, shape):
         self.shape_editor = ShapeEditor(shape)
@@ -783,6 +783,7 @@ class ShapeManager(object):
             return
         if shape.parent_shape == self.multi_shape:
             self.delete_shape_editor()
+            self.selected_shape = shape
             if shape.has_outline:
                 self.shape_editor = ShapeEditor(shape)
             return True
@@ -1005,18 +1006,21 @@ class ShapeManager(object):
         task.save(self.doc, new_shape)
 
     def delete_selected_shape(self):
-        if not self.shape_editor: return None
         if self.doc.main_multi_shape != self.multi_shape and \
            len(self.multi_shape.shapes) == 1: return None
-        if not isinstance(self.shape_editor.shape, MultiSelectionShape):
-            shape = self.shape_editor.shape
-            task = ShapeDeleteTask(self.doc, shape)
+        shape = self.get_selected_shape(original_shape_only=True)
+        if shape:
             self.delete_shape_editor()
-            self.remove_shape(shape)
-            shape.cleanup()
-            task.save(self.doc, self.multi_shape)
+            self.delete_shape(shape)
             return shape
         return None
+
+    def delete_shape(self, shape):
+        task = ShapeDeleteTask(self.doc, shape)
+        self.remove_shape(shape)
+        shape.cleanup()
+        task.save(self.doc, self.multi_shape)
+        self.selected_shape = None
 
     def cleanup(self):
         for shape in self.shapes:
@@ -1248,9 +1252,8 @@ class ShapeManager(object):
         return False
 
     def change_shape_depth(self, depth_offset):
-        if not self.shape_editor: return False
-        if isinstance(self.shape_editor.shape, MultiSelectionShape): return False
-        shape = self.shape_editor.shape
+        shape = self.get_selected_shape(original_shape_only=True)
+        if not shape: return False
         shape_name = shape.get_name()
         if abs(depth_offset) == 1:
             self.multi_shape.shapes.change_index(shape_name, depth_offset)
