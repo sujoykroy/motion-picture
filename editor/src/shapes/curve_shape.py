@@ -56,8 +56,6 @@ class CurveShape(Shape, Mirror):
         self.curves.extend(curves)
 
     def add_new_point_group_shape(self, point_group):
-        for curve_point in point_group.points.values():
-            self.delete_curve_point(curve_point)
         point_group_shape = CurvePointGroupShape(curve_shape=self, curve_point_group=point_group)
         point_group_shape.build()
         self.point_group_shapes.add(point_group_shape)
@@ -480,19 +478,19 @@ class CurveShape(Shape, Mirror):
     def get_point_location(self, curve_point):
         if self.curve_point_map:
             curve_point_shape = self.curve_point_map[curve_point.get_key()]
-            point = curve_point_shape.get_curve_point_location(curve_point)
+            location = curve_point_shape.get_curve_point_location(curve_point)
             if curve_point_shape != self:
-                point = self.transform_locked_shape_point(
-                            point, root_shape=curve_point_shape, exclude_last=False)
-                return point
+                location = self.transform_locked_shape_point(
+                            location, root_shape=curve_point_shape, exclude_last=False)
+                return location
         return self.get_curve_point_location(curve_point)
 
     def set_point_location(self, curve_point, location):
         if self.curve_point_map:
             curve_point_shape = self.curve_point_map[curve_point.get_key()]
-            point = curve_point_shape.transform_locked_shape_point(
+            location = curve_point_shape.transform_locked_shape_point(
                         location, root_shape=self, exclude_last=False)
-            point = curve_point_shape.set_curve_point_location(curve_point, location)
+            curve_point_shape.set_curve_point_location(curve_point, location)
             return
         self.set_curve_point_location(curve_point, location)
 

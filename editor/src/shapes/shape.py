@@ -349,8 +349,9 @@ class Shape(object):
     @classmethod
     def get_pose_prop_names(cls):
         prop_names = ["anchor_at", "border_color", "border_width", "fill_color",
-                      "width", "height", "scale_x", "scale_y", "x", "y",
-                      "angle", "pre_matrix", "post_scale_x", "post_scale_y", "visible"]
+                      "width", "height", "scale_x", "scale_y",
+                      "angle", "pre_matrix", "post_scale_x", "post_scale_y",
+                      "x", "y", "visible"]
         return prop_names
 
     def get_pose_prop_dict(self):

@@ -77,8 +77,8 @@ class CurvePointGroupShape(RectangleShape):
                 point.scale(self.parent_shape.width, self.parent_shape.height)
                 point = self.transform_point(point)
                 curve_point.position.copy_from(point)
-        if count>0:
-            self.fit_size_to_include_all()
+        #if count>0:
+        #    self.fit_size_to_include_all()
         return count>0
 
     def get_curve_point_location(self, curve_point):
@@ -98,7 +98,7 @@ class CurvePointGroupShape(RectangleShape):
 
     def fit_size_to_include_all(self):
         positions = []
-        for curve_point in self.curve_point_group.points:
+        for curve_point in self.curve_point_group.points.values():
             positions.append(curve_point.position)
 
         outline = Polygon(positions).get_outline()
@@ -111,7 +111,7 @@ class CurvePointGroupShape(RectangleShape):
         self.anchor_at.translate(-outline.left, -outline.top)
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
-        for curve_point in self.curve_point_group.points:
+        for curve_point in self.curve_point_group.points.values():
             curve_point.position.translate(-outline.left, -outline.top)
 
     def build(self):
@@ -121,13 +121,10 @@ class CurvePointGroupShape(RectangleShape):
         points = []
         points_positions = []
         for curve_point in self.curve_point_group.points.values():
-            point = curve_point.get_point(self.parent_shape.curves)
-            if not point:
-                continue
-            point = point.copy()
-            point.scale(w, h)
-            point = self.transform_locked_shape_point(point)
+            point = self.parent_shape.get_point_location(curve_point)
             points_positions.append((point, curve_point.position))
+
+            #point = self.transform_locked_shape_point(point)
             points.append(point)
 
         outline = Polygon(points).get_outline()
@@ -141,14 +138,16 @@ class CurvePointGroupShape(RectangleShape):
 
         old_translation = self.translation.copy()
 
-        self.anchor_at.assign(0, 0)
+        self.reset_transformations()
+
         self.move_to(outline.left, outline.top)
         self.width = outline.width
         self.height = outline.height
+
         anchor_at = Point(self.width*.5, self.height*.5)
         self.anchor_at.copy_from(anchor_at)
         for point, position in points_positions:
-            point = self.transform_point(point)
+            point = self.transform_locked_shape_point(point, exclude_last=False)
             position.copy_from(point)
 
         if self.locked_shapes:

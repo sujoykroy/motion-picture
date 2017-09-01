@@ -336,7 +336,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         )
         self.multi_shape_tree_view.set_multi_shape(multi_shape)
         self.multi_shape_internal_prop_box.set_multi_shape(multi_shape)
-        if multi_shape.timelines:
+        if multi_shape.timelines and False:
             timeline_names = multi_shape.timelines.keys()
             if len(timeline_names) == 1 and multi_shape==self.doc.main_multi_shape:
                 timeline_name = timeline_names[0]

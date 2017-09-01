@@ -1096,8 +1096,17 @@ class ShapeManager(object):
         old_translation = point_group_shape.translation.copy()
         old_anchor_at = point_group_shape.anchor_at.copy()
 
+        master_shape = self.shape_editor.shape
+        point_locations = []
+        for curve_point in curve_points:
+            point_locations.append(
+                (curve_point, master_shape.get_point_location(curve_point)))
+
         if point_group_shape.add_curve_points(curve_points):
-            master_shape = self.shape_editor.shape
+            master_shape.rebuild_curve_point_map()
+            for curve_point, location in point_locations:
+                master_shape.set_point_location(curve_point, location)
+            point_group_shape.fit_size_to_include_all()
             master_shape.update_forms_for_point_group(
                 point_group_shape, old_translation, old_anchor_at)
             return True
@@ -1113,8 +1122,16 @@ class ShapeManager(object):
         old_translation = point_group_shape.translation.copy()
         old_anchor_at = point_group_shape.anchor_at.copy()
 
+        master_shape = self.shape_editor.shape
+        point_locations = []
+        for curve_point in curve_points:
+            point_locations.append(
+                (curve_point, master_shape.get_point_location(curve_point)))
+
         if point_group_shape.remove_curve_points(curve_points):
-            master_shape = self.shape_editor.shape
+            master_shape.rebuild_curve_point_map()
+            for curve_point, location in point_locations:
+                master_shape.set_point_location(curve_point, location)
             master_shape.update_forms_for_point_group(
                 point_group_shape, old_translation, old_anchor_at)
             return True

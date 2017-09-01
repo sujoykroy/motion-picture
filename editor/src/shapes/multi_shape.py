@@ -326,10 +326,10 @@ class MultiShape(Shape):
         for shape in self.shapes:
             prop_dict = shape.get_pose_prop_dict()
             pose[shape.get_name()] = prop_dict
-            rel_abs_anchor_at = shape.get_abs_anchor_at()
-            rel_abs_anchor_at.translate(-anchor_at.x, -anchor_at.y)
-            if not shape.locked_to_shape:
-                prop_dict[REL_ABS_ANCHOR_AT] = rel_abs_anchor_at
+            #rel_abs_anchor_at = shape.get_abs_anchor_at()
+            #rel_abs_anchor_at.translate(-anchor_at.x, -anchor_at.y)
+            #if not shape.locked_to_shape:
+            #    prop_dict[REL_ABS_ANCHOR_AT] = rel_abs_anchor_at
         return pose
 
     def rename_pose(self, old_pose_name, new_pose_name):
@@ -355,10 +355,10 @@ class MultiShape(Shape):
             if shape is None:
                 continue
             shape.set_pose_prop_from_dict(prop_dict)
-            if REL_ABS_ANCHOR_AT in prop_dict:
-                abs_anchor_at = prop_dict[REL_ABS_ANCHOR_AT].copy()
-                abs_anchor_at.translate(anchor_at.x, anchor_at.y)
-                shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
+            #if REL_ABS_ANCHOR_AT in prop_dict:
+            #    abs_anchor_at = prop_dict[REL_ABS_ANCHOR_AT].copy()
+            #    abs_anchor_at.translate(anchor_at.x, anchor_at.y)
+            #    shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.readjust_sizes()
 
     def set_pose_prop_from_dict(self, prop_dict, non_direct_props=None):
@@ -385,6 +385,7 @@ class MultiShape(Shape):
                 continue
             end_prop_dict = end_pose[shape_name]
             shape.set_transition_pose_prop_from_dict(start_prop_dict, end_prop_dict, frac=value)
+            """
             if REL_ABS_ANCHOR_AT not in start_prop_dict or \
                REL_ABS_ANCHOR_AT not in end_prop_dict:
                 continue
@@ -394,6 +395,7 @@ class MultiShape(Shape):
             abs_anchor_at.set_inbetween(start_rel_abs_anchor_at, end_rel_abs_anchor_at, value)
             abs_anchor_at.translate(anchor_at.x, anchor_at.y)
             shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
+            """
         self.readjust_sizes()
 
     def get_pose_list(self, interior_shape=None):
