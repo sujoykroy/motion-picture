@@ -12,6 +12,7 @@ from .. import settings as Settings
 from ..gui_utils.buttons import *
 from ..audio_tools import AudioServer, AudioBlock
 import threading
+import Queue
 
 EDITOR_LINE_COLOR = "ff0000"
 TIME_SLICE_START_X = PropTimeLineBox.TOTAL_LABEL_WIDTH + SHAPE_LINE_LEFT_PADDING
@@ -322,6 +323,7 @@ class TimeLineEditor(Gtk.VBox):
 
         self.audio_server = None
         self.audio_block = TimeLineEditorAudioBlock(self)
+        self.play_head_mover_thread = PlayHeadMoverThread(self)
 
     def play_1x_speed_button_clicked(self, widget):
         self.speed_scale_slider.set_value(1)
@@ -392,11 +394,15 @@ class TimeLineEditor(Gtk.VBox):
     def move_play_head_to_time(self, value, force_visible=False):
         if value is not None:
             self.play_head_time = value
-            self.time_line.move_to(self.play_head_time, force_visible=force_visible)
+            self.queue_move_play_head_to_time(self.play_head_time, force_visible)
+            #self.time_line.move_to(self.play_head_time, force_visible=force_visible)
         extra_x = self.time_range.get_extra_pixel_for_time(self.play_head_time)
         if self.play_head_box:
             self.play_head_box.set_center_x(TIME_SLICE_START_X + extra_x)
         self.show_current_play_head_time()
+
+    def queue_move_play_head_to_time(self, value, force_visible=False):
+        self.play_head_mover_thread.move_to(value, force_visible)
 
     def get_play_head_time(self):
         if not self.play_head_box: return 0.
@@ -661,7 +667,7 @@ class TimeLineEditor(Gtk.VBox):
             self.audio_block.update_time()
         self.last_play_updated_at = current_time
         self.redraw()
-        self.play_head_callback()
+        #self.play_head_callback()
         return self.is_playing
 
     def on_time_slice_box_select(self):
@@ -674,7 +680,7 @@ class TimeLineEditor(Gtk.VBox):
             play_head_time = 0
         self.move_play_head_to_time(play_head_time)
         self.redraw()
-        self.play_head_callback()
+        #self.play_head_callback()
 
     def on_move_to(self):
         self.update()
@@ -952,6 +958,11 @@ class TimeLineEditor(Gtk.VBox):
         self.move_play_head_to_time(None)
         self.redraw()
 
+    def cleanup(self):
+        if self.play_head_mover_thread:
+            self.play_head_mover_thread.should_exit = True
+            self.play_head_mover_thread.join()
+
 class TimeLineEditorAudioBlock(object):
     def __init__(self, editor):
         self.editor = editor
@@ -994,3 +1005,30 @@ class TimeLineEditorAudioBlock(object):
                 samples = samples + clip_samples
         audio_message.samples = samples
         return audio_message
+
+class PlayHeadMoverThread(threading.Thread):
+    def __init__(self, editor):
+        super(PlayHeadMoverThread, self).__init__()
+        self.editor = editor
+        self.should_exit = False
+        self.time_queue = Queue.Queue()
+        self.start()
+
+    def move_to(self, move_to_time, force_visible):
+        self.time_queue.put((move_to_time, force_visible))
+
+    def run(self):
+        while not self.should_exit:
+            move_to = None
+            try:
+                st = time.time()
+                while time.time()-st<.1:
+                    ret = self.time_queue.get(block=False)
+                    move_to = ret[0]
+                    force_visible = ret[1]
+            except Queue.Empty:
+                pass
+            if move_to is not None:
+                self.editor.time_line.move_to(move_to, force_visible=force_visible)
+                self.editor.play_head_callback()
+            time.sleep(.01)

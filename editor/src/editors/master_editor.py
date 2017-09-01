@@ -1,5 +1,8 @@
 from gi.repository import Gtk, Gdk, GLib
 import os, math, cairo
+import threading
+import Queue
+import time
 
 from ..shapes import *
 from ..gui_utils import *
@@ -250,13 +253,22 @@ class MasterEditor(Gtk.ApplicationWindow):
         CameraShape.CAMERA_ICON = Document.get_icon_shape("camera", 20, 20)
 
         self.area_fitted = False
+        self.img_surf = None
+        self.img_surf_lock = threading.RLock()
+        self.drawer_thread = None
 
     def quit(self, widget, event):
-        Gtk.main_quit()
+        self.time_line_editor.cleanup()
+
+        if self.drawer_thread:
+            self.drawer_thread.should_exit = True
+            self.drawer_thread.join()
+
         if self.shape_manager:
             self.shape_manager.cleanup()
         AudioServer.close_all()
         self.hide_camera_viewer()
+        Gtk.main_quit()
 
     def on_quit_camera_view(self):
         self.lookup_action("toggle_camera_viewer").activate(GLib.Variant.new_boolean(False))
@@ -284,6 +296,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         if self.DEBUG and not MasterEditor.DEBUG_WINDOW:
             MasterEditor.DEBUG_WINDOW = DebugWindow(self)
+        self.redraw()
 
     def set_panel_sizes(self, left, right, bottom):
         self.paned_box_2.set_position(float(left))
@@ -344,7 +357,7 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.load_multi_shape_time_line(multi_shape.timelines[timeline_name])
             else:
                 self.load_multi_shape_time_line(None)
-        self.redraw()
+        self.redraw(use_thread=False)
 
     def load_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line_editor.set_multi_shape_time_line(multi_shape_time_line)
@@ -598,8 +611,11 @@ class MasterEditor(Gtk.ApplicationWindow):
     def rebuild_tree_view(self):
         self.multi_shape_tree_view.rebuild()
 
-    def redraw(self):
-        self.drawing_area.queue_draw()
+    def redraw(self, use_thread=True):
+        if self.drawer_thread and use_thread:
+            self.drawer_thread.draw()
+        else:
+            self.drawing_area.queue_draw()
         if self.camera_viewer_dialog:
             self.camera_viewer_dialog.redraw()
         return self.playing
@@ -679,7 +695,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
         if self.drawing_area_mouse_pressed or self.shape_manager.shape_creator is not None:
             self.shape_manager.move_active_item(self.mouse_init_point.copy(), self.mouse_point.copy())
-            self.drawing_area.queue_draw()
+            self.redraw()
 
     def on_drawing_area_scroll(self, scrollbar, scroll_dir):
         value = scrollbar.get_value()
@@ -723,19 +739,62 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def on_configure_event(self, widget, event):
         self.fit_shape_manager_in_drawing_area()
-
-    def on_drawing_area_draw(self, widget, dctx):
         w, h = self.get_drawing_area_size()
-        img_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        ctx = cairo.Context(img_surf)
+        self.img_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
 
+    def pre_draw_on_surface(self):
+        self.img_surf_lock.acquire()
+        ctx = cairo.Context(self.img_surf)
         ctx.set_antialias(cairo.ANTIALIAS_SUBPIXEL)
+
+        w = self.img_surf.get_width()
+        h = self.img_surf.get_height()
+
+        ctx.rectangle(0, 0, w, h)
+        ctx.set_source_rgba(*Color.parse("eeeeee").get_array())
+        ctx.fill()
+
         ctx.save()
         area = Point(float(w),float(h))
         self.shape_manager.draw(ctx, area)
+        ctx.restore()
+
         ctx.rectangle(0, 0, w, h)
         ctx.set_source_rgba(*Color.parse("cccccc").get_array())
         ctx.stroke()
+        self.img_surf_lock.release()
 
-        dctx.set_source_surface(img_surf)
+    def on_drawing_area_draw(self, widget, dctx):
+        if not self.drawer_thread:
+            self.pre_draw_on_surface()
+            self.drawer_thread = DrawerThread(self)
+        self.img_surf_lock.acquire()
+        dctx.set_source_surface(self.img_surf)
         dctx.paint()
+        self.img_surf_lock.release()
+
+class DrawerThread(threading.Thread):
+    def __init__(self, editor):
+        super(DrawerThread, self).__init__()
+        self.editor = editor
+        self.should_exit = False
+        self.draw_queue = Queue.Queue()
+        self.start()
+
+    def draw(self):
+        self.draw_queue.put(True)
+
+    def run(self):
+        while not self.should_exit:
+            draw = False
+            try:
+                st = time.time()
+                while time.time()-st<.1:
+                    ret = self.draw_queue.get(block=False)
+                    draw = True
+            except Queue.Empty:
+                pass
+            if draw:
+                self.editor.pre_draw_on_surface()
+                self.editor.redraw(use_thread=False)
+            time.sleep(.01)
