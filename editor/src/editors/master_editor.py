@@ -598,7 +598,8 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def update_shape_manager(self):
         self.shape_manager.update()
-        self.redraw()
+        self.pre_draw_on_surface()
+        self.redraw(use_thread=False)
 
     def recreate_shape_editor(self):
         if self.shape_manager.shape_editor:
@@ -741,6 +742,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.fit_shape_manager_in_drawing_area()
         w, h = self.get_drawing_area_size()
         self.img_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        self.pre_draw_on_surface()
+        self.redraw(use_thread=False)
 
     def pre_draw_on_surface(self):
         self.img_surf_lock.acquire()
@@ -754,10 +757,11 @@ class MasterEditor(Gtk.ApplicationWindow):
         ctx.set_source_rgba(*Color.parse("eeeeee").get_array())
         ctx.fill()
 
-        ctx.save()
-        area = Point(float(w),float(h))
-        self.shape_manager.draw(ctx, area)
-        ctx.restore()
+        if self.shape_manager:
+            ctx.save()
+            area = Point(float(w),float(h))
+            self.shape_manager.draw(ctx, area)
+            ctx.restore()
 
         ctx.rectangle(0, 0, w, h)
         ctx.set_source_rgba(*Color.parse("cccccc").get_array())

@@ -899,7 +899,7 @@ class TimeLineEditor(Gtk.VBox):
         self.mouse_time_position = self.time_range.get_time_for_extra_x(self.mouse_position_box.left)
         if self.mouse_pressed:
             self.move_active_item(self.mouse_init_point, self.mouse_point)
-            if self.selected_time_slice_box:
+            if self.selected_item != self.play_head_box and self.selected_time_slice_box:
                 self.on_time_slice_box_select()
         self.queue_draw()
 
