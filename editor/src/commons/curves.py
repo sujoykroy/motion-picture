@@ -866,7 +866,7 @@ class CurvePointGroup(object):
 
     def delete_point_index(self, curve_index, point_index):
         i = 0
-        while key in self.points.keys():
+        for key in self.points.keys():
             point = self.points[key]
             if point.curve_index == curve_index:
                 if point.point_index == point_index:
