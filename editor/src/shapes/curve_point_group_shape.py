@@ -96,6 +96,9 @@ class CurvePointGroupShape(RectangleShape):
             self.fit_size_to_include_all()
         return count>0
 
+    def adjust_origins(self):
+        self.parent_shape.adjust_origins()
+
     def fit_size_to_include_all(self):
         positions = []
         for curve_point in self.curve_point_group.points.values():
@@ -113,6 +116,7 @@ class CurvePointGroupShape(RectangleShape):
 
         for curve_point in self.curve_point_group.points.values():
             curve_point.position.translate(-outline.left, -outline.top)
+
 
     def build(self):
         w = self.parent_shape.get_width()

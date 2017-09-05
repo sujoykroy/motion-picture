@@ -874,6 +874,7 @@ class CurvePointGroup(object):
                     continue
                 elif point.point_index > point_index:
                     point.point_index -= 1
+        self.rebuild()
 
     def update_closed_curves(self, curves):
         for curve_index in self.point_indices:

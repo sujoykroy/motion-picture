@@ -494,6 +494,17 @@ class CurveShape(Shape, Mirror):
             return
         self.set_curve_point_location(curve_point, location)
 
+    def adjust_origins(self):
+        for i in xrange(len(self.curves)):
+            curve = self.curves[i]
+            if not curve.closed:
+                continue
+            origin = CurvePoint(i, -1, CurvePoint.POINT_TYPE_ORIGIN)
+            last_dest = CurvePoint(i, len(curve.bezier_points)-1,
+                                         CurvePoint.POINT_TYPE_DEST)
+            location = self.get_point_location(last_dest)
+            self.set_point_location(origin, location)
+
     def get_shape_of_curve_point(self, curve_point):
         shape = self.curve_point_map.get(curve_point.get_key())
         if shape is None:
@@ -652,6 +663,7 @@ class CurveShape(Shape, Mirror):
             curve.scale(sx, sy)
 
     def fit_size_to_include_all(self):
+        self.adjust_origins()
         outline = None
         for curve_index in xrange(len(self.curves)):
             if outline is None:
@@ -925,6 +937,8 @@ class CurveShape(Shape, Mirror):
         elif len(self.curves)>1:
             del self.curves[curve_index]
             self.delete_point_group_curve(curve_index)
+
+        self.rebuild_curve_point_map()
         return True
 
     def delete_dest_points_inside_rect(self, center, radius):

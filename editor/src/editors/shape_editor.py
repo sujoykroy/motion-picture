@@ -500,6 +500,9 @@ class ShapeEditor(object):
                 init_abs_anchor_at = self.init_shape.get_abs_anchor_at()
                 self.shape.move_to(init_abs_anchor_at.x+diff_point.x, init_abs_anchor_at.y+diff_point.y)
 
+        if isinstance(self.shape, CurvePointGroupShape):
+            self.shape.adjust_origins()
+
     def end_movement(self):
         self.edit_box_can_move = (len(self.selected_edit_boxes)>0)
         if isinstance(self.shape, CurveShape) or isinstance(self.shape, PolygonShape):
