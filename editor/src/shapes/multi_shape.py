@@ -132,6 +132,7 @@ class MultiShape(Shape):
         self.timelines.clear()
         for key, timeline in self.linked_to.timelines.items():
             self.timelines[key] = timeline.copy(multi_shape=self)
+        self.pose_pixbufs.clear()
 
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)

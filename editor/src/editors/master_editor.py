@@ -238,7 +238,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_tree_container.set_size_request(-1, 50)
 
         self.multi_shape_internal_prop_box = MultiShapeInternalPropBox(
-                            self.redraw, self.load_multi_shape_time_line, self.insert_time_slice)
+                            self.multi_shape_inter_prop_box_callback,
+                            self.load_multi_shape_time_line, self.insert_time_slice)
         self.right_prop_box.pack_start(
                 self.multi_shape_internal_prop_box, expand=False, fill=False, padding=0)
         self.multi_shape_internal_prop_box.parent_window = self
@@ -608,6 +609,10 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def get_shape_manager(self):
         return self.shape_manager
+
+    def multi_shape_inter_prop_box_callback(self):
+        self.rebuild_tree_view()
+        self.redraw()
 
     def rebuild_tree_view(self):
         self.multi_shape_tree_view.rebuild()
