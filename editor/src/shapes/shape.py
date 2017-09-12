@@ -440,8 +440,11 @@ class Shape(object):
                 self.set_prop_value("internal", frac, prop_data)
             elif type(start_value) in (int, float):
                 self.set_prop_value_direct(prop_name, start_value+(end_value-start_value)*frac)
-            elif type(start_value) in (int, bool):
-                self.set_prop_value_direct(prop_name, bool(int(start_value+(end_value-start_value)*frac)))
+            elif prop_name in ("visible",) or \
+                        type(start_value) in (bool, ):
+                value = int(start_value)+(int(end_value)-int(start_value))*frac
+                value = bool(int(round(value)))
+                self.set_prop_value_direct(prop_name, value)
             elif type(start_value) in (str, ):
                 self.set_prop_value_direct(prop_name, start_value)
             elif isinstance(start_value, Point):

@@ -190,6 +190,8 @@ class AudioShapePropBox(AVShapePropBox):
 class VideoShapePropBox(AVShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         AVShapePropBox.__init__(self, parent_window, draw_callback, insert_time_slice_callback)
+        self.add_prop("alpha", PROP_TYPE_NUMBER_ENTRY,
+                        dict(value=1, lower=0, upper=1, step_increment=.1))
         self.add_prop("video_length", PROP_TYPE_LABEL)
         self.add_prop("video_path", PROP_TYPE_FILE, dict(file_type=[["Video", "video/*"]]))
         self.add_prop("use_thread", PROP_TYPE_CHECK_BUTTON, can_insert_slice=False)
