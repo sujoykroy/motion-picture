@@ -44,7 +44,7 @@ class TimeSlicePropBox(Gtk.Frame):
 
         self.add_editable_item("prop_data", "start_pose", self.IMAGE_LIST)
         self.add_editable_item("prop_data", "end_pose", self.IMAGE_LIST)
-        self.add_editable_item("prop_data", "pose", self.LIST)
+        self.add_editable_item("prop_data", "pose", self.IMAGE_LIST)
         self.add_editable_item("prop_data", "timeline", self.LIST)
         self.add_editable_item("prop_data", "start_form", self.IMAGE_LIST)
         self.add_editable_item("prop_data", "end_form", self.IMAGE_LIST)

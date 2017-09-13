@@ -1128,30 +1128,31 @@ class Shape(object):
                 ctx.restore()
 
     def draw_axis(self, ctx):
-        ctx.save()
-        self.pre_draw(ctx)
-
-        ctx.save()
-        ctx.translate(self.anchor_at.x, self.anchor_at.y)
-        ctx.set_line_width(3)
-
         for angle, color in [[0, "ff0000"], [90, "00ff00"]]:
+            ctx.save()
+            self.pre_draw(ctx)
+            ctx.translate(self.anchor_at.x, self.anchor_at.y)
             ctx.rotate(angle*RAD_PER_DEG)
-            ctx.set_source_rgba(*Color.parse(color).get_array())
+
             ctx.move_to(0, 0)
             ctx.line_to(95, 0)
+            ctx.restore()
+
+            ctx.set_source_rgba(*Color.parse(color).get_array())
+            ctx.set_line_width(3)
             ctx.stroke()
 
+            ctx.save()
+            self.pre_draw(ctx)
+            ctx.translate(self.anchor_at.x, self.anchor_at.y)
+            ctx.rotate(angle*RAD_PER_DEG)
             ctx.move_to(100, 0)
             ctx.line_to(100-10, -5)
             ctx.line_to(100-10, 5)
             ctx.line_to(100, 0)
+            ctx.set_source_rgba(*Color.parse(color).get_array())
             ctx.fill()
-        ctx.restore()
-
-        self.draw_anchor(ctx)
-        ctx.restore()
-        self.draw_border(ctx)
+            ctx.restore()
 
     def get_outline(self, padding):
         return Rect(-padding, -padding, self.width+2*padding, self.height+2*padding, padding)
