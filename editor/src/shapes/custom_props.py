@@ -6,8 +6,9 @@ class CustomPropLinkedTo(object):
         self.shape = shape
         self.prop_name = prop_name
 
-    def copy(self):
-        return CustomPropLinkedTo(self.shape, self.prop_name)
+    def copy(self, parent_shape):
+        shape = parent_shape.get_interior_shape(self.shape.get_name())
+        return CustomPropLinkedTo(shape, self.prop_name)
 
     def get_id_name(self):
         return self.shape.get_name() + self.prop_name
@@ -67,7 +68,7 @@ class CustomProp(object):
         if prop_type == cls.PropTypes["point"]:
             prop_value = Point.from_text(prop_value)
         elif prop_type == cls.PropTypes["color"]:
-            return color_from_text(prop_value)
+            prop_value = color_from_text(prop_value)
         elif prop_type == cls.PropTypes["number"]:
             prop_value = Text.parse_number(prop_value)
         newob = cls(prop_name, prop_type)
@@ -80,11 +81,11 @@ class CustomProp(object):
             newob.add_linked_to(linked_shape, linked_to_elm.attrib["prop"])
         return newob
 
-    def copy(self):
+    def copy(self, parent_shape):
         newob = CustomProp(self.prop_name, self.prop_type)
         newob.prop_value = copy_value(self.prop_value)
         for linked_to in self.linked_to_items:
-            newob.linked_to_items.append(linked_to.copy())
+            newob.linked_to_items.append(linked_to.copy(parent_shape))
         return newob
 
     @classmethod
@@ -143,10 +144,10 @@ class CustomProps(object):
                 newob.props.add(custom_prop.prop_name, custom_prop)
         return newob
 
-    def copy(self):
+    def copy(self, parent_shape):
         newob = CustomProps()
         for prop_name in self.props.keys:
-            newob.props.add(prop_name, self.props[prop_name].copy())
+            newob.props.add(prop_name, self.props[prop_name].copy(parent_shape))
         return newob
 
     def add_prop(self, prop_name, prop_type):
@@ -170,5 +171,8 @@ class CustomProps(object):
 
     def get_prop(self, prop_name):
         return self.props[prop_name]
+
+    def has_prop(self, prop_name):
+        return self.props.key_exists(prop_name)
 
 

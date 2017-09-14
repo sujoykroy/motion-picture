@@ -90,7 +90,7 @@ class CurveJoinerShape(Shape):
 
     @classmethod
     def get_pose_prop_names(cls):
-        return []
+        return ["border_color", "border_width", "fill_color"]
 
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)

@@ -36,6 +36,7 @@ class CustomPropEditor(Gtk.Dialog):
         self.set_default_size(width, height)
 
         self.shape = shape
+        self.parent = parent
         box = self.get_content_area()
 
         shape_hbox = Gtk.HBox()
@@ -59,7 +60,10 @@ class CustomPropEditor(Gtk.Dialog):
         prop_hbox.pack_start(self.prop_type_combo_box, expand=False, fill=False, padding=0)
 
         self.linked_to_vbox = Gtk.VBox()
-        box.pack_start(self.linked_to_vbox, expand=False, fill=False, padding=10)
+        self.linked_to_vbox_container = Gtk.ScrolledWindow()
+        self.linked_to_vbox_container.set_size_request(-1, 400)
+        self.linked_to_vbox_container.add_with_viewport(self.linked_to_vbox)
+        box.pack_start(self.linked_to_vbox_container, expand=False, fill=False, padding=10)
 
         button_hbox = Gtk.HBox()
         box.pack_end(button_hbox, expand=False, fill=False, padding=10)
@@ -110,7 +114,7 @@ class CustomPropEditor(Gtk.Dialog):
             cross_check = False
             proxy_custom_prop = self.custom_prop
         else:
-            proxy_custom_prop = self.custom_prop.copy()
+            proxy_custom_prop = self.custom_prop.copy(self.shape)
             del proxy_custom_prop.linked_to_items[:]
             cross_check = True
 
@@ -142,6 +146,14 @@ class CustomPropEditor(Gtk.Dialog):
         self.close()
 
     def delete_button_clicked(self, widget):
+        dialog = YesNoDialog(
+            self.parent, "Deletr Custom Prop",
+            "Are you sure about deleting this custom-prop?")
+        if dialog.run() == Gtk.ResponseType.NO:
+            dialog.destroy()
+            return
+        dialog.destroy()
+        self.shape.custom_props.remove_prop(self.custom_prop.prop_name)
         self.close()
 
     def cancel_button_clicked(self, widget):

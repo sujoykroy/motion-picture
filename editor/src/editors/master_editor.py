@@ -430,6 +430,11 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.custom_props_box = None
         self.show_prop_of(None)
 
+    def remove_custom_props_box(self):
+        if self.custom_props_box:
+                self.prop_grid.remove_item(self.custom_props_box)
+                self.custom_props_box = None
+
     def show_prop_of(self, shape):
         self.curve_joiner_shape_prop_box.hide()
         self.mimic_shape_prop_box.hide()
@@ -452,11 +457,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.new_custom_prop_button.hide()
         self.curve_point_group_shape_prop_box.hide()
         self.interior_pose_box.hide()
-
         if shape != None:
-            if self.custom_props_box:
-                self.prop_grid.remove_item(self.custom_props_box)
-                self.custom_props_box = None
+            self.remove_custom_props_box()
 
             if shape.linked_to:
                 self.linked_to_label.set_text(".".join(get_hierarchy_names(shape.linked_to)))
@@ -626,19 +628,20 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.camera_viewer_dialog.redraw()
         return self.playing
 
-    def on_drawing_area_key_press(self, widget, event):
-        self.keyboard_object.set_keypress(event.keyval, pressed=True)
-
-    def on_drawing_area_key_release(self, widget, event):
-        self.keyboard_object.set_keypress(event.keyval, pressed=False)
-
     def pop_back_to_parent_shape(self, widget=None):
         if len(self.multi_shape_stack)<=1:
             return
         del self.multi_shape_stack[-1]
         multi_shape = self.multi_shape_stack[-1]
         del self.multi_shape_stack[-1]
+        self.remove_custom_props_box()
         self.load_multi_shape(multi_shape)
+
+    def on_drawing_area_key_press(self, widget, event):
+        self.keyboard_object.set_keypress(event.keyval, pressed=True)
+
+    def on_drawing_area_key_release(self, widget, event):
+        self.keyboard_object.set_keypress(event.keyval, pressed=False)
 
     def on_drawing_area_mouse_press(self, widget, event):
         self.mouse_init_point.x = self.mouse_point.x

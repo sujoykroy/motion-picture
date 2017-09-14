@@ -129,7 +129,7 @@ class MultiShape(Shape):
                           shape_abs_anchor_at.y + diff_point.y)
             self.shapes.add(shape)
         if self.linked_to.custom_props:
-            newob.custom_props = self.linked_to.custom_props.copy()
+            self.custom_props = self.linked_to.custom_props.copy(self)
         self.readjust_sizes()
         self.poses = copy_dict(self.linked_to.poses)
         self.timelines.clear()
@@ -275,7 +275,7 @@ class MultiShape(Shape):
                     newob.timelines[key] = timeline.copy(newob)
         newob.masked = self.masked
         if self.custom_props:
-            newob.custom_props = self.custom_props.copy()
+            newob.custom_props = self.custom_props.copy(newob)
 
         newob.imported_from = self.imported_from
         newob.imported_anchor_at = copy_value(self.imported_anchor_at)
@@ -371,6 +371,7 @@ class MultiShape(Shape):
             #    abs_anchor_at.translate(anchor_at.x, anchor_at.y)
             #    shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
         self.readjust_sizes()
+        self.perform_post_create_from_xml()
 
     def set_pose_prop_from_dict(self, prop_dict, non_direct_props=None):
         super(MultiShape, self).set_pose_prop_from_dict(
@@ -408,6 +409,7 @@ class MultiShape(Shape):
             shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
             """
         self.readjust_sizes()
+        self.perform_post_create_from_xml()
 
     def get_pose_list(self, interior_shape=None):
         if interior_shape:
@@ -486,7 +488,7 @@ class MultiShape(Shape):
 
     def has_prop(self, prop_name):
         if not super(MultiShape, self).has_prop(prop_name):
-            return self.custom_props and self.custom_props.get_prop(prop_name) is not None
+            return self.custom_props and self.custom_props.has_prop(prop_name)
         return True
 
     def get_prop_value(self, prop_name):
