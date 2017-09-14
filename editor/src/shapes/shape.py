@@ -108,7 +108,7 @@ class Shape(object):
         self.anchor_at.assign(0,0)
 
     def get_prop_type(self, prop_name):
-        if prop_name == "xy":
+        if prop_name in ("xy", "fill_color", "border_color"):
             return "number_list"
         return "number"
 
@@ -700,6 +700,8 @@ class Shape(object):
             self.fill_color = None
         elif isinstance(self.fill_color, Color) and isinstance(color, Color):
             self.fill_color.copy_from(color)
+        elif isinstance(self.fill_color, Color) and isinstance(color, list):
+            self.fill_color.set_rgba(*color)
         else:
             self.fill_color = color
 

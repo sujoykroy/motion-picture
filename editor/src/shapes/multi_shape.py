@@ -297,6 +297,7 @@ class MultiShape(Shape):
         self.readjust_sizes()
 
         self.poses = multi_shape.poses
+        self.custom_props = multi_shape.custom_props
         self.timelines.clear()
         for timeline_name, timeline in multi_shape.timelines.items():
             self.timelines[timeline_name] = timeline.copy(self)
@@ -500,6 +501,13 @@ class MultiShape(Shape):
         elif self.custom_props:
             return self.custom_props.get_prop_value(prop_name)
         return None
+
+    def get_prop_type(self, prop_name):
+        if self.custom_props and self.custom_props.has_prop(prop_name):
+            custom_prop = self.custom_props.get_prop(prop_name)
+            if custom_prop.prop_type == CustomProp.PropTypes["color"]:
+                return "number_list"
+        return super(MultiShape, self).get_prop_type(prop_name)
 
     def set_camera(self, camera):
         self.camera=self.shapes.get_item_by_name(camera)

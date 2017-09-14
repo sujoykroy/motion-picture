@@ -12,6 +12,9 @@ class Color(object):
     def get_array(self):
         return list(self.values)
 
+    def to_array(self):
+        return list(self.values)
+
     def get_gl_array_value(self):
         if not self.values.flags['C_CONTIGUOUS']:
             self.values = numpy.ascontiquousarray(self.values)
@@ -20,6 +23,12 @@ class Color(object):
     def copy_from(self, color):
         if not isinstance(color, Color): return
         self.values = color.values.copy()
+
+    def set_rgba(self, red, green, blue, alpha):
+        self.values[0] = red
+        self.values[1] = green
+        self.values[2] = blue
+        self.values[3] = alpha
 
     def to_text(self):
         return "{0},{1},{2},{3}".format(*list(self.values))

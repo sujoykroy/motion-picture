@@ -432,8 +432,17 @@ class MasterEditor(Gtk.ApplicationWindow):
 
     def remove_custom_props_box(self):
         if self.custom_props_box:
-                self.prop_grid.remove_item(self.custom_props_box)
-                self.custom_props_box = None
+            self.prop_grid.remove_item(self.custom_props_box)
+            self.custom_props_box = None
+
+    def add_custom_props_box(self, multi_shape):
+        if multi_shape.custom_props and not self.custom_props_box:
+            self.custom_props_box = CustomPropsBox(
+                    self, self.redraw,
+                    self.insert_time_slice,
+                    self.edit_custom_prop,
+                    shape=multi_shape)
+            self.prop_grid.add(self.custom_props_box)
 
     def show_prop_of(self, shape):
         self.curve_joiner_shape_prop_box.hide()
@@ -457,9 +466,9 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.new_custom_prop_button.hide()
         self.curve_point_group_shape_prop_box.hide()
         self.interior_pose_box.hide()
-        if shape != None:
-            self.remove_custom_props_box()
+        self.remove_custom_props_box()
 
+        if shape != None:
             if shape.linked_to:
                 self.linked_to_label.set_text(".".join(get_hierarchy_names(shape.linked_to)))
                 self.linked_to_hbox.show()
@@ -524,6 +533,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             elif isinstance(shape, MultiShape):
                 self.multi_shape_prop_box.show()
                 self.multi_shape_prop_box.set_prop_object(shape)
+                self.add_custom_props_box(shape)
             elif isinstance(shape, CurveShape) or isinstance(shape, PolygonShape):
                 self.shape_form_prop_box.show()
                 self.shape_form_prop_box.set_curve_shape(shape)
@@ -552,14 +562,7 @@ class MasterEditor(Gtk.ApplicationWindow):
 
             if not self.custom_props_box and self.shape_manager:
                 multi_shape = self.shape_manager.multi_shape
-                if multi_shape.custom_props:
-                    self.custom_props_box = CustomPropsBox(
-                            self, self.redraw,
-                            self.insert_time_slice,
-                            self.edit_custom_prop,
-                            shape=multi_shape)
-                    self.prop_grid.add(self.custom_props_box)
-                    #self.custom_props_box.set_prop_object(multi_shape)
+                self.add_custom_props_box(multi_shape)
 
     def shape_prop_changed(self, widget):
         #shape = self.shape_manager.get_deepest_selected_shape()

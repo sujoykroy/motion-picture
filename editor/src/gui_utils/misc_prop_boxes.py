@@ -297,7 +297,7 @@ class CustomPropsBox(ShapePropBox):
             elif prop_type_name == "font":
                 self.add_prop(prop_name, PROP_TYPE_FONT, None, can_insert_slice=False)
             elif prop_type_name == "color":
-                self.add_prop(prop_name, PROP_TYPE_COLOR, None, can_insert_slice=False)
+                self.add_prop(prop_name, PROP_TYPE_FLAT_COLOR, None, can_insert_slice=True)
 
         self.set_prop_object(shape)
 

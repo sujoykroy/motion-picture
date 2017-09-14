@@ -52,7 +52,7 @@ class EditingChoiceCheckWidget(Gtk.Box):
         setattr(settings.EditingChoice, self.choice_name, self.check_button.get_active())
 
 class ColorButton(Gtk.HBox):
-    def __init__(self):
+    def __init__(self, color_types=["Flat", "Linear", "Radial"]):
         Gtk.HBox.__init__(self)
         self.color = None
         self.color_type = None
@@ -66,7 +66,7 @@ class ColorButton(Gtk.HBox):
         self.color_button.connect("clicked", self.color_button_clicked)
 
         self.color_types_combobox =  NameValueComboBox()
-        self.color_types_combobox.build_and_set_model(["None", "Flat", "Linear", "Radial"])
+        self.color_types_combobox.build_and_set_model(["None"] + color_types)
         self.color_types_combobox.set_value("None")
         self.color_types_combobox.connect("changed", self.color_types_combobox_changed)
 

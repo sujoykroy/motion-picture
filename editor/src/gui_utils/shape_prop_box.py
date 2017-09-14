@@ -18,6 +18,7 @@ PROP_TYPE_FONT = 8
 PROP_TYPE_IMAGE_LIST = 9
 PROP_TYPE_FILE = 10
 PROP_TYPE_LABEL = 11
+PROP_TYPE_FLAT_COLOR = 12
 
 class ShapePropBox(object):
     IdSeed = 0
@@ -121,8 +122,11 @@ class ShapePropBox(object):
             spin_button.set_adjustment(adjustment)
             spin_button.connect("value-changed", self.spin_button_value_changed, prop_name)
             prop_widget = spin_button
-        elif value_type == PROP_TYPE_COLOR:
-            color_button = ColorButton()
+        elif value_type in (PROP_TYPE_COLOR, PROP_TYPE_FLAT_COLOR):
+            if value_type == PROP_TYPE_FLAT_COLOR:
+                color_button = ColorButton(color_types=["Flat"])
+            else:
+                color_button = ColorButton()
             color_button.connect("clicked", self.color_button_clicked, prop_name)
             color_button.connect("type-changed", self.color_button_color_type_changed, prop_name)
             color_button.connect("color-changed", self.color_button_color_changed, prop_name)
