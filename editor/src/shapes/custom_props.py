@@ -1,4 +1,5 @@
 from ..commons import *
+from xml.etree.ElementTree import Element as XmlElemen
 
 class CustomPropLinkedTo(object):
     def __init__(self, shape, prop_name):
@@ -19,6 +20,8 @@ class CustomPropLinkedTo(object):
         self.shape.set_prop_value(self.prop_name, value)
 
 class CustomProp(object):
+    TAG_NAME = "cusprop"
+    LINKED_TO_TAG_NAME = "linked_to"
     PropTypes = dict(point=0, text=1, color=2, font=3, number=4)
 
     @classmethod
@@ -39,6 +42,43 @@ class CustomProp(object):
         self.prop_type = prop_type
         self.prop_value = self.get_default_value_for(prop_type)
         self.linked_to_items = []
+
+    def get_xml_element(self):
+        elm = XmlElement(self.TAG_NAME)
+        elm.attrib["name"] = self.prop_name
+        elm.attrib["type"] = "{0}".format(self.prop_type)
+        if hasattr(self.prop_value, "to_text"):
+            prop_value_str = self.prop_value.to_text()
+        else:
+            prop_value_str = "{0}".format(self.prop_value)
+        elm.attrib["value"] = prop_value_str
+        for linked_to in self.linked_to_items:
+            linked_to_elm = XmlElement(self.LINKED_TO_TAG_NAME)
+            linked_to_elm.attrib["shape"] = linked_to.shape.get_name()
+            linked_to_elm.attrib["prop"] = linked_to.prop_name
+            elm.append(linked_to_elm)
+        return elm
+
+    @classmethod
+    def create_from_xml(cls, elm, shape):
+        prop_name = elm.attrib["name"]
+        prop_type = int(elm.attrib["type"])
+        prop_value = elm.attrib["value"]
+        if prop_type == cls.PropTypes["point"]:
+            prop_value = Point.from_text(prop_value)
+        elif prop_type == cls.PropTypes["color"]:
+            return color_from_text(prop_value)
+        elif prop_type == cls.PropTypes["number"]:
+            prop_value = Text.parse_number(prop_value)
+        newob = cls(prop_name, prop_type)
+        newob.prop_value = prop_value
+        for linked_to_elm in elm.findall(cls.LINKED_TO_TAG_NAME):
+            linked_shape = linked_to_elm.attrib["shape"]
+            linked_shape = shape.get_interior_shape(linked_shape)
+            if not linked_shape:
+                continue
+            newob.add_linked_to(linked_shape, linked_to_elm.attrib["prop"])
+        return newob
 
     def copy(self):
         newob = CustomProp(self.prop_name, self.prop_type)
@@ -83,8 +123,25 @@ class CustomProp(object):
         return None
 
 class CustomProps(object):
+    TAG_NAME = "cusprops"
+
     def __init__(self):
         self.props = OrderedDict()
+
+    def get_xml_element(self):
+        elm = XmlElement(self.TAG_NAME)
+        for custom_prop in self.props:
+            elm.append(custom_prop.get_xml_element())
+        return elm
+
+    @classmethod
+    def create_from_xml(cls, elm, shape):
+        newob = cls()
+        for prop_elm in elm.findall(CustomProp.TAG_NAME):
+            custom_prop = CustomProp.create_from_xml(prop_elm, shape)
+            if custom_prop:
+                newob.props.add(custom_prop.prop_name, custom_prop)
+        return newob
 
     def copy(self):
         newob = CustomProps()
@@ -113,6 +170,5 @@ class CustomProps(object):
 
     def get_prop(self, prop_name):
         return self.props[prop_name]
-
 
 

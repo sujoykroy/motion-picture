@@ -53,6 +53,7 @@ class MultiShapeModule(object):
                     return None
                 multi_shape = shape
             multi_shape = multi_shape.copy(deep_copy=True)
+            multi_shape.perform_post_create_from_xml()
             multi_shape.imported_from = path
             multi_shape.imported_anchor_at = multi_shape.anchor_at.copy()
             module.unload()
@@ -127,6 +128,8 @@ class MultiShape(Shape):
             shape.move_to(shape_abs_anchor_at.x + diff_point.x,
                           shape_abs_anchor_at.y + diff_point.y)
             self.shapes.add(shape)
+        if self.linked_to.custom_props:
+            newob.custom_props = self.linked_to.custom_props.copy()
         self.readjust_sizes()
         self.poses = copy_dict(self.linked_to.poses)
         self.timelines.clear()
@@ -153,8 +156,11 @@ class MultiShape(Shape):
 
             for timeline in self.timelines.values():
                 elm.append(timeline.get_xml_element())
+            if self.custom_props:
+                elm.append(self.custom_props.get_xml_element())
         else:
             elm.attrib["imported_from"] = self.imported_from
+
         return elm
 
     @classmethod
@@ -201,6 +207,10 @@ class MultiShape(Shape):
             if child_shape is None: continue
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)
+
+        custom_prop_elm = elm.find(CustomProps.TAG_NAME)
+        if custom_prop_elm:
+            shape.custom_props = CustomProps.create_from_xml(custom_prop_elm, shape)
 
         for pose_elm in elm.findall(cls.POSE_TAG_NAME):
             pose_name = pose_elm.attrib["name"]
