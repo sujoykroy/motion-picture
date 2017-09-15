@@ -146,6 +146,7 @@ class DocumentShape(RectangleShape):
                 sy = float(self.height)/self.doc_height
 
             doc_ctx = cairo.Context(doc_surface)
+            set_default_line_style(doc_ctx)
             if pre_matrix:
                 doc_ctx.set_matrix(pre_matrix)
             #doc_ctx = ctx

@@ -95,6 +95,7 @@ class CamerViewerBox(Gtk.Box):
                         int(scale*view_width), int(scale*view_height))
 
         view_ctx = cairo.Context(view_canvas)
+        set_default_line_style(view_ctx)
         view_ctx.scale(scale, scale)
 
         draw_rounded_rectangle(view_ctx, 0, 0, view_width, view_height, 0)

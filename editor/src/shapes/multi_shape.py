@@ -109,10 +109,9 @@ class MultiShape(Shape):
             items.append(None)
         for shape in self.shapes:
             item_path = prefix+shape.get_name()
+            items.append(item_path)
             if isinstance(shape, MultiShape):
                 items.extend(shape.get_shape_tree_list(item_path+"."))
-            else:
-                items.append(item_path)
         return items
 
     def copy_data_from_linked(self):
@@ -371,7 +370,8 @@ class MultiShape(Shape):
             #    abs_anchor_at = prop_dict[REL_ABS_ANCHOR_AT].copy()
             #    abs_anchor_at.translate(anchor_at.x, anchor_at.y)
             #    shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
-        self.custom_props.apply_props()
+        if self.custom_props:
+            self.custom_props.apply_props()
         self.readjust_sizes()
         self.perform_post_create_from_xml()
 
@@ -410,7 +410,8 @@ class MultiShape(Shape):
             abs_anchor_at.translate(anchor_at.x, anchor_at.y)
             shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
             """
-        self.custom_props.apply_props()
+        if self.custom_props:
+            self.custom_props.apply_props()
         self.readjust_sizes()
         self.perform_post_create_from_xml()
 
