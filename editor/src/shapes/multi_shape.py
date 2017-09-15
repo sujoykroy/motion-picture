@@ -371,6 +371,7 @@ class MultiShape(Shape):
             #    abs_anchor_at = prop_dict[REL_ABS_ANCHOR_AT].copy()
             #    abs_anchor_at.translate(anchor_at.x, anchor_at.y)
             #    shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
+        self.custom_props.apply_props()
         self.readjust_sizes()
         self.perform_post_create_from_xml()
 
@@ -409,6 +410,7 @@ class MultiShape(Shape):
             abs_anchor_at.translate(anchor_at.x, anchor_at.y)
             shape.move_to(abs_anchor_at.x, abs_anchor_at.y)
             """
+        self.custom_props.apply_props()
         self.readjust_sizes()
         self.perform_post_create_from_xml()
 

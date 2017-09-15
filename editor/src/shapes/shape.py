@@ -397,17 +397,22 @@ class Shape(object):
     def create_pose_prop_dict_from_xml_element(elm):
         shape_name = None
         prop_dict = dict()
+
+        point_prop_names = ["anchor_at", "translation", "abs_anchor_at", "rel_abs_anchor_at"]
+        color_prop_names = ["fill_color", "border_color"]
+        text_prop_names = ["pose", "text", "font"]
+
         for prop_name, value in elm.attrib.items():
             if prop_name == "name":
                 shape_name = value
                 continue
-            if prop_name in ("anchor_at", "translation", "abs_anchor_at", "rel_abs_anchor_at"):
+            if prop_name in point_prop_names:
                 value = Point.from_text(value)
-            elif prop_name in ("fill_color", "border_color"):
+            elif prop_name in color_prop_names:
                 value = color_from_text(value)
             elif prop_name == "pre_matrix":
                 value = Matrix.from_text(value)
-            elif prop_name in ("pose", "text", "font"):
+            elif prop_name in text_prop_names:
                 value = value
             elif prop_name == "visible":
                 if value == "True":

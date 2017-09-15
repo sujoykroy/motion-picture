@@ -65,6 +65,8 @@ class Color(object):
     def parse(cls, color):
         if isinstance(color, Color):
             return color
+        elif isinstance(color, list):
+            return Color(*color)
         elif isinstance(color, str):
             return Color.from_html(color)
         else:

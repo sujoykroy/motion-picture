@@ -110,6 +110,8 @@ class CustomProp(object):
         return None
 
     def set_prop_value(self, prop_value):
+        if self.prop_type == self.PropTypes["color"]:
+            prop_value = Color.parse(prop_value)
         self.prop_value = prop_value
         for linked_to_item in self.linked_to_items:
             linked_to_item.set_prop_value(prop_value)
@@ -175,4 +177,6 @@ class CustomProps(object):
     def has_prop(self, prop_name):
         return self.props.key_exists(prop_name)
 
-
+    def apply_props(self):
+        for custom_prop in self.props:
+            custom_prop.set_prop_value(custom_prop.prop_value)
