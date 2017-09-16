@@ -77,7 +77,7 @@ class MultiShape(Shape):
         self.camera = None
         self.pose = None
         self.imported_from = None
-        self.imported_anchor_at = None
+        self.imported_anchor_at = None#this prop might get deleted in future.
         self.pose_pixbufs = dict()
 
     def get_pose_pixbuf(self, pose_name):
@@ -288,6 +288,7 @@ class MultiShape(Shape):
         if not multi_shape:
             return
 
+        xy = self.get_xy()
         self.imported_anchor_at = multi_shape.anchor_at.copy()
         self.shapes.clear()
         for shape in multi_shape.shapes:
@@ -300,7 +301,8 @@ class MultiShape(Shape):
         self.timelines.clear()
         for timeline_name, timeline in multi_shape.timelines.items():
             self.timelines[timeline_name] = timeline.copy(self)
-        #self.anchor_at.copy_from(multi_shape.anchor_at)
+        self.anchor_at.copy_from(multi_shape.anchor_at)
+        self.set_xy(xy)
 
     def set_imported_from(self, name):
         self.imported_from = name
@@ -310,6 +312,7 @@ class MultiShape(Shape):
         return not bool(self.imported_from)
 
     def readjust_after_design_edit(self):
+        return
         if self.imported_anchor_at:
             self.anchor_at.copy_from(self.imported_anchor_at)
 
