@@ -71,8 +71,13 @@ class ShapeTimeLine(object):
             prop_time_line = self.prop_time_lines[prop_name]
         prop_time_line.insert_time_slice_at(t, time_slice)
 
-    def move_to(self, t):
+    def move_to(self, t, audio_only=False):
         for prop_time_line in self.prop_time_lines:
+            if audio_only:
+                if self.shape.__class__.__name__ not in ("AudioShape", "VideoShape"):
+                    continue
+                if prop_time_line.prop_name != "time_pos":
+                    continue
             prop_time_line.move_to(t)
 
     def expand_duration(self, duration):

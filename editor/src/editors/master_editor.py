@@ -812,4 +812,4 @@ class DrawerThread(threading.Thread):
             if draw:
                 self.editor.pre_draw_on_surface()
                 self.editor.redraw(use_thread=False)
-            time.sleep(.01)
+            time.sleep(.1)

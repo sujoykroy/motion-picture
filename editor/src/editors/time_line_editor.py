@@ -290,6 +290,16 @@ class TimeLineEditor(Gtk.VBox):
         )
         info_hbox.pack_start(self.lock_markers_check, expand=False, fill=False, padding=5)
 
+        info_hbox.pack_start(
+            buttons.create_new_image_widget("cohesive_marker_movement", border_scale=2),
+            expand=False, fill=False, padding=5)
+
+        self.audio_only_play_toggle = Gtk.CheckButton()
+        self.audio_only_play_toggle.set_tooltip_text("Play only Audio")
+        self.audio_only_play_toggle.set_active(False)
+        self.audio_only_play_toggle.connect("toggled", self.audio_only_play_toggle_clicked)
+        info_hbox.pack_start(self.audio_only_play_toggle, expand=False, fill=False, padding=5)
+
         self.multi_shape_time_line_box = None
 
         self.mouse_pressed = False
@@ -316,6 +326,7 @@ class TimeLineEditor(Gtk.VBox):
         self.last_play_updated_at = 0
         self.selected_shape = None
         self.speed_scale = 1.
+        self.audio_only_play = False
 
         self.time_marker_boxes = dict()
         self.show_current_play_head_time()
@@ -350,6 +361,9 @@ class TimeLineEditor(Gtk.VBox):
         #value %= self.time_line.duration
         self.move_play_head_to_time(value)
         self.redraw()
+
+    def audio_only_play_toggle_clicked(self, widget):
+        self.audio_only_play = widget.get_active()
 
     def set_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line = multi_shape_time_line
@@ -1026,9 +1040,15 @@ class PlayHeadMoverThread(threading.Thread):
                     ret = self.time_queue.get(block=False)
                     move_to = ret[0]
                     force_visible = ret[1]
+                    time.sleep(.01)
             except Queue.Empty:
                 pass
             if move_to is not None:
-                self.editor.time_line.move_to(move_to, force_visible=force_visible)
-                self.editor.play_head_callback()
-            time.sleep(.01)
+                st = time.time()
+                self.editor.time_line.move_to(
+                    move_to,
+                    force_visible=force_visible,
+                    audio_only=self.editor.audio_only_play)
+                if not self.editor.audio_only_play:
+                    self.editor.play_head_callback()
+            time.sleep(.1)
