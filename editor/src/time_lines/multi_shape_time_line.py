@@ -229,7 +229,8 @@ class MultiShapeTimeLine(object):
             shape_time_line.expand_duration(self.duration)
 
     def get_audio_clips(self, abs_time_offset=0, pre_scale=1.,
-                              slice_start_at=None, slice_end_at=None):
+                              slice_start_at=None, slice_end_at=None,
+                              read_doc_shape=True):
         audio_clips = []
         if slice_start_at is None:
             slice_start_at = 0
@@ -267,7 +268,9 @@ class MultiShapeTimeLine(object):
                                 abs_time_offset=abs_time_offset+(tm_start-slice_start_at)/pre_scale,
                                 pre_scale=lscale*pre_scale,
                                 slice_start_at=next_slice_start_at,
-                                slice_end_at=next_slice_end_at
+                                slice_end_at=next_slice_end_at,
+
+                                read_doc_shape=read_doc_shape
                             )
                         )
                     t += time_slice.duration
@@ -281,6 +284,8 @@ class MultiShapeTimeLine(object):
             prop_line = shape_line.prop_time_lines["time_pos"]
 
             if not has_audio:
+                if not read_doc_shape:
+                    continue
                 t = 0
                 #go deeper level of document_shape
                 for time_slice in prop_line.time_slices:

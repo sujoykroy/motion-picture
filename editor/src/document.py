@@ -433,6 +433,7 @@ class FrameMaker(object):
         self.surface = cairo.ImageSurface(
             cairo.FORMAT_ARGB32, int(self.width), int(self.height))
         self.ctx = cairo.Context(self.surface)
+        set_default_line_style(self.ctx)
         self.drawing_size = Point(self.width, self.height)
 
     def make_frame(self, t):

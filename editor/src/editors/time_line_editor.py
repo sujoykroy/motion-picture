@@ -1009,7 +1009,8 @@ class TimeLineEditorAudioBlock(object):
         clips=self.editor.time_line.get_audio_clips(
             pre_scale=self.editor.speed_scale,
             slice_start_at=start_at,
-            slice_end_at=end_at)
+            slice_end_at=end_at,
+            read_doc_shape = not self.editor.audio_only_play)
         samples = None
         for clip in clips:
             clip_samples = clip.get_samples(frame_count)
