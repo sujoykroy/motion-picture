@@ -25,7 +25,7 @@ class InteriorPoseBox(object):
             prop_name="pose_" + pose_name,
             start_value=0.,
             end_value=1.,
-            prop_data=dict(shape="", start_pose="", end_pose="", type="pose"))
+            prop_data=dict(shape="", start_pose="", end_pose="", type="pose", prop_name=""))
 
     def hide(self):
         self.label.hide()

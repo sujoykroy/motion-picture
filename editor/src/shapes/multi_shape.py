@@ -544,12 +544,15 @@ class MultiShape(Shape):
                     end_pose = prop_data.get("end_pose_raw")
                 else:
                     end_pose = prop_data.get("end_pose")
-                if shape.has_poses():
+                if start_pose and shape.has_poses():
                     if end_pose:
                         shape.set_pose_transition(start_pose, end_pose, value)
                     else:
                         shape.set_pose(start_pose)
-
+                else:
+                    prop_name = prop_data.get("prop_name")
+                    if prop_name:
+                        shape.set_prop_value(prop_name, value)
             elif prop_data["type"] == "timeline":
                 if "pose" in prop_data:
                     pose = prop_data["pose"]

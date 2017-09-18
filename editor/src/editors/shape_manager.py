@@ -1386,9 +1386,9 @@ class ShapeManager(object):
         result = self.doc.save(filename)
         if shapes:
             multi_selection_shape = MultiSelectionShape()
+            self.add_shape(multi_selection_shape)
             for shape in shapes:
                 multi_selection_shape.add_shape(shape)
-            self.add_shape(multi_selection_shape)
             self.shape_editor = ShapeEditor(multi_selection_shape)
         return result
 

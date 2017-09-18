@@ -58,6 +58,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "time_line_name", self.TEXT)
         self.add_editable_item("prop_data", "camera", self.TEXT)
         self.add_editable_item("prop_data", "shape", self.LIST)
+        self.add_editable_item("prop_data", "prop_name", self.TEXT)
 
         self.add_editable_item("attrib", "start_value", self.NUMBERS, syncable=True)
         self.add_editable_item("attrib", "end_value", self.NUMBERS, syncable=True)

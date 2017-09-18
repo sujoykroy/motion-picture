@@ -291,7 +291,7 @@ class TimeLineEditor(Gtk.VBox):
         info_hbox.pack_start(self.lock_markers_check, expand=False, fill=False, padding=5)
 
         info_hbox.pack_start(
-            buttons.create_new_image_widget("cohesive_marker_movement", border_scale=2),
+            buttons.create_new_image_widget("audio_only_play", border_scale=2),
             expand=False, fill=False, padding=5)
 
         self.audio_only_play_toggle = Gtk.CheckButton()
@@ -1052,4 +1052,4 @@ class PlayHeadMoverThread(threading.Thread):
                     audio_only=self.editor.audio_only_play)
                 if not self.editor.audio_only_play:
                     self.editor.play_head_callback()
-            time.sleep(.1)
+            time.sleep(.01)
