@@ -394,7 +394,9 @@ class MasterEditor(Gtk.ApplicationWindow):
                 end_value = start_value
             time_slice = TimeSlice(start_value, end_value, duration, prop_data=prop_data)
             time_line.insert_shape_prop_time_slice_at(t, shape, prop_name, time_slice)
-        self.time_line_editor.update()
+
+        self.time_line_editor.update(update_scale=True)
+
 
     def show_time_slice_props(self, time_slice_box):
         time_line = self.time_line_editor.time_line
@@ -753,8 +755,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.fit_shape_manager_in_drawing_area()
         w, h = self.get_drawing_area_size()
         self.img_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        self.pre_draw_on_surface()
-        self.redraw(use_thread=False)
+        #self.pre_draw_on_surface()#this is causing 100% cpu usage sometimes
+        self.redraw(use_thread=not False)
 
     def pre_draw_on_surface(self):
         self.img_surf_lock.acquire()
@@ -804,12 +806,13 @@ class DrawerThread(threading.Thread):
             draw = False
             try:
                 st = time.time()
-                while time.time()-st<.1:
+                while time.time()-st<.2:
                     ret = self.draw_queue.get(block=False)
                     draw = True
+                    time.sleep(.01)
             except Queue.Empty:
                 pass
             if draw:
                 self.editor.pre_draw_on_surface()
                 self.editor.redraw(use_thread=False)
-            time.sleep(.01)
+            time.sleep(.05)
