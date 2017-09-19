@@ -194,13 +194,13 @@ class TimeMarkerEditDialog(Gtk.Dialog):
         self.response(TimeMarkerEditDialog.DELETE_MARKER)
 
 class TimeLineEditor(Gtk.VBox):
-    def __init__(self, play_head_callback,
+    def __init__(self, master_editor,
                        time_slice_box_select_callback,
                        keyboard_object, parent_window):
         Gtk.VBox.__init__(self)
 
         self.keyboard_object = keyboard_object
-        self.play_head_callback = play_head_callback
+        self.master_editor = master_editor
         self.time_slice_box_select_callback = time_slice_box_select_callback
         self.parent_window = parent_window
 
@@ -663,6 +663,10 @@ class TimeLineEditor(Gtk.VBox):
         else:
             self.play_button.show()
             self.pause_button.hide()
+
+            if self.play_head_mover_thread:
+                self.play_head_mover_thread.clear(keep_last=True)
+
         if self.audio_server is None and not EditingChoice.DISABLE_AUDIO:
             self.audio_server = AudioServer.get_default()
             self.audio_server.add_block(self.audio_block)
@@ -685,20 +689,19 @@ class TimeLineEditor(Gtk.VBox):
             self.audio_block.update_time()
         self.last_play_updated_at = current_time
         self.redraw()
-        #self.play_head_callback()
         return self.is_playing
 
     def on_time_slice_box_select(self):
         self.time_slice_box_select_callback(self.selected_time_slice_box)
 
     def on_play_head_move(self):
+        self.play_head_mover_thread.clear()
         extra_x = self.play_head_box.get_center_x()-TIME_SLICE_START_X
         play_head_time = self.time_range.get_time_for_extra_x(extra_x)
         if play_head_time<0:
             play_head_time = 0
         self.move_play_head_to_time(play_head_time)
         self.redraw()
-        #self.play_head_callback()
 
     def on_move_to(self):
         self.update()
@@ -907,6 +910,7 @@ class TimeLineEditor(Gtk.VBox):
     def on_drawing_area_mouse_release(self, widget, event):
         self.end_movement()
         self.mouse_pressed = False
+        self.master_editor.clear_draw_queue()
 
     def on_drawing_area_mouse_move(self, widget, event):
         self.mouse_point.x = event.x
@@ -1028,13 +1032,26 @@ class TimeLineEditorAudioBlock(object):
 class PlayHeadMoverThread(threading.Thread):
     def __init__(self, editor):
         super(PlayHeadMoverThread, self).__init__()
-        self.editor = editor
+        self.time_line_editor = editor
         self.should_exit = False
         self.time_queue = Queue.Queue()
         self.start()
 
     def move_to(self, move_to_time, force_visible):
         self.time_queue.put((move_to_time, force_visible))
+
+    def clear(self, keep_last=False):
+        c = 0
+        ret = None
+        while c<100:
+            try:
+              ret = self.time_queue.get(block=False)
+              c += 1
+            except Queue.Empty:
+                if ret and keep_last:
+                    self.time_queue.put(ret)
+                break
+        self.time_line_editor.master_editor.clear_draw_queue(keep_last=keep_last)
 
     def run(self):
         while not self.should_exit:
@@ -1050,10 +1067,10 @@ class PlayHeadMoverThread(threading.Thread):
                 pass
             if move_to is not None:
                 st = time.time()
-                self.editor.time_line.move_to(
+                self.time_line_editor.time_line.move_to(
                     move_to,
                     force_visible=force_visible,
-                    audio_only=self.editor.audio_only_play)
-                if not self.editor.audio_only_play:
-                    self.editor.play_head_callback()
+                    audio_only=self.time_line_editor.audio_only_play)
+                if not self.time_line_editor.audio_only_play:
+                    self.time_line_editor.master_editor.update_shape_manager()
             time.sleep(.01)

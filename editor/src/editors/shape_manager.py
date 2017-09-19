@@ -590,7 +590,7 @@ class ShapeManager(object):
                    border_color=None,
                    border_width=0, fill_color=None,
                    width=self.doc.width, height=self.doc.height, corner_radius=0)
-        shape.set_code_path(filename)
+        shape.set_code_path(filename, init=True)
         self.add_new_shape(shape)
         return True
 

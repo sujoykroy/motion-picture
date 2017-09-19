@@ -92,7 +92,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.paned_box_4 = Gtk.VPaned()
         self.paned_box_3.pack2(self.paned_box_4, resize=True, shrink=True)
 
-        self.time_line_editor = TimeLineEditor(self.update_shape_manager,
+        self.time_line_editor = TimeLineEditor(self,
                                 self.show_time_slice_props, self.keyboard_object, self)
         self.paned_box_1.pack2(self.time_line_editor, resize=True, shrink=True)
 
@@ -790,6 +790,10 @@ class MasterEditor(Gtk.ApplicationWindow):
         dctx.paint()
         self.img_surf_lock.release()
 
+    def clear_draw_queue(self, keep_last=False):
+        if self.drawer_thread:
+            self.drawer_thread.clear(keep_last)
+
 class DrawerThread(threading.Thread):
     def __init__(self, editor):
         super(DrawerThread, self).__init__()
@@ -800,6 +804,18 @@ class DrawerThread(threading.Thread):
 
     def draw(self):
         self.draw_queue.put(True)
+
+    def clear(self, keep_last=False):
+        c = 0
+        ret = None
+        while c<100:
+            try:
+                ret = self.draw_queue.get(block=False)
+                c += 1
+            except Queue.Empty:
+                if ret and keep_last:
+                    self.draw_queue.put(ret)
+                break
 
     def run(self):
         while not self.should_exit:

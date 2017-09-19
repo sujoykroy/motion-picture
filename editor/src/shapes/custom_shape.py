@@ -41,7 +41,7 @@ class CustomShape(RectangleShape):
         shape.set_params(elm.attrib.get("params", ""))
         return shape
 
-    def set_code_path(self, filepath):
+    def set_code_path(self, filepath, init=False):
         self.code_path = filepath
         filepath = Settings.Directory.get_full_path(filepath)
         if not os.path.isfile(filepath):
@@ -49,6 +49,8 @@ class CustomShape(RectangleShape):
         self.drawer_module = imp.load_source("drawer_module", filepath)
         if hasattr(self.drawer_module, "Drawer"):
             self.drawer = self.drawer_module.Drawer()
+            if init and hasattr(self.drawer, "get_params_string"):
+                self.params = self.drawer.get_params_string()
             self.set_params(self.params)
             self.set_progress(self.progress)
 
@@ -57,9 +59,9 @@ class CustomShape(RectangleShape):
         if self.drawer:
             try:
                 params_obj = eval(parser.expr("dict({0})".format(params)).compile())
+                self.drawer.set_params(params_obj)
             except:
                 params_obj = dict()
-            self.drawer.set_params(params_obj)
 
     def set_progress(self, value):
         self.progress = value
