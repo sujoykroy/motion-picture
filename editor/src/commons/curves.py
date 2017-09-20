@@ -209,13 +209,18 @@ class NaturalCurve(object):
         Curve has normalized points. So, width and height are provided.
         The baking or precalculation of pixels points in this way
         helps to implement path following feature.
-        The distance between to points are kept one pixel along diagonal.
+        The distance between two points are kept one pixel along diagonal.
         """
         diagonal = math.sqrt(width*width+height*height)
         path_points = numpy.array([], dtype="f")
 
         prev_tp = self.origin.copy()
         elapsed_dist = 0
+        if detailed:
+            shape_size =4
+        else:
+            shape_size = 2
+
         for bezier_point_index in range(len(self.bezier_points)):
             bezier_point = self.bezier_points[bezier_point_index]
             if bezier_point_index == 0:
@@ -260,15 +265,15 @@ class NaturalCurve(object):
                     ts *= ts_step
                     nx = prev_tp.x + ts*(tx-prev_tp.x)
                     ny = prev_tp.y + ts*(ty-prev_tp.y)
+                    if len(path_points)>0 and \
+                        path_points[-shape_size] == nx and \
+                        path_points[-shape_size+1] == ny:
+                        continue
                     if detailed:
                         path_points = numpy.append(path_points, [nx, ny, bezier_point_index, t])
                     else:
                         path_points = numpy.append(path_points, [nx, ny])
-
-        if detailed:
-            path_points.shape =(-1, 4)
-        else:
-            path_points.shape =(-1, 2)
+        path_points.shape =(-1, shape_size)
         return path_points
 
     def get_closest_control_point(self, point, width, height, tolerance):
