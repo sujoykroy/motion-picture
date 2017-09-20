@@ -19,6 +19,7 @@ import numpy
 import time
 import fnmatch
 import re
+import multiprocessing
 
 class Document(object):
     IdSeed = 0
@@ -269,13 +270,8 @@ class Document(object):
             audio_clips = []
             for doc_movie in frame_maker.doc_movies:
                 doc_movie.load_doc()
-                clips = doc_movie.time_line.get_audio_clips(
-                    abs_time_offset = doc_movie.movie_offset,
-                    pre_scale=speed,
-                    slice_start_at=doc_movie.start_time,
-                    slice_end_at=doc_movie.end_time)
+                clips = doc_movie.get_audio_clips(speed=speed)
                 audio_clips.extend(clips)
-            #print audio_clips
             if audio_clips:
                 audio_clip = movie_editor.CompositeAudioClip(audio_clips)
                 video_clip = video_clip.set_audio(audio_clip)
@@ -287,7 +283,69 @@ class Document(object):
             ffmpeg_params=ffmpeg_params,
             bitrate=bitrate)
         elapsed_time = time.time()-start_time
-        print "Video is maded in {0:.2f} sec".format(elapsed_time)
+        for doc_movie in doc_movies:
+            doc_movie.unload_doc()
+        print "Video {0} is maded in {1:.2f} sec".format(filename, elapsed_time)
+
+    @staticmethod
+    def list2dict(list_items):
+        dict_item = dict()
+        for i in range(0, len(list_items), 2):
+            dict_item[list_items[i]] = list_items[i+1]
+        return dict_item
+
+    @staticmethod
+    def make_movie_faster(process_count, segment_count, doc_movie, filename, **kwargs):
+        ps_st = time.time()
+
+        duration = doc_movie.end_time-doc_movie.start_time
+        duration_steps = duration*1./process_count
+        start_time = doc_movie.start_time
+        sub_filenames = []
+        args_list = []
+        filename_pre, file_extension = os.path.splitext(filename)
+
+        has_audio = kwargs.get("audio", False)
+        kwargs["audio"] = False
+
+        for i in range(segment_count):
+            sub_filename = "{0}.{1}{2}".format(filename_pre, i, file_extension)
+            sub_filenames.append(sub_filename)
+            args = [
+                ("filename", doc_movie.filename,
+                "time_line", doc_movie.time_line_name,
+                "start_time", start_time,
+                "end_time", min(start_time+duration_steps, doc_movie.end_time),
+                "camera", doc_movie.camera_name)
+            ]
+            args.append(sub_filename)
+            for key, value in kwargs.items():
+                args.extend([key, value])
+            args_list.append(args)
+            start_time += duration_steps
+
+        pool = multiprocessing.Pool(processes=process_count)
+        pool.map_async(make_movie_processed, args_list)
+        pool.close()
+        pool.join()
+
+        clips = []
+        for sub_filename in sub_filenames:
+            clips.append(movie_editor.VideoFileClip(sub_filename))
+
+        final_clip = movie_editor.concatenate_videoclips(clips)
+        if has_audio:
+            doc_movie.load_doc()
+            audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
+            audio_clip = movie_editor.CompositeAudioClip(audio_clips)
+            final_clip = final_clip.set_audio(audio_clip)
+        final_clip.write_videofile(filename)
+
+        for sub_filename in sub_filenames:
+            os.remove(sub_filename)
+
+        print "Video {0} is made in {1:.2f} sec".format(filename, time.time()-ps_st)
+
     @staticmethod
     def load_modules(*items):
         for item in items:
@@ -316,6 +374,11 @@ class Document(object):
         doc = cls(filename=filename)
         return (doc.width, doc.height), doc.main_multi_shape
 
+def make_movie_processed(args):
+    params = Document.list2dict(args[2:])
+    params["doc_movies"] = [DocMovie(**Document.list2dict(args[0]))]
+    params["filename"] = args[1]
+    Document.make_movie(**params)
 
 class DocModule(MultiShapeModule):
     def __init__(self, module_name, module_path):
@@ -385,6 +448,13 @@ class DocMovie(object):
         if self.doc:
             self.doc = None
             self.camera = None
+
+    def get_audio_clips(self, speed):
+        return self.time_line.get_audio_clips(
+                    abs_time_offset = self.movie_offset,
+                    pre_scale=speed,
+                    slice_start_at=self.start_time,
+                    slice_end_at=self.end_time)
 
     @classmethod
     def create_from_params(cls, filename, params):
