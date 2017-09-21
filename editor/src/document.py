@@ -250,28 +250,25 @@ class Document(object):
         return shape
 
     @staticmethod
-    def make_movie(doc_movies, filename, speed=1, sleep=0, fps=24, wh=None,
+    def make_movie(doc_movie, speed=1, sleep=0, fps=24, wh=None,
                    ffmpeg_params="-quality good -qmin 10 -qmax 42", bitrate="640k",
                    codec="libvpx", audio=True, dry=False):
 
         speed = float(speed)
-        doc_movies = list(doc_movies)
-        duration = 0
-        for doc_movie in doc_movies:
-            doc_movie.set_movie_offset(duration)
-            doc_movie.calculate_movie_duration(speed)
-            duration += doc_movie.movie_duration
+        doc_movie.load_doc()
+        doc_movie.calculate_movie_duration(speed)
 
-        frame_maker = FrameMaker(doc_movies, wh=wh, speed=speed, sleep=sleep)
-        video_clip = movie_editor.VideoClip(frame_maker.make_frame, duration=duration)
+        frame_maker = FrameMaker(doc_movie, wh=wh, speed=speed, sleep=sleep)
+        video_clip = movie_editor.VideoClip(
+                frame_maker.make_frame,
+                duration=doc_movie.movie_duration
+        )
+
         if isinstance(ffmpeg_params, str):
             ffmpeg_params = ffmpeg_params.split(" ")
         if audio:
-            audio_clips = []
-            for doc_movie in frame_maker.doc_movies:
-                doc_movie.load_doc()
-                clips = doc_movie.get_audio_clips(speed=speed)
-                audio_clips.extend(clips)
+            audio_clips = None
+            audio_clips = doc_movie.get_audio_clips(speed=speed)
             if audio_clips:
                 audio_clip = movie_editor.CompositeAudioClip(audio_clips)
                 video_clip = video_clip.set_audio(audio_clip)
@@ -279,13 +276,15 @@ class Document(object):
             return
         start_time = time.time()
         video_clip.write_videofile(
-            filename, fps=fps, codec=codec, preset="superslow",
+            doc_movie.dest_filename, fps=fps,
+            codec=codec, preset="superslow",
             ffmpeg_params=ffmpeg_params,
             bitrate=bitrate)
         elapsed_time = time.time()-start_time
-        for doc_movie in doc_movies:
-            doc_movie.unload_doc()
-        print "Video {0} is maded in {1:.2f} sec".format(filename, elapsed_time)
+        doc_movie.unload_doc()
+        ret = "Video {0} is maded in {1:.2f} sec".format(doc_movie.dest_filename, elapsed_time)
+        print ret
+        return ret
 
     @staticmethod
     def list2dict(list_items):
@@ -295,7 +294,7 @@ class Document(object):
         return dict_item
 
     @staticmethod
-    def make_movie_faster(process_count, segment_count, doc_movie, filename, **kwargs):
+    def make_movie_faster(process_count, segment_count, doc_movie, **kwargs):
         ps_st = time.time()
 
         duration = doc_movie.end_time-doc_movie.start_time
@@ -303,7 +302,16 @@ class Document(object):
         start_time = doc_movie.start_time
         sub_filenames = []
         args_list = []
-        filename_pre, file_extension = os.path.splitext(filename)
+        filename_pre, file_extension = os.path.splitext(doc_movie.dest_filename)
+
+        if doc_movie.audio_only:
+            doc_movie.load_doc()
+            audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
+            audio_clip = movie_editor.CompositeAudioClip(audio_clips)
+            audio_clip.write_audiofile(doc_movie.dest_filename)
+            print "Audio {0} is made in {1:.2f} sec".format(
+                        doc_movie.dest_filename, time.time()-ps_st)
+            return
 
         has_audio = kwargs.get("audio", False)
         kwargs["audio"] = False
@@ -312,22 +320,22 @@ class Document(object):
             sub_filename = "{0}.{1}{2}".format(filename_pre, i, file_extension)
             sub_filenames.append(sub_filename)
             args = [
-                ("filename", doc_movie.filename,
+                ("src_filename", doc_movie.src_filename,
+                "dest_filename", sub_filename,
                 "time_line", doc_movie.time_line_name,
                 "start_time", start_time,
                 "end_time", min(start_time+duration_steps, doc_movie.end_time),
                 "camera", doc_movie.camera_name)
             ]
-            args.append(sub_filename)
             for key, value in kwargs.items():
                 args.extend([key, value])
             args_list.append(args)
             start_time += duration_steps
 
         pool = multiprocessing.Pool(processes=process_count)
-        pool.map_async(make_movie_processed, args_list)
+        result = pool.map_async(make_movie_processed, args_list)
         pool.close()
-        pool.join()
+        print result.get(timeout=60*60*24)
 
         clips = []
         for sub_filename in sub_filenames:
@@ -339,12 +347,13 @@ class Document(object):
             audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
             audio_clip = movie_editor.CompositeAudioClip(audio_clips)
             final_clip = final_clip.set_audio(audio_clip)
-        final_clip.write_videofile(filename)
+        print "doc_movie.dest_filename", doc_movie.dest_filename
+        final_clip.write_videofile(doc_movie.dest_filename)
 
         for sub_filename in sub_filenames:
             os.remove(sub_filename)
 
-        print "Video {0} is made in {1:.2f} sec".format(filename, time.time()-ps_st)
+        print "Video {0} is made in {1:.2f} sec".format(doc_movie.dest_filename, time.time()-ps_st)
 
     @staticmethod
     def load_modules(*items):
@@ -375,9 +384,8 @@ class Document(object):
         return (doc.width, doc.height), doc.main_multi_shape
 
 def make_movie_processed(args):
-    params = Document.list2dict(args[2:])
-    params["doc_movies"] = [DocMovie(**Document.list2dict(args[0]))]
-    params["filename"] = args[1]
+    params = Document.list2dict(args[1:])
+    params["doc_movie"] = DocMovie(**Document.list2dict(args[0]))
     Document.make_movie(**params)
 
 class DocModule(MultiShapeModule):
@@ -395,8 +403,10 @@ class DocModule(MultiShapeModule):
             self.root_multi_shape = None
 
 class DocMovie(object):
-    def __init__(self, filename, time_line=None, start_time=0, end_time=None, camera=None):
-        doc = Document(filename=filename)
+    def __init__(self, src_filename, dest_filename, time_line=None,
+                       start_time=0, end_time=None, camera=None,
+                       audio_only=False,):
+        doc = Document(filename=src_filename)
 
         timelines = doc.main_multi_shape.timelines
         if not timelines:
@@ -419,7 +429,9 @@ class DocMovie(object):
             if not doc.get_shape_by_name(camera):
                 camera = None
 
-        self.filename = filename
+        self.src_filename = src_filename
+        self.dest_filename = dest_filename
+
         self.time_line_name = time_line
         self.start_time = start_time
         self.end_time = end_time
@@ -430,6 +442,7 @@ class DocMovie(object):
         self.doc = None
         self.camera = None
         self.time_line = None
+        self.audio_only = audio_only
 
     def set_movie_offset(self, offset):
         self.movie_offset = offset
@@ -439,7 +452,7 @@ class DocMovie(object):
 
     def load_doc(self):
         if not self.doc:
-            self.doc = Document(filename=self.filename)
+            self.doc = Document(filename=self.src_filename)
             self.time_line = self.doc.main_multi_shape.timelines[self.time_line_name]
             if self.camera_name:
                 self.camera = self.doc.get_shape_by_name(self.camera_name)
@@ -462,6 +475,7 @@ class DocMovie(object):
         start_time=0
         end_time=None
         camera=None
+        audio_only = False
         for i in range(len(params)):
             param = params[i]
             arr = param.split("=")
@@ -477,12 +491,17 @@ class DocMovie(object):
                 end_time = Text.parse_number(param_value, None)
             elif param_name == "camera":
                 camera = param_value
-        return cls(filename=filename, time_line=time_line,
+            elif param_name == "output":
+                dest_filename = param_value
+            elif param_name == "audio_only":
+                audio_only = (param_value == "True")
+        return cls(src_filename=filename, dest_filename=dest_filename,
+                   time_line=time_line, audio_only=audio_only,
                    start_time=start_time, end_time=end_time, camera=camera)
 
 class FrameMaker(object):
-    def __init__(self, doc_movies, wh=None, speed=1, bg_color="FFFFFF", sleep=0):
-        self.doc_movies = doc_movies
+    def __init__(self, doc_movie, wh=None, speed=1, bg_color="FFFFFF", sleep=0):
+        self.doc_movie = doc_movie
         self.sleep= sleep
         self.speed = float(speed)
         self.bg_color = bg_color
@@ -492,7 +511,6 @@ class FrameMaker(object):
             self.width = float(width)
             self.height = float(height)
         else:
-            doc_movie = doc_movies[0]
             doc_movie.load_doc()
             if doc_movie.camera:
                 self.width, self.height = doc_movie.camera.width, doc_movie.camera.height
@@ -509,33 +527,15 @@ class FrameMaker(object):
     def make_frame(self, t):
         if self.sleep:
             time.sleep(self.sleep)
-
-        active_doc_movie = None
-        remove_ready = []
-        for i in range(len(self.doc_movies)):
-            doc_movie = self.doc_movies[i]
-            right_end = doc_movie.movie_offset+doc_movie.movie_duration
-            if t>right_end or (t==right_end and i>0):
-                doc_movie.unload_doc()
-                remove_ready.append(doc_movie)
-                continue
-            if t>=doc_movie.movie_offset:
-                doc_movie.load_doc()
-                active_doc_movie = doc_movie
-                t -= doc_movie.movie_offset
-                break
-        for doc_movie in remove_ready:
-            self.doc_movies.remove(doc_movie)
-
-        active_doc_movie.time_line.move_to(t*self.speed+active_doc_movie.start_time)
+        self.doc_movie.time_line.move_to(t*self.speed+self.doc_movie.start_time)
 
         if self.bg_color:
             self.ctx.rectangle(0, 0, self.width, self.height)
             draw_fill(self.ctx, self.bg_color)
         self.ctx.save()
 
-        camera = active_doc_movie.camera
-        multi_shape = active_doc_movie.doc.main_multi_shape
+        camera = self.doc_movie.camera
+        multi_shape = self.doc_movie.doc.main_multi_shape
         if camera is None:
             camera = multi_shape.camera
 
@@ -543,8 +543,8 @@ class FrameMaker(object):
             view_width = camera.width
             view_height = camera.height
         else:
-            view_width = active_doc_movie.doc.width
-            view_height = active_doc_movie.doc.height
+            view_width = self.doc_movie.doc.width
+            view_height = self.doc_movie.doc.height
 
         dw_width = float(self.width)
         dw_height = float(self.height)
