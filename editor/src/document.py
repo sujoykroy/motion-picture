@@ -23,6 +23,9 @@ import multiprocessing
 
 class Document(object):
     IdSeed = 0
+    FFMPEG_PARAMS = "-quality good -qmin 10 -qmax 42"
+    BIT_RATE = "640k"
+    CODEC = "libvpx"
 
     def __init__(self, filename=None, width=400., height=300.):
         self.filename = Settings.Directory.get_full_path(filename)
@@ -251,8 +254,8 @@ class Document(object):
 
     @staticmethod
     def make_movie(doc_movie, speed=1, sleep=0, fps=24, wh=None,
-                   ffmpeg_params="-quality good -qmin 10 -qmax 42", bitrate="640k",
-                   codec="libvpx", audio=True, dry=False):
+                   ffmpeg_params=FFMPEG_PARAMS, bitrate=BIT_RATE,
+                   codec=CODEC, audio=True, dry=False):
 
         speed = float(speed)
         doc_movie.load_doc()
@@ -294,11 +297,12 @@ class Document(object):
         return dict_item
 
     @staticmethod
-    def make_movie_faster(process_count, segment_count, doc_movie, **kwargs):
+    def make_movie_faster(process_count, doc_movie, **kwargs):
         ps_st = time.time()
+        segment_count = process_count*2
 
         duration = doc_movie.end_time-doc_movie.start_time
-        duration_steps = duration*1./process_count
+        duration_steps = duration*1./segment_count
         start_time = doc_movie.start_time
         sub_filenames = []
         args_list = []
@@ -335,7 +339,7 @@ class Document(object):
         pool = multiprocessing.Pool(processes=process_count)
         result = pool.map_async(make_movie_processed, args_list)
         pool.close()
-        print result.get(timeout=60*60*24)
+        result.get(timeout=60*60*24)
 
         clips = []
         for sub_filename in sub_filenames:
@@ -347,13 +351,18 @@ class Document(object):
             audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
             audio_clip = movie_editor.CompositeAudioClip(audio_clips)
             final_clip = final_clip.set_audio(audio_clip)
-        print "doc_movie.dest_filename", doc_movie.dest_filename
-        final_clip.write_videofile(doc_movie.dest_filename)
+        final_clip.write_videofile(
+            doc_movie.dest_filename,
+            ffmpeg_params = kwargs.get("ffmpeg_params", Document.FFMPEG_PARAMS).split(" "),
+            codec = kwargs.get("codec", Document.CODEC), preset="superslow",
+            bitrate = kwargs.get("bitrate", Document.BIT_RATE),
+        )
 
         for sub_filename in sub_filenames:
             os.remove(sub_filename)
 
         print "Video {0} is made in {1:.2f} sec".format(doc_movie.dest_filename, time.time()-ps_st)
+        return True
 
     @staticmethod
     def load_modules(*items):
@@ -463,6 +472,7 @@ class DocMovie(object):
             self.camera = None
 
     def get_audio_clips(self, speed):
+        self.load_doc()
         return self.time_line.get_audio_clips(
                     abs_time_offset = self.movie_offset,
                     pre_scale=speed,
@@ -476,6 +486,7 @@ class DocMovie(object):
         end_time=None
         camera=None
         audio_only = False
+        dest_filename = filename + ".video"
         for i in range(len(params)):
             param = params[i]
             arr = param.split("=")
