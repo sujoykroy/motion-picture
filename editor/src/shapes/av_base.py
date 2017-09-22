@@ -50,7 +50,10 @@ class AVBase(object):
 
         wave_started = False
         while t<time_end:
-            sample = audio_block.samples[int(t*AudioBlock.SampleRate),:]
+            c = int(t*AudioBlock.SampleRate)
+            if c>=audio_block.samples.shape[0]:
+                break
+            sample = audio_block.samples[c,:]
             if sample is None:
                 break
             if not wave_started:

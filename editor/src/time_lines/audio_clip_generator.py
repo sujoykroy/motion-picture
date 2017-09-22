@@ -21,6 +21,9 @@ class AudioClipGenerator(movie_editor.AudioClip):
         t = (t*self.scale) + self.slice_offset
         t = self.time_slice.value_at(t)
         audio_block = AudioFileBlock.get_for_filename(filename)
+        if len(audio_block.samples) == 0:
+            return numpy.zeros((t.shape[0], 2), dtype="f")
+
         t = (t*AudioBlock.SampleRate)
         if isinstance(t, numpy.ndarray):
             t = t.astype(numpy.int)

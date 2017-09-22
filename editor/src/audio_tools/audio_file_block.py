@@ -98,9 +98,15 @@ class AudioFileBlock(AudioSamplesBlock):
         audioclip = self.get_audio_clip()
 
         if self.preload and audioclip.duration<self.MAX_DURATION_SECONDS:
+            blank = True
             try:
                 self.samples = audioclip.to_soundarray(buffersize=1000).astype(numpy.float32)
+                blank = False
+            except IndexError as e:
+                pass
             except IOError as e:
+                pass
+            if blank:
                 self.samples = numpy.zeros((0, AudioBlock.ChannelCount), dtype=numpy.float32)
 
             if self.sample_count:
