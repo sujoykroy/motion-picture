@@ -349,8 +349,9 @@ class Document(object):
         if has_audio:
             doc_movie.load_doc()
             audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
-            audio_clip = movie_editor.CompositeAudioClip(audio_clips)
-            final_clip = final_clip.set_audio(audio_clip)
+            if audio_clips:
+                audio_clip = movie_editor.CompositeAudioClip(audio_clips)
+                final_clip = final_clip.set_audio(audio_clip)
         final_clip.write_videofile(
             doc_movie.dest_filename,
             ffmpeg_params = kwargs.get("ffmpeg_params", Document.FFMPEG_PARAMS).split(" "),
