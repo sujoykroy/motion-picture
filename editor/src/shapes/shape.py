@@ -82,6 +82,8 @@ class Shape(object):
             curve_name = prop_data.get("follow_curve")
             if curve_name:
                 self.follow_curve = curve_name
+            else:
+                self.follow_curve = None
             follow_angle = prop_data.get("follow_angle")
         else:
             follow_angle = False

@@ -34,9 +34,11 @@ class RingShape(OvalShape):
         return shape
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = RingShape(self.anchor_at.copy(), self.border_color.copy(), self.border_width,
-                            self.fill_color.copy(), self.width, self.height,
-                            self.sweep_angle, self.thickness)
+        newob = RingShape(
+            copy_value(self.anchor_at),
+            copy_value(self.border_color), self.border_width,
+            copy_value(self.fill_color),
+            self.width, self.height, self.sweep_angle, self.thickness)
         self.copy_into(newob, copy_name)
         return newob
 

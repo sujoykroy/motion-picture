@@ -17,6 +17,7 @@ class TimeSlicePropBox(Gtk.Frame):
     IMAGE_FILE = 7
     DOCUMENT_FILE = 8
     IMAGE_LIST = 9
+    LONG_TEXT = 10
 
     def __init__(self, draw_callback):
         Gtk.Frame.__init__(self)
@@ -48,7 +49,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("prop_data", "timeline", self.LIST)
         self.add_editable_item("prop_data", "start_form", self.IMAGE_LIST)
         self.add_editable_item("prop_data", "end_form", self.IMAGE_LIST)
-        self.add_editable_item("prop_data", "text", self.TEXT)
+        self.add_editable_item("prop_data", "text", self.LONG_TEXT)
         self.add_editable_item("prop_data", "audio_path", self.AUDIO_FILE)
         self.add_editable_item("prop_data", "video_path", self.VIDEO_FILE)
         self.add_editable_item("prop_data", "image_path", self.IMAGE_FILE)
@@ -181,6 +182,8 @@ class TimeSlicePropBox(Gtk.Frame):
                     widget.set_filename(prop_data[key])
                 elif isinstance(widget, Gtk.Entry):
                     widget.set_text(prop_data[key])
+                elif isinstance(widget, Gtk.TextView):
+                    widget.get_buffer().set_text(prop_data[key])
                 elif isinstance(widget, Gtk.CheckButton):
                     widget.set_active(prop_data[key])
 
@@ -254,6 +257,14 @@ class TimeSlicePropBox(Gtk.Frame):
             entry = Gtk.Entry()
             entry.connect("changed", self.item_widget_changed)
             item_widget = entry
+        elif item_type == self.LONG_TEXT:
+            text_view = Gtk.TextView()
+            text_view.props.wrap_mode = 1
+            text_view.set_margin_top(2)
+            text_view.set_margin_bottom(5)
+            text_view.get_buffer().connect("changed", self.item_widget_changed)
+            text_view.get_buffer().widget = text_view
+            item_widget = text_view
         elif item_type == self.AUDIO_FILE:
             file_chooser = FileSelect(file_types="audio")
             file_chooser.connect("file-selected", self.item_widget_changed)
@@ -357,6 +368,11 @@ class TimeSlicePropBox(Gtk.Frame):
 
         if isinstance(widget, Gtk.Entry):
             value = widget.get_text()
+        elif isinstance(widget, Gtk.TextBuffer):
+            text_buffer = widget
+            widget = text_buffer.widget
+            value = text_buffer.get_text(
+                text_buffer.get_start_iter(), text_buffer.get_end_iter(), False)
         elif isinstance(widget, Gtk.CheckButton):
             value = widget.get_active()
         elif isinstance(widget, NameValueComboBox):
