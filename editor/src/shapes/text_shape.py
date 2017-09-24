@@ -1,5 +1,6 @@
+from gi.repository import Pango, PangoCairo
 from ..commons import *
-import cairo, pangocairo, pango
+import cairo
 from shape import Shape
 from rectangle_shape import RectangleShape
 import math
@@ -11,8 +12,6 @@ X_ALIGN_RIGHT = 2
 Y_ALIGN_TOP = 0
 Y_ALIGN_MIDDLE = 1
 Y_ALIGN_BOTTOM = 2
-
-WRAP_MODE = pango.WRAP_WORD_CHAR
 
 class TextShape(RectangleShape):
     TYPE_NAME = "text"
@@ -91,19 +90,35 @@ class TextShape(RectangleShape):
 
     def draw_text(self, ctx):
         ctx.save()
-        pangocairo_context = pangocairo.CairoContext(ctx)
-        pangocairo_context.set_antialias(cairo.ANTIALIAS_SUBPIXEL)
 
-        layout = pangocairo_context.create_layout()
-        pango_font_desc = pango.FontDescription(self.font)
-        layout.set_wrap(WRAP_MODE)
+        layout = PangoCairo.create_layout(ctx)
+        pango_font_desc = Pango.FontDescription.from_string(self.font)
+        layout.set_wrap(Pango.WrapMode(0))
         layout.set_font_description(pango_font_desc)
-        layout.set_alignment(self.line_align)
 
         layout.set_markup(self.display_text)
+
         if (self.max_width_chars>0):
-            layout.set_width(int(self.max_width_chars*pango_font_desc.get_size()))
-        text_left, text_top, text_width, text_height = layout.get_pixel_extents()[0]
+            font_size = pango_font_desc.get_size()
+            if pango_font_desc.get_size_is_absolute():
+                font_size *= Pango.SCALE
+            layout.set_width(int(self.max_width_chars*font_size))
+
+
+        text_rect = layout.get_pixel_extents()[0]
+        text_width = text_rect.width
+        text_height = text_rect.height
+        text_left = text_rect.x
+        text_top = text_rect.y
+
+        if (self.max_width_chars>0):
+            text_width = layout.get_width()*1./Pango.SCALE
+
+
+        text_point_rect = layout.get_extents()[0]
+
+        if self.max_width_chars<=0:# or self.exposure<1:
+            layout.set_width(int(text_point_rect.width))
 
         if self.x_align == X_ALIGN_LEFT:
             x = self.border_width+self.corner_radius
@@ -124,10 +139,23 @@ class TextShape(RectangleShape):
         else:
             ctx.set_source_rgba(*self.font_color.get_array())
 
+        layout.set_alignment(Pango.Alignment(self.line_align))
+
+        PangoCairo.update_layout(ctx, layout)
         ctx.move_to(x-text_left, y-text_top)
-        pangocairo_context.update_layout(layout)
-        pangocairo_context.show_layout(layout)
+
+        PangoCairo.show_layout(ctx, layout)
+        """
+        ctx.new_path()
+        ctx.translate(x, y)
+        ctx.rectangle(0,0,text_width, text_height)
+        draw_stroke(ctx, 1, "FF0000")
+        ctx.translate(-text_left, -text_top)
+        ctx.rectangle(0,0,text_width, text_height)
+        draw_stroke(ctx, 1, "000000")
+        """
         ctx.restore()
+
 
     def set_text(self, text):
         self.text = text
@@ -175,14 +203,14 @@ class TextShape(RectangleShape):
         surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, 320, 120)
         context = cairo.Context(surf)
 
-        pangocairo_context = pangocairo.CairoContext(context)
-        pangocairo_context.set_antialias(cairo.ANTIALIAS_SUBPIXEL)
-
-        layout = pangocairo_context.create_layout()
-        pango_font_desc = pango.FontDescription(self.font)
-        layout.set_wrap(WRAP_MODE)
+        layout = PangoCairo.create_layout(context)
+        pango_font_desc = Pango.FontDescription.from_string(self.font)
+        layout.set_wrap(Pango.WrapMode(0))
         layout.set_font_description(pango_font_desc)
-        layout.set_alignment(int(self.line_align))#from "pose", line-align may become float
+
+        #from "pose", line-align may become float
+        layout.set_alignment(Pango.Alignment(int(self.line_align)))
+
         if (self.max_width_chars>0):
             layout.set_width(int(self.max_width_chars*pango_font_desc.get_size()))
 
@@ -194,9 +222,9 @@ class TextShape(RectangleShape):
         return layout.get_pixel_extents()[0]
 
     def readjust_sizes(self):
-        text_left, text_top, text_width, text_height = self.calculate_text_size()
-        text_width += 2*(self.border_width+self.corner_radius)
-        text_height += 2*(self.border_width+self.corner_radius)
+        text_rect = self.calculate_text_size()
+        text_width = text_rect.width + 2*(self.border_width+self.corner_radius)
+        text_height = text_rect.height + 2*(self.border_width+self.corner_radius)
         if self.width<text_width:
             self.width = text_width
         if self.height<text_height:
