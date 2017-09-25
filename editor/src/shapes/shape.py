@@ -621,7 +621,7 @@ class Shape(object):
         if isinstance(value, str):
             self.visible = (value=="True")
         else:
-            self.visible = bool(value)
+            self.visible = bool(int(round(value)))
 
     def can_draw_time_slice_for(self, prop_name):
         return False

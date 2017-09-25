@@ -137,7 +137,7 @@ class TextShape(RectangleShape):
         else:
             ctx.set_source_rgba(*self.font_color.get_array())
 
-        layout.set_alignment(Pango.Alignment(self.line_align))
+        layout.set_alignment(Pango.Alignment(int(round(self.line_align))))
 
         PangoCairo.update_layout(ctx, layout)
         return layout, x-text_left, y-text_top
@@ -185,8 +185,10 @@ class TextShape(RectangleShape):
         self.display_text = self.text[0: length]
 
     def set_prop_value(self, prop_name, value, prop_data=None):
-        if prop_name == "exposure" and prop_data and "text" in prop_data:
-            self.set_text(prop_data["text"])
+        if prop_name == "exposure" and prop_data:
+            text = prop_data.get("text", "")
+            if text:
+                self.set_text(text)
         super(TextShape, self).set_prop_value(prop_name, value, prop_data)
 
     def set_text(self, text):

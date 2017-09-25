@@ -21,6 +21,7 @@ class CurveShape(Shape, Mirror):
         self.baked_points = None
         self.form_pixbufs = dict()
         self.curve_point_map = dict()
+        self.exposure = 1.
 
     def get_form_pixbuf(self, form_name):
         if form_name not in self.form_pixbufs:
@@ -597,8 +598,24 @@ class CurveShape(Shape, Mirror):
             if reverse:
                 curve.reverse_draw_path(ctx, new_path=new_path, line_to=line_to)
             else:
-                curve.draw_path(ctx, new_path=new_path, line_to=line_to)
+                if self.exposure<1.0:
+                    self.draw_through_baked_points(ctx, curve_index)
+                else:
+                    curve.draw_path(ctx, new_path=new_path, line_to=line_to)
         ctx.restore()
+
+    def draw_through_baked_points(self, ctx, curve_index):
+        self.build_baked_points(curve_index)
+        baked_points = self.baked_points[curve_index]
+        count = int(round(baked_points.shape[0]*self.exposure))
+        for i in xrange(count):
+            x = baked_points[i][0]
+            y = baked_points[i][1]
+            if i == 0:
+                ctx.move_to(x, y)
+            else:
+                ctx.line_to(x, y)
+
 
     def draw_path(self, ctx, for_fill=False):
         paths = []
@@ -705,12 +722,15 @@ class CurveShape(Shape, Mirror):
 
         self.baked_points = None
 
-    def get_baked_point(self, frac, curve_index=0):
+    def build_baked_points(self, curve_index):
         if self.baked_points is None:
             self.baked_points = dict()
         if self.baked_points.get(curve_index) is None:
             self.baked_points[curve_index] = \
                 self.curves[curve_index].get_baked_points(self.width, self.height)
+
+    def get_baked_point(self, frac, curve_index=0):
+        self.build_baked_points(curve_index)
         baked_points = self.baked_points[curve_index]
         if frac<0:
             frac += 1

@@ -112,6 +112,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                     self, self.shape_prop_changed, self.insert_time_slice)
         self.ring_shape_prop_box = RingShapePropBox(
                     self, self.shape_prop_changed, self.insert_time_slice)
+        self.curve_shape_prop_box = CurveShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
         self.text_shape_prop_box = TextShapePropBox(
                     self, self.shape_prop_changed, self.insert_time_slice)
         self.multi_shape_prop_box = MultiShapePropBox(
@@ -166,6 +168,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.rectangle_shape_prop_box,
             self.oval_shape_prop_box,
             self.ring_shape_prop_box,
+            self.curve_shape_prop_box,
             self.multi_shape_prop_box,
             self.text_shape_prop_box,
             self.shape_form_prop_box,
@@ -453,6 +456,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.rectangle_shape_prop_box.hide()
         self.oval_shape_prop_box.hide()
         self.ring_shape_prop_box.hide()
+        self.curve_shape_prop_box.hide()
         self.multi_shape_prop_box.hide()
         self.shape_form_prop_box.hide()
         self.point_group_shape_list_box.hide()
@@ -529,6 +533,9 @@ class MasterEditor(Gtk.ApplicationWindow):
             elif isinstance(shape, RingShape):
                 self.ring_shape_prop_box.show()
                 self.ring_shape_prop_box.set_prop_object(shape)
+            elif isinstance(shape, CurveShape):
+                self.curve_shape_prop_box.show()
+                self.curve_shape_prop_box.set_prop_object(shape)
             elif isinstance(shape, OvalShape):
                 self.oval_shape_prop_box.show()
                 self.oval_shape_prop_box.set_prop_object(shape)

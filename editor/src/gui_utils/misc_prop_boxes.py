@@ -83,6 +83,13 @@ class RingShapePropBox(OvalShapePropBox):
                 dict(value=0, lower=0, upper=1.01,
                      step_increment=.01, page_increment=.01, page_size=.01))
 
+class CurveShapePropBox(ShapePropBox):
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
+        self.add_prop("exposure", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0, upper=1, step_increment=.01))
+
+
 class CameraShapePropBox(ShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
         ShapePropBox.__init__(self, parent_window, draw_callback, None, insert_time_slice_callback)
