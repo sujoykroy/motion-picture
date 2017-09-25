@@ -106,13 +106,11 @@ class PolygonShape(Shape, Mirror):
                 self.set_form(start_form)
                 return
 
-            start_form_dict = self.forms[start_form]
-            end_form_dict = self.forms[end_form]
+            start_form = self.forms[start_form]
+            end_form = self.forms[end_form]
 
-            new_width = start_form_dict["width"] +  \
-                        (end_form_dict["width"]-start_form_dict["width"])*value
-            new_height = start_form_dict["height"] + \
-                        (end_form_dict["height"]-start_form_dict["height"])*value
+            new_width = start_form.width + (end_form.width-start_form.width)*value
+            new_height = start_form.height + (end_form.height-start_form.height)*value
 
             diff_width = new_width - self.width
             diff_height = new_height - self.height
@@ -121,8 +119,8 @@ class PolygonShape(Shape, Mirror):
 
             self.width = new_width
             self.height = new_height
-            start_form_polygons = start_form_dict["polygons"]
-            end_form_polygons = end_form_dict["polygons"]
+            start_form_polygons = start_form.polygons
+            end_form_polygons = end_form.polygons
 
             anchor_at = self.anchor_at.copy()
             anchor_at.scale(1./self.width, 1./self.height)

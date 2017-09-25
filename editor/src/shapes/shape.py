@@ -162,6 +162,11 @@ class Shape(object):
     def get_interior_shapes(self):
         return None
 
+    def get_private_inner_shape(self, shape_name):
+        if shape_name == ANCHOR_SHAPE_NAME:
+            return self.get_anchor_shape()
+        return None
+
     def get_interior_shape(self, shape_path):
         if not shape_path:
             return None
@@ -184,8 +189,8 @@ class Shape(object):
             return None
         interior_shapes = shape.get_interior_shapes()
         shape_name = shape_names[0]
-        if shape_name == ANCHOR_SHAPE_NAME:
-            shape = shape.get_anchor_shape()
+        if shape_name[:1] == "_" and shape_name[-1:] == "_":
+            shape = shape.get_private_inner_shape(shape_name)
         else:
             if not interior_shapes or not interior_shapes.contain(shape_name):
                 return None

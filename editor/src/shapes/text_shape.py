@@ -32,6 +32,7 @@ class TextShape(RectangleShape):
         self.line_align = line_align
         self.exposure = 1.
         self.max_width_chars = -1
+        self.character_shapes = None
         self.readjust_sizes()
 
     @classmethod
@@ -88,9 +89,7 @@ class TextShape(RectangleShape):
         newob.exposure = self.exposure
         newob.max_width_chars = self.max_width_chars
 
-    def draw_text(self, ctx):
-        ctx.save()
-
+    def get_text_layout(self, ctx):
         layout = PangoCairo.create_layout(ctx)
         pango_font_desc = Pango.FontDescription.from_string(self.font)
         layout.set_wrap(Pango.WrapMode(0))
@@ -103,7 +102,6 @@ class TextShape(RectangleShape):
             if pango_font_desc.get_size_is_absolute():
                 font_size *= Pango.SCALE
             layout.set_width(int(self.max_width_chars*font_size))
-
 
         text_rect = layout.get_pixel_extents()[0]
         text_width = text_rect.width
@@ -142,8 +140,13 @@ class TextShape(RectangleShape):
         layout.set_alignment(Pango.Alignment(self.line_align))
 
         PangoCairo.update_layout(ctx, layout)
-        ctx.move_to(x-text_left, y-text_top)
+        return layout, x-text_left, y-text_top
 
+    def draw_text(self, ctx):
+        ctx.save()
+
+        layout, x, y = self.get_text_layout(ctx)
+        ctx.move_to(x, y)
         PangoCairo.show_layout(ctx, layout)
         """
         ctx.new_path()
@@ -155,7 +158,6 @@ class TextShape(RectangleShape):
         draw_stroke(ctx, 1, "000000")
         """
         ctx.restore()
-
 
     def set_text(self, text):
         self.text = text
@@ -229,3 +231,46 @@ class TextShape(RectangleShape):
             self.width = text_width
         if self.height<text_height:
             self.height = text_height
+
+    def get_private_inner_shape(self, shape_name):
+        index = int(Text.parse_number(shape_name[1:-1], None))
+        if index is not None:
+            if not self.character_shapes:
+                self.character_shapes = dict()
+            if index not in self.character_shapes:
+                self.character_shapes[index] = TextCharacterShape(self, index)
+            return self.character_shapes[index]
+        return super(TextShape, self).get_private_inner_shape(shape_name)
+
+    def cleanup(self):
+        if self.character_shapes:
+            for shape in self.character_shapes.values():
+                shape.cleanup()
+            self.character_shapes = None
+        super(TextShape, self).cleanup()
+
+class TextCharacterShape(Shape):
+    def __init__(self, parent_shape, index):
+        super(TextCharacterShape, self).__init__(Point(0,0), None, 0., None, 0., 0.)
+        del self.translation
+        self.parent_shape = parent_shape
+        self.index = index
+        self._name = "_{0}_".format(self.index)
+
+    def __getattr__(self, name):
+        if name == "translation":
+            surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, 16, 16)
+            ctx = cairo.Context(surf)
+            layout, x, y = self.parent_shape.get_text_layout(ctx)
+            if self.index<0:
+                index = len(self.parent_shape.display_text)+self.index
+            else:
+                index = self.index
+            if index<0:
+                index = 0
+            pango_rect = layout.index_to_pos(index)
+            return Point(
+                x+(pango_rect.x+pango_rect.width)*1./Pango.SCALE,
+                y+(pango_rect.y+pango_rect.height)*1./Pango.SCALE)
+        else:
+            raise AttributeError

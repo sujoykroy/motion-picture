@@ -152,7 +152,7 @@ class PolygonsForm(object):
         polygons = []
         for polygon in self.polygons:
             polygons.append(polygon.copy())
-        newob = PolygonsForm(self.width, self.height, self.curves, self.name)
+        newob = PolygonsForm(self.width, self.height, self.polygons, self.name)
         return newob
 
     def set_name(self, name):
