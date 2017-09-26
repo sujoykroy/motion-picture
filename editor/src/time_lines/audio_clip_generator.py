@@ -30,6 +30,7 @@ class AudioClipGenerator(movie_editor.AudioClip):
         else:
             t = int(t)
         audio_block.load_samples()
+        t = numpy.where(t>=audio_block.samples.shape[0], 0, t)
         samples = audio_block.samples[t,:].copy()
         return samples
 

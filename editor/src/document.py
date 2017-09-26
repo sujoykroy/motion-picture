@@ -260,7 +260,6 @@ class Document(object):
         speed = float(speed)
         doc_movie.load_doc()
         doc_movie.calculate_movie_duration(speed)
-
         frame_maker = FrameMaker(doc_movie, wh=wh, speed=speed, sleep=sleep)
         video_clip = movie_editor.VideoClip(
                 frame_maker.make_frame,
@@ -298,10 +297,10 @@ class Document(object):
 
     @staticmethod
     def make_movie_faster(process_count, doc_movie, **kwargs):
-        ps_st = time.time()
         if process_count == 1:
             Document.make_movie(doc_movie, **kwargs)
         else:
+            ps_st = time.time()
             segment_count = process_count*2
 
             duration = doc_movie.end_time-doc_movie.start_time
@@ -365,7 +364,7 @@ class Document(object):
             for sub_filename in sub_filenames:
                 os.remove(sub_filename)
 
-        print "Video {0} is made in {1:.2f} sec".format(doc_movie.dest_filename, time.time()-ps_st)
+            print "Video {0} is made in {1:.2f} sec".format(doc_movie.dest_filename, time.time()-ps_st)
         return True
 
     @staticmethod

@@ -329,7 +329,7 @@ class MultiShapeTimeLine(object):
                         tm_end = min(t+time_slice.duration, slice_end_at)
 
                         scale = (time_slice.end_value-time_slice.start_value)/time_slice.duration
-                        scale *= pre_scale
+                        scale = pre_scale
                         duration = (tm_end-tm_start)/pre_scale
 
                         clip = AudioClipGenerator(
