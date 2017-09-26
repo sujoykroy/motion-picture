@@ -299,68 +299,71 @@ class Document(object):
     @staticmethod
     def make_movie_faster(process_count, doc_movie, **kwargs):
         ps_st = time.time()
-        segment_count = process_count*2
+        if process_count == 1:
+            Document.make_movie(doc_movie, **kwargs)
+        else:
+            segment_count = process_count*2
 
-        duration = doc_movie.end_time-doc_movie.start_time
-        duration_steps = duration*1./segment_count
-        start_time = doc_movie.start_time
-        sub_filenames = []
-        args_list = []
-        filename_pre, file_extension = os.path.splitext(doc_movie.dest_filename)
+            duration = doc_movie.end_time-doc_movie.start_time
+            duration_steps = duration*1./segment_count
+            start_time = doc_movie.start_time
+            sub_filenames = []
+            args_list = []
+            filename_pre, file_extension = os.path.splitext(doc_movie.dest_filename)
 
-        if doc_movie.audio_only:
-            doc_movie.load_doc()
-            audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
-            audio_clip = movie_editor.CompositeAudioClip(audio_clips)
-            audio_clip.write_audiofile(doc_movie.dest_filename)
-            print "Audio {0} is made in {1:.2f} sec".format(
-                        doc_movie.dest_filename, time.time()-ps_st)
-            return
-
-        has_audio = kwargs.get("audio", False)
-        kwargs["audio"] = False
-
-        for i in range(segment_count):
-            sub_filename = "{0}.{1}{2}".format(filename_pre, i, file_extension)
-            sub_filenames.append(sub_filename)
-            args = [
-                ("src_filename", doc_movie.src_filename,
-                "dest_filename", sub_filename,
-                "time_line", doc_movie.time_line_name,
-                "start_time", start_time,
-                "end_time", min(start_time+duration_steps, doc_movie.end_time),
-                "camera", doc_movie.camera_name)
-            ]
-            for key, value in kwargs.items():
-                args.extend([key, value])
-            args_list.append(args)
-            start_time += duration_steps
-
-        pool = multiprocessing.Pool(processes=process_count)
-        result = pool.map_async(make_movie_processed, args_list)
-        pool.close()
-        result.get(timeout=60*60*24)
-
-        clips = []
-        for sub_filename in sub_filenames:
-            clips.append(movie_editor.VideoFileClip(sub_filename))
-
-        final_clip = movie_editor.concatenate_videoclips(clips)
-        if has_audio:
-            doc_movie.load_doc()
-            audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
-            if audio_clips:
+            if doc_movie.audio_only:
+                doc_movie.load_doc()
+                audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
                 audio_clip = movie_editor.CompositeAudioClip(audio_clips)
-                final_clip = final_clip.set_audio(audio_clip)
-        final_clip.write_videofile(
-            doc_movie.dest_filename,
-            ffmpeg_params = kwargs.get("ffmpeg_params", Document.FFMPEG_PARAMS).split(" "),
-            codec = kwargs.get("codec", Document.CODEC), preset="superslow",
-            bitrate = kwargs.get("bitrate", Document.BIT_RATE),
-        )
+                audio_clip.write_audiofile(doc_movie.dest_filename)
+                print "Audio {0} is made in {1:.2f} sec".format(
+                            doc_movie.dest_filename, time.time()-ps_st)
+                return
 
-        for sub_filename in sub_filenames:
-            os.remove(sub_filename)
+            has_audio = kwargs.get("audio", False)
+            kwargs["audio"] = False
+
+            for i in range(segment_count):
+                sub_filename = "{0}.{1}{2}".format(filename_pre, i, file_extension)
+                sub_filenames.append(sub_filename)
+                args = [
+                    ("src_filename", doc_movie.src_filename,
+                    "dest_filename", sub_filename,
+                    "time_line", doc_movie.time_line_name,
+                    "start_time", start_time,
+                    "end_time", min(start_time+duration_steps, doc_movie.end_time),
+                    "camera", doc_movie.camera_name)
+                ]
+                for key, value in kwargs.items():
+                    args.extend([key, value])
+                args_list.append(args)
+                start_time += duration_steps
+
+            pool = multiprocessing.Pool(processes=process_count)
+            result = pool.map_async(make_movie_processed, args_list)
+            pool.close()
+            result.get(timeout=60*60*24)
+
+            clips = []
+            for sub_filename in sub_filenames:
+                clips.append(movie_editor.VideoFileClip(sub_filename))
+
+            final_clip = movie_editor.concatenate_videoclips(clips)
+            if has_audio:
+                doc_movie.load_doc()
+                audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
+                if audio_clips:
+                    audio_clip = movie_editor.CompositeAudioClip(audio_clips)
+                    final_clip = final_clip.set_audio(audio_clip)
+            final_clip.write_videofile(
+                doc_movie.dest_filename,
+                ffmpeg_params = kwargs.get("ffmpeg_params", Document.FFMPEG_PARAMS).split(" "),
+                codec = kwargs.get("codec", Document.CODEC), preset="superslow",
+                bitrate = kwargs.get("bitrate", Document.BIT_RATE),
+            )
+
+            for sub_filename in sub_filenames:
+                os.remove(sub_filename)
 
         print "Video {0} is made in {1:.2f} sec".format(doc_movie.dest_filename, time.time()-ps_st)
         return True
