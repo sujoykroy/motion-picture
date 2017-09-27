@@ -36,6 +36,10 @@ class CurvePointEditBox(OvalEditBox):
         super(CurvePointEditBox, self).move_offset(dx, dy)
         self.parent_shape.set_point_location(self.curve_point, self.point)
 
+    def set_point(self, point):
+        super(CurvePointEditBox, self).set_point(point)
+        self.parent_shape.set_point_location(self.curve_point, self.point)
+
     def can_move(self):
         return self.parent_shape.is_curve_point_owned(self.curve_point)
 
@@ -625,16 +629,17 @@ class ShapeEditor(object):
     def align_points(self, x_dir, y_dir):
         for i in xrange(1, len(self.selected_edit_boxes), 1):
             edit_box = self.selected_edit_boxes[i]
+            point = edit_box.point.copy()
             if x_dir:
-                edit_box.point.x = self.selected_edit_boxes[0].point.x
+                point.x = self.selected_edit_boxes[0].point.x
             if y_dir:
-                edit_box.point.y = self.selected_edit_boxes[0].point.y
+                point.y = self.selected_edit_boxes[0].point.y
+            edit_box.set_point(point)
             if isinstance(edit_box, DestEditBox) and isinstance(self.shape, CurveShape):
                 curve = self.shape.curves[edit_box.curve_index]
                 if curve.closed and \
                    edit_box.bezier_point_index == len(curve.bezier_points)-1:
-                   edit_box.origin_eb.point.x = edit_box.point.x
-                   edit_box.origin_eb.point.y = edit_box.point.y
+                   edit_box.origin_eb.set_point(edit_box.point)
                    edit_box.origin_eb.update()
             edit_box.update()
 

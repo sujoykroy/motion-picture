@@ -388,7 +388,7 @@ class Document(object):
                         Document.load_modules(filepath)
                     return
                 module_path = item
-            doc_module = DocModule(module_name, module_path)
+            doc_module = DocModule.create(module_name, module_path)
 
     @classmethod
     def load_and_get_main_multi_shape(cls, filename):

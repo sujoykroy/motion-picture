@@ -7,9 +7,9 @@ from editors import MasterEditor, ShapeEditor
 from gui_utils import *
 from gui_utils.menu_builder import MenuItem
 from gui_utils.helper_dialogs import NoticeDialog
-from document import Document
+from document import Document, DocModule
 import settings as Settings
-from settings import EditingChoice
+from settings import EditingChoice, Directory
 from commons import OrderedDict
 from commons.draw_utils import draw_text
 from tasks import *
@@ -22,6 +22,9 @@ THIS_FOLDER = os.path.dirname(__file__)
 
 from gi.repository import GObject
 GObject.threads_init()
+
+
+Document.load_modules(os.path.join(os.getcwd(), "*.xml"))
 
 def new_action(parent, menu_item):
     action_name = menu_item.get_action_name_only()
@@ -162,11 +165,14 @@ class ApplicationWindow(MasterEditor):
         dialog = TextInputDialog(self, "Import Shape", "Name of shape to import")
         if dialog.run() == Gtk.ResponseType.OK:
             shape_name = dialog.get_input_text()
-            shape = MultiShapeModule.get_multi_shape(shape_name)
-            if shape:
-                self.shape_manager.add_new_shape(shape)
-                self.rebuild_tree_view()
-                self.redraw()
+            filename = Settings.Directory.get_full_path(shape_name.split(".")[0]+".xml")
+            if os.path.isfile(filename):
+                DocModule.create(shape_name, filename)
+                shape = MultiShapeModule.get_multi_shape(shape_name)
+                if shape:
+                    self.shape_manager.add_new_shape(shape)
+                    self.rebuild_tree_view()
+                    self.redraw()
         dialog.destroy()
 
     def create_new_shape(self, action, parameter):

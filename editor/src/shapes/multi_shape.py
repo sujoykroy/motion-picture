@@ -32,6 +32,12 @@ class MultiShapeModule(object):
         self.root_multi_shape = None
         MultiShapeModule.Modules[self.module_name] = self
 
+    @classmethod
+    def create(cls, module_name, module_path):
+        if module_name in MultiShapeModule.Modules:
+            return None
+        return cls(module_name, module_path)
+
     def load(self):
         pass
 
