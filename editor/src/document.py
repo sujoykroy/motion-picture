@@ -26,6 +26,7 @@ class Document(object):
     FFMPEG_PARAMS = "-quality good -qmin 10 -qmax 42"
     BIT_RATE = "640k"
     CODEC = "libvpx"
+    PRESET = "superslow"
 
     def __init__(self, filename=None, width=400., height=300.):
         self.filename = Settings.Directory.get_full_path(filename)
@@ -273,13 +274,14 @@ class Document(object):
             audio_clips = doc_movie.get_audio_clips(speed=speed)
             if audio_clips:
                 audio_clip = movie_editor.CompositeAudioClip(audio_clips)
+                audio_clip = audio_clip.set_fps(fps)
                 video_clip = video_clip.set_audio(audio_clip)
         if dry:
             return
         start_time = time.time()
         video_clip.write_videofile(
             doc_movie.dest_filename, fps=fps,
-            codec=codec, preset="superslow",
+            codec=codec, preset=Document.PRESET,
             ffmpeg_params=ffmpeg_params,
             bitrate=bitrate)
         elapsed_time = time.time()-start_time
@@ -307,6 +309,7 @@ class Document(object):
             duration_steps = duration*1./segment_count
             start_time = doc_movie.start_time
             sub_filenames = []
+            clip_durations = []
             args_list = []
             filename_pre, file_extension = os.path.splitext(doc_movie.dest_filename)
 
@@ -325,12 +328,14 @@ class Document(object):
             for i in range(segment_count):
                 sub_filename = "{0}.{1}{2}".format(filename_pre, i, file_extension)
                 sub_filenames.append(sub_filename)
+                end_time = min(start_time+duration_steps, doc_movie.end_time)
+                clip_durations.append(end_time-start_time)
                 args = [
                     ("src_filename", doc_movie.src_filename,
                     "dest_filename", sub_filename,
                     "time_line", doc_movie.time_line_name,
                     "start_time", start_time,
-                    "end_time", min(start_time+duration_steps, doc_movie.end_time),
+                    "end_time", end_time,
                     "camera", doc_movie.camera_name)
                 ]
                 for key, value in kwargs.items():
@@ -344,8 +349,10 @@ class Document(object):
             result.get(timeout=60*60*24)
 
             clips = []
-            for sub_filename in sub_filenames:
-                clips.append(movie_editor.VideoFileClip(sub_filename))
+            for i in xrange(len(sub_filenames)):
+                clip=movie_editor.VideoFileClip(sub_filenames[i])
+                clip = clip.subclip(0, clip_durations[i])#to eliminated extra frames at end
+                clips.append(clip)
 
             final_clip = movie_editor.concatenate_videoclips(clips)
             if has_audio:
@@ -357,7 +364,7 @@ class Document(object):
             final_clip.write_videofile(
                 doc_movie.dest_filename,
                 ffmpeg_params = kwargs.get("ffmpeg_params", Document.FFMPEG_PARAMS).split(" "),
-                codec = kwargs.get("codec", Document.CODEC), preset="superslow",
+                codec = kwargs.get("codec", Document.CODEC), preset=Document.PRESET,
                 bitrate = kwargs.get("bitrate", Document.BIT_RATE),
             )
 
