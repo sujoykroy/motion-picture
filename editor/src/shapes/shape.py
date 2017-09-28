@@ -870,8 +870,8 @@ class Shape(object):
         self.move_to(xy.x, xy.y)
 
     def set_scale_x(self, sx):
-        if sx == 0:
-            sx = .00001
+        if round(sx, 2) == 0:
+            sx = .001
         abs_anchor_at = self.get_abs_anchor_at()
         self.scale_x = sx
         if self.same_xy_scale:
@@ -879,8 +879,8 @@ class Shape(object):
         self.move_to(abs_anchor_at.x, abs_anchor_at.y)
 
     def set_scale_y(self, sy):
-        if sy == 0:
-            sy = .00001
+        if round(sy, 2) == 0:
+            sy = .001
         abs_anchor_at = self.get_abs_anchor_at()
         self.scale_y = sy
         if self.same_xy_scale:

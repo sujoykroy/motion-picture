@@ -30,7 +30,10 @@ class RecentFilesManager(Gtk.Dialog):
                 hbox = Gtk.HBox()
                 vbox.pack_start(hbox, expand=False, fill=False, padding=0)
             count += 1
-            doc = Document(filename=filename)
+            try:
+                doc = Document(filename=filename)
+            except:
+                continue
             pixbuf = doc.get_pixbuf(width=image_width, height=100)
             image_widget = Gtk.Image.new_from_pixbuf(pixbuf)
             toggle_button = Gtk.ToggleButton.new()

@@ -543,7 +543,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                 self.multi_shape_prop_box.show()
                 self.multi_shape_prop_box.set_prop_object(shape)
                 self.add_custom_props_box(shape)
-            elif isinstance(shape, CurveShape) or isinstance(shape, PolygonShape):
+
+            if isinstance(shape, CurveShape) or isinstance(shape, PolygonShape):
                 self.shape_form_prop_box.show()
                 self.shape_form_prop_box.set_curve_shape(shape)
 

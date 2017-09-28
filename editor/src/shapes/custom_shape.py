@@ -71,28 +71,38 @@ class CustomShape(RectangleShape):
     def draw(self, ctx, drawing_size=None, fixed_border=True, root_shape=None, pre_matrix=None):
         self.fill_shape_area(ctx, root_shape=root_shape)
 
+        ctx.save()
         if self.drawer:
-            custom_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
-            custom_ctx = cairo.Context(custom_surface)
-            if pre_matrix:
-                custom_ctx.set_matrix(pre_matrix)
-            self.pre_draw(custom_ctx, root_shape=root_shape)
+            if hasattr(self.drawer, "use_custom_surface"):
+                use_custom_surface = self.drawer.use_custom_surface
+            else:
+                use_custom_surface = True
 
+            if use_custom_surface:
+                custom_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
+                custom_ctx = cairo.Context(custom_surface)
+                if pre_matrix:
+                    custom_ctx.set_matrix(pre_matrix)
+            else:
+                custom_ctx = ctx
+
+            self.pre_draw(custom_ctx, root_shape=root_shape)
             try:
                 self.drawer.draw(custom_ctx, self.anchor_at.copy(), self.width, self.height, self)
             except BaseException as error:
                 print('An exception occurred: {}'.format(error))
 
-            orig_mat = ctx.get_matrix()
-            ctx.set_matrix(cairo.Matrix())
-            ctx.set_source_surface(custom_surface)
-            ctx.set_matrix(orig_mat)
+            if use_custom_surface:
+                orig_mat = ctx.get_matrix()
+                ctx.set_matrix(cairo.Matrix())
+                ctx.set_source_surface(custom_surface)
+                ctx.set_matrix(orig_mat)
 
-            ctx.save()
-            self.pre_draw(ctx, root_shape=root_shape)
-            self.draw_path(ctx)
-            ctx.clip()
-            ctx.paint()
-            ctx.restore()
-
+                ctx.save()
+                self.pre_draw(ctx, root_shape=root_shape)
+                self.draw_path(ctx)
+                ctx.clip()
+                ctx.paint()
+                ctx.restore()
+        ctx.restore()
         self.storke_shape_area(ctx, fixed_border=fixed_border, root_shape=root_shape)

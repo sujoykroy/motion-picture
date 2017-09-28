@@ -134,7 +134,7 @@ class TextShape(RectangleShape):
 
         if isinstance(self.font_color, GradientColor):
             ctx.set_source(self.font_color.get_pattern())
-        else:
+        elif self.font_color is not None:
             ctx.set_source_rgba(*self.font_color.get_array())
 
         layout.set_alignment(Pango.Alignment(int(round(self.line_align))))
