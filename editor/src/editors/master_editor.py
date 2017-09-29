@@ -850,4 +850,5 @@ class DrawerThread(threading.Thread):
 
     def close(self):
         self.should_exit = True
+        self.clear()
         self.join()
