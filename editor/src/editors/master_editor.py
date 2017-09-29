@@ -260,13 +260,13 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.img_surf = None
         self.img_surf_lock = threading.RLock()
         self.drawer_thread = None
+        self.use_drawer_thread = True
 
     def quit(self, widget, event):
         self.time_line_editor.cleanup()
 
         if self.drawer_thread:
-            self.drawer_thread.should_exit = True
-            self.drawer_thread.join()
+            self.drawer_thread.close()
 
         if self.shape_manager:
             self.shape_manager.cleanup()
@@ -633,13 +633,23 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.multi_shape_tree_view.rebuild()
 
     def redraw(self, use_thread=True):
-        if self.drawer_thread and use_thread:
+        if self.use_drawer_thread and self.drawer_thread and use_thread:
             self.drawer_thread.draw()
         else:
             self.drawing_area.queue_draw()
         if self.camera_viewer_dialog:
             self.camera_viewer_dialog.redraw()
         return self.playing
+
+    def clear_draw_queue(self, keep_last=False):
+        if self.drawer_thread:
+            self.drawer_thread.clear(keep_last)
+
+    def set_use_drawer_thread(self, use):
+        self.use_drawer_thread = use
+        if not use and self.drawer_thread:
+            self.drawer_thread.close()
+            self.drawer_thread = None
 
     def pop_back_to_parent_shape(self, widget=None):
         if len(self.multi_shape_stack)<=1:
@@ -790,7 +800,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.img_surf_lock.release()
 
     def on_drawing_area_draw(self, widget, dctx):
-        if not self.drawer_thread:
+        if not self.drawer_thread and self.use_drawer_thread:
             self.pre_draw_on_surface()
             self.drawer_thread = DrawerThread(self)
         self.img_surf_lock.acquire()
@@ -798,9 +808,6 @@ class MasterEditor(Gtk.ApplicationWindow):
         dctx.paint()
         self.img_surf_lock.release()
 
-    def clear_draw_queue(self, keep_last=False):
-        if self.drawer_thread:
-            self.drawer_thread.clear(keep_last)
 
 class DrawerThread(threading.Thread):
     def __init__(self, editor):
@@ -840,3 +847,7 @@ class DrawerThread(threading.Thread):
                 self.editor.pre_draw_on_surface()
                 self.editor.redraw(use_thread=False)
             time.sleep(.05)
+
+    def close(self):
+        self.should_exit = True
+        self.join()

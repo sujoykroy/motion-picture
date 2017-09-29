@@ -204,8 +204,8 @@ class TimeLineEditor(Gtk.VBox):
         self.time_slice_box_select_callback = time_slice_box_select_callback
         self.parent_window = parent_window
 
-        info_hbox = Gtk.HBox()
-        self.pack_start(info_hbox, expand=False, fill=False, padding=0)
+        self.info_hbox = Gtk.HBox()
+        self.pack_start(self.info_hbox, expand=False, fill=False, padding=0)
 
         self.drawing_area = Gtk.DrawingArea()
 
@@ -239,29 +239,29 @@ class TimeLineEditor(Gtk.VBox):
         self.drawing_area.connect("scroll-event", self.on_drawing_area_mouse_scroll)
 
         self.time_line_name_label = Gtk.Label()
-        info_hbox.pack_start(self.time_line_name_label, expand=False, fill=False, padding=5)
+        self.info_hbox.pack_start(self.time_line_name_label, expand=False, fill=False, padding=5)
         self.time_line_duration_label = Gtk.Label()
-        info_hbox.pack_start(self.time_line_duration_label, expand=False, fill=False, padding=5)
+        self.info_hbox.pack_start(self.time_line_duration_label, expand=False, fill=False, padding=5)
 
         self.play_head_time_entry = Gtk.Entry()
         self.play_head_time_entry.set_width_chars(10)
         self.play_head_time_entry.connect("activate", self.play_head_time_entry_activated)
         #self.play_head_time_entry.set_size_request(100, -1)
-        info_hbox.pack_end(
+        self.info_hbox.pack_end(
             create_new_image_widget("playhead", border_scale=3, size=24),
                 expand=False, fill=False, padding=5)
-        info_hbox.pack_end(self.play_head_time_entry, expand=False, fill=False, padding=5)
+        self.info_hbox.pack_end(self.play_head_time_entry, expand=False, fill=False, padding=5)
 
         self.play_button = buttons.create_new_image_button("play")
         self.play_button.connect("clicked", self.on_play_pause_button_click, True)
-        info_hbox.pack_end(self.play_button, expand=False, fill=False, padding=5)
+        self.info_hbox.pack_end(self.play_button, expand=False, fill=False, padding=5)
         self.pause_button = buttons.create_new_image_button("pause")
         self.pause_button.connect("clicked", self.on_play_pause_button_click, False)
-        info_hbox.pack_end(self.pause_button, expand=False, fill=False, padding=5)
+        self.info_hbox.pack_end(self.pause_button, expand=False, fill=False, padding=5)
 
         self.play_1x_speed_button=create_new_image_button("play_1x_speed", size=24)
         self.play_1x_speed_button.connect("clicked", self.play_1x_speed_button_clicked)
-        info_hbox.pack_end(self.play_1x_speed_button, expand=False, fill=False, padding=5)
+        self.info_hbox.pack_end(self.play_1x_speed_button, expand=False, fill=False, padding=5)
 
         self.speed_scale_slider = Gtk.Scale.new(Gtk.Orientation.HORIZONTAL, None)
         self.speed_scale_slider.set_tooltip_text("Speed Scale")
@@ -271,34 +271,35 @@ class TimeLineEditor(Gtk.VBox):
         self.speed_scale_slider.set_value(1)
         self.speed_scale_slider.connect("change-value", self.speed_scale_slider_changed)
         self.speed_scale_slider.set_size_request(200, -1)
-        info_hbox.pack_end(self.speed_scale_slider, expand=False, fill=False, padding=5)
-        info_hbox.pack_end(create_new_image_widget("play_speedx", size=24), expand=False, fill=False, padding=5)
+        self.info_hbox.pack_end(self.speed_scale_slider, expand=False, fill=False, padding=5)
+        self.info_hbox.pack_end(create_new_image_widget("play_speedx", size=24), expand=False, fill=False, padding=5)
 
-        info_hbox.pack_start(
-            buttons.create_new_image_widget("cohesive_marker_movement", border_scale=2),
-            expand=False, fill=False, padding=5)
-        self.cohesive_toggle = Gtk.CheckButton()
-        self.cohesive_toggle.set_tooltip_text("Move Marker Cohevsively")
-        info_hbox.pack_start(self.cohesive_toggle, expand=False, fill=False, padding=5)
-        self.cohesive_toggle.set_active(EditingChoice.COHESIVE_MARKER_MOVEMENT)
-        self.cohesive_toggle.connect("toggled", self.cohesive_toggle_clicked)
+        self.cohesive_toggle = self.create_info_check_widget(
+            "cohesive_marker_movement",
+            "Move Marker Cohevsively",
+            EditingChoice.COHESIVE_MARKER_MOVEMENT,
+            self.cohesive_toggle_clicked
+        )
 
         self.lock_markers_check = buttons.EditingChoiceCheckWidget(
             icon_name="lock_markers",
             choice_name="LOCK_MARKERS",
             border_scale=2.
         )
-        info_hbox.pack_start(self.lock_markers_check, expand=False, fill=False, padding=5)
+        self.info_hbox.pack_start(self.lock_markers_check, expand=False, fill=False, padding=5)
 
-        info_hbox.pack_start(
-            buttons.create_new_image_widget("audio_only_play", border_scale=2),
-            expand=False, fill=False, padding=5)
-
-        self.audio_only_play_toggle = Gtk.CheckButton()
-        self.audio_only_play_toggle.set_tooltip_text("Play only Audio")
-        self.audio_only_play_toggle.set_active(False)
-        self.audio_only_play_toggle.connect("toggled", self.audio_only_play_toggle_clicked)
-        info_hbox.pack_start(self.audio_only_play_toggle, expand=False, fill=False, padding=5)
+        self.audio_only_play_toggle = self.create_info_check_widget(
+            "audio_only_play",
+            "Play only Audio",
+            False,
+            self.audio_only_play_toggle_clicked
+        )
+        self.sticky_playhead_toggle = self.create_info_check_widget(
+            "sticky_play",
+            "Sticky movement",
+            False,
+            self.sticky_playhead_toggle_clicked
+        )
 
         self.multi_shape_time_line_box = None
 
@@ -336,6 +337,18 @@ class TimeLineEditor(Gtk.VBox):
         self.audio_block = TimeLineEditorAudioBlock(self)
         self.play_head_mover_thread = PlayHeadMoverThread(self)
 
+    def create_info_check_widget(self, image_name, tooltip, default, callback):
+        self.info_hbox.pack_start(
+            buttons.create_new_image_widget(image_name, border_scale=2),
+            expand=False, fill=False, padding=5)
+
+        button = Gtk.CheckButton()
+        button.set_tooltip_text(tooltip)
+        button.set_active(default)
+        button.connect("toggled", callback)
+        self.info_hbox.pack_start(button, expand=False, fill=False, padding=5)
+        return button
+
     def play_1x_speed_button_clicked(self, widget):
         self.speed_scale_slider.set_value(1)
         self.speed_scale = 1.
@@ -364,6 +377,9 @@ class TimeLineEditor(Gtk.VBox):
 
     def audio_only_play_toggle_clicked(self, widget):
         self.audio_only_play = widget.get_active()
+
+    def sticky_playhead_toggle_clicked(self, widget):
+        self.master_editor.set_use_drawer_thread(not widget.get_active())
 
     def set_multi_shape_time_line(self, multi_shape_time_line):
         self.time_line = multi_shape_time_line
@@ -409,14 +425,18 @@ class TimeLineEditor(Gtk.VBox):
         if value is not None:
             self.play_head_time = value
             self.queue_move_play_head_to_time(self.play_head_time, force_visible)
-            #self.time_line.move_to(self.play_head_time, force_visible=force_visible)
         extra_x = self.time_range.get_extra_pixel_for_time(self.play_head_time)
         if self.play_head_box:
             self.play_head_box.set_center_x(TIME_SLICE_START_X + extra_x)
         self.show_current_play_head_time()
 
     def queue_move_play_head_to_time(self, value, force_visible=False):
-        self.play_head_mover_thread.move_to(value, force_visible)
+        if not self.sticky_playhead_toggle.get_active():
+            self.play_head_mover_thread.move_to(value, force_visible)
+        else:
+            self.time_line.move_to(self.play_head_time, force_visible=force_visible)
+            if not self.audio_only_play:
+                self.master_editor.update_shape_manager()
 
     def get_play_head_time(self):
         if not self.play_head_box: return 0.
