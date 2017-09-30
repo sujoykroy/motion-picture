@@ -42,9 +42,9 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("fill_color", PROP_TYPE_COLOR, None)
 
         self.add_prop("width", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=1, upper=10000, step_increment=1, page_increment=1, page_size=1))
+                dict(value=0, lower=0.001, upper=10000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("height", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=1, upper=10000, step_increment=1, page_increment=1, page_size=1))
+                dict(value=0, lower=0.001, upper=10000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("angle", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=-360, upper=360*100, step_increment=1, page_increment=1, page_size=1))
         mirror_comobobox = self.add_prop("mirror", PROP_TYPE_TEXT_LIST, None)

@@ -725,7 +725,7 @@ class Shape(object):
     def set_width(self, value, fixed_anchor=True):
         if value == 0:
             value = .00001
-        if value >0:
+        if value>0:
             if fixed_anchor:
                 abs_anchor_at = self.get_abs_anchor_at()
                 self.anchor_at.x *= float(value)/self.width
