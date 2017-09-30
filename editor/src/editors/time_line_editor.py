@@ -901,16 +901,21 @@ class TimeLineEditor(Gtk.VBox):
                             if old_at != new_at:
                                 if not self.move_time_marker(closest_time_marker, old_at, new_at):
                                     dialog.time_marker.set_at(old_at)
-                            self.time_line.update_time_marker(closest_time_marker, dialog.time_marker)
+                            self.time_line.update_time_marker(
+                                closest_time_marker, dialog.time_marker)
                             self.update_time_marker_boxes()
                             self.time_line.sync_time_slices_with_time_marker(closest_time_marker)
                             self.update()
                         elif response == TimeMarkerEditDialog.DELETE_MARKER:
                             dialog.destroy()
+                            dlg_title = "Delete Marker at {0}"
+                            dlg_text = "Do you really want to delete marker at {0} with label {1}"
                             dialog = YesNoDialog(self.parent_window,
-                                    "Delete Marker at {0}".format(closest_time_marker.get_formatted_at()),
-                                    "Do you really want to delete marker at {0} with label {1}".format(
-                                    closest_time_marker.get_formatted_at(), closest_time_marker.text)
+                                    dlg_title.format(closest_time_marker.get_formatted_at()),
+                                    dlg_text.format(
+                                        closest_time_marker.get_formatted_at(),
+                                        closest_time_marker.text
+                                    )
                             )
                             if dialog.run() == Gtk.ResponseType.YES:
                                 self.delete_time_marker(closest_time_marker)
@@ -919,12 +924,14 @@ class TimeLineEditor(Gtk.VBox):
                         self.select_item_at(self.mouse_point)
                     self.on_drawing_area_mouse_release(widget, event)
                     return
-
             self.mouse_init_point.x = self.mouse_point.x
             self.mouse_init_point.y = self.mouse_point.y
             self.mouse_pressed = True
             self.init_selected_item = Box()
             self.select_item_at(self.mouse_point)
+            if self.time_line and (not self.selected_item or \
+                            self.selected_item == self.play_head_box):
+                self.move_play_head_to_time(self.mouse_time_position)
             self.redraw()
 
     def on_drawing_area_mouse_release(self, widget, event):
