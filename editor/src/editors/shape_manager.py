@@ -727,7 +727,7 @@ class ShapeManager(object):
                         multi_selection_shape = MultiSelectionShape()
                         self.add_shape(multi_selection_shape)
 
-                        abs_anchor_at = old_shape.get_abs_anchor_at()
+                        #abs_anchor_at = old_shape.get_abs_anchor_at()
                         #multi_selection_shape.be_like_shape(old_shape)
                         if old_shape != shape:
                             multi_selection_shape.add_shape(old_shape)
@@ -770,12 +770,11 @@ class ShapeManager(object):
             return
 
         multi_selection_shape = MultiSelectionShape()
-        multi_selection_shape.be_like_shape(shapes[0])
+        self.add_shape(multi_selection_shape)
         for i in xrange(len(shapes)):
             shape = shapes[i]
             multi_selection_shape.add_shape(shape)
         multi_selection_shape.move_anchor_at_center()
-        self.add_shape(multi_selection_shape)
         self.shape_editor = ShapeEditor(multi_selection_shape)
 
     def select_shape(self, shape):

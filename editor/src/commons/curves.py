@@ -635,7 +635,7 @@ class Curve(NaturalCurve):
             return outline
         left, top = numpy.min(self.all_points, axis=0)
         right, bottom = numpy.max(self.all_points, axis=0)
-        return Rect(left, top, right-left, bottom-top)
+        return Rect(left, top, max(right-left, .001), max(bottom-top, .001))
 
     def translate(self, dx, dy):
         self.all_points = self.all_points + numpy.array([(dx, dy)])
