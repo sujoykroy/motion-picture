@@ -32,4 +32,8 @@ $ python example/simple.py
 Python 2.7.3 is used to run these codes.
 
 # Help
-More documentation and how-tos will be added soon.
+* A demo video, made completely (except the music composition) using MotionPicture, can be viewed at https://www.youtube.com/watch?v=QK0A0dxl3vw
+
+* To know how to draw simple figures watch https://www.youtube.com/watch?v=TtpwKt_U2Z0
+
+* To know how to make simple animation watch https://www.youtube.com/watch?v=f-Rx6NJBOe4
