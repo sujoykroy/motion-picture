@@ -279,11 +279,14 @@ class Document(object):
         if dry:
             return
         start_time = time.time()
-        video_clip.write_videofile(
-            doc_movie.dest_filename, fps=fps,
-            codec=codec, preset=Document.PRESET,
-            ffmpeg_params=ffmpeg_params,
-            bitrate=bitrate)
+        if doc_movie.dest_filename[-4:] == ".gif":
+            video_clip.write_gif(doc_movie.dest_filename, fps=fps)
+        else:
+            video_clip.write_videofile(
+                doc_movie.dest_filename, fps=fps,
+                codec=codec, preset=Document.PRESET,
+                ffmpeg_params=ffmpeg_params,
+                bitrate=bitrate)
         elapsed_time = time.time()-start_time
         doc_movie.unload_doc()
         ret = "Video {0} is maded in {1:.2f} sec".format(doc_movie.dest_filename, elapsed_time)
@@ -299,7 +302,7 @@ class Document(object):
 
     @staticmethod
     def make_movie_faster(process_count, doc_movie, **kwargs):
-        if process_count == 1:
+        if process_count == 1 or doc_movie.dest_filename[-4:] == ".gif":
             Document.make_movie(doc_movie, **kwargs)
         else:
             ps_st = time.time()
