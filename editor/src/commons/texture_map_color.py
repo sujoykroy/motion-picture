@@ -94,7 +94,7 @@ class TextureMapColor(object):
 
     def copy(self):
         newob = TextureMapColor(
-            None, self.resource_index,
+            self.resources, self.resource_index,
             copy_value(self.texcoords), built=self.built)
         return newob
 
