@@ -4,6 +4,7 @@ Motion-Picture is built to make 2D animation easily.
 Since Python is used to build this, it is extremely flexible to mould its future growth.
 
 3D object can be imported into it. At present only "Collada" file format is supported to import 3D object.
+Only simple objects can be imported. Armature or complex texture is not handled.
 
 Audio and Video files can also be imported into it.
 
