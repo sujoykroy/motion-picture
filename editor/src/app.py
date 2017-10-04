@@ -197,7 +197,7 @@ class ApplicationWindow(MasterEditor):
                 self.rebuild_tree_view()
                 self.redraw()
         elif shape_type == "video":
-            filename = FileOp.choose_file(self, purpose="open", file_types=[["Video", "video/*"]])
+            filename = FileOp.choose_file(self, purpose="open", file_types="video")
             if not filename:
                 return
             if self.shape_manager.create_video_shape(filename):

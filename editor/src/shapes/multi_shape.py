@@ -123,16 +123,17 @@ class MultiShape(Shape):
     def copy_data_from_linked(self):
         if not self.linked_to: return
 
-        diff_point = self.anchor_at.diff(self.linked_to.anchor_at)
+        #diff_point = self.anchor_at.diff(self.linked_to.anchor_at)
         self.shapes.clear()
 
         for shape in  self.linked_to.shapes:
             shape_abs_anchor_at = shape.get_abs_anchor_at()
             shape = shape.copy(copy_name=True, deep_copy=True)
             shape.parent_shape=self
-            shape.move_to(shape_abs_anchor_at.x + diff_point.x,
-                          shape_abs_anchor_at.y + diff_point.y)
+            #shape.move_to(shape_abs_anchor_at.x + diff_point.x,
+            #              shape_abs_anchor_at.y + diff_point.y)
             self.shapes.add(shape)
+        self.build_interior_locked_to()
         if self.linked_to.custom_props:
             self.custom_props = self.linked_to.custom_props.copy(self)
         self.readjust_sizes()

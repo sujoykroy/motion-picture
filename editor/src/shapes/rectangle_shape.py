@@ -35,6 +35,10 @@ class RectangleShape(Shape):
         return newob
 
     def draw_path(self, ctx, for_fill=False):
+        if not for_fill and not self.border_color:
+            return
+        if for_fill and not self.fill_color:
+            return
         draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, self.corner_radius)
 
     def get_outline(self, padding):

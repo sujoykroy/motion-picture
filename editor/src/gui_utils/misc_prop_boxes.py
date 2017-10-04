@@ -38,6 +38,8 @@ class CommonShapePropBox(ShapePropBox):
         self.add_prop("border_width", PROP_TYPE_NUMBER_ENTRY,
                 dict(value=0, lower=0, upper=1000, step_increment=1, page_increment=1, page_size=1))
         self.add_prop("border_dash", PROP_TYPE_TEXT, None, can_insert_slice=False)
+        self.add_prop("border_dash_offset", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0, upper=10000, step_increment=1))
         self.add_prop("border_color", PROP_TYPE_COLOR, None)
         self.add_prop("fill_color", PROP_TYPE_COLOR, None)
 

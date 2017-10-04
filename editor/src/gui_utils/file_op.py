@@ -29,7 +29,7 @@ class FileOp(object):
             file_types = [["Audio", "audio/*"]]
             dialog.set_preview_audio(True)
         elif file_types == "video":
-            file_types = [["Video", "video/*"]]
+            file_types = [["Video", "video/*"], ["Gif", "*.gif"]]
         elif file_types == "image":
             file_types = [["Image", "image/*"]]
         elif file_types == "document":
