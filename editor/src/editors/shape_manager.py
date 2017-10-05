@@ -769,10 +769,19 @@ class ShapeManager(object):
             self.select_shape(shapes[0])
             return
 
-        multi_selection_shape = MultiSelectionShape()
-        self.add_shape(multi_selection_shape)
+        filtered_shapes = []
         for i in xrange(len(shapes)):
             shape = shapes[i]
+            if shape.locked_to_shape:
+                continue
+            filtered_shapes.append(shape)
+        if not filtered_shapes:
+            return
+
+        multi_selection_shape = MultiSelectionShape()
+        self.add_shape(multi_selection_shape)
+        for i in xrange(len(filtered_shapes)):
+            shape = filtered_shapes[i]
             multi_selection_shape.add_shape(shape)
         multi_selection_shape.move_anchor_at_center()
         self.shape_editor = ShapeEditor(multi_selection_shape)
@@ -926,8 +935,12 @@ class ShapeManager(object):
                     selected_shapes = []
                     for shape in self.shapes:
                         if isinstance(shape, MultiSelectionShape): continue
+                        if len(selected_shapes)>0 and shape.locked_to_shape:
+                            continue
                         if shape.is_inside_rect(selection_rect):
                             selected_shapes.append(shape)
+                            if shape.locked_to_shape:
+                                break#do not club it with outher shapes
                     if selected_shapes:
                         self.delete_shape_editor()
                         if len(selected_shapes)>1:

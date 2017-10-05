@@ -618,6 +618,11 @@ class CurveShape(Shape, Mirror):
 
 
     def draw_path(self, ctx, for_fill=False):
+        if for_fill and not self.fill_color:
+            return
+        if not for_fill and not self.border_color:
+            return
+
         paths = []
         for curve_index in xrange(len(self.curves)):
             self.draw_curve(ctx, curve_index)

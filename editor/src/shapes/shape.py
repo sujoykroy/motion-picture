@@ -239,16 +239,6 @@ class Shape(object):
         if shape_list.contain(shape): return
         if transform:
             shape_abs_anchor_at = shape.get_abs_anchor_at()
-            """
-            if self.locked_to_shape:
-                rel_shape_abs_anchor_at = self.transform_locked_shape_point(
-                    shape_abs_anchor_at, root_shape=shape.parent_shape)
-                rel_shape_abs_anchor_at = self.transform_point(rel_shape_abs_anchor_at)
-            else:
-                rel_shape_abs_anchor_at = self.transform_point(shape_abs_anchor_at)
-            rel_shape_abs_anchor_at = self.transform_locked_shape_point(
-                            shape_abs_anchor_at, root_shape=shape.parent_shape)
-            """
             rel_shape_abs_anchor_at = self.transform_locked_shape_point(
                     shape_abs_anchor_at,
                     root_shape=shape.get_active_parent_shape(),
@@ -268,12 +258,6 @@ class Shape(object):
         if transform:
             abs_outline = shape.get_abs_outline(0)
             shape_abs_anchor_at = shape.get_abs_anchor_at()
-            #old_translation_point = shape.translation.copy()
-            #if lock:
-            #    new_translation_point = self.reverse_transform_locked_shape_point(
-            #        old_translation_point, root_shape=shape.get_active_parent_shape())
-            #else:
-            #    new_translation_point = self.reverse_transform_point(old_translation_point)
             angle = shape.get_angle()+self.get_angle()
 
         if lock:
