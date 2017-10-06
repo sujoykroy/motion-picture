@@ -14,6 +14,20 @@ class ShapeList(object):
         del self.names[:]
         del self.items[:]
 
+    def order_like(self, names):
+        new_items = []
+        new_names = []
+        for name in names:
+            if name not in self.names:
+                continue
+            index = self.names.index(name)
+            new_items.append(self.items[index])
+            new_names.append(name)
+        del self.names[:]
+        del self.items[:]
+        self.names.extend(new_names)
+        self.items.extend(new_items)
+
     def replace_or_add(self, old_shape, new_shape):
         if not self.contain(old_shape):
             self.add(new_shape)

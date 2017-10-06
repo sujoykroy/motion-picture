@@ -137,6 +137,8 @@ class MultiShape(Shape):
             self.shapes.remove(removable_shape)
         del removable_shapes[:]
 
+        self.shapes.order_like(self.linked_to.shapes.names)
+
         if build_lock:
             self.build_interior_locked_to(up=-10000000)
 
@@ -303,7 +305,7 @@ class MultiShape(Shape):
 
         xy = self.get_xy()
         self.imported_anchor_at = multi_shape.anchor_at.copy()
-        self.shapes.clear()
+        self.shapes.clear(destroy_items=True)
         for shape in multi_shape.shapes:
             shape.parent_shape = self
             self.shapes.add(shape)

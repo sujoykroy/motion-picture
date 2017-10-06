@@ -118,11 +118,13 @@ class DocumentShape(RectangleShape):
         else:
             super(DocumentShape, self).set_prop_value(prop_name, prop_value, prop_data)
 
+    def draw_path(self, ctx, for_fill=False):
+        draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, self.corner_radius)
+
     def draw(self, ctx, drawing_size=None,
                         fixed_border=True, no_camera=True,
                         root_shape=None, exclude_camera_list=None,
                         pre_matrix=None, show_non_renderable=False):
-
         if self.fill_color is not None:
             ctx.save()
             self.pre_draw(ctx, root_shape=root_shape)
