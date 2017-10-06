@@ -145,7 +145,7 @@ class Shape(object):
         if self.linked_clones and linked_clone in self.linked_clones:
             self.linked_clones.remove(linked_clone)
 
-    def copy_data_from_linked(self):
+    def copy_data_from_linked(self, build_lock=True):
         if not self.linked_to: return
         self.border_color = copy_value(self.linked_to.border_color)
         self.border_width = copy_value(self.linked_to.border_width)
@@ -244,7 +244,7 @@ class Shape(object):
                     root_shape=shape.get_active_parent_shape(),
                     exclude_last=False)
             shape.move_to(rel_shape_abs_anchor_at.x, rel_shape_abs_anchor_at.y)
-            shape.set_angle(shape.get_angle()-self.get_angle())
+            shape.set_angle(self.get_locked_shape_angle(root_shape=shape))
         if lock:
             shape.locked_to_shape = self
         else:
@@ -258,17 +258,18 @@ class Shape(object):
         if transform:
             abs_outline = shape.get_abs_outline(0)
             shape_abs_anchor_at = shape.get_abs_anchor_at()
-            angle = shape.get_angle()+self.get_angle()
 
         if lock:
             if transform:
                 abs_anchor_at = self.reverse_transform_locked_shape_point(
                     shape_abs_anchor_at, root_shape=shape.parent_shape)
+                angle = shape.parent_shape.get_locked_shape_angle(root_shape=shape)
             if self == shape.locked_to_shape:
                 shape.locked_to_shape = None
         else:
             if transform:
                 abs_anchor_at = self.reverse_transform_point(shape_abs_anchor_at)
+                angle = self.parent_shape.get_locked_shape_angle(root_shape=shape)
             if self == shape.parent_shape:
                 shape.parent_shape = None
 
@@ -302,9 +303,10 @@ class Shape(object):
 
     def build_locked_to(self, up=0):
         if self._locked_to and not self.locked_to_shape:
-            up_parents = "\\"*(up+1)
-            if up_parents and self._locked_to.find(up_parents)==0:
-                return
+            if up>=0:
+                up_parents = "\\"*(up+1)
+                if up_parents and self._locked_to.find(up_parents)==0:
+                    return
             self.set_locked_to(self._locked_to, direct=True)
             self._locked_to = None
 
@@ -336,6 +338,13 @@ class Shape(object):
         if self.locked_to_shape:
             return self.locked_to_shape.get_shape_path(self.parent_shape)
         return ""
+
+    def transfer_network_to(self, other):
+        if self.locked_shapes:
+            other.init_locked_shapes()
+            for locked_shape in self.locked_shapes:
+                locked_shape.locked_to_shape = other
+                other.locked_shapes.add(locked_shape)
 
     @classmethod
     def get_pose_prop_names(cls):
@@ -940,32 +949,7 @@ class Shape(object):
             return self.locked_to_shape
         return self.parent_shape
 
-    def transform_locked_shape_point(self, point, root_shape=None,
-                                           exclude_last=True, include_root=False):
-        if root_shape is None:
-            root_shape = self.parent_shape
-        ancestors = self.get_shape_ancestors(root_shape=root_shape, lock=True, include_root=True)
-        if ancestors and root_shape and root_shape != ancestors[0]:
-            rel_root_shape = root_shape
-            while rel_root_shape:
-                if rel_root_shape in ancestors:
-                    root_shape_index = ancestors.index(rel_root_shape)
-                    ancestors = ancestors[root_shape_index:]
-                    break
-                point = rel_root_shape.reverse_transform_point(point)
-                if rel_root_shape.locked_to_shape:
-                    rel_root_shape = rel_root_shape.locked_to_shape
-                else:
-                    rel_root_shape = rel_root_shape.parent_shape
-        if exclude_last:
-            ancestors = ancestors[:-1]
-        if not include_root:
-            ancestors = ancestors[1:]
-        for shape in ancestors:
-            point = shape.transform_point(point)
-        return point
-
-    def reverse_transform_locked_shape_point(self, point, root_shape=None):
+    def get_root_route(self, root_shape=None):
         if root_shape is None:
             root_shape = self.parent_shape
         ancestors = self.get_shape_ancestors(root_shape=root_shape, lock=True, include_root=True)
@@ -977,17 +961,44 @@ class Shape(object):
                     root_shape_index = ancestors.index(rel_root_shape)
                     ancestors = ancestors[root_shape_index:]
                     break
-                transformers.insert(0, rel_root_shape)
+                transformers.append(rel_root_shape)
                 if rel_root_shape.locked_to_shape:
                     rel_root_shape = rel_root_shape.locked_to_shape
                 else:
                     rel_root_shape = rel_root_shape.parent_shape
+        return (ancestors, transformers)
+
+    def get_locked_shape_angle(self, angle=0, root_shape=None):
+        ancestors, transformers = self.get_root_route(root_shape)
+        for transformer_shape in transformers:
+            angle += transformer_shape.get_angle()
+        ancestors = ancestors[1:]#exclude the top/root shape
+        for shape in ancestors:
+            angle -= shape.get_angle()
+        return angle
+
+    def transform_locked_shape_point(self, point, root_shape=None,
+                                           exclude_last=True, include_root=False):
+        ancestors, transformers = self.get_root_route(root_shape)
+        for transformer_shape in transformers:
+            point = transformer_shape.reverse_transform_point(point)
+
+        if exclude_last:
+            ancestors = ancestors[:-1]
+        if not include_root:
+            ancestors = ancestors[1:]
+        for shape in ancestors:
+            point = shape.transform_point(point)
+        return point
+
+    def reverse_transform_locked_shape_point(self, point, root_shape=None):
+        ancestors, transformers = self.get_root_route(root_shape)
         if len(ancestors) == 1 and root_shape is None:
             point = self.reverse_transform_point(point)
         else:
             for shape in reversed(ancestors[1:]):
                 point = shape.reverse_transform_point(point)
-        for shape in transformers:
+        for shape in reversed(transformers):
             point = shape.transform_point(point)
         return point
 

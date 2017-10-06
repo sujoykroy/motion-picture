@@ -7,11 +7,25 @@ class ShapeList(object):
             self.names.extend(shape_list.names)
             self.items.extend(shape_list.items)
 
-    def clear(self):
-        for item in self.items:
-            item.cleanup()
+    def clear(self, destroy_items):
+        if destroy_items:
+            for item in self.items:
+                item.cleanup()
         del self.names[:]
         del self.items[:]
+
+    def replace_or_add(self, old_shape, new_shape):
+        if not self.contain(old_shape):
+            self.add(new_shape)
+            return
+        if isinstance(old_shape, str):
+            index = self.names.index(old_shape)
+            old_shape = self.items[index]
+        else:
+            index = self.items.index(old_shape)
+        self.items[index] = new_shape
+        self.names[index] = new_shape.get_name()
+        old_shape.transfer_network_to(new_shape)
 
     def add(self, shape):
         shape_name = shape.get_name()

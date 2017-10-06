@@ -153,8 +153,8 @@ class PolygonShape(Shape, Mirror):
         if form_name in self.forms:
             del self.forms[form_name]
 
-    def copy_data_from_linked(self):
-        super(PolygonShape, self).copy_data_from_linked()
+    def copy_data_from_linked(self, build_lock=True):
+        super(PolygonShape, self).copy_data_from_linked(build_lock)
 
         if not self.linked_to: return
         del self.polygons[:]

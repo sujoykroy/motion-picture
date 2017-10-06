@@ -111,8 +111,7 @@ class Document(object):
         shape_type = shape_element.attrib.get("type", None)
         if shape_type == MultiShape.TYPE_NAME:
             self.main_multi_shape = MultiShape.create_from_xml_element(shape_element, MultiShapeTimeLine)
-            self.main_multi_shape.build_locked_to()
-        self.read_linked_clone_element(root)
+            self.main_multi_shape.build_locked_to(up=-100000)
 
         for guide_element in root.findall(Guide.TAG_NAME):
             guide = Guide.create_from_xml_element(guide_element)
@@ -120,6 +119,7 @@ class Document(object):
                 self.guides.append(guide)
 
         self.main_multi_shape.perform_post_create_from_xml()
+        self.read_linked_clone_element(root)
 
     def save(self, filename=None):
         result = False
@@ -192,7 +192,7 @@ class Document(object):
                 if not linked_shape:
                     continue
                 linked_shape.set_linked_to(source_shape)
-                linked_shape.copy_data_from_linked()
+                linked_shape.copy_data_from_linked(build_lock=True)
 
     def get_surface(self, width, height, bg_color=True):
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(width), int(height))

@@ -126,8 +126,8 @@ class CurveShape(Shape, Mirror):
             model.append([shape.get_name(), shape])
         return model
 
-    def copy_data_from_linked(self):
-        super(CurveShape, self).copy_data_from_linked()
+    def copy_data_from_linked(self, build_lock=True):
+        super(CurveShape, self).copy_data_from_linked(build_lock)
         if not self.linked_to: return
 
         self.forms = copy_value(self.linked_to.forms)
@@ -164,7 +164,8 @@ class CurveShape(Shape, Mirror):
                 pgs.set_pre_locked_to(pre_lock)
                 self.point_group_shapes.add(pgs)
 
-            self.build_locked_to()
+            if build_lock:
+                self.build_locked_to(up=-1000000)
 
             for locked_shape, locked_to_shape in lock_list:
                 locked_shape.set_locked_to(locked_to_shape)

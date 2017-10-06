@@ -120,20 +120,26 @@ class MultiShape(Shape):
                 items.extend(shape.get_shape_tree_list(item_path+"."))
         return items
 
-    def copy_data_from_linked(self):
+    def copy_data_from_linked(self, build_lock=True):
         if not self.linked_to: return
 
-        #diff_point = self.anchor_at.diff(self.linked_to.anchor_at)
-        self.shapes.clear()
+        for orig_shape in  self.linked_to.shapes:
+            new_shape = orig_shape.copy(copy_name=True, deep_copy=True)
+            new_shape.parent_shape = self
+            self.shapes.replace_or_add(orig_shape.get_name(), new_shape)
 
-        for shape in  self.linked_to.shapes:
-            shape_abs_anchor_at = shape.get_abs_anchor_at()
-            shape = shape.copy(copy_name=True, deep_copy=True)
-            shape.parent_shape=self
-            #shape.move_to(shape_abs_anchor_at.x + diff_point.x,
-            #              shape_abs_anchor_at.y + diff_point.y)
-            self.shapes.add(shape)
-        self.build_interior_locked_to()
+        removable_shapes = []
+        for child_shape in self.shapes:
+            if not self.linked_to.shapes.contain(child_shape.get_name()):
+                removable_shapes.append(child_shape)
+
+        for removable_shape in removable_shapes:
+            self.shapes.remove(removable_shape)
+        del removable_shapes[:]
+
+        if build_lock:
+            self.build_interior_locked_to(up=-10000000)
+
         if self.linked_to.custom_props:
             self.custom_props = self.linked_to.custom_props.copy(self)
         self.readjust_sizes()
