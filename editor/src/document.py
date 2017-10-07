@@ -271,10 +271,14 @@ class Document(object):
             ffmpeg_params = ffmpeg_params.split(" ")
         if audio:
             audio_clips = None
-            audio_clips = doc_movie.get_audio_clips(speed=speed)
-            if audio_clips:
-                audio_clip = movie_editor.CompositeAudioClip(audio_clips)
-                audio_clip = audio_clip.set_fps(fps)
+            #audio_clips = doc_movie.get_audio_clips(speed=speed)
+            if audio_clips or True:
+                #audio_clip = movie_editor.CompositeAudioClip(audio_clips)
+                audio_clip = movie_editor.AudioClip(
+                    make_frame = doc_movie.time_line.make_frame,
+                    duration = doc_movie.time_line.duration)
+                audio_clip.nchannels = 2
+                #audio_clip = audio_clip.set_fps(fps)
                 video_clip = video_clip.set_audio(audio_clip)
         if dry:
             return
@@ -302,7 +306,8 @@ class Document(object):
 
     @staticmethod
     def make_movie_faster(process_count, doc_movie, **kwargs):
-        if process_count == 1 or doc_movie.dest_filename[-4:] == ".gif":
+        if process_count == 1 or doc_movie.dest_filename[-4:] == ".gif" \
+                        or kwargs.get("dry", False):
             Document.make_movie(doc_movie, **kwargs)
         else:
             ps_st = time.time()
@@ -400,10 +405,25 @@ class Document(object):
                 module_path = item
             doc_module = DocModule.create(module_name, module_path)
 
+    LoadedFiles = dict()
+
     @classmethod
     def load_and_get_main_multi_shape(cls, filename):
-        doc = cls(filename=filename)
+        if filename in Document.LoadedFiles:
+            doc = Document.LoadedFiles[filename]
+        else:
+            doc = cls(filename=filename)
+            Document.LoadedFiles[filename] = doc
         return (doc.width, doc.height), doc.main_multi_shape
+
+    @classmethod
+    def unload_file(cls, filename):
+        if filename not in Document.LoadedFiles:
+            return
+        doc = Document.LoadedFiles[filename]
+        del Document.LoadedFiles[filename]
+        doc.main_multi_shape.cleanup()
+        del doc
 
 def make_movie_processed(args):
     params = Document.list2dict(args[1:])

@@ -5,6 +5,9 @@ from time_marker import TimeMarker
 from ..shapes.audio_shape import AudioShape
 from audio_clip_generator import AudioClipGenerator
 
+import numpy
+from ..audio_tools import AudioBlock, AudioFileBlock
+
 class MultiShapeTimeLine(object):
     TAG_NAME = "multi_shape_time_line"
 
@@ -228,6 +231,142 @@ class MultiShapeTimeLine(object):
         for shape_time_line in self.shape_time_lines:
             shape_time_line.expand_duration(self.duration)
 
+    def _get_audio_samples_for_block(self, filename, t):
+        if not filename:
+            return numpy.zeros((len(t), AudioBlock.ChannelCount), dtype="float")
+        audio_block = AudioFileBlock.get_for_filename(filename)
+        if len(audio_block.samples) == 0:
+            return numpy.zeros((len(t), AudioBlock.ChannelCount), dtype="float")
+        t = (t*AudioBlock.SampleRate)
+        if isinstance(t, numpy.ndarray):
+            t = t.astype(numpy.int)
+            audio_block.load_samples()
+            cond = (t>=audio_block.samples.shape[0])
+            t = numpy.where(cond, 0, t)
+            #samples = numpy.where(
+            #    numpy.repeat(cond, AudioBlock.ChannelCount).reshape(-1, AudioBlock.ChannelCount),
+            #        0, audio_block.samples[t,:]).copy()
+
+            samples = audio_block.samples[t,:].copy()
+        else:
+            t = int(t)
+            samples = audio_block.samples[t,:].copy()
+        return samples
+
+    def make_frame(self, t):
+        samples = self.get_samples_at(t, read_doc_shape=True)
+        if not isinstance(t, numpy.ndarray):
+            t = numpy.array([t])
+        if samples is None:
+            samples = numpy.zeros((len(t), AudioBlock.ChannelCount), dtype="float")
+        elif samples.shape[0]<len(t):
+            blank = numpy.zeros(((len(t)-samples.shape[0]), AudioBlock.ChannelCount), dtype="float")
+            samples = numpy.append(samples, blank, axis=0)
+
+        return samples
+
+    def get_samples_at(self, t, read_doc_shape):
+        if not isinstance(t, numpy.ndarray):
+            t = numpy.array([t])
+
+        final_samples = None
+        for shape_line in self.shape_time_lines:
+            shape = shape_line.shape
+
+            multi_shape = False
+            av_shape = False
+            doc_shape = False
+
+            if shape_line.prop_time_lines.key_exists("internal"):
+                prop_line = shape_line.prop_time_lines["internal"]
+                multi_shape = True
+            elif shape_line.prop_time_lines.key_exists("time_pos"):
+                prop_line = shape_line.prop_time_lines["time_pos"]
+                if hasattr(shape, "audio_active") and shape.audio_active:
+                    av_shape = True
+                elif read_doc_shape:
+                    doc_shape = True
+                else:
+                    continue
+            else:
+                continue
+
+            if not av_shape:
+                continue
+
+            elapsed = 0
+            slice_count = len(prop_line.time_slices.keys)
+            start_time = t[0]
+            end_time = t[-1]
+            thead = start_time
+            head_index = 0
+
+            samples = numpy.zeros((0, AudioBlock.ChannelCount),  dtype="f")
+            for i in range(slice_count):
+                time_slice = prop_line.time_slices[prop_line.time_slices.keys[i]]
+                if thead<elapsed+time_slice.duration:
+                    index_incre = numpy.argmax(t[head_index:]>=elapsed+time_slice.duration)
+                    if index_incre ==0:
+                        if len(t) == 1:
+                            index_incre = 1
+                        elif t[-1]<elapsed+time_slice.duration:
+                            index_incre = len(t)-head_index
+                        else:
+                            continue
+                    span = t[head_index:head_index+index_incre]
+
+                    values = time_slice.value_at(span - elapsed)
+
+                    head_index += index_incre
+                    if head_index >= len(t):
+                        head_index = len(t)-1
+                    thead = t[head_index]
+
+                    if av_shape:
+                        filename = time_slice.prop_data.get("audio_path")
+                        if not filename:
+                            filename = time_slice.prop_data.get("video_path")
+                        if not filename or filename == "//":
+                            filename = None
+                        tmps = self._get_audio_samples_for_block(filename, values)
+
+                    elif multi_shape:
+                        if time_slice.prop_data and \
+                            time_slice.prop_data.get("type") == "timeline":
+                            time_line_name = time_slice.prop_data.get("timeline")
+                            time_line = shape.timelines.get(time_line_name)
+
+                            values = values*time_line.duration
+                            tmps = time_line.get_samples_at(values, read_doc_shape)
+
+                        else:
+                            tmps = numpy.zeros(
+                                (len(values), AudioBlock.ChannelCount), dtype="float")
+
+                    else:#doc_shape
+                        if time_slice.prop_data:
+                            time_line_name = time_slice.prop_data.get("time_line_name")
+                            time_line = shape.get_time_line_for(
+                                time_slice.prop_data.get("document_path"),
+                                time_line_name
+                            )
+                            tmps = time_line.get_samples_at(values, read_doc_shape)
+                        else:
+                            tmps = numpy.zeros(
+                                (len(t), AudioBlock.ChannelCount), dtype="float")
+
+                    samples = numpy.append(samples, tmps, axis=0)
+
+                elapsed += time_slice.duration
+                if elapsed>end_time:
+                    break
+
+            if final_samples is None:
+                final_samples = samples
+            elif samples.shape[0]>0:
+                final_samples = final_samples + samples
+        return final_samples
+
     def get_audio_clips(self, abs_time_offset=0, pre_scale=1.,
                               slice_start_at=None, slice_end_at=None,
                               read_doc_shape=True):
@@ -240,7 +379,7 @@ class MultiShapeTimeLine(object):
         for shape_line in self.shape_time_lines:
             shape = shape_line.shape
 
-            #go deeper leve of internal timeline
+            #go deeper level of internal timeline
             if shape_line.prop_time_lines.key_exists("internal"):
                 prop_line = shape_line.prop_time_lines["internal"]
                 t = 0

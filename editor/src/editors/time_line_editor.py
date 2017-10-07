@@ -1018,6 +1018,8 @@ class TimeLineEditorAudioBlock(object):
         self.paused = True
         self.last_at = 0
         self.lock = threading.RLock()
+        #self.writer = WaveFileWriter(filename="/home/sujoy/Temporary/Test.wav",
+        #sample_rate=AudioBlock.SampleRate)
 
     def update_time(self):
         self.lock.acquire()
@@ -1041,19 +1043,31 @@ class TimeLineEditorAudioBlock(object):
         self.last_at = end_at
         self.lock.release()
 
-        clips=self.editor.time_line.get_audio_clips(
-            pre_scale=self.editor.speed_scale,
-            slice_start_at=start_at,
-            slice_end_at=end_at,
-            read_doc_shape = not self.editor.audio_only_play)
-        samples = None
-        for clip in clips:
-            clip_samples = clip.get_samples(frame_count)
+        st = time.time()
+        if not False:
+            t = numpy.linspace(start_at, end_at, frame_count, endpoint=False).astype("float")
+            samples = self.editor.time_line.get_samples_at(t, read_doc_shape=True)
             if samples is None:
-                samples = clip_samples
-            else:
-                samples = samples + clip_samples
-        audio_message.samples = samples
+                final_samples = numpy.zeros((frame_count, 2), dtype="float")
+            if samples.shape[0]<frame_count:
+                blank_data = numpy.zeros((frame_count-samples.shape[0], samples.shape[1]))
+                blank_data = blank_data.astype("float")
+                samples = numpy.append(samples, blank_data, axis=0)
+        else:
+            clips=self.editor.time_line.get_audio_clips(
+                pre_scale=self.editor.speed_scale,
+                slice_start_at=start_at,
+                slice_end_at=end_at,
+                read_doc_shape = not self.editor.audio_only_play)
+            samples = None
+            for clip in clips:
+                clip_samples = clip.get_samples(frame_count)
+                if samples is None:
+                    samples = clip_samples
+                else:
+                    samples = samples + clip_samples
+        #self.writer.write(samples)
+        audio_message.samples = samples.copy()
         return audio_message
 
 class PlayHeadMoverThread(threading.Thread):

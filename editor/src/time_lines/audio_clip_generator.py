@@ -43,6 +43,8 @@ class AudioClipGenerator(movie_editor.AudioClip):
         return samples
 
     def __repr__(self):
-        return "AudioClip(time_offset={0}, scale={1}, duration={2})".format(
-                self.time_offset, self.scale, self.duration)
+        text =  "AudioClip(time_offset={0}, scale={1}, "
+        text += "duration={2}, slice_offset={3})"
+        return text.format(self.time_offset, self.scale,
+                           self.duration, self.slice_offset)
 

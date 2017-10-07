@@ -21,6 +21,7 @@ from texture_map_color import TextureMapColor
 from container3d import Container3d
 
 from audio_message import AudioMessage
+from wave_file_writer import WaveFileWriter
 
 RAD_PER_DEG = math.pi/180.
 
