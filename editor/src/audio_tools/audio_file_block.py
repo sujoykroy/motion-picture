@@ -18,6 +18,9 @@ class AudioFileClipSamples(object):
         sample_count = int(round(self.audioclip.duration*AudioBlock.SampleRate))
         self.shape = (sample_count, self.audioclip.nchannels)
 
+    def __len__(self):
+        return self.shape[0]*self.shape[1]
+
     def __getitem__(self, key):
         if isinstance(key, tuple):
             start_key = key[0]

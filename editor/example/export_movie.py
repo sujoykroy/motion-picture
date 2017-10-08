@@ -13,9 +13,9 @@ ThreeDShape.HQRender = not True#should be true in production mode
 kwargs = dict(
     doc_movie=doc_movie,
     wh=["160x90","320x180", "640x360", "1280x720"][1],
-    audio=not True)
+    audio=True, dry=not True)
 
-Document.make_movie_faster(process_count=3, **kwargs)
+Document.make_movie_faster(process_count=1, **kwargs)
 
 clip=VideoFileClip(doc_movie.dest_filename)
 print doc_movie.dest_filename, "duration is", clip.duration

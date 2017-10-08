@@ -291,9 +291,6 @@ class MultiShapeTimeLine(object):
             else:
                 continue
 
-            if not av_shape:
-                continue
-
             elapsed = 0
             slice_count = len(prop_line.time_slices.keys)
             start_time = t[0]

@@ -13,6 +13,8 @@ from ..gui_utils.buttons import *
 from ..audio_tools import AudioServer, AudioBlock
 import threading
 import Queue
+import numpy
+
 
 EDITOR_LINE_COLOR = "ff0000"
 TIME_SLICE_START_X = PropTimeLineBox.TOTAL_LABEL_WIDTH + SHAPE_LINE_LEFT_PADDING
@@ -1018,8 +1020,6 @@ class TimeLineEditorAudioBlock(object):
         self.paused = True
         self.last_at = 0
         self.lock = threading.RLock()
-        #self.writer = WaveFileWriter(filename="/home/sujoy/Temporary/Test.wav",
-        #sample_rate=AudioBlock.SampleRate)
 
     def update_time(self):
         self.lock.acquire()
@@ -1053,6 +1053,7 @@ class TimeLineEditorAudioBlock(object):
                 blank_data = numpy.zeros((frame_count-samples.shape[0], samples.shape[1]))
                 blank_data = blank_data.astype("float")
                 samples = numpy.append(samples, blank_data, axis=0)
+            samples = samples.astype(numpy.float32)
         else:
             clips=self.editor.time_line.get_audio_clips(
                 pre_scale=self.editor.speed_scale,
@@ -1066,7 +1067,6 @@ class TimeLineEditorAudioBlock(object):
                     samples = clip_samples
                 else:
                     samples = samples + clip_samples
-        #self.writer.write(samples)
         audio_message.samples = samples.copy()
         return audio_message
 
