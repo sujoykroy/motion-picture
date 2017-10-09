@@ -34,7 +34,8 @@ class AVBase(object):
         if diff_value ==0:
             diff_value = 0.001
         slice_scale = time_slice.duration/diff_value
-
+        if slice_scale == 0:
+            return
         time_start = time_slice.start_value + visible_time_span.start/slice_scale
         time_end = min(time_slice.end_value, (time_slice.start_value+visible_time_span.end/slice_scale))
         t_step = 1./(slice_scale*visible_time_span.scale*pixel_per_second)

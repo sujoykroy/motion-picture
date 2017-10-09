@@ -253,18 +253,6 @@ class MultiShapeTimeLine(object):
             samples = audio_block.samples[t,:].copy()
         return samples
 
-    def make_frame(self, t):
-        samples = self.get_samples_at(t, read_doc_shape=True)
-        if not isinstance(t, numpy.ndarray):
-            t = numpy.array([t])
-        if samples is None:
-            samples = numpy.zeros((len(t), AudioBlock.ChannelCount), dtype="float")
-        elif samples.shape[0]<len(t):
-            blank = numpy.zeros(((len(t)-samples.shape[0]), AudioBlock.ChannelCount), dtype="float")
-            samples = numpy.append(samples, blank, axis=0)
-
-        return samples
-
     def get_samples_at(self, t, read_doc_shape):
         if not isinstance(t, numpy.ndarray):
             t = numpy.array([t])
@@ -282,8 +270,11 @@ class MultiShapeTimeLine(object):
                 multi_shape = True
             elif shape_line.prop_time_lines.key_exists("time_pos"):
                 prop_line = shape_line.prop_time_lines["time_pos"]
-                if hasattr(shape, "audio_active") and shape.audio_active:
-                    av_shape = True
+                if hasattr(shape, "audio_active"):
+                    if shape.audio_active:
+                        av_shape = True
+                    else:
+                        continue
                 elif read_doc_shape:
                     doc_shape = True
                 else:
@@ -319,6 +310,8 @@ class MultiShapeTimeLine(object):
                         head_index = len(t)-1
                     thead = t[head_index]
 
+
+                    tmps = None
                     if av_shape:
                         filename = time_slice.prop_data.get("audio_path")
                         if not filename:
@@ -332,13 +325,9 @@ class MultiShapeTimeLine(object):
                             time_slice.prop_data.get("type") == "timeline":
                             time_line_name = time_slice.prop_data.get("timeline")
                             time_line = shape.timelines.get(time_line_name)
-
-                            values = values*time_line.duration
-                            tmps = time_line.get_samples_at(values, read_doc_shape)
-
-                        else:
-                            tmps = numpy.zeros(
-                                (len(values), AudioBlock.ChannelCount), dtype="float")
+                            if time_line:
+                                values = values*time_line.duration
+                                tmps = time_line.get_samples_at(values, read_doc_shape)
 
                     else:#doc_shape
                         if time_slice.prop_data:
@@ -347,11 +336,12 @@ class MultiShapeTimeLine(object):
                                 time_slice.prop_data.get("document_path"),
                                 time_line_name
                             )
-                            tmps = time_line.get_samples_at(values, read_doc_shape)
-                        else:
-                            tmps = numpy.zeros(
-                                (len(t), AudioBlock.ChannelCount), dtype="float")
+                            if time_line:
+                                tmps = time_line.get_samples_at(values, read_doc_shape)
 
+                    if tmps is None:
+                        tmps = numpy.zeros(
+                                (len(span), AudioBlock.ChannelCount), dtype="float")
                     samples = numpy.append(samples, tmps, axis=0)
 
                 elapsed += time_slice.duration
@@ -362,6 +352,7 @@ class MultiShapeTimeLine(object):
                 final_samples = samples
             elif samples.shape[0]>0:
                 final_samples = final_samples + samples
+
         return final_samples
 
     def get_audio_clips(self, abs_time_offset=0, pre_scale=1.,

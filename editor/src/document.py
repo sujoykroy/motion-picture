@@ -263,7 +263,7 @@ class Document(object):
         speed = float(speed)
         doc_movie.load_doc()
         doc_movie.calculate_movie_duration(speed)
-        frame_maker = FrameMaker(doc_movie, wh=wh, speed=speed, sleep=sleep)
+        frame_maker = VideoFrameMaker(doc_movie, wh=wh, speed=speed, sleep=sleep)
         video_clip = movie_editor.VideoClip(
                 frame_maker.make_frame,
                 duration=doc_movie.movie_duration
@@ -272,10 +272,7 @@ class Document(object):
         if isinstance(ffmpeg_params, str):
             ffmpeg_params = ffmpeg_params.split(" ")
         if audio:
-            audio_clip = movie_editor.AudioClip(
-                make_frame = doc_movie.time_line.make_frame,
-                duration = doc_movie.time_line.duration)
-            audio_clip.nchannels = AudioBlock.ChannelCount
+            audio_clip = doc_movie.get_audio_frame_maker()
             #audio_clip = audio_clip.set_fps(fps)
             video_clip = video_clip.set_audio(audio_clip)
         if dry:
@@ -362,10 +359,7 @@ class Document(object):
             final_clip = movie_editor.concatenate_videoclips(clips)
             if has_audio:
                 doc_movie.load_doc()
-                audio_clip = movie_editor.AudioClip(
-                    make_frame = doc_movie.time_line.make_frame,
-                    duration = doc_movie.time_line.duration)
-                audio_clip.nchannels = AudioBlock.ChannelCount
+                audio_clip = doc_movie.get_audio_frame_maker()
                 final_clip = final_clip.set_audio(audio_clip)
 
             final_clip.write_videofile(
@@ -503,6 +497,9 @@ class DocMovie(object):
             self.doc = None
             self.camera = None
 
+    def get_audio_frame_maker(self):
+        return AudioFrameMaker(self)
+
     @classmethod
     def create_from_params(cls, filename, params):
         time_line=None
@@ -534,7 +531,28 @@ class DocMovie(object):
                    time_line=time_line, audio_only=audio_only,
                    start_time=start_time, end_time=end_time, camera=camera)
 
-class FrameMaker(object):
+class AudioFrameMaker(movie_editor.AudioClip):
+    def __init__(self, doc_movie):
+        self.doc_movie = doc_movie
+        self.doc_movie.load_doc()
+        self.time_line = self.doc_movie.time_line
+        self.nchannels = AudioBlock.ChannelCount
+        movie_editor.AudioClip.__init__(self, make_frame=None, duration=self.doc_movie.duration)
+
+    def make_frame(self, t):
+        t = t + self.doc_movie.start_time
+        samples = self.time_line.get_samples_at(t, read_doc_shape=True)
+        if not isinstance(t, numpy.ndarray):
+            t = numpy.array([t])
+        if samples is None:
+            samples = numpy.zeros((len(t), AudioBlock.ChannelCount), dtype="float")
+        elif samples.shape[0]<len(t):
+            blank = numpy.zeros(((len(t)-samples.shape[0]), AudioBlock.ChannelCount), dtype="float")
+            samples = numpy.append(samples, blank, axis=0)
+        return samples
+
+
+class VideoFrameMaker(object):
     def __init__(self, doc_movie, wh=None, speed=1, bg_color="FFFFFF", sleep=0):
         self.doc_movie = doc_movie
         self.sleep= sleep
