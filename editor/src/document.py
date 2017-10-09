@@ -14,6 +14,8 @@ from commons.guides import Guide
 from tasks import TaskManager
 from time_lines import MultiShapeTimeLine
 
+from audio_tools import AudioBlock
+
 import moviepy.editor as movie_editor
 import numpy
 import time
@@ -270,16 +272,12 @@ class Document(object):
         if isinstance(ffmpeg_params, str):
             ffmpeg_params = ffmpeg_params.split(" ")
         if audio:
-            audio_clips = None
-            #audio_clips = doc_movie.get_audio_clips(speed=speed)
-            if audio_clips or True:
-                #audio_clip = movie_editor.CompositeAudioClip(audio_clips)
-                audio_clip = movie_editor.AudioClip(
-                    make_frame = doc_movie.time_line.make_frame,
-                    duration = doc_movie.time_line.duration)
-                audio_clip.nchannels = 2
-                #audio_clip = audio_clip.set_fps(fps)
-                video_clip = video_clip.set_audio(audio_clip)
+            audio_clip = movie_editor.AudioClip(
+                make_frame = doc_movie.time_line.make_frame,
+                duration = doc_movie.time_line.duration)
+            audio_clip.nchannels = AudioBlock.ChannelCount
+            #audio_clip = audio_clip.set_fps(fps)
+            video_clip = video_clip.set_audio(audio_clip)
         if dry:
             return
         start_time = time.time()
@@ -323,7 +321,6 @@ class Document(object):
 
             if doc_movie.audio_only:
                 doc_movie.load_doc()
-                audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
                 audio_clip = movie_editor.CompositeAudioClip(audio_clips)
                 audio_clip.write_audiofile(doc_movie.dest_filename)
                 print "Audio {0} is made in {1:.2f} sec".format(
@@ -365,10 +362,12 @@ class Document(object):
             final_clip = movie_editor.concatenate_videoclips(clips)
             if has_audio:
                 doc_movie.load_doc()
-                audio_clips = doc_movie.get_audio_clips(kwargs.get("speed", 1))
-                if audio_clips:
-                    audio_clip = movie_editor.CompositeAudioClip(audio_clips)
-                    final_clip = final_clip.set_audio(audio_clip)
+                audio_clip = movie_editor.AudioClip(
+                    make_frame = doc_movie.time_line.make_frame,
+                    duration = doc_movie.time_line.duration)
+                audio_clip.nchannels = AudioBlock.ChannelCount
+                final_clip = final_clip.set_audio(audio_clip)
+
             final_clip.write_videofile(
                 doc_movie.dest_filename,
                 ffmpeg_params = kwargs.get("ffmpeg_params", Document.FFMPEG_PARAMS).split(" "),
@@ -503,14 +502,6 @@ class DocMovie(object):
         if self.doc:
             self.doc = None
             self.camera = None
-
-    def get_audio_clips(self, speed):
-        self.load_doc()
-        return self.time_line.get_audio_clips(
-                    abs_time_offset = self.movie_offset,
-                    pre_scale=speed,
-                    slice_start_at=self.start_time,
-                    slice_end_at=self.end_time)
 
     @classmethod
     def create_from_params(cls, filename, params):
