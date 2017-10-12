@@ -1099,11 +1099,14 @@ class PlayHeadMoverThread(threading.Thread):
             move_to = None
             try:
                 st = time.time()
-                while time.time()-st<.1:
+                c = 0
+                c_limit = 100
+                while time.time()-st<.1 and c<c_limit:
                     ret = self.time_queue.get(block=False)
                     move_to = ret[0]
                     force_visible = ret[1]
                     time.sleep(.01)
+                    c += 1
             except Queue.Empty:
                 pass
             if move_to is not None:
@@ -1114,4 +1117,4 @@ class PlayHeadMoverThread(threading.Thread):
                     audio_only=self.time_line_editor.audio_only_play)
                 if not self.time_line_editor.audio_only_play:
                     self.time_line_editor.master_editor.update_shape_manager()
-            time.sleep(.01)
+            time.sleep(.1)

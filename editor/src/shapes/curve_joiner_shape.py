@@ -33,7 +33,7 @@ class JoinerItem(object):
             ctx.restore()
 
     def draw_start_end(self, ctx, root_shape):
-       if self.curve_shape:
+       if self.curve_shape and self.curve_index<len(self.curve_shape.curves):
             curve = self.curve_shape.curves[self.curve_index]
             start_curve_point = CurvePoint(
                 self.curve_index, len(curve.bezier_points)-1, CurvePoint.POINT_TYPE_DEST)

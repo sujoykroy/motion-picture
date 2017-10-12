@@ -240,7 +240,7 @@ class ShapePropBox(object):
             rgba = Gdk.RGBA(*value.get_array())
             dialog.set_rgba(rgba)
             if dialog.run() == Gtk.ResponseType.OK:
-                dialog.get_rgba(rgba)
+                rgba = dialog.get_rgba()
                 color = Color(rgba.red, rgba.green, rgba.blue, rgba.alpha)
                 dialog.destroy()
                 color_button.set_color(color)

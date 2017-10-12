@@ -158,7 +158,7 @@ class CurveShape(Shape, Mirror):
                             lock_list.append((locked_shape, pgs))
                 fresh_pgs_list.append((pgs, pre_lock))
 
-            self.point_group_shapes.clear()
+            self.point_group_shapes.clear(destroy_items=True)
 
             for pgs, pre_lock in fresh_pgs_list:
                 pgs.set_pre_locked_to(pre_lock)
@@ -521,6 +521,8 @@ class CurveShape(Shape, Mirror):
             ctx.rotate(angle*RAD_PER_DEG)
             ctx.translate(-self.anchor_at.x, -self.anchor_at.y)
 
+        if curve_index>=len(self.curves):
+            return
         curve = self.curves[curve_index]
         if self.point_group_shapes:
             #ctx.scale(1./self.width, 1./self.height)

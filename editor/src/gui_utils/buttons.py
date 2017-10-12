@@ -125,6 +125,7 @@ class ColorButton(Gtk.HBox):
                 self.color_type = "Radial"
             elif isinstance(color, LinearGradientColor):
                 self.color_type = "Linear"
+        self.image.set_from_pixbuf(self.pixbuf)
         self.color_types_combobox.set_value(self.color_type)
         self.emit("color-changed")
         self.color_button.queue_draw()

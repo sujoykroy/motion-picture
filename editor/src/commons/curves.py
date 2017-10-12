@@ -147,6 +147,7 @@ class NaturalCurve(object):
                 outline = bz.get_outline()
             else:
                 outline.expand_include(bz.get_outline())
+
         if outline is None: return
         if self.origin.x<outline.left:
             dx = outline.left - self.origin.x
@@ -622,6 +623,10 @@ class Curve(NaturalCurve):
     def remove_bezier_point_indices(self, start_index, end_index):
         for i in range(end_index-1, start_index-1, -1):
             self.all_points=numpy.delete(self.all_points, [i*3+0+1, i*3+1+1, i*3+2+1], axis=0)
+
+    def get_indices_within(self, center, radius):
+        distances = distance.cdist(self.values[3::3], [(center.x, center.y)])
+        return numpy.nonzero(distances<radius)[0]
 
     def update_bezier_point_index(self, index):
         pass

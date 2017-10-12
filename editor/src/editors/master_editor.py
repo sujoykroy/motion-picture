@@ -837,10 +837,13 @@ class DrawerThread(threading.Thread):
             draw = False
             try:
                 st = time.time()
-                while time.time()-st<.2:
+                c = 0
+                c_limit = 100
+                while time.time()-st<.2 and c<c_limit:
                     ret = self.draw_queue.get(block=False)
                     draw = True
                     time.sleep(.01)
+                    c += 1
             except Queue.Empty:
                 pass
             if draw:
