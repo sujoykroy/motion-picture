@@ -166,7 +166,7 @@ class GradientColorEditor(object):
         dialog.set_rgba(rgba)
         res = True
         if dialog.run() == Gtk.ResponseType.OK:
-            dialog.get_rgba(rgba)
+            rgba = dialog.get_rgba()
             new_color = Color(rgba.red, rgba.green, rgba.blue, rgba.alpha)
             color.copy_from(new_color)
             res = True

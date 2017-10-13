@@ -16,6 +16,9 @@ def set_ctx_color(ctx, color):
         ctx.set_source_rgba(*Color.from_html(color).get_array())
     elif isinstance(color, GradientColor):
         ctx.set_source(color.get_pattern())
+    elif isinstance(color, ImageColor):
+        pattern = ctx.set_source_surface(color.get_surface(), color.x, color.y)
+        pattern.set_extend(color.get_extend_type())
     else:
         ctx.set_source(color)
 
@@ -27,6 +30,9 @@ def draw_stroke(ctx, line_width, color=Color(0,0,0,1)):
         ctx.set_source_rgba(*Color.from_html(color).get_array())
     elif isinstance(color, GradientColor):
         ctx.set_source(color.get_pattern())
+    elif isinstance(color, ImageColor):
+        ctx.set_source_surface(color.get_surface(), color.x, color.y)
+        ctx.get_source().set_extend(color.get_extend_type())
     else:
         ctx.set_source(color)
     ctx.set_line_width(line_width)
@@ -51,6 +57,9 @@ def draw_fill(ctx, color=Color(1, 1, 1,1)):
         ctx.set_source(color)
     elif isinstance(color, GradientColor):
         ctx.set_source(color.get_pattern())
+    elif isinstance(color, ImageColor):
+        ctx.set_source_surface(color.get_surface(), color.x, color.y)
+        ctx.get_source().set_extend(color.get_extend_type())
     ctx.fill()
     ctx.restore()
 

@@ -52,7 +52,7 @@ class EditingChoiceCheckWidget(Gtk.Box):
         setattr(settings.EditingChoice, self.choice_name, self.check_button.get_active())
 
 class ColorButton(Gtk.HBox):
-    def __init__(self, color_types=["Flat", "Linear", "Radial"]):
+    def __init__(self, color_types=["Flat", "Linear", "Radial", "Image"]):
         Gtk.HBox.__init__(self)
         self.color = None
         self.color_type = None
@@ -94,6 +94,8 @@ class ColorButton(Gtk.HBox):
 
     def set_color(self, color):
         self.color = color
+        surface = None
+        ctx = None
         if color is None:
             self.color_type = "None"
             self.pixbuf.fill(int("00000000", 16))
@@ -117,14 +119,28 @@ class ColorButton(Gtk.HBox):
             ctx.rectangle(0, 0, rect.width, rect.height)
             draw_fill(ctx, color)
 
-            surface= ctx.get_target()
-            self.pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0,
-                    surface.get_width(), surface.get_height())
-            self.image.set_from_pixbuf(self.pixbuf)
             if isinstance(color, RadialGradientColor):
                 self.color_type = "Radial"
             elif isinstance(color, LinearGradientColor):
                 self.color_type = "Linear"
+        elif isinstance(color, ImageColor):
+            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                self.pixbuf.get_width(), self.pixbuf.get_height())
+            ctx = cairo.Context(surface)
+            image_surface = color.get_surface()
+            ctx.scale(
+                self.pixbuf.get_width()*1./image_surface.get_width(),
+                self.pixbuf.get_height()*1./image_surface.get_height())
+            ctx.rectangle(0, 0, image_surface.get_width(), image_surface.get_height())
+            draw_fill(ctx, color)
+
+            self.color_type = "Image"
+
+        if surface is not None and ctx is not None:
+            surface= ctx.get_target()
+            self.pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
+                    surface.get_width(), surface.get_height())
+
         self.image.set_from_pixbuf(self.pixbuf)
         self.color_types_combobox.set_value(self.color_type)
         self.emit("color-changed")

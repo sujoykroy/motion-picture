@@ -1087,6 +1087,8 @@ class Shape(object):
 
     def draw_border(self, ctx):
         if self.border_color is None: return
+        if isinstance(self.border_color, ImageColor):
+            self.border_color.set_owner_shape(self)
         if self.border_dashes:
             ctx.set_dash(self.border_dashes, self.border_dash_offset)
         else:
@@ -1095,6 +1097,8 @@ class Shape(object):
 
     def draw_fill(self, ctx):
         if self.fill_color is None: return
+        if isinstance(self.fill_color, ImageColor):
+            self.fill_color.set_owner_shape(self)
         draw_fill(ctx, self.fill_color)
 
     def fill_shape_area(self, ctx, root_shape=None):

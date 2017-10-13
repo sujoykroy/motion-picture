@@ -60,7 +60,7 @@ class Document(object):
         return self.main_multi_shape
 
     def get_shape_by_name(self, name):
-        return self.main_multi_shape.shapes.get_item_by_name(name)
+        return self.main_multi_shape.get_interior_shape(name)
 
     def get_camera_names(self):
         names= []
@@ -289,7 +289,7 @@ class Document(object):
         elapsed_time = time.time()-start_time
         doc_movie.unload_doc()
         ret = "Video {0} is maded in {1:.2f} sec".format(doc_movie.dest_filename, elapsed_time)
-        print ret
+        print(ret)
         return ret
 
     @staticmethod
@@ -320,8 +320,8 @@ class Document(object):
                 doc_movie.load_doc()
                 audio_clip = movie_editor.CompositeAudioClip(audio_clips)
                 audio_clip.write_audiofile(doc_movie.dest_filename)
-                print "Audio {0} is made in {1:.2f} sec".format(
-                            doc_movie.dest_filename, time.time()-ps_st)
+                print("Audio {0} is made in {1:.2f} sec".format(
+                            doc_movie.dest_filename, time.time()-ps_st))
                 return
 
             has_audio = kwargs.get("audio", False)
@@ -372,7 +372,7 @@ class Document(object):
             for sub_filename in sub_filenames:
                 os.remove(sub_filename)
 
-            print "Video {0} is made in {1:.2f} sec".format(doc_movie.dest_filename, time.time()-ps_st)
+            print("Video {0} is made in {1:.2f} sec".format(doc_movie.dest_filename, time.time()-ps_st))
         return True
 
     @staticmethod

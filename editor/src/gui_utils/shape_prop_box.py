@@ -1,6 +1,7 @@
 from gi.repository import Gtk, Gdk
 from name_value_combo_box import NameValueComboBox
 from image_combo_box import ImageComboBox
+from image_color_dialog import ImageColorDialog
 from buttons import *
 from ..commons import Point, Color, get_displayble_prop_name
 from ..commons import LinearGradientColor, RadialGradientColor
@@ -246,6 +247,16 @@ class ShapePropBox(object):
                 color_button.set_color(color)
             else:
                 dialog.destroy()
+        elif color_type == "Image":
+            color = self.prop_object.get_prop_value(prop_name)
+            dialog = ImageColorDialog(self.parent_window, color, color_button)
+            if dialog.run() == Gtk.ResponseType.OK:
+                color = dialog.get_image_color()
+                dialog.destroy()
+            else:
+                dialog.destroy()
+            color_button.set_color(color)
+
         else:
             shape_manager = self.parent_window.get_shape_manager()
             shape_manager.toggle_color_editor(prop_name, color_type)
@@ -265,6 +276,9 @@ class ShapePropBox(object):
             color = LinearGradientColor.create_default(shape.get_outline(0))
         elif color_type == "Radial":
             color = RadialGradientColor.create_default(shape.get_outline(0))
+        elif color_type == "Image":
+            color = ImageColor()
+            color.set_owner_shape(self.prop_object)
         if shape_manager and shape_manager.color_editor:
             shape_manager.color_editor = None
         color_button.set_color(color)

@@ -222,6 +222,62 @@ class RadialGradientColor(GradientColor):
             ColorPoint(Color(0, 0, 0, 1), Point(rect.left+rect.width, rect.top+rect.height)))
         return newob
 
+class ImageColor(object):
+    COLOR_TYPE_NAME = "img"
+
+    EXTEND_TYPES = dict(
+        none=cairo.EXTEND_NONE,
+        repeat= cairo.EXTEND_REPEAT,
+        reflect=cairo.EXTEND_REFLECT,
+        pad=cairo.EXTEND_PAD)
+
+    def __init__(self, filename="", shape_name=None,extend_type="repeat", x=0, y=0):
+        self.filename = filename
+        self.extend_type = extend_type
+        self.shape_name = shape_name
+        self.x = x
+        self.y = y
+        self.surface = None
+        self.owner_shape = None
+
+    def set_owner_shape(self, shape):
+        self.owner_shape = shape
+
+    def copy(self):
+        newob = ImageColor(self.filename, self.shape_name, self.extend_type, self.x, self.y)
+        return newob
+
+    def get_surface(self):
+        if self.shape_name and self.owner_shape:
+            shape = self.owner_shape.get_interior_shape(self.shape_name)
+            if shape:
+                self.surface = shape.get_surface(width=shape.width, height=shape.height)
+        else:
+            if not self.surface and self.filename and os.path.isfile(self.filename):
+                self.surface = cairo.ImageSurface.create_from_png(self.filename)
+        if not self.surface:
+            self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1)
+        return self.surface
+
+    def get_pattern(self):
+        return cairo.SurfacePattern(self.get_surface())
+
+    def get_extend_type(self):
+        return ImageColor.EXTEND_TYPES[self.extend_type]
+
+    def to_text(self):
+        text = "{0},{1},{2},{3},{4}".format(
+            self.filename, self.shape_name, self.extend_type, self.x, self.y)
+        return self.COLOR_TYPE_NAME + ":" + text
+
+    @classmethod
+    def from_text(cls, text):
+        if text is None or text == "None": return None
+        filename, shape_name, extend_type, x, y = text.split(",")
+        x = float(x)
+        y = float(y)
+        return cls(filename, shape_name, extend_type, x, y)
+
 def color_from_text(text):
     if not text:
         return None
@@ -235,6 +291,8 @@ def color_from_text(text):
         return RadialGradientColor.from_text(arr[1])
     elif color_type == TextureMapColor.COLOR_TYPE_NAME:
         return TextureMapColor.from_text(arr[1])
+    elif color_type == ImageColor.COLOR_TYPE_NAME:
+        return ImageColor.from_text(arr[1])
 
 def color_copy(color):
     if color is None:
