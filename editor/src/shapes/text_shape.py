@@ -159,10 +159,6 @@ class TextShape(RectangleShape):
         """
         ctx.restore()
 
-    def set_text(self, text):
-        self.text = text
-        self.readjust_sizes()
-
     def set_font(self, font):
         self.font = font
         self.readjust_sizes()
@@ -192,7 +188,7 @@ class TextShape(RectangleShape):
         super(TextShape, self).set_prop_value(prop_name, value, prop_data)
 
     def set_text(self, text):
-        self.text = text
+        self.text = text.decode("utf-8")
         self.set_exposure(self.exposure)
         self.readjust_sizes()
 

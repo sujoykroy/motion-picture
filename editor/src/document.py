@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import dump as XmlDump
 from xml.etree.ElementTree import ElementTree as XmlTree
@@ -22,6 +23,7 @@ import time
 import fnmatch
 import re
 import multiprocessing
+import sys
 
 class Document(object):
     IdSeed = 0
@@ -96,6 +98,7 @@ class Document(object):
         except IOError as e:
             return
         except ET.ParseError as e:
+            print(e)
             return
         root = tree.getroot()
         app = root.find("app")
@@ -158,9 +161,13 @@ class Document(object):
 
         #tree.write(self.filename)
         try:
-            tree.write(self.filename)
+            tree.write(self.filename, encoding="utf-8",xml_declaration=True)
             result = True
         except TypeError as e:
+            print("{0}".format(e))
+            #sys.exit("Unable to save file")
+
+        if not result:
             if backup_file:
                 os.rename(backup_file, filename)
                 backup_file = None

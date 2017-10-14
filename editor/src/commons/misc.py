@@ -102,7 +102,7 @@ def copy_value(val):
         val = copy_list(val)
     elif hasattr(val, "copy"):
         val = val.copy()
-    elif type(val) not in (int, str, float, bool) and val is not None:
+    elif type(val) not in (int, str, float, bool, unicode) and val is not None:
         raise Exception("Don't know how to copy item of type {0}".format(type(val)))
     return val
 
