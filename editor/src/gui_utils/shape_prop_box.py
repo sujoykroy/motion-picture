@@ -109,7 +109,7 @@ class ShapePropBox(object):
         self.prop_set_mode = False
 
     def add_prop(self, prop_name, value_type, values=None, can_insert_slice = True,
-                       related=None):
+                       related=None, apply_on_poses=True):
         if values is None:
             values = dict()
         if value_type == PROP_TYPE_NUMBER_ENTRY:
@@ -206,6 +206,7 @@ class ShapePropBox(object):
             widgets.append(insert_slice_button)
             prop_widget.widgets.append(insert_slice_button)
 
+        if apply_on_poses:
             apply_on_poses_button = create_new_image_button("apply_on_poses", size=16)
             apply_on_poses_button.connect("clicked", self.apply_on_poses_button_clicked, prop_name)
             widgets.append(apply_on_poses_button)

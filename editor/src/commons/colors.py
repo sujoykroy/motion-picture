@@ -231,7 +231,7 @@ class ImageColor(object):
         reflect=cairo.EXTEND_REFLECT,
         pad=cairo.EXTEND_PAD)
 
-    def __init__(self, filename="", shape_name=None,extend_type="repeat", x=0, y=0):
+    def __init__(self, filename="", shape_name="",extend_type="repeat", x=0, y=0):
         self.filename = filename
         self.extend_type = extend_type
         self.shape_name = shape_name

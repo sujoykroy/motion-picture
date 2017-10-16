@@ -803,6 +803,8 @@ class MasterEditor(Gtk.ApplicationWindow):
         if not self.drawer_thread and self.use_drawer_thread:
             self.pre_draw_on_surface()
             self.drawer_thread = DrawerThread(self)
+        else:
+            self.pre_draw_on_surface()
         self.img_surf_lock.acquire()
         dctx.set_source_surface(self.img_surf)
         dctx.paint()

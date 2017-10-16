@@ -31,6 +31,15 @@ class PolygonShape(Shape, Mirror):
         self.polygons = []
         self.forms = dict()
 
+    def has_poses(self):
+        return True
+
+    @classmethod
+    def get_pose_prop_names(cls):
+        prop_names = super(PolygonShape, cls).get_pose_prop_names()
+        prop_names.extend(["form_raw"])
+        return prop_names
+
     def save_form(self, form_name):
         if form_name is None:
             i = len(self.forms)
@@ -61,6 +70,10 @@ class PolygonShape(Shape, Mirror):
             return self.forms[form]
         return None
 
+    #wrapper around set_form
+    def set_pose(self, pose_name):
+        self.set_form(pose_name)
+
     def set_form(self, form_name):
         if form_name not in self.forms:
             return
@@ -89,7 +102,11 @@ class PolygonShape(Shape, Mirror):
                 self_point.translate(anchor_at.x, anchor_at.y)
 
         self.fit_size_to_include_all()
-        self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+        #self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+
+    #wrapper around get_form_list
+    def get_pose_list(self, interior_shape=None):
+        return self.get_form_list()
 
     def get_form_list(self):
         forms = []
@@ -99,15 +116,18 @@ class PolygonShape(Shape, Mirror):
 
     def set_prop_value(self, prop_name, value, prop_data=None):
         if prop_name == "internal":
-            start_form = prop_data["start_form"]
-            end_form = prop_data["end_form"]
+            if "start_form" in prop_data:
+                start_form_name = prop_data["start_form"]
+                end_form_name = prop_data.get("end_form")
+                if end_form_name is None or end_form_name not in self.forms:
+                    self.set_form(start_form_name)
+                    return
 
-            if end_form is None or end_form not in self.forms:
-                self.set_form(start_form)
-                return
-
-            start_form = self.forms[start_form]
-            end_form = self.forms[end_form]
+                start_form = self.forms[start_form_name]
+                end_form = self.forms[end_form_name]
+            else:
+                start_form = prop_data["start_form_raw"]
+                end_form = prop_data.get("end_form_raw")
 
             new_width = start_form.width + (end_form.width-start_form.width)*value
             new_height = start_form.height + (end_form.height-start_form.height)*value
@@ -135,12 +155,16 @@ class PolygonShape(Shape, Mirror):
                     self_point = self_polygon.points[j]
                     start_form_point = start_form_polygon.points[j]
                     end_form_point = end_form_polygon.points[j]
+                    self_point.x = (start_form_point.x*start_form.width*(1-value)+\
+                                   end_form_point.x*end_form.width*value)/self.width
+                    self_point.y = (start_form_point.y*start_form.height*(1-value)+\
+                                   end_form_point.y*end_form.height*value)/self.height
 
-                    self_point.set_inbetween(start_form_point, end_form_point, value)
+                    #self_point.set_inbetween(start_form_point, end_form_point, value)
                     self_point.translate(anchor_at.x, anchor_at.y)
 
             self.fit_size_to_include_all()
-            self.move_to(abs_anchor_at.x, abs_anchor_at.y)
+            #self.move_to(abs_anchor_at.x, abs_anchor_at.y)
         else:
             Shape.set_prop_value(self, prop_name, value, prop_data)
 

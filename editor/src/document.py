@@ -165,12 +165,14 @@ class Document(object):
             result = True
         except TypeError as e:
             print("{0}".format(e))
-            #sys.exit("Unable to save file")
+        except UnicodeDecodeError as e:
+            print("{0}".format(e))
 
         if not result:
             if backup_file:
                 os.rename(backup_file, filename)
                 backup_file = None
+                sys.exit("Unable to save file")
 
         if backup_file:
             os.remove(backup_file)
@@ -461,7 +463,7 @@ class DocMovie(object):
                 time_line = timelines.keys()[0]
         elif time_line not in timelines:
             raise Exception("Timeline [{1}] is not found in {0}".format(
-                                        filename, time_line))
+                                        src_filename, time_line))
 
         time_line_obj = timelines[time_line]
 

@@ -232,8 +232,17 @@ class MultiShape(Shape):
             for pose_shape_elm in pose_elm.findall(cls.POSE_SHAPE_TAG_NAME):
                 shape_name, prop_dict = cls.create_pose_prop_dict_from_xml_element(pose_shape_elm)
                 form = pose_shape_elm.find(CurvesForm.TAG_NAME)
+                pose_shape = shape.get_interior_shape(shape_name)
+                if not pose_shape:
+                    continue
                 if form:
-                    prop_dict["form_raw"] = CurvesForm.create_from_xml_element(form)
+                    if isinstance(pose_shape,CurveShape):
+                        form_raw = CurvesForm.create_from_xml_element(form)
+                    elif isinstance(pose_shape, PolygonShape):
+                        form_raw = PolygonsForm.create_from_xml_element(form)
+                    else:
+                        form_raw = None
+                    prop_dict["form_raw"] = form_raw
                 if shape_name:
                     pose[shape_name] = prop_dict
             shape.poses[pose_name] = pose
@@ -678,7 +687,7 @@ class MultiShape(Shape):
             if multi_shape.masked and len(multi_shape.shapes)>1:
                 renderable_shapes_count -= 1
                 masked_surface = cairo.ImageSurface(
-                                cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
+                    cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
                 masked_ctx = cairo.Context(masked_surface)
                 if pre_matrix:
                     masked_ctx.set_matrix(pre_matrix)
@@ -741,7 +750,7 @@ class MultiShape(Shape):
                     multi_shape.draw_border(ctx)
                     ctx.restore()
         elif isinstance(shape, CameraShape) and \
-            (no_camera or (exclude_camera_list and child_shape in exclude_camera_list)):
+            (no_camera or (exclude_camera_list and shape in exclude_camera_list)):
             return
 
         elif isinstance(shape, CurveJoinerShape):
@@ -779,7 +788,7 @@ class MultiShape(Shape):
                 shape.pre_draw(ctx, root_shape=root_shape)
                 #shape.draw_path(ctx)
                 if isinstance(shape, CameraShape):
-                    shape.draw_image(ctx, fixed_border=fixed_border,
+                    shape.draw_image(ctx, fixed_border=fixed_border, drawing_size = drawing_size,
                                           exclude_camera_list=exclude_camera_list)
                 elif isinstance(shape, ThreeDShape):
                     shape.draw_image(ctx, root_shape=root_shape, pre_matrix=pre_matrix)

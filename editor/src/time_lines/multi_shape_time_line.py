@@ -257,6 +257,7 @@ class MultiShapeTimeLine(object):
         if not isinstance(t, numpy.ndarray):
             t = numpy.array([t])
 
+        tindices = numpy.argsort(t)
         final_samples = None
         for shape_line in self.shape_time_lines:
             shape = shape_line.shape
@@ -284,8 +285,8 @@ class MultiShapeTimeLine(object):
 
             elapsed = 0
             slice_count = len(prop_line.time_slices.keys)
-            start_time = t[0]
-            end_time = t[-1]
+            start_time = t[tindices[0]]
+            end_time = t[tindices[-1]]
             thead = start_time
             head_index = 0
 
@@ -293,22 +294,21 @@ class MultiShapeTimeLine(object):
             for i in range(slice_count):
                 time_slice = prop_line.time_slices[prop_line.time_slices.keys[i]]
                 if thead<elapsed+time_slice.duration:
-                    index_incre = numpy.argmax(t[head_index:]>=elapsed+time_slice.duration)
+                    index_incre = numpy.argmax(t[tindices[head_index:]]>=elapsed+time_slice.duration)
                     if index_incre ==0:
                         if len(t) == 1:
                             index_incre = 1
-                        elif t[-1]<elapsed+time_slice.duration:
+                        elif t[tindices[-1]]<elapsed+time_slice.duration:
                             index_incre = len(t)-head_index
                         else:
                             continue
-                    span = t[head_index:head_index+index_incre]
-
+                    span = t[tindices[head_index:head_index+index_incre]]
                     values = time_slice.value_at(span - elapsed)
 
                     head_index += index_incre
                     if head_index >= len(t):
                         head_index = len(t)-1
-                    thead = t[head_index]
+                    thead = t[tindices[head_index]]
 
 
                     tmps = None
@@ -342,11 +342,23 @@ class MultiShapeTimeLine(object):
                     if tmps is None:
                         tmps = numpy.zeros(
                                 (len(span), AudioBlock.ChannelCount), dtype="float")
+
                     samples = numpy.append(samples, tmps, axis=0)
 
                 elapsed += time_slice.duration
                 if elapsed>end_time:
                     break
+
+            #this can happen if "internal" values exceeds time-slice duration
+            if samples.shape[0]<len(t):
+                samples = numpy.append(
+                            samples,
+                            numpy.zeros(
+                                (len(t)-samples.shape[0],
+                                 AudioBlock.ChannelCount),
+                                dtype="float"),
+                            axis=0
+                          )
 
             if final_samples is None:
                 final_samples = samples
