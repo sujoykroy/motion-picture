@@ -32,7 +32,7 @@ class ShapeList(object):
         if not self.contain(old_shape):
             self.add(new_shape)
             return
-        if isinstance(old_shape, str):
+        if isinstance(old_shape, unicode):
             index = self.names.index(old_shape)
             old_shape = self.items[index]
         else:
@@ -88,7 +88,7 @@ class ShapeList(object):
         return self.items[index]
 
     def contain(self, shape):
-        if (isinstance(shape, str)):
+        if isinstance(shape, unicode):
             return (shape in self.names)
         return (shape in self.items)
 

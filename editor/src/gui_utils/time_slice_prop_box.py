@@ -368,11 +368,13 @@ class TimeSlicePropBox(Gtk.Frame):
 
         if isinstance(widget, Gtk.Entry):
             value = widget.get_text()
+            value = value.decode("utf-8")
         elif isinstance(widget, Gtk.TextBuffer):
             text_buffer = widget
             widget = text_buffer.widget
             value = text_buffer.get_text(
                 text_buffer.get_start_iter(), text_buffer.get_end_iter(), False)
+            value = value.decode("utf-8")
         elif isinstance(widget, Gtk.CheckButton):
             value = widget.get_active()
         elif isinstance(widget, NameValueComboBox):

@@ -302,7 +302,7 @@ class ShapePropBox(object):
 
     def shape_name_entry_activated(self, widget, prop_name):
         if self.prop_object != None:
-            text = widget.get_text()
+            text = widget.get_text().decode("utf-8")
             text = text.replace(".", "_")
             widget.set_text(text)
             if not self.shape_name_checker.set_shape_name(self.prop_object, text):
@@ -310,7 +310,7 @@ class ShapePropBox(object):
 
     def entry_activated(self, widget, prop_name):
         if self.prop_object != None:
-            text = widget.get_text()
+            text = widget.get_text().decode("utf-8")
             self.prop_object.set_prop_value(prop_name, text)
             self.draw_callback(widget)
 
@@ -340,5 +340,6 @@ class ShapePropBox(object):
         if self.prop_object != None:
             value = text_buffer.get_text(
                 text_buffer.get_start_iter(), text_buffer.get_end_iter(), False)
+            value = value.decode("utf-8")
             self.prop_object.set_prop_value(prop_name, value)
             self.draw_callback(text_buffer)

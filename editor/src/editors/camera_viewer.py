@@ -103,10 +103,14 @@ class CamerViewerBox(Gtk.Box):
 
         if camera:
             camera.reverse_pre_draw(view_ctx, root_shape=multi_shape.parent_shape)
+            exclude_camera_list = [camera]
+        else:
+            exclude_camera_list = []
 
         drawing_size = Point(view_canvas.get_width(), view_canvas.get_height())
         pre_matrix = view_ctx.get_matrix()
-        multi_shape.draw(view_ctx, drawing_size=drawing_size,
+        multi_shape.draw(view_ctx, drawing_size=drawing_size, no_camera=False,
+            exclude_camera_list=exclude_camera_list,
             root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
         ctx.set_source_surface(view_canvas)

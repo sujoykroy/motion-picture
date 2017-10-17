@@ -55,7 +55,7 @@ class TimeSlice(object):
         elm.attrib[self.START_VALUE_NAME] = "{0}".format(self.start_value)
         elm.attrib[self.END_VALUE_NAME] = "{0}".format(self.end_value)
         elm.attrib[self.DURATION_NAME] = "{0}".format(self.duration)
-        elm.attrib[self.LINKED_TO_NEXT_NAME] = "{0}".format(self.linked_to_next)
+        elm.attrib[self.LINKED_TO_NEXT_NAME] = u"{0}".format(self.linked_to_next)
         if type(self.change_type) is not TimeChangeType:
             elm.append(self.change_type.get_xml_element())
         if self.prop_data:
@@ -63,11 +63,11 @@ class TimeSlice(object):
                 #if value is None: continue
                 prop_data_elm = XmlElement(self.PROP_DATA_TAG_NAME)
                 prop_data_elm.attrib["key"] = "{0}".format(key)
-                prop_data_elm.attrib["value"] = "{0}".format(value)
+                prop_data_elm.attrib["value"] = u"{0}".format(value)
                 prop_data_elm.attrib["type"] = value.__class__.__name__
                 elm.append(prop_data_elm)
         if self.end_marker:
-            elm.attrib["end_marker"] = "{0}".format(self.end_marker)
+            elm.attrib["end_marker"] = u"{0}".format(self.end_marker)
         return elm
 
     @classmethod
