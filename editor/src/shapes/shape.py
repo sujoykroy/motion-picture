@@ -404,6 +404,8 @@ class Shape(object):
 
         for prop_name, value in elm.attrib.items():
             if prop_name == "name":
+                if isinstance(value, str):
+                    value = value.decode("utf-8")
                 shape_name = value
                 continue
             if prop_name in point_prop_names:
@@ -414,6 +416,8 @@ class Shape(object):
                 value = Matrix.from_text(value)
             elif prop_name in text_prop_names:
                 value = value
+                if isinstance(value, str):
+                    value = value.decode("utf-8")
             elif prop_name == "visible":
                 if value == "True":
                     value = True
@@ -533,6 +537,8 @@ class Shape(object):
         self.scale_y = float(elm.attrib.get("scale_y", 1))
         locked_to =  elm.attrib.get("locked_to")
         if locked_to:
+            if isinstance(locked_to, str):
+                locked_to = locked_to.decode("utf-8")
             self._locked_to = locked_to
 
         translation_str = elm.attrib.get("translation", None)
@@ -547,6 +553,8 @@ class Shape(object):
             self.pre_matrix = Matrix.from_text(pre_matrix_str)
         name = elm.attrib.get("name", None)
         if name:
+            if isinstance(name, str):
+                name = name.decode("utf-8")
             self._name = name.replace(".", "")
         if isinstance(self, Mirror):
             Mirror.assign_params_from_xml_element(self, elm)

@@ -228,6 +228,8 @@ class MultiShape(Shape):
 
         for pose_elm in elm.findall(cls.POSE_TAG_NAME):
             pose_name = pose_elm.attrib["name"]
+            if isinstance(pose_name, str):
+                pose_name = pose_name.decode("utf-8")
             pose = dict()
             for pose_shape_elm in pose_elm.findall(cls.POSE_SHAPE_TAG_NAME):
                 shape_name, prop_dict = cls.create_pose_prop_dict_from_xml_element(pose_shape_elm)
@@ -382,6 +384,8 @@ class MultiShape(Shape):
         self.delete_pose_pixbuf(pose_name)
 
     def set_pose(self, pose_name):
+        if isinstance(pose_name, str):
+            pose_name = pose_name.decode("utf-8")
         if pose_name not in self.poses: return
         self.pose = pose_name
         self.set_pose_raw(self.poses[pose_name])

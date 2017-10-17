@@ -132,7 +132,10 @@ class MultiShapeTimeLine(object):
 
     @classmethod
     def create_from_xml_element(cls, elm, multi_shape):
-        multi_shape_time_line = cls(name=elm.attrib["name"], multi_shape=multi_shape)
+        time_line_name = elm.attrib["name"]
+        if isinstance(time_line_name, str):
+            time_line_name = time_line_name.decode("utf-8")
+        multi_shape_time_line = cls(name=time_line_name, multi_shape=multi_shape)
         for shape_time_line_elm in elm.findall(ShapeTimeLine.TAG_NAME):
             shape_time_line = ShapeTimeLine.create_from_xml_element(shape_time_line_elm, multi_shape)
             if not shape_time_line: continue

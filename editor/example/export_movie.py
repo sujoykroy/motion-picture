@@ -18,5 +18,5 @@ kwargs = dict(
 Document.make_movie_faster(process_count=3, **kwargs)
 
 clip=VideoFileClip(doc_movie.dest_filename)
-print doc_movie.dest_filename, "duration is", clip.duration
+print(doc_movie.dest_filename, "duration is", clip.duration)
 subprocess.call(["vlc", doc_movie.dest_filename])

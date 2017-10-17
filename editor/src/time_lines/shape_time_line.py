@@ -30,6 +30,8 @@ class ShapeTimeLine(object):
     @classmethod
     def create_from_xml_element(cls, elm, multi_shape):
         shape_name = elm.attrib.get(cls.SHAPE_NAME, None)
+        if isinstance(shape_name, str):
+            shape_name = shape_name.decode("utf-8")
         if shape_name is None:
             shape = multi_shape
         else:

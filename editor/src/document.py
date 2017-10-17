@@ -198,7 +198,10 @@ class Document(object):
             if not source_shape:
                 continue
             for linked_clone_element in linked_elem.findall("dest"):
-                linked_clone_name = linked_clone_element.text.split(".")
+                name_text = linked_clone_element.text
+                if isinstance(name_text, str):
+                    name_text = name_text.decode("utf-8")
+                linked_clone_name = name_text.split(".")
                 linked_shape = get_shape_at_hierarchy(self.main_multi_shape, linked_clone_name)
                 if not linked_shape:
                     continue
@@ -451,7 +454,6 @@ class DocMovie(object):
                        start_time=0, end_time=None, camera=None,
                        audio_only=False,):
         doc = Document(filename=src_filename)
-
         timelines = doc.main_multi_shape.timelines
         if not timelines:
             raise Exception("No timeline is found in {0}".format(filename))
@@ -470,6 +472,8 @@ class DocMovie(object):
         if end_time is None:
             end_time = time_line_obj.duration
         if camera:
+            if isinstance(camera, str):
+                camera = camera.decode("utf-8")
             if not doc.get_shape_by_name(camera):
                 camera = None
 
@@ -622,9 +626,13 @@ class VideoFrameMaker(object):
 
         if camera:
             camera.reverse_pre_draw(self.ctx, root_shape=multi_shape.parent_shape)
+            exclude_camera_list = [camera]
+        else:
+            exclude_camera_list = []
 
         pre_matrix = self.ctx.get_matrix()
         multi_shape.draw(self.ctx, drawing_size=self.drawing_size, fixed_border=True,
+            no_camera=False, exclude_camera_list=exclude_camera_list,
             root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
         self.ctx.restore()
