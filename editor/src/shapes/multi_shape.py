@@ -792,7 +792,7 @@ class MultiShape(Shape):
                 shape.pre_draw(ctx, root_shape=root_shape)
                 #shape.draw_path(ctx)
                 if isinstance(shape, CameraShape):
-                    shape.draw_image(ctx, fixed_border=fixed_border, drawing_size = drawing_size,
+                    shape.draw_image(ctx, fixed_border=fixed_border,
                                           exclude_camera_list=exclude_camera_list)
                 elif isinstance(shape, ThreeDShape):
                     shape.draw_image(ctx, root_shape=root_shape, pre_matrix=pre_matrix)
