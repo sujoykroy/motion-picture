@@ -178,7 +178,7 @@ class Shape(object):
             shape_path = shape_path.split("\\")
             shape_names = None
             for i in xrange(len(shape_path)):
-                if shape_path[i] is '':
+                if shape_path[i] == '':
                     shape = shape.parent_shape
                 else:
                     shape_names = shape_path[i].split(".")

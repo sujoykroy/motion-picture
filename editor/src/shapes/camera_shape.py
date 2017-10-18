@@ -36,6 +36,10 @@ class CameraShape(Shape):
         self.copy_into(newob, copy_name)
         return newob
 
+    def copy_data_from_linked(self, build_lock=True):
+        #dummy
+        pass
+
     def draw_image(self, ctx, fixed_border=True, exclude_camera_list=None):
         if self.linked_to:
             if exclude_camera_list:

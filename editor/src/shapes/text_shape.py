@@ -147,11 +147,20 @@ class TextShape(RectangleShape):
             return
         ctx.save()
 
-        layout, x, y = self.get_text_layout(ctx)
-        ctx.move_to(x, y)
+        text_surface = cairo.ImageSurface(
+            cairo.FORMAT_ARGB32, int(self.width), int(self.height))
+        text_ctx = cairo.Context(text_surface)
+
+
+        layout, x, y = self.get_text_layout(text_ctx)
+        text_ctx.move_to(x, y)
+
         text_rect = layout.get_pixel_extents()[0]
         if text_rect.width>0 and text_rect.height>0:
-            PangoCairo.show_layout(ctx, layout)
+            PangoCairo.show_layout(text_ctx, layout)
+
+        ctx.set_source_surface(text_surface)
+        ctx.paint()
         """@Debugging
         ctx.new_path()
         ctx.translate(x, y)
