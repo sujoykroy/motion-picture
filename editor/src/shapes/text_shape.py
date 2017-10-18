@@ -143,12 +143,16 @@ class TextShape(RectangleShape):
         return layout, x-text_left, y-text_top
 
     def draw_text(self, ctx):
+        if not self.display_text:
+            return
         ctx.save()
 
         layout, x, y = self.get_text_layout(ctx)
         ctx.move_to(x, y)
-        PangoCairo.show_layout(ctx, layout)
-        """
+        text_rect = layout.get_pixel_extents()[0]
+        if text_rect.width>0 and text_rect.height>0:
+            PangoCairo.show_layout(ctx, layout)
+        """@Debugging
         ctx.new_path()
         ctx.translate(x, y)
         ctx.rectangle(0,0,text_width, text_height)
@@ -188,7 +192,9 @@ class TextShape(RectangleShape):
         super(TextShape, self).set_prop_value(prop_name, value, prop_data)
 
     def set_text(self, text):
-        self.text = text.decode("utf-8")
+        if isinstance(text, str):
+            text = text.decode("utf-8")
+        self.text = text
         self.set_exposure(self.exposure)
         self.readjust_sizes()
 

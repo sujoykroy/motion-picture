@@ -750,6 +750,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                 value = -1
             elif event.direction == Gdk.ScrollDirection.DOWN:
                 value = 1.
+            else:
+                value = 0.
             value = self.drawing_area_vadjust.get_step_increment()*value
             value /= self.shape_manager.get_scale()
             value += self.drawing_area_vadjust.get_value()
