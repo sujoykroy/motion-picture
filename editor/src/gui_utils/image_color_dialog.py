@@ -69,7 +69,7 @@ class ImageColorDialog(Gtk.Dialog):
     def get_image_color(self):
         color = ImageColor(
                 filename = self.filename,
-                shape_name = self.shape_entry.get_text(),
+                shape_name = self.shape_entry.get_text().decode("utf-8"),
                 extend_type=self.extend_combo.get_value().lower(),
                 x=self.x_spin.get_value(), y=self.y_spin.get_value())
         color.set_owner_shape(self.color.owner_shape)

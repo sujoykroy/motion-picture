@@ -17,6 +17,8 @@ class TimeChangeType(object):
         return TimeChangeType()
 
     def value_at(self, start_value, end_value, t, duration):
+        if duration == 0:
+            return start_value
         if isinstance(start_value, list):
             value = []
             for i in range(len(start_value)):

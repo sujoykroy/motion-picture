@@ -47,7 +47,9 @@ class ShapeList(object):
             self.items.append(shape)
             self.names.append(shape_name)
         else:
-            raise Exception("Attempt to append duplicate shape[{0}] in list.".format(shape._name))
+            exception_text = "Attempt to append duplicate shape[{0}] in list.".format(shape._name)
+            print(exception_text)
+            #raise Exception(exception_text)
 
     def remove(self, shape):
         if type(shape) is str:

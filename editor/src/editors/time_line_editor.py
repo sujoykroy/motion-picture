@@ -1048,7 +1048,7 @@ class TimeLineEditorAudioBlock(object):
             t = numpy.linspace(start_at, end_at, frame_count, endpoint=False).astype("float")
             samples = self.editor.time_line.get_samples_at(t, read_doc_shape=True)
             if samples is None:
-                final_samples = numpy.zeros((frame_count, 2), dtype="float")
+                samples = numpy.zeros((frame_count, 2), dtype="float")
             if samples.shape[0]<frame_count:
                 blank_data = numpy.zeros((frame_count-samples.shape[0], samples.shape[1]))
                 blank_data = blank_data.astype("float")

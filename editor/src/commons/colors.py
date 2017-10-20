@@ -232,6 +232,8 @@ class ImageColor(object):
         pad=cairo.EXTEND_PAD)
 
     def __init__(self, filename="", shape_name="",extend_type="repeat", x=0, y=0):
+        if isinstance(shape_name, str):
+            shape_name = shape_name.decode("utf-8")
         self.filename = filename
         self.extend_type = extend_type
         self.shape_name = shape_name
@@ -251,7 +253,7 @@ class ImageColor(object):
         if self.shape_name and self.owner_shape:
             shape = self.owner_shape.get_interior_shape(self.shape_name)
             if shape:
-                self.surface = shape.get_surface(width=shape.width, height=shape.height)
+                self.surface = shape.get_surface(width=shape.width, height=shape.height, padding=0)
         else:
             if not self.surface and self.filename and os.path.isfile(self.filename):
                 self.surface = cairo.ImageSurface.create_from_png(self.filename)
