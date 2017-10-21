@@ -64,9 +64,9 @@ class CurveShape(Shape, Mirror):
         return point_group_shape
 
     def delete_point_group_shape(self, point_group_shape):
-        self.point_group_shapes.remove(point_group_shape)
         for curve_point in point_group_shape.curve_point_group.points.values():
             self.delete_curve_point(curve_point)
+        self.point_group_shapes.remove(point_group_shape)
         self.rebuild_curve_point_map()
         return True
 
