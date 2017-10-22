@@ -467,6 +467,8 @@ class CurveShape(Shape, Mirror):
 
     def get_curve_point_location(self, curve_point):
         point = curve_point.get_point(self.curves)
+        if not point:
+            return Point(0., 0.)
         point = point.copy()
         point.scale(self.width, self.height)
         return point
