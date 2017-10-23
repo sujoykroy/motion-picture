@@ -268,8 +268,10 @@ class ThreeDShapePropBox(RectangleShapePropBox):
         """
         self.add_prop("wire_color", PROP_TYPE_COLOR, None)
         self.add_prop("wire_width", PROP_TYPE_NUMBER_ENTRY,
-                dict(value=0, lower=0, upper=1000, step_increment=.1))
+                dict(value=0, lower=-1, upper=1000, step_increment=.1))
         self.add_prop("high_quality", PROP_TYPE_CHECK_BUTTON, None)
+        self.add_prop("hit_alpha", PROP_TYPE_NUMBER_ENTRY,
+                dict(value=0, lower=0, upper=255, step_increment=1))
         self.add_prop("filepath", PROP_TYPE_FILE, dict(file_type=[["Collada", "*.dae"]]))
         self.add_prop("item_names", PROP_TYPE_TEXT)
         self.orig_insert_time_slice_callback = insert_time_slice_callback

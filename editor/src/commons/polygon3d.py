@@ -122,14 +122,13 @@ class Polygon3d(Object3d):
             ctx.line_to(projected_values[0][0], projected_values[0][1])
 
 
-    def draw(self, ctx, camera, border_color=-1, border_width=-1):
-        if border_color == -1:
+    def draw(self, ctx, camera, border_color=None, border_width=-1):
+        if not border_color:
             border_color = self.border_color
             parent = self.parent
             while border_color is None and parent is not None:
                 border_color = parent.border_color
                 parent = parent.parent
-
         if border_width == -1:
             border_width = self.border_width
             parent = self.parent

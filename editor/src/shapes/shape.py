@@ -702,6 +702,8 @@ class Shape(object):
             self.border_color = None
         elif isinstance(self.border_color, Color) and isinstance(color, Color):
             self.border_color.copy_from(color)
+        elif isinstance(self.border_color, Color) and isinstance(color, list):
+            self.border_color.set_rgba(*color)
         else:
             self.border_color = color
 
@@ -1117,7 +1119,7 @@ class Shape(object):
             self.draw_fill(ctx)
             ctx.restore()
 
-    def storke_shape_area(self, ctx, root_shape=None, fixed_border=True):
+    def stroke_shape_area(self, ctx, root_shape=None, fixed_border=True):
         if self.border_color is not None:
             ctx.save()
             self.pre_draw(ctx, root_shape=root_shape)

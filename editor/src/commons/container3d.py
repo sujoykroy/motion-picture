@@ -9,9 +9,20 @@ from texture_map_color import *
 import os, numpy, cairo
 import collada
 from xml.etree.ElementTree import Element as XmlElement
+import time
 
 class Container3d(Object3d):
     TAG_NAME = "container3d"
+
+    ITEM_NAME_SEED = 0
+    _APP_EPOCH_TIME = time.mktime(time.strptime("1 Jan 2016", "%d %b %Y"))
+
+    @staticmethod
+    def get_new_item_name():
+        Container3d.ITEM_NAME_SEED += 1
+        elapsed_time = round(time.time()-Container3d._APP_EPOCH_TIME, 3)
+        return "{0}_{1}".format(elapsed_time, Container3d.ITEM_NAME_SEED).replace(".", "")
+
 
     def __init__(self):
         super(Container3d, self).__init__()
@@ -76,6 +87,8 @@ class Container3d(Object3d):
         del self.item_names[:]
 
     def append(self, item, name=None):
+        if name is None:
+            name = Container3d.get_new_item_name()
         self.items.append(item)
         self.item_names.append(name)
         item.parent = self

@@ -19,6 +19,7 @@ class Camera3d(Object3d):
         self.viewer = Point3d.create_if_needed(viewer)
         self.sorted_items = []
         self.mat_params = None
+        self.hit_alpha = 0
 
     def project_point_values(self, point_values):
         point_values = self.forward_transform_point_values(point_values)
@@ -74,7 +75,8 @@ class Camera3d(Object3d):
         top = math.floor(top)
         width = int(width)
         height = int(height)
-        border_width = max(border_width*scale, 1)
+        if border_width>0:
+            border_width = max(border_width*scale, 1)
         min_depth = -100000
 
         canvas_width = int(width*scale)
@@ -86,8 +88,13 @@ class Camera3d(Object3d):
         canvas_z_depths =numpy.repeat(min_depth, pixel_count)
         canvas_z_depths = canvas_z_depths.astype("f").reshape(canvas_height, canvas_width)
 
-        pad = border_width*4
+        obj_pad = max(border_width*4, 0)
         for object_3d in self.sorted_items:
+            if object_3d.border_width:
+                pad = max(obj_pad, object_3d.border_width*2)
+            else:
+                pad = obj_pad
+
             brect = object_3d.bounding_rect[self]
             bleft, btop = int(math.ceil(brect[0][0])), int(math.ceil(brect[0][1]))
             bright, bbottom = int(math.ceil(brect[1][0])), int(math.ceil(brect[1][1]))
@@ -152,7 +159,7 @@ class Camera3d(Object3d):
             object_3d.draw(poly_ctx, self, border_color=border_color, border_width=border_width)
 
             surfacearray = surface2array(poly_surf)
-            area_cond = (surfacearray[:, :, 3]<255)
+            area_cond = (surfacearray[:, :, 3]<=self.hit_alpha)
 
             xs = numpy.linspace(sleft, sright, poly_canvas_width)
             xcount = len(xs)
@@ -281,7 +288,7 @@ class Camera3d(Object3d):
             surface_grid.shape = (3, ycount*xcount)
             del xs, ys
 
-            hit_area_cond = (surfacearray[:, :, 3]>250)
+            hit_area_cond = (surfacearray[:, :, 3]>self.hit_alpha)
             hit_area_cond.shape = (ycount*xcount,)
 
             canvas_poly_coords = surface_grid[:, hit_area_cond]

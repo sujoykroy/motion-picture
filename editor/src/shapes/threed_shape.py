@@ -25,6 +25,7 @@ class ThreeDShape(RectangleShape):
         self.high_quality = False
         self.image_hash = None
         self.quality_scale = .25
+        self.camera.hit_alpha = 0
         self.item_names = None
 
     def copy(self, copy_name=False, deep_copy=False):
@@ -33,6 +34,7 @@ class ThreeDShape(RectangleShape):
                         self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
         newob.camera.rotation.copy_from(self.camera.rotation)
+        newob.camera.hit_alpha= self.camera.hit_alpha
         newob.wire_color = copy_value(self.wire_color)
         newob.wire_width = self.wire_width
         newob.high_quality = self.high_quality
@@ -60,6 +62,7 @@ class ThreeDShape(RectangleShape):
             newob.wire_width = self.wire_width
             newob.high_quality = self.high_quality
             newob.quality_scale = self.quality_scale
+            newob.camera.hit_alpha = self.camera.hit_alpha
             newob.d3_object = d3_object
             newob.d3_object.set_border_color(self.wire_color)
             newob.d3_object.set_border_width(self.wire_width)
@@ -79,6 +82,7 @@ class ThreeDShape(RectangleShape):
         elm.attrib["wire_width"] = "{0}".format(self.wire_width)
         elm.attrib["high_quality"] = "{0}".format(int(self.high_quality))
         elm.attrib["quality_scale"] = "{0}".format(self.quality_scale)
+        elm.attrib["hit_alpha"] = "{0}".format(self.camera.hit_alpha)
         elm.append(self.d3_object.get_xml_element(exclude_border_fill=True))
         if self.item_names:
             elm.attrib["item_names"] = "{0}".format(self.item_names)
@@ -94,6 +98,7 @@ class ThreeDShape(RectangleShape):
         shape.high_quality = bool(int(elm.attrib["high_quality"]))
         shape.set_quality_scale(float(elm.attrib.get("quality_scale", shape.quality_scale)))
         shape.item_names = elm.attrib.get("item_names")
+        shape.camera.hit_alpha = int(float(elm.attrib.get("hit_alpha", shape.camera.hit_alpha)))
 
         container3d_elm = elm.find(Container3d.TAG_NAME)
         if container3d_elm and not shape.d3_object.items:
@@ -101,6 +106,13 @@ class ThreeDShape(RectangleShape):
             shape.d3_object.set_border_color(shape.wire_color)
             shape.d3_object.set_border_width(shape.wire_width)
         return shape
+
+    def set_hit_alpha(self, value):
+        self.camera.hit_alpha = int(value)
+        self.should_rebuild_camera = True
+
+    def get_hit_alpha(self):
+        return self.camera.hit_alpha
 
     def get_object_scale(self):
         return self.d3_object.scale.get_average()

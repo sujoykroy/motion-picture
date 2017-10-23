@@ -91,7 +91,7 @@ class CustomShape(RectangleShape):
                 self.drawer.draw(custom_ctx, self.anchor_at.copy(), self.width, self.height, self)
             except BaseException as error:
                 print('An exception occurred: {}'.format(error))
-
+            custom_ctx = None
             if use_custom_surface:
                 orig_mat = ctx.get_matrix()
                 ctx.set_matrix(cairo.Matrix())
@@ -100,9 +100,9 @@ class CustomShape(RectangleShape):
 
                 ctx.save()
                 self.pre_draw(ctx, root_shape=root_shape)
-                self.draw_path(ctx)
+                draw_rounded_rectangle(ctx, 0, 0, self.width, self.height, self.corner_radius)
                 ctx.clip()
                 ctx.paint()
                 ctx.restore()
         ctx.restore()
-        self.storke_shape_area(ctx, fixed_border=fixed_border, root_shape=root_shape)
+        self.stroke_shape_area(ctx, fixed_border=fixed_border, root_shape=root_shape)

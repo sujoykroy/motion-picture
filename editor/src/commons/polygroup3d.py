@@ -96,6 +96,7 @@ class PolyGroup3d(Object3d):
             polygon.border_color = None
             polygon.border_width = None
             polygon.fill_color = None
+        return polygon
 
     def copy(self):
         points = []
