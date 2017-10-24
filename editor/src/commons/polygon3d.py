@@ -31,6 +31,7 @@ class Polygon3d(Object3d):
         self.plane_params = dict()
         self.bounding_rect = dict()
         self.plane_params_normalized = dict()
+        self.plane_normals = dict()
         if not temporary:
             Polygon3d.Items.append(self)
 
@@ -90,11 +91,14 @@ class Polygon3d(Object3d):
             self.plane_params_normalized[camera] = numpy.array([
                 -abc[0]/abc[2], -abc[1]/abc[2], -d/abc[2]
             ])
+            self.plane_normals[camera] = abc/numpy.linalg.norm(abc)
+
         else:
             self.plane_params[camera] = None
             self.plane_params_normalized[camera] = numpy.array([
                 0, 0, 0
             ])
+            self.plane_normals[camera] = numpy.zeros(3)
 
         camera_point_values = camera.viewer_point_values(camera_point_values)
         self.bounding_rect[camera] = [

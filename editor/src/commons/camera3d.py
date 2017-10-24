@@ -1,5 +1,6 @@
 import numpy, cairo, math
 
+
 from object3d import Object3d
 from point3d import Point3d
 from polygon3d import Polygon3d
@@ -49,6 +50,8 @@ class Camera3d(Object3d):
             polygons.extend(Polygon3d.Items)
         else:
             for item in items:
+                if not hasattr(item, "polygons"):
+                    continue
                 polygons.extend(item.polygons)
         self.sorted_items = sorted(polygons, self.z_depth_sort_key)
 
@@ -224,6 +227,7 @@ class Camera3d(Object3d):
         return canvas
 
     def get_image_canvas_high_quality(self,
+            container,
             canvas_width, canvas_height, premat,
             left, top, width, height,
             border_color=None, border_width=None):
@@ -239,6 +243,18 @@ class Camera3d(Object3d):
 
         canvas_z_depths = numpy.zeros(canvas_surf_array.shape[:2], dtype="f")
         canvas_z_depths.fill(min_depth)
+
+        canvas_normals = numpy.zeros(
+            (canvas_surf_array.shape[0],
+             canvas_surf_array.shape[1],
+             3), dtype="f")
+        canvas_normals.fill(0)
+
+        canvas_points = numpy.zeros(
+            (canvas_surf_array.shape[0],
+             canvas_surf_array.shape[1],
+             3), dtype="f")
+        canvas_points.fill(0)
 
         invert = cairo.Matrix().multiply(premat)
         invert.invert()
@@ -305,7 +321,12 @@ class Camera3d(Object3d):
 
             coords_depths = numpy.matmul(object_3d.plane_params_normalized[self],
                 numpy.concatenate((coords, [numpy.ones(coords.shape[1])]), axis=0))
+
+            surface_points = numpy.concatenate((coords, [coords_depths]), axis=0).T
             del coords
+
+            canvas_points[poly_coor_y, poly_coor_x, :] = surface_points
+            canvas_normals[poly_coor_y, poly_coor_x, :] = object_3d.plane_normals[self].copy()
 
             pre_depths = canvas_z_depths[poly_coor_y, poly_coor_x]
             depths_cond = pre_depths<coords_depths
@@ -331,8 +352,34 @@ class Camera3d(Object3d):
 
             del poly_coor_x, poly_coor_y
 
+        lights = container.get_lights()
+        lights = sorted(lights, self.z_depth_sort_key)
+        for light in lights:
+            depths_cond = ((canvas_z_depths<light.z_depths[self]) & (canvas_z_depths>min_depth))
+
+            light_vectors = light.rel_location_values[self][0][:3]-canvas_points[depths_cond, :]
+            if len(light_vectors)==0:
+                continue
+            surface_normals = canvas_normals[depths_cond, :]
+
+            norm = numpy.linalg.norm(light_vectors, axis=1)
+            norm = numpy.repeat(norm, 3)
+            norm.shape = (-1,3)
+            light_vectors = light_vectors/norm
+
+            cosines = numpy.sum(light_vectors*surface_normals, axis=1)
+            cosines = numpy.abs(cosines)
+
+            cosines_multi = numpy.repeat(cosines, 4)
+            cosines_multi.shape = (cosines.shape[0],4)
+
+            colors = numpy.repeat([light.color.to_255()], len(light_vectors), axis=0)
+            pre_colors = canvas_surf_array[depths_cond, :].copy()
+            canvas_surf_array[depths_cond, :] = (pre_colors*(1-cosines_multi) + \
+                colors*cosines_multi).astype(numpy.uint8)
+
         canvas = cairo.ImageSurface.create_for_data(
-                numpy.getbuffer(canvas_surf_array), cairo.FORMAT_ARGB32, canvas_width, canvas_height)
+               numpy.getbuffer(canvas_surf_array), cairo.FORMAT_ARGB32, canvas_width, canvas_height)
         return canvas
 
     def draw_objects(self, ctx, left, top, width, height):

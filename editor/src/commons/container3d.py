@@ -1,5 +1,6 @@
 from object3d import Object3d
 from polygon3d import Polygon3d
+from light3d import Light3d
 from polygroup3d import PolyGroup3d
 from texture_map_color import TextureMapColor
 
@@ -92,6 +93,13 @@ class Container3d(Object3d):
         self.items.append(item)
         self.item_names.append(name)
         item.parent = self
+
+    def get_lights(self):
+        lights = []
+        for item in self.items:
+            if isinstance(item, Light3d):
+                lights.append(item)
+        return lights
 
     def remove(self, item):
         index = self.items.index(item)

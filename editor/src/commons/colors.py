@@ -15,6 +15,9 @@ class Color(object):
     def to_array(self):
         return list(self.values)
 
+    def to_255(self):
+        return (self.values*255).astype(numpy.uint8)
+
     def get_gl_array_value(self):
         if not self.values.flags['C_CONTIGUOUS']:
             self.values = numpy.ascontiquousarray(self.values)
@@ -49,7 +52,11 @@ class Color(object):
     @classmethod
     def from_text(cls, text):
         if text is None or text == "None": return None
-        r, g, b, a = text.split(",")
+        arr = text.split(",")
+        if len(arr) == 1:
+            return Color.from_html(text)
+        else:
+            r, g, b, a = arr
         return cls(float(r), float(g), float(b), float(a))
 
     @classmethod

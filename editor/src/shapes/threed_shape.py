@@ -250,6 +250,7 @@ class ThreeDShape(RectangleShape):
             del blank_surface
 
             self.image_canvas = self.camera.get_image_canvas_high_quality(
+                self.d3_object,
                 rect.width, rect.height,
                 premat,
                 -self.anchor_at.x, -self.anchor_at.y,#what happens to y?
