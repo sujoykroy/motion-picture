@@ -615,7 +615,7 @@ class MasterEditor(Gtk.ApplicationWindow):
     def update_shape_manager(self):
         self.shape_manager.update()
         self.pre_draw_on_surface()
-        self.redraw(use_thread=False)
+        GLib.idle_add(self.redraw, False)
 
     def recreate_shape_editor(self):
         if self.shape_manager.shape_editor:
@@ -852,7 +852,7 @@ class DrawerThread(threading.Thread):
                 pass
             if draw:
                 self.editor.pre_draw_on_surface()
-                self.editor.redraw(use_thread=False)
+                GLib.idle_add(self.editor.redraw, False)
             time.sleep(.05)
 
     def close(self):
