@@ -268,14 +268,11 @@ class Document(object):
         return shape
 
     @staticmethod
-    def make_movie(doc_movie, speed=1, sleep=0, fps=24, wh=None,
+    def make_movie(doc_movie, sleep=0, fps=24, wh=None,
                    ffmpeg_params=FFMPEG_PARAMS, bitrate=BIT_RATE,
                    codec=CODEC, audio=True, dry=False):
-
-        speed = float(speed)
         doc_movie.load_doc()
-        doc_movie.calculate_movie_duration(speed)
-        frame_maker = VideoFrameMaker(doc_movie, wh=wh, speed=speed, sleep=sleep)
+        frame_maker = VideoFrameMaker(doc_movie, wh=wh, sleep=sleep)
         video_clip = movie_editor.VideoClip(
                 frame_maker.make_frame,
                 duration=doc_movie.movie_duration
@@ -285,7 +282,6 @@ class Document(object):
             ffmpeg_params = ffmpeg_params.split(" ")
         if audio:
             audio_clip = doc_movie.get_audio_frame_maker()
-            #audio_clip = audio_clip.set_fps(fps)
             video_clip = video_clip.set_audio(audio_clip)
         if dry:
             return
@@ -343,14 +339,15 @@ class Document(object):
                 sub_filename = "{0}.{1}{2}".format(filename_pre, i, file_extension)
                 sub_filenames.append(sub_filename)
                 end_time = min(start_time+duration_steps, doc_movie.end_time)
-                clip_durations.append(end_time-start_time)
+                clip_durations.append((end_time-start_time)/doc_movie.speed)
                 args = [
                     ("src_filename", doc_movie.src_filename,
                     "dest_filename", sub_filename,
                     "time_line", doc_movie.time_line_name,
                     "start_time", start_time,
                     "end_time", end_time,
-                    "camera", doc_movie.camera_name)
+                    "camera", doc_movie.camera_name,
+                    "speed", doc_movie.speed)
                 ]
                 for key, value in kwargs.items():
                     args.extend([key, value])
@@ -361,7 +358,6 @@ class Document(object):
             result = pool.map_async(make_movie_processed, args_list)
             pool.close()
             result.get(timeout=60*60*24)
-
             clips = []
             for i in xrange(len(sub_filenames)):
                 clip=movie_editor.VideoFileClip(sub_filenames[i])
@@ -452,7 +448,7 @@ class DocModule(MultiShapeModule):
 class DocMovie(object):
     def __init__(self, src_filename, dest_filename, time_line=None,
                        start_time=0, end_time=None, camera=None,
-                       audio_only=False,):
+                       audio_only=False, speed=1):
         doc = Document(filename=src_filename)
         timelines = doc.main_multi_shape.timelines
         if not timelines:
@@ -485,18 +481,12 @@ class DocMovie(object):
         self.end_time = end_time
         self.camera_name = camera
         self.duration = self.end_time-self.start_time
-        self.movie_offset = 0
-        self.movie_duration = 0
         self.doc = None
         self.camera = None
         self.time_line = None
         self.audio_only = audio_only
-
-    def set_movie_offset(self, offset):
-        self.movie_offset = offset
-
-    def calculate_movie_duration(self, speed):
-        self.movie_duration = self.duration/speed
+        self.speed = speed
+        self.movie_duration = self.duration/self.speed
 
     def load_doc(self):
         if not self.doc:
@@ -521,6 +511,7 @@ class DocMovie(object):
         camera=None
         audio_only = False
         dest_filename = filename + ".video"
+        speed=1
         for i in range(len(params)):
             param = params[i]
             arr = param.split("=")
@@ -540,8 +531,11 @@ class DocMovie(object):
                 dest_filename = param_value
             elif param_name == "audio_only":
                 audio_only = (param_value == "True")
+            elif param_name == "speed":
+                speed = Text.parse_number(param_value, 1)
+
         return cls(src_filename=filename, dest_filename=dest_filename,
-                   time_line=time_line, audio_only=audio_only,
+                   time_line=time_line, audio_only=audio_only, speed=speed,
                    start_time=start_time, end_time=end_time, camera=camera)
 
 class AudioFrameMaker(movie_editor.AudioClip):
@@ -553,7 +547,7 @@ class AudioFrameMaker(movie_editor.AudioClip):
         movie_editor.AudioClip.__init__(self, make_frame=None, duration=self.doc_movie.duration)
 
     def make_frame(self, t):
-        t = t + self.doc_movie.start_time
+        t = t*self.doc_movie.speed + self.doc_movie.start_time
         samples = self.time_line.get_samples_at(t, read_doc_shape=True)
         if not isinstance(t, numpy.ndarray):
             t = numpy.array([t])
@@ -566,10 +560,9 @@ class AudioFrameMaker(movie_editor.AudioClip):
 
 
 class VideoFrameMaker(object):
-    def __init__(self, doc_movie, wh=None, speed=1, bg_color="FFFFFF", sleep=0):
+    def __init__(self, doc_movie, wh=None, bg_color="FFFFFF", sleep=0):
         self.doc_movie = doc_movie
         self.sleep= sleep
-        self.speed = float(speed)
         self.bg_color = bg_color
 
         if wh:
@@ -593,7 +586,7 @@ class VideoFrameMaker(object):
     def make_frame(self, t):
         if self.sleep:
             time.sleep(self.sleep)
-        self.doc_movie.time_line.move_to(t*self.speed+self.doc_movie.start_time)
+        self.doc_movie.time_line.move_to(t*self.doc_movie.speed+self.doc_movie.start_time)
 
         if self.bg_color:
             self.ctx.rectangle(0, 0, self.width, self.height)
