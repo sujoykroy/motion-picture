@@ -373,7 +373,18 @@ class Camera3d(Object3d):
             cosines_multi = numpy.repeat(cosines, 4)
             cosines_multi.shape = (cosines.shape[0],4)
 
-            colors = numpy.repeat([light.color.to_255()], len(light_vectors), axis=0)
+            if hasattr(light, "normal"):
+                cosines = numpy.sum(-light_vectors*light.normal.values[:3], axis=1)
+                cosines = numpy.abs(cosines)
+                damp = numpy.exp(-light.decay*(numpy.abs(cosines-light.cone_cosine)))
+                cosines = numpy.where(cosines<light.cone_cosine, damp, 1)
+                colors = numpy.repeat([light.color.to_255()], len(light_vectors), axis=0)
+                colors.shape = (-1, 4)
+                colors[:,3] = colors[:,3]*cosines
+
+            else:
+                colors = numpy.repeat([light.color.to_255()], len(light_vectors), axis=0)
+
             pre_colors = canvas_surf_array[depths_cond, :].copy()
             canvas_surf_array[depths_cond, :] = (pre_colors*(1-cosines_multi) + \
                 colors*cosines_multi).astype(numpy.uint8)

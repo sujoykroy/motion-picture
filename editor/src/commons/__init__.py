@@ -19,7 +19,7 @@ from camera3d import Camera3d
 from texture_map_color import TextureResources
 from texture_map_color import TextureMapColor
 from container3d import Container3d
-from light3d import Light3d, PointLight3d
+from light3d import Light3d, PointLight3d, DirectionalLight3d
 
 from audio_message import AudioMessage
 from wave_file_writer import WaveFileWriter

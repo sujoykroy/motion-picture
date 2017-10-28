@@ -1,4 +1,5 @@
 from object3d import Object3d
+from point3d import Point3d
 import numpy
 from xml.etree.ElementTree import Element as XmlElement
 
@@ -27,3 +28,16 @@ class PointLight3d(Light3d):
         elm = XmlElement(self.TAG_NAME)
         return elm
 
+class DirectionalLight3d(PointLight3d):
+    TAG_NAME = "dir_light"
+
+    def __init__(self, location, color, normal, cone_cosine=.86, decay=1./25):
+        super(DirectionalLight3d, self).__init__(location, color)
+        values = normal.values[:3]/numpy.linalg.norm(normal.values[:3])
+        self.normal = Point3d.create_if_needed(values)
+        self.cone_cosine = cone_cosine
+        self.decay = decay
+
+    def set_normal(self, normal):
+        values = normal.values[:3]/numpy.linalg.norm(normal.values[:3])
+        self.normal = Point3d.create_if_needed(values)
