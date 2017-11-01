@@ -33,6 +33,7 @@ class Document(object):
     PRESET = "superslow"
 
     def __init__(self, filename=None, width=400., height=300.):
+        Settings.Directory.add_new(filename)
         self.filename = Settings.Directory.get_full_path(filename)
         self.width = width
         self.height = height
@@ -50,7 +51,6 @@ class Document(object):
         self.main_multi_shape.border_width = 0
         self.id_num = Document.IdSeed
         Document.IdSeed += 1
-        Settings.Directory.add_new(filename)
 
     def __eq__(self, other):
         return isinstance(other, Document) and other.id_num == self.id_num
@@ -425,6 +425,16 @@ class Document(object):
         del Document.LoadedFiles[filename]
         doc.main_multi_shape.cleanup()
         del doc
+
+    @staticmethod
+    def save_as_image(doc_filename, time_line, at, image_filename):
+        doc = Document(doc_filename)
+        time_line = doc.main_multi_shape.timelines.get("time_line")
+        if time_line:
+            time_line.move_to(at)
+        pixbuf = doc.get_pixbuf(doc.width, doc.height)
+        pixbuf.savev(image_filename, "png", [], [])
+        doc.main_multi_shape.cleanup()
 
 def make_movie_processed(args):
     params = Document.list2dict(args[1:])
