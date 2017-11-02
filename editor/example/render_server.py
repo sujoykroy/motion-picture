@@ -6,13 +6,30 @@ import tarfile
 import shutil
 from MotionPicture import *
 import imp
+import argparse
+import getpass
 
-username = "sujoy"
-passwd = "papluroy1980"
-base_url = "http://127.0.0.1:8000"
-project_name = 'sample'
-workbase_path = "/home/sujoy/Temporary"
-process_count = 2
+parser = argparse.ArgumentParser(description="Render MotionPicture video segment from remote.")
+parser.add_argument("--time-line", nargs="?", default="main",
+                    dest="time_line", help="Name of time line")
+parser.add_argument("--addr", required=True,
+                    dest="base_url", help="URL of rendering server")
+parser.add_argument("--user", required=True,
+                    help="Username to login to server")
+parser.add_argument("--project", required=True, help="Project name")
+parser.add_argument("--workspace", required=True, help="Local directory to save project data")
+parser.add_argument("--process", nargs="?", default=1, type=int,
+                    help="Number of process to spawn")
+args = parser.parse_args()
+
+username = args.user
+passwd = getpass.getpass("[{0}]'s password:".format(args.user))
+
+base_url = args.base_url
+project_name = args.project
+workbase_path = args.workspace
+process_count = args.process
+
 
 def write_json_to_file(filepath, data):
     f = open(filepath, "w")
@@ -153,3 +170,5 @@ if jr["result"] == "success":
                         active_segment["start_time"], active_segment["end_time"], active_segment["id"]))
                 active_segment = None
         #end while
+    else:
+        print("No project with name [{0}] is found.".format(project_name))
