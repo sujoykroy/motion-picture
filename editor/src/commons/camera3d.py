@@ -1,10 +1,11 @@
 import numpy, cairo, math
-
+from scipy import ndimage
 
 from object3d import Object3d
 from point3d import Point3d
 from polygon3d import Polygon3d
 from draw_utils import *
+from colors import hsv_to_rgb, rgb_to_hsv
 
 def surface2array(surface):
     data = surface.get_data()
@@ -21,6 +22,8 @@ class Camera3d(Object3d):
         self.sorted_items = []
         self.mat_params = None
         self.hit_alpha = 0
+        self.convolve_kernel = 0
+        self.hsv_coef = None
 
     def project_point_values(self, point_values):
         point_values = self.forward_transform_point_values(point_values)
@@ -262,6 +265,8 @@ class Camera3d(Object3d):
         numpy_pre_invert_mat = numpy.array([[xx, xy, x0], [yx, yy, y0]])
 
         span_y = max(-top, top+height)
+        lights = container.get_lights()
+        lights = sorted(lights, self.z_depth_sort_key)
 
         for object_3d in self.sorted_items:
             brect = object_3d.bounding_rect[self]
@@ -344,6 +349,39 @@ class Camera3d(Object3d):
             picked_surface = surfacearray[poly_coor_y, poly_coor_x]
             picked_surface.shape = (-1, 4)
 
+            for light in lights:
+                light_depths_cond = ((coords_depths<light.z_depths[self]) & (coords_depths>min_depth))
+
+                light_vectors = light.rel_location_values[self][0][:3]-surface_points[light_depths_cond, :]
+                if len(light_vectors)==0:
+                    continue
+                surface_normals = object_3d.plane_normals[self]
+
+                norm = numpy.linalg.norm(light_vectors, axis=1)
+                norm = numpy.repeat(norm, 3)
+                norm.shape = (-1,3)
+                light_vectors = light_vectors/norm
+
+                cosines = numpy.sum(light_vectors*surface_normals, axis=1)
+                cosines = numpy.abs(cosines)
+
+                cosines_multi = numpy.repeat(cosines, 4)
+                cosines_multi.shape = (cosines.shape[0],4)
+
+                if hasattr(light, "normal"):
+                    cosines = numpy.sum(-light_vectors*light.normal.values[:3], axis=1)
+                    cosines = numpy.abs(cosines)
+                    damp = numpy.exp(-light.decay*(numpy.abs(cosines-light.cone_cosine)))
+                    colors = numpy.repeat([light.color.to_255()], len(light_vectors), axis=0)
+                    colors.shape = (-1, 4)
+                    colors[:,3] = colors[:,3]*cosines
+                else:
+                    colors = numpy.repeat([light.color.to_255()], len(light_vectors), axis=0)
+
+                pre_surf_colors = picked_surface[light_depths_cond, :].copy()
+                picked_surface[light_depths_cond, :] = (pre_surf_colors*(1-cosines_multi) + \
+                    colors*cosines_multi).astype(numpy.uint8)
+
             new_colors = numpy.where(depths_cond_multi, picked_surface, pre_colors)
             new_colors.shape = (-1, 4)
             del depths_cond_multi, pre_colors, picked_surface
@@ -352,8 +390,21 @@ class Camera3d(Object3d):
 
             del poly_coor_x, poly_coor_y
 
-        lights = container.get_lights()
-        lights = sorted(lights, self.z_depth_sort_key)
+        if self.convolve_kernel:
+            n=self.convolve_kernel
+            kernel = numpy.ones(n*n).reshape(n,n)*1./(n*n)
+            for i in xrange(4):
+                canvas_surf_array[:,:,i] = ndimage.convolve(
+                    canvas_surf_array[:,:,i], kernel, mode="constant")
+
+        if self.hsv_coef:
+            hsv = rgb_to_hsv(canvas_surf_array[:,:,:3].copy())
+            hsv[:, :, 0] = (hsv[:, :,0]*self.hsv_coef[0])
+            hsv[:, :, 1] = (hsv[:, :,1]*self.hsv_coef[1])
+            hsv[:, :, 2] = (hsv[:, :,2]*self.hsv_coef[2])
+            canvas_surf_array[:, :, :3] = hsv_to_rgb(hsv)
+
+        """
         for light in lights:
             depths_cond = ((canvas_z_depths<light.z_depths[self]) & (canvas_z_depths>min_depth))
 
@@ -388,7 +439,7 @@ class Camera3d(Object3d):
             pre_colors = canvas_surf_array[depths_cond, :].copy()
             canvas_surf_array[depths_cond, :] = (pre_colors*(1-cosines_multi) + \
                 colors*cosines_multi).astype(numpy.uint8)
-
+        """
         canvas = cairo.ImageSurface.create_for_data(
                numpy.getbuffer(canvas_surf_array), cairo.FORMAT_ARGB32, canvas_width, canvas_height)
         return canvas

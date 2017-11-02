@@ -427,12 +427,16 @@ class Document(object):
         del doc
 
     @staticmethod
-    def save_as_image(doc_filename, time_line, at, image_filename):
+    def save_as_image(doc_filename, time_line, at, image_filename, width=None, height=None):
         doc = Document(doc_filename)
-        time_line = doc.main_multi_shape.timelines.get("time_line")
+        time_line = doc.main_multi_shape.timelines.get(time_line)
         if time_line:
             time_line.move_to(at)
-        pixbuf = doc.get_pixbuf(doc.width, doc.height)
+        if width is None:
+            width = doc.width
+        if height is None:
+            height = doc.height
+        pixbuf = doc.get_pixbuf(width, height)
         pixbuf.savev(image_filename, "png", [], [])
         doc.main_multi_shape.cleanup()
 

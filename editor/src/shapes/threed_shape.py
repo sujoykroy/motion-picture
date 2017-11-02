@@ -343,6 +343,9 @@ class ThreeDShape(RectangleShape):
                 ctx.set_matrix(cairo.Matrix())
             rect = self.get_abs_reverse_outline(0, 0, self.width, self.height, root_shape=root_shape)
             ctx.translate(rect.left, rect.top)
+            ctx.scale(
+                ctx.get_target().get_width()*1./self.image_canvas.get_width(),
+                ctx.get_target().get_height()*1./self.image_canvas.get_height())
             ctx.set_source_surface(self.image_canvas)
             ctx.set_matrix(mat)
             self.draw_path(ctx)

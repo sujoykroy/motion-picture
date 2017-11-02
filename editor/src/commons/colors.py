@@ -307,3 +307,79 @@ def color_copy(color):
     if color is None:
         return None
     return color.copy()
+
+def rgb_to_hsv(rgb):
+    rgb = rgb/255.
+    orig_shape = tuple(rgb.shape)
+    rgb.shape = (-1,3)
+
+    maxc = numpy.amax(rgb, axis=1)
+    minc = numpy.amin(rgb, axis=1)
+    mmc = (maxc == minc)
+
+    r = rgb[:, 0]
+    g = rgb[:, 1]
+    b = rgb[:, 2]
+
+    v = maxc
+
+    s = (maxc-minc) / maxc
+    s = numpy.where(mmc, 0, s)
+
+    rc = (maxc-r) / (maxc-minc)
+    gc = (maxc-g) / (maxc-minc)
+    bc = (maxc-b) / (maxc-minc)
+
+    h = 4.0+gc-rc
+    h = numpy.where(r==maxc, bc-gc, h)
+    h = numpy.where(g==maxc, 2.0+rc-bc, h)
+    h = numpy.mod((h/6.0), 1.0)
+    h = numpy.where(mmc, 0, h)
+
+    hsv = numpy.array([h,s,v]).T
+    hsv.shape = orig_shape
+    return hsv
+
+def hsv_to_rgb(hsv):
+    orig_shape = tuple(hsv.shape)
+    hsv.shape = (-1, 3)
+
+    h = numpy.clip(hsv[:, 0],0,1)
+    s = numpy.clip(hsv[:, 1],0,1)
+    v = numpy.clip(hsv[:, 2],0,1)
+    s_zeros = (s==0.0)
+
+    i = (h*6.0).astype(numpy.int) # XXX assume int() truncates!
+    f = (h*6.0) - i
+    p = v*(1.0 - s)
+    q = v*(1.0 - s*f)
+    t = v*(1.0 - s*(1.0-f))
+    i = numpy.mod(i, 6)
+
+    r = v.copy()
+    r = numpy.where(i==1, q, r)
+    r = numpy.where(i==2, p, r)
+    r = numpy.where(i==3, p, r)
+    r = numpy.where(i==4, t, r)
+    r = numpy.where(i==5, v, r)
+    r = numpy.where(s_zeros, v, r)
+
+    g = t.copy()
+    g = numpy.where(i==1, v, g)
+    g = numpy.where(i==2, v, g)
+    g = numpy.where(i==3, q, g)
+    g = numpy.where(i==4, p, g)
+    g = numpy.where(i==5, p, g)
+    g = numpy.where(s_zeros, v, g)
+
+    b = p.copy()
+    b = numpy.where(i==1, p, b)
+    b = numpy.where(i==2, t, b)
+    b = numpy.where(i==3, v, b)
+    b = numpy.where(i==4, v, b)
+    b = numpy.where(i==5, q, b)
+    b = numpy.where(s_zeros, v, b)
+
+    rgb = (numpy.array([r,g,b])*255).T.astype(numpy.uint8)
+    rgb.shape = orig_shape
+    return rgb
