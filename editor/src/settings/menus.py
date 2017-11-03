@@ -179,6 +179,8 @@ m.add(path="Edit/Preferences/Show Point Groups", icon="show_point_groups",
       action_name="win.show_point_groups", action_state=True, icon_scale=1.2)
 m.add(path="Edit/Preferences/Lock Shape Selection", icon="lock_selection",
       action_name="win.lock_shape_selection", action_state=False, icon_scale=1.2)
+m.add(path="Edit/Preferences/Hide Background Shapes", icon="hide_background_shapes",
+      action_name="win.hide_background_shapes", action_state=False, icon_scale=1.2)
 
 m.add(path="Edit/Preferences/Panel Layout/Drawing", icon="panel_drawing",
       desc = "Drawing Panel Layout",
@@ -192,8 +194,8 @@ m.add(path="Windows/Camera Viewer", icon="camera_viewer", desc = "Camera Viewer"
 m.tool_rows = [
     ["File/<Open>", "File/New", "Edit/Shape", "View", "Edit/Preferences/Lock Movement",
      "Edit/Preferences", "Edit/Shape/<Linked>",
-     "Edit/Preferences/Panel Layout", "Edit/Document", "Windows"],
+     "Edit/Preferences/Panel Layout"],
     ["Shapes/Group", "Shapes/Point Group", "Edit/<Layer>", "Edit/Shape/Flip",
      "Shapes/Align", "Shapes/Convert To", "Edit/Points"],
-    ["Shapes/<New>", "Shapes/Pre-Drawn", "Edit/TimeLine"]
+    ["Shapes/<New>", "Shapes/Pre-Drawn", "Edit/TimeLine", "Edit/Document", "Windows"]
 ]

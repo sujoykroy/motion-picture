@@ -419,6 +419,11 @@ class ApplicationWindow(MasterEditor):
         EditingChoice.LOCK_SHAPE_SELECTION = parameter.get_boolean()
         change_action_tool_buttons(action)
 
+    def hide_background_shapes(self, action, parameter):
+        action.set_state(parameter)
+        EditingChoice.HIDE_BACKGROUND_SHAPES = parameter.get_boolean()
+        change_action_tool_buttons(action)
+
     def lock_point_group(self, action, parameter):
         action.set_state(parameter)
         EditingChoice.LOCK_POINT_GROUP = parameter.get_boolean()

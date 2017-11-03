@@ -296,7 +296,7 @@ class Document(object):
                 bitrate=bitrate)
         elapsed_time = time.time()-start_time
         doc_movie.unload_doc()
-        ret = "Video {0} is maded in {1:.2f} sec".format(doc_movie.dest_filename, elapsed_time)
+        ret = "Video {0} is made in {1:.2f} sec".format(doc_movie.dest_filename, elapsed_time)
         print(ret)
         return ret
 

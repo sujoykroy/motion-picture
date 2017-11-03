@@ -19,3 +19,4 @@ class EditingChoice:
     LOCK_MARKERS = True
     LOCK_POINT_GROUP = False
     DISABLE_AUDIO = False
+    HIDE_BACKGROUND_SHAPES = False

@@ -248,11 +248,13 @@ class ShapeManager(object):
         ctx.restore()
         self.document_area_box.draw_axis(ctx)
 
-        ctx.save()
-        self.doc.main_multi_shape.draw(ctx, drawing_size,
-                fixed_border=self.doc.fixed_border, no_camera=False,
-                show_non_renderable=True)
-        ctx.restore()
+        if not EditingChoice.HIDE_BACKGROUND_SHAPES or \
+            self.doc.main_multi_shape == self.multi_shape:
+            ctx.save()
+            self.doc.main_multi_shape.draw(ctx, drawing_size,
+                    fixed_border=self.doc.fixed_border, no_camera=False,
+                    show_non_renderable=True)
+            ctx.restore()
 
         if self.multi_shape != self.doc.main_multi_shape:
             ctx.save()
