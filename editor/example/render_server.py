@@ -10,8 +10,8 @@ import argparse
 import getpass
 
 parser = argparse.ArgumentParser(description="Render MotionPicture video segment from remote.")
-parser.add_argument("--time-line", nargs="?", default="main",
-                    dest="time_line", help="Name of time line")
+parser.add_argument("--booking", nargs="?", default="-1", type=int,
+                    help="Number of booking in one attempt")
 parser.add_argument("--addr", required=True,
                     dest="base_url", help="URL of rendering server")
 parser.add_argument("--user", required=True,
@@ -29,12 +29,19 @@ base_url = args.base_url
 project_name = args.project
 workbase_path = args.workspace
 process_count = args.process
-
+booking_per_call = args.booking
 
 def write_json_to_file(filepath, data):
     f = open(filepath, "w")
     json.dump(data, f)
     f.close()
+
+def write_segment_status(segments_folder, segment):
+    segment_folder = os.path.join(segments_folder, u"{0:04}".format(segment["id"]))
+    if not os.path.exists(segment_folder):
+        os.makedirs(segment_folder)
+    status_file = os.path.join(segment_folder, "status.txt")
+    write_json_to_file(status_file, active_segment)
 
 mp_url = base_url + "/mp"
 project_url = mp_url + "/project/" + project_name
@@ -89,32 +96,43 @@ if jr["result"] == "success":
         if not os.path.exists(segments_folder):
             os.makedirs(segments_folder)
 
-        active_segment = None
-        for filename in sorted(os.listdir(segments_folder)):
-            folder = os.path.join(segments_folder   , filename)
-            if not os.path.isdir(folder):
-                continue
-            status_file = os.path.join(folder, "status.txt")
-            if not os.path.isfile(status_file):
-                seg = dict()
-            else:
-                f = open(status_file, "r")
-                seg = json.load(f)
-                f.close()
-            if seg.get("status") in ("Booked", "Built"):
-                active_segment = seg
-
         while True:
+            active_segment = None
+            for filename in sorted(os.listdir(segments_folder)):
+                folder = os.path.join(segments_folder   , filename)
+                if not os.path.isdir(folder):
+                    continue
+                status_file = os.path.join(folder, "status.txt")
+                if not os.path.isfile(status_file):
+                    seg = dict()
+                else:
+                    f = open(status_file, "r")
+                    seg = json.load(f)
+                    f.close()
+                if seg.get("status") in ("Booked",):
+                    active_segment = seg
+                    break
+
             #Get new booking
             if not active_segment:
-                print("Fetching next booking of project [{0}]".format(project_name))
-                r=s.get(project_url+'/book')
-                booking = json.loads(r.text)
-                if booking.get("id"):
-                    booking["status"] = "Booked"
-                    active_segment = booking
-                else:
-                    print("No booking of project [{0}] is found.".format(project_name))
+                bc = 0
+                while bc<booking_per_call:
+                    print("Fetching next booking of project [{0}]".format(project_name))
+                    r=s.get(project_url+'/book')
+                    booking = json.loads(r.text)
+                    if booking.get("id"):
+                        booking["status"] = "Booked"
+                        if not active_segment:
+                            active_segment = booking
+                        write_segment_status(segments_folder, booking)
+                        print("Segment id {0} is booked.".format(booking["id"]))
+                        bc += 1
+                    else:
+                        break
+                    if booking_per_call<0:
+                        break
+                if bc == 0:
+                    print("No booking can be made.".format(booking["id"]))
                     break
 
             if active_segment:
@@ -163,10 +181,11 @@ if jr["result"] == "success":
                 video_file = open(output_filename, "rb")
                 r=s.post(segment_url+"/upload", files={"video": video_file})
                 response = json.loads(r.text)
+
                 if response.get("result") == "success":
                     active_segment["status"] = "Uploaded"
                     write_json_to_file(status_file, active_segment)
-                print("Segment id-{2}:{0}-{1} is uploaded.".format(
+                    print("Segment id-{2}:{0}-{1} is uploaded.".format(
                         active_segment["start_time"], active_segment["end_time"], active_segment["id"]))
                 active_segment = None
         #end while
