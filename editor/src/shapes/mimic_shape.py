@@ -13,6 +13,8 @@ class MimicShape(Shape):
         self.has_outline = False
 
     def set_mimic_like(self, value):
+        if isinstance(value, str):
+            value = value.decode("utf-8")
         self.mimic_like = value
         self.mimic_like_shape = self.parent_shape.get_interior_shape(self.mimic_like)
 
@@ -40,7 +42,7 @@ class MimicShape(Shape):
         elm.attrib["name"] = self.get_name()
         if not self.visible:
             elm.attrib["visible"] = "0"
-        elm.attrib["mimic_like"] = "{0}".format(self.mimic_like)
+        elm.attrib["mimic_like"] = u"{0}".format(self.mimic_like)
         return elm
 
     @classmethod

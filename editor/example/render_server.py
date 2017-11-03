@@ -116,7 +116,7 @@ if jr["result"] == "success":
             #Get new booking
             if not active_segment:
                 bc = 0
-                while bc<booking_per_call:
+                while bc<booking_per_call or booking_per_call<0:
                     print("Fetching next booking of project [{0}]".format(project_name))
                     r=s.get(project_url+'/book')
                     booking = json.loads(r.text)
@@ -132,7 +132,7 @@ if jr["result"] == "success":
                     if booking_per_call<0:
                         break
                 if bc == 0:
-                    print("No booking can be made.".format(booking["id"]))
+                    print("No booking can be made.")
                     break
 
             if active_segment:
