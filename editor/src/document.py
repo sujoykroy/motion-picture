@@ -24,6 +24,9 @@ import fnmatch
 import re
 import multiprocessing
 import sys
+from tqdm import tqdm
+import moviepy.config
+import subprocess
 
 class Document(object):
     IdSeed = 0
@@ -286,8 +289,8 @@ class Document(object):
         if dry:
             return
         start_time = time.time()
-        if doc_movie.dest_filename[-4:] == ".gif":
-            video_clip.write_gif(doc_movie.dest_filename, fps=fps)
+        if doc_movie.is_gif:
+            frame_maker.write_gif(video_clip, fps)
         else:
             video_clip.write_videofile(
                 doc_movie.dest_filename, fps=fps,
@@ -347,7 +350,8 @@ class Document(object):
                     "start_time", start_time,
                     "end_time", end_time,
                     "camera", doc_movie.camera_name,
-                    "speed", doc_movie.speed)
+                    "speed", doc_movie.speed,
+                    "bg_color", doc_movie.bg_color)
                 ]
                 for key, value in kwargs.items():
                     args.extend([key, value])
@@ -436,7 +440,7 @@ class Document(object):
             width = doc.width
         if height is None:
             height = doc.height
-        pixbuf = doc.get_pixbuf(width, height)
+        pixbuf = doc.get_pixbuf(width, height, bg_color=False)
         pixbuf.savev(image_filename, "png", [], [])
         doc.main_multi_shape.cleanup()
 
@@ -462,7 +466,7 @@ class DocModule(MultiShapeModule):
 class DocMovie(object):
     def __init__(self, src_filename, dest_filename, time_line=None,
                        start_time=0, end_time=None, camera=None,
-                       audio_only=False, speed=1):
+                       audio_only=False, speed=1, bg_color=None):
         doc = Document(filename=src_filename)
         timelines = doc.main_multi_shape.timelines
         if not timelines:
@@ -501,6 +505,8 @@ class DocMovie(object):
         self.audio_only = audio_only
         self.speed = speed
         self.movie_duration = self.duration/self.speed
+        self.bg_color = bg_color
+        self.is_gif = (self.dest_filename[-4:] == ".gif")
 
     def load_doc(self):
         if not self.doc:
@@ -526,6 +532,7 @@ class DocMovie(object):
         audio_only = False
         dest_filename = filename + ".video"
         speed=1
+        bg_color = None
         for i in range(len(params)):
             param = params[i]
             arr = param.split("=")
@@ -547,10 +554,13 @@ class DocMovie(object):
                 audio_only = (param_value == "True")
             elif param_name == "speed":
                 speed = Text.parse_number(param_value, 1)
+            elif param_name == "bg_color":
+                bg_color = param_value
 
         return cls(src_filename=filename, dest_filename=dest_filename,
                    time_line=time_line, audio_only=audio_only, speed=speed,
-                   start_time=start_time, end_time=end_time, camera=camera)
+                   start_time=start_time, end_time=end_time, camera=camera,
+                   bg_color=bg_color)
 
 class AudioFrameMaker(movie_editor.AudioClip):
     def __init__(self, doc_movie):
@@ -574,10 +584,16 @@ class AudioFrameMaker(movie_editor.AudioClip):
 
 
 class VideoFrameMaker(object):
-    def __init__(self, doc_movie, wh=None, bg_color="FFFFFF", sleep=0):
+    def __init__(self, doc_movie, wh=None, sleep=0):
         self.doc_movie = doc_movie
         self.sleep= sleep
-        self.bg_color = bg_color
+
+        self.bg_color = self.doc_movie.bg_color
+        if not self.bg_color:
+            if self.doc_movie.is_gif:
+                self.bg_color = "FFFFFF00"
+            else:
+                self.bg_color = "FFFFFFFF"
 
         if wh:
             width, height = wh.split("x")
@@ -591,20 +607,35 @@ class VideoFrameMaker(object):
                 self.width, self.height = doc_movie.doc.width, doc_movie.doc.height
             #doc_movie.unload_doc()
 
+        if self.doc_movie.is_gif and False:
+            self.surface = None
+        else:
+            self.create_surface()
+        self.drawing_size = Point(self.width, self.height)
+
+    def create_surface(self):
         self.surface = cairo.ImageSurface(
             cairo.FORMAT_ARGB32, int(self.width), int(self.height))
         self.ctx = cairo.Context(self.surface)
         set_default_line_style(self.ctx)
-        self.drawing_size = Point(self.width, self.height)
 
     def make_frame(self, t):
         if self.sleep:
             time.sleep(self.sleep)
         self.doc_movie.time_line.move_to(t*self.doc_movie.speed+self.doc_movie.start_time)
 
+        if self.doc_movie.is_gif:
+            self.create_surface()
+            if self.surface:
+                prev_surface_array = ImageHelper.surface2array(
+                    self.surface, reformat=True, rgb_only=True)
+            else:
+                prev_surface_array = None
+
         if self.bg_color:
             self.ctx.rectangle(0, 0, self.width, self.height)
             draw_fill(self.ctx, self.bg_color)
+
         self.ctx.save()
 
         camera = self.doc_movie.camera
@@ -642,5 +673,69 @@ class VideoFrameMaker(object):
             no_camera=False, exclude_camera_list=exclude_camera_list,
             root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
+
         self.ctx.restore()
         return ImageHelper.surface2array(self.surface, reformat=True, rgb_only=True)
+
+    def write_gif(self, clip, fps=None, program= 'ImageMagick', opt="OptimizeTransparency"):
+        filename = self.doc_movie.dest_filename
+        file_root, ext = os.path.splitext(filename)
+        print(fps, clip.duration)
+        tt = numpy.arange(0,clip.duration, 1.0/fps)
+
+        tempfiles = []
+
+        print("Building file {0}".format(filename))
+        print("Generating GIF frames...")
+
+        total = int(clip.duration*fps)+1
+        for i, t in tqdm(enumerate(tt), total=total):
+            temp_filename = "{0}_GIFTEMP{1:04d}.png".format(file_root, i+1)
+            tempfiles.append(temp_filename)
+            clip.make_frame(t)
+            self.surface.write_to_png(temp_filename)
+
+        delay = int(100.0/fps)
+
+        fuzz=1
+        verbose=True
+        loop=0
+        dispose=True
+        colors=None
+        if program == "ImageMagick":
+            print("Optimizing GIF with ImageMagick... ")
+            cmd = [moviepy.config.get_setting("IMAGEMAGICK_BINARY"),
+                  '-delay' , '%d'%delay,
+                  "-dispose" ,"%d"%(2 if dispose else 1),
+                  "-loop" , "%d"%loop,
+                  "%s_GIFTEMP*.png"%file_root,
+                  "-coalesce",
+                  "-layers", "%s"%opt,
+                  "-fuzz", "%02d"%fuzz + "%",
+                  ]+(["-colors", "%d"%colors] if colors is not None else [])+[
+                  filename]
+
+        elif program == "ffmpeg":
+
+            cmd = [moviepy.config.get_setting("FFMPEG_BINARY"), '-y',
+                   '-f', 'image2', '-r',str(fps),
+                   '-i', filename+'_GIFTEMP%04d.png',
+                   '-r',str(fps),
+                   filename]
+
+        try:
+            subprocess.call(cmd)
+            print("%s is ready."%filename)
+
+        except (IOError,OSError) as err:
+            error = ("Creation of %s failed because "
+              "of the following error:\n\n%s.\n\n."%(filename, str(err)))
+            if program == "ImageMagick":
+                error = error + ("This error can be due to the fact that "
+                    "ImageMagick is not installed on your computer, or "
+                    "(for Windows users) that you didn't specify the "
+                    "path to the ImageMagick binary in file conf.py." )
+
+            raise IOError(error)
+        for f in tempfiles:
+            os.remove(f)
