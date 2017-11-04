@@ -95,6 +95,7 @@ class Camera3d(Object3d):
         canvas_z_depths = canvas_z_depths.astype("f").reshape(canvas_height, canvas_width)
 
         obj_pad = max(border_width*4, 0)
+
         for object_3d in self.sorted_items:
             if object_3d.border_width:
                 pad = max(obj_pad, object_3d.border_width*2)
@@ -228,6 +229,11 @@ class Camera3d(Object3d):
             ctx.paint()
             canvas = enlarged_canvas
         return canvas
+
+    def draw(self, ctx, border_color, border_width):
+        for object_3d in self.sorted_items:
+            object_3d.draw(ctx, self, border_color=border_color, border_width=border_width)
+
 
     def get_image_canvas_high_quality(self,
             container,
@@ -445,7 +451,6 @@ class Camera3d(Object3d):
         return canvas
 
     def draw_objects(self, ctx, left, top, width, height):
-        ctx.set_antialias(True)
         image_canvas = self.get_image_canvas(left, top, width, height)
         ctx.set_source_surface(image_canvas, left, top)
         ctx.get_source().set_filter(cairo.FILTER_FAST)

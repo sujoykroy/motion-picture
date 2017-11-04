@@ -172,33 +172,30 @@ class Polygon3d(Object3d):
                     nmtrx = numpy.matmul(projected_values.T, numpy.linalg.inv(texcoords.T))
                     mtrx = cairo.Matrix(xx=float(nmtrx[0][0]), xy=float(nmtrx[0][1]), x0=float(nmtrx[0][2]),
                                 yx=float(nmtrx[1][0]), yy=float(nmtrx[1][1]), y0=float(nmtrx[1][2]))
-                    for antalias in [True]:
-                        ctx.save()
-                        ctx.set_antialias(antalias)
-                        ctx.set_matrix(mtrx.multiply(ctx.get_matrix()))
-                        ctx.set_source_surface(fill_color.get_surface())
-                        ctx.get_source().set_filter(cairo.FILTER_FAST)
+                    ctx.save()
+                    ctx.set_matrix(mtrx.multiply(ctx.get_matrix()))
+                    ctx.set_source_surface(fill_color.get_surface())
+                    ctx.get_source().set_filter(cairo.FILTER_FAST)
 
-                        ctx.new_path()
-                        for i in range(texcoords.shape[0]):
-                            values = texcoords[i]
-                            if i == 0:
-                                ctx.move_to(values[0], values[1])
-                            else:
-                                ctx.line_to(values[0], values[1])
-                        ctx.line_to(texcoords[0][0], texcoords[0][1])
-                        ctx.clip()
-                        ctx.paint()
-                        ctx.set_antialias(False)
-                        #avg_tex_values = numpy.average(texcoords, axis=0)
-                        #draw_text(ctx, text_color="FF00FF", font_name="50",
-                        #    x=avg_tex_values[0],
-                        #    y=avg_tex_values[1],
-                        #    text="{0}".format(self.id_num),
-                        #)
-                        ctx.restore()
-                        #draw_stroke(ctx, border_width, border_color)
-                        #border_color = None
+                    ctx.new_path()
+                    for i in range(texcoords.shape[0]):
+                        values = texcoords[i]
+                        if i == 0:
+                            ctx.move_to(values[0], values[1])
+                        else:
+                            ctx.line_to(values[0], values[1])
+                    ctx.line_to(texcoords[0][0], texcoords[0][1])
+                    ctx.clip()
+                    ctx.paint()
+                    #avg_tex_values = numpy.average(texcoords, axis=0)
+                    #draw_text(ctx, text_color="FF00FF", font_name="50",
+                    #    x=avg_tex_values[0],
+                    #    y=avg_tex_values[1],
+                    #    text="{0}".format(self.id_num),
+                    #)
+                    ctx.restore()
+                    #draw_stroke(ctx, border_width, border_color)
+                    #border_color = None
             else:
                 ctx.save()
                 self.draw_path(ctx, camera)
@@ -207,7 +204,6 @@ class Polygon3d(Object3d):
 
         if border_color is not None and border_width is not None:
             ctx.save()
-            ctx.set_antialias(True)
             self.draw_path(ctx, camera)
             ctx.restore()
             mat = ctx.get_matrix()

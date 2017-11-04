@@ -312,7 +312,6 @@ class ThreeDShape(RectangleShape):
             self.d3_object.precalculate()
         if self.should_rebuild_camera:
             self.camera.precalculate()
-        ctx.set_antialias(True)
 
         ctx.save()
         if (self.high_quality or ThreeDShape.HQRender) and not no_hq:
