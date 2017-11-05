@@ -122,6 +122,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                     self.recreate_shape_editor, self.get_shape_manager)
         self.image_shape_prop_box = ImageShapePropBox(
                     self, self.shape_prop_changed, self.insert_time_slice)
+        self.image_seq_shape_prop_box = ImageSeqShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
         self.audio_shape_prop_box = AudioShapePropBox(
                     self, self.shape_prop_changed, self.insert_time_slice)
         self.video_shape_prop_box = VideoShapePropBox(
@@ -174,6 +176,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.shape_form_prop_box,
             self.curve_smooth_prop_box,
             self.image_shape_prop_box,
+            self.image_seq_shape_prop_box,
             self.audio_shape_prop_box,
             self.video_shape_prop_box,
             self.threed_shape_prop_box,
@@ -463,6 +466,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.curve_smooth_prop_box.hide()
         self.text_shape_prop_box.hide()
         self.image_shape_prop_box.hide()
+        self.image_seq_shape_prop_box.hide()
         self.video_shape_prop_box.hide()
         self.audio_shape_prop_box.hide()
         self.camera_shape_prop_box.hide()
@@ -524,6 +528,9 @@ class MasterEditor(Gtk.ApplicationWindow):
             elif isinstance(shape, DocumentShape):
                 self.document_shape_prop_box.show()
                 self.document_shape_prop_box.set_prop_object(shape)
+            elif isinstance(shape, ImageSeqShape):
+                self.image_seq_shape_prop_box.show()
+                self.image_seq_shape_prop_box.set_prop_object(shape)
             elif isinstance(shape, ImageShape):
                 self.image_shape_prop_box.show()
                 self.image_shape_prop_box.set_prop_object(shape)

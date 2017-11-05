@@ -32,7 +32,7 @@ class VideoProcessThread(threading.Thread):
                 time_pos = -1
             if time_pos>=0:
                 self.lock.acquire()
-                frame = self.clip.get_frame(time_pos)
+                frame = self.clip.reader.get_frame(time_pos)
                 self.lock.release()
                 try:
                     self.frame_queue.put(frame, block=False)
@@ -125,7 +125,7 @@ class VideoShape(RectangleShape, AVBase):
         if self.duration == 0:#it will handle self.av_filename == "//"
             return
         if self.video_clip is None:
-            self.video_clip = VideoFileClip(self.av_filename)
+            self.video_clip = VideoFileClip(self.av_filename, has_mask=True)
             self.duration = self.video_clip.duration
             if self.image_process_thread:
                 self.image_process_thread.set_video_clip(self.video_clip)
@@ -148,21 +148,19 @@ class VideoShape(RectangleShape, AVBase):
                 except Queue.Full as e:
                     pass
         if not self.use_thread or self.image_process_thread is None:
-            frame = self.video_clip.get_frame(self.time_pos)
+            frame = self.video_clip.reader.get_frame(self.time_pos)
             self.image_pixbuf = self.get_pixbuf_from_frame(frame)
 
-    @staticmethod
-    def get_pixbuf_from_frame(frame):
+    def get_pixbuf_from_frame(self, frame):
         height, width, channels = frame.shape
-        #rowstride = width*channels
-        header = b"P6 %d %d 255\n" % (width, height)
-
-        ploader = GdkPixbuf.PixbufLoader.new_with_type("pnm")
-        ploader.write(header)
-        ploader.write(bytearray(frame.tobytes()))
-        ploader.close()
-        pixbuf = ploader.get_pixbuf()
-        return pixbuf
+        return GdkPixbuf.Pixbuf.new_from_bytes(
+            data=GLib.Bytes(frame.tobytes()),
+            colorspace=0,
+            has_alpha=True,
+            bits_per_sample=8,
+            width=width,
+            height=height,
+            rowstride = width*4)
 
     def draw_image(self, ctx, root_shape=None):
         if self.image_process_thread:

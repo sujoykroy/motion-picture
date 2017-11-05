@@ -530,6 +530,19 @@ class ShapeManager(object):
         self.add_new_shape(shape)
         return True
 
+    def create_image_seq_shape(self, folder_name):
+        if not os.path.isdir(folder_name):
+            return False
+        w = self.doc.width
+        h = self.doc.height
+        shape = ImageSeqShape(anchor_at=Point(w*.5, h*.5),
+                   border_color="000000",
+                   border_width=1, fill_color="cccccc",
+                   width=w, height=h, corner_radius=2)
+        shape.set_image_folder(folder_name)
+        self.add_new_shape(shape)
+        return True
+
     def create_audio_shape(self, filename):
         scale = 4.
         w, h = self.doc.width/scale, self.doc.height/scale

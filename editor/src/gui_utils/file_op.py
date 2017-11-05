@@ -15,9 +15,15 @@ class FileOp(object):
             action = Gtk.FileChooserAction.SAVE
             ok_key = Gtk.STOCK_SAVE_AS
         elif purpose == "open":
-            title = "Open file"
-            action = Gtk.FileChooserAction.OPEN
-            ok_key = Gtk.STOCK_OPEN
+            if file_types == "folder":
+                file_types = []
+                title = "Select Folder"
+                action = Gtk.FileChooserAction.SELECT_FOLDER
+                ok_key = Gtk.STOCK_OPEN
+            else:
+                title = "Open file"
+                action = Gtk.FileChooserAction.OPEN
+                ok_key = Gtk.STOCK_OPEN
 
         dialog = FileChooserDialog(title, parent, action,
                 (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, ok_key, Gtk.ResponseType.OK))
@@ -34,6 +40,8 @@ class FileOp(object):
             file_types = [["Image", "image/*"]]
         elif file_types == "document":
             file_types = [["Document", "*.xml"]]
+        elif not isinstance(file_types, list):
+            file_types = []
 
         for file_name, mime_type in file_types:
             if file_name == "Audio":

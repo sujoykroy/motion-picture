@@ -7,6 +7,7 @@ from ring_shape import RingShape
 from curve_shape import CurveShape
 from polygon_shape import PolygonShape
 from image_shape import ImageShape
+from image_seq_shape import ImageSeqShape
 from video_shape import VideoShape
 from audio_shape import AudioShape
 from text_shape import TextShape
@@ -218,6 +219,8 @@ class MultiShape(Shape):
                 child_shape = CurveJoinerShape.create_from_xml_element(shape_element)
             elif shape_type == MimicShape.TYPE_NAME:
                 child_shape = MimicShape.create_from_xml_element(shape_element)
+            elif shape_type == ImageSeqShape.TYPE_NAME:
+                child_shape = ImageSeqShape.create_from_xml_element(shape_element)
             if child_shape is None: continue
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)

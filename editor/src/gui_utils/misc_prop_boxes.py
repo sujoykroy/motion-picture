@@ -169,6 +169,19 @@ class ImageShapePropBox(RectangleShapePropBox):
             prop_data = dict(image_path="")
         self.orig_insert_time_slice_callback(shape, prop_name, start_value, end_value, prop_data)
 
+class ImageSeqShapePropBox(RectangleShapePropBox):
+    def __init__(self, parent_window, draw_callback, insert_time_slice_callback):
+        RectangleShapePropBox.__init__(self, parent_window, draw_callback, self.new_insert_time_slice)
+        self.add_prop("image_folder", PROP_TYPE_FILE, dict(file_type="folder"))
+        self.add_prop("alpha", PROP_TYPE_NUMBER_ENTRY, dict(value=1, lower=0, upper=1, step_increment=.1))
+        self.add_prop("progress", PROP_TYPE_NUMBER_ENTRY, dict(value=1, lower=0, upper=1, step_increment=.01))
+        self.orig_insert_time_slice_callback = insert_time_slice_callback
+
+    def new_insert_time_slice(self, shape, prop_name, start_value, end_value=None, prop_data=None):
+        if prop_name == "alpha":
+            prop_data = dict(image_path="")
+        self.orig_insert_time_slice_callback(shape, prop_name, start_value, end_value, prop_data)
+
 
 class AVShapePropBox(RectangleShapePropBox):
     def __init__(self, parent_window, draw_callback, insert_time_slice_callback):

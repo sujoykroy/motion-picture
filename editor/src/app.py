@@ -188,6 +188,13 @@ class ApplicationWindow(MasterEditor):
             if self.shape_manager.create_image_shape(filename):
                 self.rebuild_tree_view()
                 self.redraw()
+        elif shape_type == "image_seq":
+            folder_name = FileOp.choose_file(self, purpose="open", file_types="folder")
+            if not folder_name:
+                return
+            if self.shape_manager.create_image_seq_shape(folder_name):
+                self.rebuild_tree_view()
+                self.redraw()
         elif shape_type == "audio":
             filename = FileOp.choose_file(self, purpose="open",
                         file_types=[["Audio", "audio/*"], ["Video", "video/*"]])

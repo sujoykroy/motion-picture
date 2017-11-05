@@ -124,6 +124,8 @@ m.add(path="Shapes/<New>/Curve Joiner", icon="curve_joiner",
       action_name="win.create_new_shape", action_state="curve_joiner")
 m.add(path="Shapes/<New>/Mimic", icon="mimic",
       action_name="win.create_new_shape", action_state="mimic")
+m.add(path="Shapes/<New>/Image Sequence", icon="image_seq", icon_scale=.8,
+      action_name="win.create_new_shape", action_state="image_seq")
 
 m.add(path="Shapes/Align/X", icon="x_align", desc="Align shapes along X-axis",
       action_name="win.align_shapes", action_param="x", icon_scale = 1.2)
