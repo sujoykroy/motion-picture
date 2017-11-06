@@ -475,6 +475,8 @@ class DocMovie(object):
             custom_shape.set_code_path(src_filename, init=True)
             doc.main_multi_shape.shapes.add(custom_shape)
             new_time_line = doc.main_multi_shape.get_new_timeline(MultiShapeTimeLine)
+            if end_time is None:
+                end_time = 0
             time_slice = TimeSlice(0, 1, duration=end_time)
             new_time_line.add_shape_prop_time_slice(custom_shape, "progress", time_slice)
             doc.save(doc_filename)

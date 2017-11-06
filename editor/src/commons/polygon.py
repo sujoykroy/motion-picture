@@ -9,7 +9,10 @@ class Polygon(object):
     def __init__(self, points=None, closed=False):
         self.points = []
         if points is not None:
-            self.points.extend(points)
+            for point in points:
+                if isinstance(point, list):
+                    point = Point(*point)
+                self.points.append(point)
         self.closed = closed
 
     def get_xml_element(self):

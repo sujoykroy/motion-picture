@@ -7,7 +7,6 @@ class Drawer(object):
     def __init__(self):
         self.params = dict()
 
-
     def set_params(self, params):
         self.params = dict(params)
 
@@ -24,22 +23,31 @@ class Drawer(object):
 
         orig_shape = parent_shape.get_interior_shape(shape_name)
         shape = orig_shape.copy(deep_copy=True)
-        shape.parent_shape = None
+        shape.parent_shape = parent_shape
         if not shape or not hasattr(shape, "timelines"):
             return
 
         time_line = shape.timelines.get(time_line_name)
         if not time_line:
             return
+        time_line.move_to(0)
+        #shape = shape.copy(deep_copy=True)
+        #shape.parent_shape = None
+        #time_line = shape.timelines.get(time_line_name)
 
         t = 0
         step_count = float(self.params.get("steps",10))
         step_value = 1./step_count
-        while t<=self.progress:
+        while t<=self.progress+step_value:
             time_line.move_to(time_line.duration*t)
-            shape.move_to(anchor_at.x, anchor_at.y)
             t += step_value
             ctx.save()
-            shape.draw(ctx, drawing_size=Point(width, height))
-            ctx.restore()
+            shape.set_scale_x(width/shape.width)
+            shape.set_scale_y(height/shape.height)
 
+            parent_shape = shape.parent_shape
+            shape.parent_shape = None
+            shape.move_to(anchor_at.x, anchor_at.y)
+            shape.draw(ctx, drawing_size=Point(width, height))
+            shape.parent_shape = parent_shape
+            ctx.restore()

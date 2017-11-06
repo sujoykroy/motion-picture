@@ -25,7 +25,11 @@ class PolygonFormRenderer(object):
 class PolygonShape(Shape, Mirror):
     TYPE_NAME = "polygon_shape"
 
-    def __init__(self, anchor_at, border_color, border_width, fill_color, width, height):
+    def __init__(self, anchor_at=None,
+                       border_color="000000", border_width=1,
+                       fill_color=None, width=1., height=1.):
+        if anchor_at is None:
+            anchor_at = Point(width*.5, height*.5)
         Shape.__init__(self, anchor_at, border_color, border_width, fill_color, width, height)
         Mirror.__init__(self)
         self.polygons = []
