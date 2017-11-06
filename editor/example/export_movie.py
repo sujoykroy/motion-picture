@@ -1,22 +1,60 @@
-import sys, os, subprocess
-from MotionPicture import *
-from moviepy.editor import VideoFileClip
+import subprocess
+from MotionPicture import DocMovie, ThreeDShape
+from moviepy.editor import VideoFileClip, AudioFileClip
+import argparse
 
-if len(sys.argv)>1:
-    doc_filename = sys.argv[1]
+parser = argparse.ArgumentParser(description="Export MotionPicture video.")
+parser.add_argument("--output", dest="dest_filename", required=True)
+parser.add_argument("--hq_3d", help="High quality 3d rendering", default=True, type=bool)
+parser.add_argument("--audio", nargs="?", default=True, type=bool)
+parser.add_argument("--audio-only", nargs="?", default=False, type=bool,
+                            help="Export only audio")
+parser.add_argument("--time_line", nargs="?")
+parser.add_argument("--camera", nargs="?")
+parser.add_argument("--speed", nargs="?", default=1, type=float)
+parser.add_argument("--bg-color", nargs="?")
+parser.add_argument("--start-time", nargs="?", type=float, default=0)
+parser.add_argument("--end-time", nargs="?", type=float)
+parser.add_argument("--resolution", nargs="?", default="1280x720")
+parser.add_argument("--fps", nargs="?", default=24, type=int)
+parser.add_argument("--ffmpeg-params", nargs="?")
+parser.add_argument("--bit-rate", nargs="?", type=int)
+parser.add_argument("--codec", nargs="?")
+parser.add_argument("--dry", nargs="?", default=False, help="Do not render the final video.")
+parser.add_argument("src_filename")
+parser.add_argument("--process-count", nargs="?", default=3, type=int)
+args = parser.parse_args()
 
-ThreeDShape.HQRender = not True#should be true in production mode
-doc_movie = DocMovie.create_from_params(doc_filename, sys.argv[2:])
+ThreeDShape.HQRender = args.hq_3d#should be true in production mode
 
-ThreeDShape.HQRender = not True#should be true in production mode
-#ThreeDShape.HQRender = True
 kwargs = dict(
-    doc_movie=doc_movie,
-    wh=["160x90","320x180", "640x360", "1280x720"][1],
-    audio=True, dry=not True)
+    src_filename = args.src_filename,
+    dest_filename = args.dest_filename,
+    time_line = args.time_line,
+    start_time = args.start_time,
+    end_time = args.end_time,
+    camera = args.camera,
+    audio_only = args.audio_only,
+    audio = args.audio,
+    speed = args.speed,
+    bg_color = args.bg_color,
+    fps = args.fps,
+    resolution = args.resolution,
+    process_count=args.process_count,
+    dry = args.dry
+)
+for param in ["ffmpeg_params", "bit_rate", "codec"]:
+    value = getattr(args, param)
+    if value:
+        kwargs[param] = value
 
-Document.make_movie_faster(process_count=3, **kwargs)
+print(kwargs)
+doc_movie = DocMovie(**kwargs)
+doc_movie.make()
 
-clip=VideoFileClip(doc_movie.dest_filename)
+if args.audio_only:
+    clip=AudioFileClip(args.dest_filename)
+else:
+    clip=VideoFileClip(args.dest_filename)
 print(doc_movie.dest_filename, "duration is", clip.duration)
 subprocess.call(["vlc", doc_movie.dest_filename])
