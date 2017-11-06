@@ -3,11 +3,16 @@ from MotionPicture import DocMovie, ThreeDShape
 from moviepy.editor import VideoFileClip, AudioFileClip
 import argparse
 
+def str2bool(value):
+    if value.lower() in ("true", "yes"):
+        return True
+    return False
+
 parser = argparse.ArgumentParser(description="Export MotionPicture video.")
 parser.add_argument("--output", dest="dest_filename", required=True)
-parser.add_argument("--hq_3d", help="High quality 3d rendering", default=True, type=bool)
-parser.add_argument("--audio", nargs="?", default=True, type=bool)
-parser.add_argument("--audio-only", nargs="?", default=False, type=bool,
+parser.add_argument("--hq_3d", help="High quality 3d rendering", default=True, type=str2bool)
+parser.add_argument("--audio", nargs="?", default=True, type=str2bool)
+parser.add_argument("--audio-only", nargs="?", default=False, type=str2bool,
                             help="Export only audio")
 parser.add_argument("--time_line", nargs="?")
 parser.add_argument("--camera", nargs="?")
@@ -52,9 +57,10 @@ print(kwargs)
 doc_movie = DocMovie(**kwargs)
 doc_movie.make()
 
-if args.audio_only:
-    clip=AudioFileClip(args.dest_filename)
-else:
-    clip=VideoFileClip(args.dest_filename)
-print(doc_movie.dest_filename, "duration is", clip.duration)
+if not doc_movie.is_png:
+    if args.audio_only:
+        clip=AudioFileClip(args.dest_filename)
+    else:
+        clip=VideoFileClip(args.dest_filename)
+    print(doc_movie.dest_filename, "duration is", clip.duration)
 subprocess.call(["vlc", doc_movie.dest_filename])

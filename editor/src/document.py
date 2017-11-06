@@ -209,13 +209,12 @@ class Document(object):
                 linked_shape.set_linked_to(source_shape)
                 linked_shape.copy_data_from_linked(build_lock=True)
 
-    def get_surface(self, width, height, bg_color=True):
+    def get_surface(self, width, height, bg_color=None):
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(width), int(height))
         ctx = cairo.Context(surface)
         if bg_color:
             ctx.rectangle(0, 0, width, height)
-            ctx.set_source_rgb(1,1,1)
-            ctx.fill()
+            draw_fill(ctx, bg_color)
         ctx.set_antialias(cairo.ANTIALIAS_DEFAULT)
 
         shape = self.main_multi_shape
@@ -226,7 +225,7 @@ class Document(object):
         shape.draw(ctx, Point(self.width, self.height), self.fixed_border)
         return ctx.get_target()
 
-    def get_pixbuf(self, width, height, bg_color=True):
+    def get_pixbuf(self, width, height, bg_color=None):
         surface= self.get_surface(width, height, bg_color)
         pixbuf= Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
         return pixbuf
@@ -425,20 +424,6 @@ class Document(object):
         doc.main_multi_shape.cleanup()
         del doc
 
-    @staticmethod
-    def save_as_image(doc_filename, time_line, at, image_filename, width=None, height=None):
-        doc = Document(doc_filename)
-        time_line = doc.main_multi_shape.timelines.get(time_line)
-        if time_line:
-            time_line.move_to(at)
-        if width is None:
-            width = doc.width
-        if height is None:
-            height = doc.height
-        pixbuf = doc.get_pixbuf(width, height, bg_color=False)
-        pixbuf.savev(image_filename, "png", [], [])
-        doc.main_multi_shape.cleanup()
-
 class DocModule(MultiShapeModule):
     def __init__(self, module_name, module_path):
         super(DocModule, self).__init__(module_name, module_path)
@@ -495,26 +480,33 @@ class DocMovie(object):
             doc.save(doc_filename)
             self.script_filename = src_filename
             src_filename = doc_filename
+            time_line = new_time_line.name
         else:
             self.script_filename = None
 
+        self.is_gif = (dest_filename[-4:] == ".gif")
+        self.is_png = (dest_filename[-4:] == ".png")
+
         doc = Document(filename=src_filename)
         timelines = doc.main_multi_shape.timelines
-        if not timelines:
+
+        if not timelines and not self.is_png:
             raise Exception("No timeline is found in {0}".format(src_filename))
 
-        if time_line is None:
-            if "main" in timelines.keys():
-                time_line = "main"
-            else:
-                time_line = timelines.keys()[0]
-        elif time_line not in timelines:
-            raise Exception("Timeline [{1}] is not found in {0}".format(
-                                        src_filename, time_line))
-        time_line_obj = timelines[time_line]
-
-        if end_time is None:
-            end_time = time_line_obj.duration
+        if timelines:
+            if time_line is None:
+                if not self.is_png:
+                    if "main" in timelines.keys():
+                        time_line = "main"
+                    else:
+                        time_line = timelines.keys()[0]
+            elif time_line not in timelines:
+                raise Exception("Timeline [{1}] is not found in {0}".format(
+                                            src_filename, time_line))
+        if time_line:
+            time_line_obj = timelines[time_line]
+            if end_time is None:
+                end_time = time_line_obj.duration
         if camera:
             if isinstance(camera, str):
                 camera = camera.decode("utf-8")
@@ -544,12 +536,12 @@ class DocMovie(object):
         self.time_line = None
         self.audio_only = audio_only
         self.movie_duration = self.duration/self.speed
-        self.is_gif = (self.dest_filename[-4:] == ".gif")
 
     def load_doc(self):
         if not self.doc:
             self.doc = Document(filename=self.src_filename)
-            self.time_line = self.doc.main_multi_shape.timelines[self.time_line_name]
+            if self.time_line_name:
+                self.time_line = self.doc.main_multi_shape.timelines[self.time_line_name]
             if self.camera_name:
                 self.camera = self.doc.get_shape_by_name(self.camera_name)
 
@@ -561,7 +553,14 @@ class DocMovie(object):
     def make(self):
         ps_st = time.time()
 
-        if self.audio_only:
+        if self.is_png:
+            self.load_doc()
+            if self.time_line:
+                self.time_line.move_to(self.start_time)
+            pixbuf = self.doc.get_pixbuf(self.width, self.height, bg_color=self.bg_color)
+            pixbuf.savev(self.dest_filename, "png", [], [])
+            self.unload_doc()
+        elif self.audio_only:
             audio_clip = AudioFrameMaker(self)
             audio_clip.write_audiofile(self.dest_filename)
         elif self.process_count == 1 or self.is_gif == ".gif" or self.dry:
