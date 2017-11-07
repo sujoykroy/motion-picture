@@ -443,13 +443,13 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.prop_grid.remove_item(self.custom_props_box)
             self.custom_props_box = None
 
-    def add_custom_props_box(self, multi_shape):
-        if multi_shape.custom_props and not self.custom_props_box:
+    def add_custom_props_box(self, shape):
+        if shape.custom_props and not self.custom_props_box:
             self.custom_props_box = CustomPropsBox(
                     self, self.redraw,
                     self.insert_time_slice,
                     self.edit_custom_prop,
-                    shape=multi_shape)
+                    shape=shape)
             self.prop_grid.add(self.custom_props_box)
 
     def show_prop_of(self, shape):
@@ -525,6 +525,7 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, CustomShape):
                 self.custom_shape_prop_box.show()
                 self.custom_shape_prop_box.set_prop_object(shape)
+                self.add_custom_props_box(shape)
             elif isinstance(shape, DocumentShape):
                 self.document_shape_prop_box.show()
                 self.document_shape_prop_box.set_prop_object(shape)

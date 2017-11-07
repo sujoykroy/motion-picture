@@ -23,7 +23,7 @@ class CustomPropLinkedTo(object):
 class CustomProp(object):
     TAG_NAME = "cusprop"
     LINKED_TO_TAG_NAME = "linked_to"
-    PropTypes = dict(point=0, text=1, color=2, font=3, number=4)
+    PropTypes = dict(point=0, text=1, color=2, font=3, number=4, int=5)
 
     @classmethod
     def get_default_value_for(cls, prop_type):
@@ -37,11 +37,14 @@ class CustomProp(object):
             return "8"
         elif prop_type == cls.PropTypes["number"]:
             return 1.
+        elif prop_type == cls.PropTypes["int"]:
+            return 1
 
-    def __init__(self, prop_name, prop_type):
+    def __init__(self, prop_name, prop_type, extras=None):
         self.prop_name = prop_name
         self.prop_type = prop_type
         self.prop_value = self.get_default_value_for(prop_type)
+        self.extras = extras
         self.linked_to_items = []
 
     def get_xml_element(self):
@@ -131,6 +134,9 @@ class CustomProps(object):
     def __init__(self):
         self.props = OrderedDict()
 
+    def clear(self):
+        self.props.clear()
+
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)
         for custom_prop in self.props:
@@ -152,10 +158,10 @@ class CustomProps(object):
             newob.props.add(prop_name, self.props[prop_name].copy(parent_shape))
         return newob
 
-    def add_prop(self, prop_name, prop_type):
+    def add_prop(self, prop_name, prop_type, extras=None):
         if not self.props.key_exists(prop_name):
             prop_type = CustomProp.PropTypes[prop_type]
-            custom_prop = CustomProp(prop_name, prop_type)
+            custom_prop = CustomProp(prop_name, prop_type, extras)
             self.props.add(prop_name, custom_prop)
 
     def remove_prop(self, prop_name):
@@ -176,6 +182,9 @@ class CustomProps(object):
 
     def has_prop(self, prop_name):
         return self.props.key_exists(prop_name)
+
+    def has_any_prop(self):
+        return len(self.props)>0
 
     def apply_props(self):
         for custom_prop in self.props:

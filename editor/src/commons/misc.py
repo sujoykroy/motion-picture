@@ -58,10 +58,21 @@ class Text(object):
 
     @classmethod
     def to_text(cls, item):
+        if item is None:
+            return ""
         if isinstance(item, str):
             return item
         elif hasattr(item, "to_text"):
             return item.to_text()
+        elif isinstance(item, dict):
+            arr = []
+            for key, value in item.items():
+                if type(value) not in (int, float, bool):
+                    value = '"' + cls.to_text(value) + '"'
+                elif value is None:
+                    value = "None"
+                arr.append("{0}={1}".format(key, value))
+            return ", ".join(arr)
         return "{0}".format(item)
 
 def format_time(value):

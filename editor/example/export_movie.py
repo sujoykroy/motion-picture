@@ -53,7 +53,6 @@ for param in ["ffmpeg_params", "bit_rate", "codec"]:
     if value:
         kwargs[param] = value
 
-print(kwargs)
 doc_movie = DocMovie(**kwargs)
 doc_movie.make()
 
@@ -63,4 +62,6 @@ if not doc_movie.is_png:
     else:
         clip=VideoFileClip(args.dest_filename)
     print(doc_movie.dest_filename, "duration is", clip.duration)
-subprocess.call(["vlc", doc_movie.dest_filename])
+    subprocess.call(["vlc", doc_movie.dest_filename])
+else:
+    subprocess.call(["eog", doc_movie.dest_filename])

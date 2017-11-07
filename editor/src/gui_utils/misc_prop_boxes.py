@@ -306,14 +306,22 @@ class CustomPropsBox(ShapePropBox):
         self.edit_callback = edit_callback
         if not shape.custom_props:
             return
+        self.shape = shape
         for custom_prop in shape.custom_props.props:
             prop_name = custom_prop.prop_name
             prop_type_name = custom_prop.get_prop_type_name()
-            if prop_type_name == "number":
-                self.add_prop(
-                    prop_name, PROP_TYPE_NUMBER_ENTRY,
-                    dict(value=0, lower=-1000., upper=1000.,
-                        step_increment=.1, page_increment=.1, page_size=.1))
+            if prop_type_name in ("number", "int"):
+                number_params = dict(value=0, lower=-1000., upper=1000., step_increment=.1)
+                if prop_type_name == "int":
+                    number_params["digits"]=0
+                    number_params["step_increment"] = 1
+
+                if custom_prop.extras:
+                    for key in number_params.keys():
+                        if key in custom_prop.extras:
+                            number_params[key] = custom_prop.extras[key]
+
+                self.add_prop(prop_name, PROP_TYPE_NUMBER_ENTRY, number_params)
             elif prop_type_name == "point":
                 self.add_prop(prop_name, PROP_TYPE_POINT, None)
             elif prop_type_name == "text":
@@ -328,13 +336,30 @@ class CustomPropsBox(ShapePropBox):
     def add_prop(self, prop_name, value_type, values, can_insert_slice = True):
         prop_widget = super(CustomPropsBox, self).add_prop(
                 prop_name, value_type, values, can_insert_slice)
+        if hasattr(self.shape, "custom_props_editable") and \
+            self.shape.custom_props_editable:
+            edit_button = Gtk.Button("E")
+            edit_button.connect("clicked", self.edit_button_clicked, prop_name)
+            widgets = self.widget_rows[-1]
+            widgets.append(edit_button)
+
+    def edit_button_clicked(self, widget, prop_name):
+        self.edit_callback(prop_name)
+
+class CustomShapeParamsPropsBox(CustomPropsBox):
+    def __init__(self, parent_window, draw_callback,
+                       insert_time_slice_callback, edit_callback, shape):
+        super(CustomShapeParamsPropsBox, self).__init__(
+            parent_window, draw_callback, None, insert_time_slice_callback)
+
+    def add_prop(self, prop_name, value_type, values, can_insert_slice = True):
+        prop_widget = super(CustomPropsBox, self).add_prop(
+                prop_name, value_type, values, can_insert_slice)
         edit_button = Gtk.Button("E")
         edit_button.connect("clicked", self.edit_button_clicked, prop_name)
         widgets = self.widget_rows[-1]
         widgets.append(edit_button)
 
-    def edit_button_clicked(self, widget, prop_name):
-        self.edit_callback(prop_name)
 
 class CurveJoinerShapePropBox(ShapePropBox):
     def __init__(self, parent_window, draw_callback, shape_name_checker, insert_time_slice_callback):

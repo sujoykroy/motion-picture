@@ -86,6 +86,7 @@ class MultiShape(Shape):
         self.imported_from = None
         self.imported_anchor_at = None#this prop might get deleted in future.
         self.pose_pixbufs = dict()
+        self.custom_shapes_editable = True
 
     def get_pose_pixbuf(self, pose_name):
         if pose_name not in self.pose_pixbufs:

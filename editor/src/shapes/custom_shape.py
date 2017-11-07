@@ -3,6 +3,7 @@ from ..commons import *
 import parser
 import imp
 from .. import settings as Settings
+from custom_props import CustomProps, CustomProp
 
 class CustomShape(RectangleShape):
     TYPE_NAME = "custom"
@@ -15,6 +16,7 @@ class CustomShape(RectangleShape):
         self.progress = 0
         self.params = None
         self.drawer = None
+        self.custom_props = CustomProps()
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = CustomShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
@@ -29,16 +31,19 @@ class CustomShape(RectangleShape):
         elm = RectangleShape.get_xml_element(self)
         elm.attrib["code_path"] = self.code_path
         elm.attrib["progress"] = "{0}".format(self.progress)
-        if self.params:
-            elm.attrib["params"] = self.params
+        if self.drawer:
+            params_text = Text.to_text(self.drawer.params)
+        else:
+            params_text = ""
+        elm.attrib["params"] = params_text
         return elm
 
     @classmethod
     def create_from_xml_element(cls, elm):
         shape = super(CustomShape, cls).create_from_xml_element(elm)
         shape.set_code_path(elm.attrib.get("code_path"))
-        shape.set_progress (float(elm.attrib.get("progress")))
         shape.set_params(elm.attrib.get("params", ""))
+        shape.set_progress (float(elm.attrib.get("progress")))
         return shape
 
     def set_code_path(self, filepath, init=False):
@@ -48,19 +53,58 @@ class CustomShape(RectangleShape):
             return
         self.drawer_module = imp.load_source("drawer_module", filepath)
         if hasattr(self.drawer_module, "Drawer"):
+            if self.drawer:
+                old_params = copy_value(self.drawer.params)
+            else:
+                old_params = None
             self.drawer = self.drawer_module.Drawer()
-            if init and hasattr(self.drawer, "get_params_string"):
-                self.params = self.drawer.get_params_string()
-            self.set_params(self.params)
+            if hasattr(self.drawer, "params_info"):
+                self.custom_props.clear()
+                if old_params:
+                    params = old_params
+                else:
+                    self.set_params(self.params)
+                    params = self.drawer.params
+                for name, data in self.drawer.params_info.items():
+                    extras = None
+                    for dk in data.keys():
+                        if dk not in ("type", "default"):
+                            if extras is None:
+                                extras = dict()
+                            extras[dk] = data[dk]
+                    self.custom_props.add_prop(name, data["type"], extras)
+                    if name not in params:
+                        params[name] = data["default"]
+                self.drawer.set_params(params)
             self.set_progress(self.progress)
+
+    def has_prop(self, prop_name):
+        if prop_name == "params" and len(self.custom_props.props)>0:
+            return False
+        if self.drawer and prop_name in self.drawer.params:
+            return True
+        return super(CustomShape, self).has_prop(prop_name)
+
+    def get_prop_value(self, prop_name):
+        if self.drawer and prop_name in self.drawer.params:
+            return self.drawer.params[prop_name]
+        return super(CustomShape, self).get_prop_value(prop_name)
+
+    def set_prop_value(self, prop_name, value, prop_data=None):
+        if self.drawer and prop_name in self.drawer.params:
+            if self.drawer.params_info[prop_name]["type"] == "int":
+                value = int(value)
+            self.drawer.params[prop_name] = value
+            self.drawer.set_params(self.drawer.params)#fake update
+        return super(CustomShape, self).set_prop_value(prop_name, value, prop_data)
 
     def set_params(self, params):
         self.params = params
-        if self.drawer:
+        if self.drawer and params:
             try:
                 params_obj = eval(parser.expr("dict({0})".format(params)).compile())
                 self.drawer.set_params(params_obj)
-            except:
+            except NameError:
                 params_obj = dict()
 
     def set_progress(self, value):

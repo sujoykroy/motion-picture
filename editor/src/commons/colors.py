@@ -290,6 +290,8 @@ class ImageColor(object):
 def color_from_text(text):
     if not text:
         return None
+    if type(text) in (Color, GradientColor, ImageColor):
+        return text
     arr = text.split(":")
     if len(arr) == 1:
         return Color.from_text(arr[0])
