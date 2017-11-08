@@ -14,7 +14,7 @@ parser.add_argument("--hq_3d", help="High quality 3d rendering", default=True, t
 parser.add_argument("--audio", nargs="?", default=True, type=str2bool)
 parser.add_argument("--audio-only", nargs="?", default=False, type=str2bool,
                             help="Export only audio")
-parser.add_argument("--time_line", nargs="?")
+parser.add_argument("--time-line", nargs="?")
 parser.add_argument("--camera", nargs="?")
 parser.add_argument("--speed", nargs="?", default=1, type=float)
 parser.add_argument("--bg-color", nargs="?")
@@ -31,6 +31,10 @@ parser.add_argument("--process-count", nargs="?", default=3, type=int)
 args = parser.parse_args()
 
 ThreeDShape.HQRender = args.hq_3d#should be true in production mode
+
+if args.codec == "mjpeg":
+    if not args.ffmpeg_params:
+        args.ffmpeg_params = "-q:v 3"
 
 kwargs = dict(
     src_filename = args.src_filename,

@@ -10,8 +10,8 @@ class Drawer(object):
         self.params_info = dict(
             size_steps=dict(type="int", default=10, lower=1, upper=1000000),
             angle_steps=dict(type="int", default=4, lower=1, upper=1000000),
-            sw=dict(type="number", default=50, lower=.01, upper=100, step_increment=1),
-            sh=dict(type="number", default=50, lower=.01, upper=100, step_increment=1),
+            sw=dict(type="number", default=50, lower=.01, upper=10000, step_increment=1),
+            sh=dict(type="number", default=50, lower=.01, upper=10000, step_increment=1),
             d1=dict(type="number", default=12, lower=0, upper=100, step_increment=1),
             d2=dict(type="number", default=50, lower=0, upper=100, step_increment=1),
             d3=dict(type="number", default=50, lower=0, upper=100, step_increment=1),
@@ -100,6 +100,7 @@ class Drawer(object):
 
         should_fill = bool(self.params.get("fill_star", True))
         border_color = parent_shape.get_border_color()
+        border_width = parent_shape.border_width
 
         for i in xrange(size_steps):
             frac = 1-i*1./size_steps
@@ -152,10 +153,10 @@ class Drawer(object):
             if should_fill:
                 draw_fill(ctx, color)
             else:
-                draw_stroke(ctx, 1, color)
+                draw_stroke(ctx, border_width, color)
             if border_color and i == 0:
                 ctx.save()
                 ctx.new_path()
                 ctx.append_path(path)
                 ctx.restore()
-                draw_stroke(ctx, 2, border_color)
+                draw_stroke(ctx, border_width, border_color)
