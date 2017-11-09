@@ -23,7 +23,10 @@ class CustomShape(RectangleShape):
                              copy_value(self.fill_color), self.width, self.height, self.corner_radius)
         self.copy_into(newob, copy_name)
         newob.set_code_path(self.code_path)
-        newob.set_params(self.params)
+        if newob.drawer and self.drawer:
+            newob.drawer.set_params(self.drawer.params)
+        else:
+            newob.set_params(self.params)
         newob.set_progress(self.progress)
         return newob
 
