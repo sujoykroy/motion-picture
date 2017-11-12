@@ -142,6 +142,9 @@ class TextShape(RectangleShape):
         PangoCairo.update_layout(ctx, layout)
         return layout, x-text_left, y-text_top
 
+    def draw(self, ctx, drawing_size=None, root_shape=None):
+        self.draw_text(ctx)
+
     def draw_text(self, ctx):
         if not self.display_text:
             return
