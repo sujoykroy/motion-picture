@@ -330,6 +330,8 @@ class CustomPropsBox(ShapePropBox):
                 self.add_prop(prop_name, PROP_TYPE_FONT, None, can_insert_slice=False)
             elif prop_type_name == "color":
                 self.add_prop(prop_name, PROP_TYPE_FLAT_COLOR, None, can_insert_slice=True)
+            elif prop_type_name == "file":
+                self.add_prop(prop_name, PROP_TYPE_FILE, custom_prop.extras, can_insert_slice=False)
 
         self.set_prop_object(shape)
 

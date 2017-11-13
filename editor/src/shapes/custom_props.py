@@ -23,7 +23,7 @@ class CustomPropLinkedTo(object):
 class CustomProp(object):
     TAG_NAME = "cusprop"
     LINKED_TO_TAG_NAME = "linked_to"
-    PropTypes = dict(point=0, text=1, color=2, font=3, number=4, int=5)
+    PropTypes = dict(point=0, text=1, color=2, font=3, number=4, int=5, file=6)
 
     @classmethod
     def get_default_value_for(cls, prop_type):
@@ -39,6 +39,7 @@ class CustomProp(object):
             return 1.
         elif prop_type == cls.PropTypes["int"]:
             return 1
+        return None
 
     def __init__(self, prop_name, prop_type, extras=None):
         self.prop_name = prop_name
