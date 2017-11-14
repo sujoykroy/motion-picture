@@ -160,14 +160,25 @@ if jr["result"] == "success":
                         active_segment["start_time"], active_segment["end_time"], active_segment["id"]))
 
                     doc_filename = os.path.join(extracted_folder, project["main_filename"])
-                    doc_movie = DocMovie(doc_filename, temp_output_filename,
+
+                    kwargs = dict(
+                        src_filename = doc_filename,
+                        dest_filename = temp_output_filename,
                         time_line = project["time_line_name"],
                         start_time = active_segment["start_time"],
-                        end_time = active_segment["end_time"]
+                        end_time = active_segment["end_time"],
+                        resolution = extras.get("resolution", "1280x720"),
+                        process_count=process_count
                     )
+                    extra_param_names = ["ffmpeg_params", "bit_rate", "codec", "fps"]
+                    for param_name in extra_param_names:
+                        if param_name in extras:
+                            kwargs[param_name] = extras[param_name]
+
                     ThreeDShape.HQRender = True
-                    kwargs = dict(doc_movie=doc_movie, wh=extras.get("wh", "1280x720"))
-                    Document.make_movie_faster(process_count=process_count, **kwargs)
+
+                    doc_movie = DocMovie(**kwargs)
+                    doc_movie.make()
 
                 if os.path.isfile(temp_output_filename):
                     shutil.move(temp_output_filename, output_filename)

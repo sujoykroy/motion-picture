@@ -1,7 +1,7 @@
 import os
 
 class Directory(object):
-    All = []
+    All = ["."]
 
     @staticmethod
     def get_full_path(path):

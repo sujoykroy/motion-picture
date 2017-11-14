@@ -498,8 +498,8 @@ class DocMovie(object):
         if timelines:
             if time_line is None:
                 if not self.is_png:
-                    if "main" in timelines.keys():
-                        time_line = "main"
+                    if u"main" in timelines:
+                        time_line = u"main"
                     else:
                         time_line = timelines.keys()[0]
             elif time_line not in timelines:
