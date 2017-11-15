@@ -71,6 +71,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("periodic", "period", self.NUMBER)
         self.add_editable_item("periodic", "phase", self.NUMBER)
         self.add_editable_item("periodic", "amplitude",self.NUMBER)
+        self.add_editable_item("periodic", "damp", self.NUMBER)
 
         self.add_editable_item("loop", "loop_count",self.NUMBER)
 

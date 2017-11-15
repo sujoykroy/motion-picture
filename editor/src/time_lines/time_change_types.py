@@ -50,17 +50,20 @@ class PeriodicChangeType(TimeChangeType):
     PHASE_NAME = "phase"
     AMPLITUDE_NAME = "amplitude"
     PERIOD_NAME = "period"
+    DAMP_NAME = "damp"
 
     def __init__(self,  amplitude, period, phase):
         self.period = float(period)
         self.phase = phase
         self.amplitude = amplitude
+        self.damp = 0
 
     def get_xml_element(self):
         elm = TimeChangeType.get_xml_element(self)
         elm.attrib[self.PHASE_NAME] = "{0}".format(self.phase)
         elm.attrib[self.AMPLITUDE_NAME] = "{0}".format(self.amplitude)
         elm.attrib[self.PERIOD_NAME] = "{0}".format(self.period)
+        elm.attrib[self.DAMP_NAME] = "{0}".format(self.damp)
         return elm
 
     def set_period(self, period):
@@ -69,7 +72,8 @@ class PeriodicChangeType(TimeChangeType):
         self.period = period
 
     def copy(self):
-        return self.create_new_object(self.amplitude, self.period, self.phase)
+        newob = self.create_new_object(self.amplitude, self.period, self.phase)
+        newob.damp = self.damp
 
     @classmethod
     def create_new_object(cls, amplitude, period, phase):
@@ -81,6 +85,7 @@ class PeriodicChangeType(TimeChangeType):
         phase = float(elm.attrib.get(cls.PHASE_NAME, 0.))
         period = float(elm.attrib.get(cls.PERIOD_NAME, 1.))
         change_type = cls(amplitude, period, phase)
+        change_type.damp = float(elm.attrib.get(cls.DAMP_NAME, 0))
         return change_type
 
     def self_value_at(self, t):
@@ -88,7 +93,7 @@ class PeriodicChangeType(TimeChangeType):
 
     def value_at(self, start_value, end_value, t, duration):
         value = TimeChangeType.value_at(self, start_value, end_value, t, duration)
-        self_value = self.self_value_at(t)
+        self_value = self.self_value_at(t)*math.exp(-self.damp*t)
         if isinstance(value, list):
             for i in range(len(value)):
                 value[i] += self_value
