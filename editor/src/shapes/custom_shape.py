@@ -61,6 +61,8 @@ class CustomShape(RectangleShape):
             else:
                 old_params = None
             self.drawer = self.drawer_module.Drawer()
+            if hasattr(self.drawer, "set_drawer_dir"):
+                self.drawer.set_drawer_dir(os.path.dirname(filepath))
             if hasattr(self.drawer, "set_configs"):
                 self.drawer.set_configs(settings=Settings)
             if hasattr(self.drawer, "params_info"):

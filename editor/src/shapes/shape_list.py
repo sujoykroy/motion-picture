@@ -48,6 +48,7 @@ class ShapeList(object):
             self.names.append(shape_name)
         else:
             exception_text = "Attempt to append duplicate shape[{0}] in list.".format(shape._name)
+            print(shape_name)
             print(exception_text)
             #raise Exception(exception_text)
 

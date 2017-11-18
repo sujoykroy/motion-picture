@@ -53,6 +53,8 @@ class DocumentShape(RectangleShape):
         if self.document_path and not self.doc_main_multi_shape:
             wh, self.doc_main_multi_shape = \
                     DocumentShape.Loader.load_and_get_main_multi_shape(self.document_path)
+            self.doc_main_multi_shape = self.doc_main_multi_shape.copy(
+                            deep_copy=True, copy_name=True)
             self.doc_width = wh[0]
             self.doc_height = wh[1]
 

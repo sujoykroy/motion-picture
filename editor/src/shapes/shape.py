@@ -1289,7 +1289,7 @@ class Shape(object):
     def new_name():
         Shape.NAME_SEED += 1
         elapsed_time = round(time.time()-Shape._APP_EPOCH_TIME, 3)
-        return "{0}_{1}".format(elapsed_time, Shape.NAME_SEED).replace(".", "")
+        return u"{0}_{1}".format(elapsed_time, Shape.NAME_SEED).replace(".", "")
 
     @staticmethod
     def rounded_rectangle(ctx, x, y, w, h, r=20):

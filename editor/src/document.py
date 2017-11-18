@@ -407,7 +407,9 @@ class Document(object):
     LoadedFiles = dict()
 
     @classmethod
-    def load_and_get_main_multi_shape(cls, filename):
+    def load_and_get_main_multi_shape(cls, filename, folder=None):
+        if folder is not None:
+            filename = os.path.join(folder, filename)
         if filename in Document.LoadedFiles:
             doc = Document.LoadedFiles[filename]
         else:
