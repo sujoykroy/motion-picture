@@ -767,6 +767,11 @@ class CurveShape(Shape, Mirror):
             angle = 0.
         return point, angle
 
+    def get_baked_points(self, curve_index=0):
+        self.build_baked_points(curve_index)
+        baked_points = self.baked_points[curve_index]
+        return baked_points*(self.width, self.height)
+
     def find_point_location(self, point):
         point = point.copy()
         point.scale(1./self.width, 1./self.height)

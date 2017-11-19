@@ -1031,6 +1031,24 @@ class Shape(object):
         point.translate(abs_anchor.x, abs_anchor.y)
         return point
 
+    def reverse_transform_points(self, points):
+        points = points + [-self.anchor_at.x, -self.anchor_at.y]
+        points = points * [self.post_scale_x, self.post_scale_y]
+
+        angle = -self.angle*RAD_PER_DEG
+        xs = points[:, 0]*math.cos(angle)+points[:, 1]*math.sin(angle)
+        ys = -points[:, 0]*math.sin(angle)+points[:, 1]*math.cos(angle)
+        points[:, 0] = xs
+        points[:, 1] = ys
+        del xs, ys
+
+        points = points*[self.scale_x, self.scale_y]
+        #if self.pre_matrix: #at present not supported
+        #    point.transform(self.pre_matrix)
+        abs_anchor = self.get_abs_anchor_at()
+        points = points + [abs_anchor.x, abs_anchor.y]
+        return points
+
     def abs_reverse_transform_point(self, point, root_shape=None):
         point = self.reverse_transform_point(point)
         if self.locked_to_shape:
