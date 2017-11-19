@@ -74,6 +74,7 @@ class PeriodicChangeType(TimeChangeType):
     def copy(self):
         newob = self.create_new_object(self.amplitude, self.period, self.phase)
         newob.damp = self.damp
+        return newob
 
     @classmethod
     def create_new_object(cls, amplitude, period, phase):

@@ -3,8 +3,16 @@ from ..commons import *
 
 class DocumentShape(RectangleShape):
     TYPE_NAME = "document"
-
     Loader = None
+
+    @classmethod
+    def create_for_file(cls, filepath, width, height):
+        shape = cls(anchor_at=Point(width*.5, height*.5),
+                   border_color=None,
+                   border_width=0, fill_color=None,
+                   width=width, height=height, corner_radius=0)
+        shape.set_document_path(filepath)
+        return shape
 
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius):
         super(DocumentShape, self).__init__(
@@ -19,6 +27,7 @@ class DocumentShape(RectangleShape):
         self.doc_width = 1
         self.doc_height = 1
         self.time_pos = 0
+        self.use_custom_shape = True
 
     def copy(self, copy_name=False, deep_copy=False):
         newob = DocumentShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
@@ -135,9 +144,6 @@ class DocumentShape(RectangleShape):
             ctx.restore()
 
         if self.doc_main_multi_shape:
-            doc_surface = cairo.ImageSurface(
-                        cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
-
             camera = self.camera_obj
             if not camera:
                 camera = self.doc_main_multi_shape.camera
@@ -149,10 +155,20 @@ class DocumentShape(RectangleShape):
                 sx = float(self.width)/self.doc_width
                 sy = float(self.height)/self.doc_height
 
-            doc_ctx = cairo.Context(doc_surface)
-            set_default_line_style(doc_ctx)
-            if pre_matrix:
-                doc_ctx.set_matrix(pre_matrix)
+            if self.use_custom_shape:
+                doc_surface = cairo.ImageSurface(
+                        cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
+            else:
+                doc_surface = None
+
+            if doc_surface:
+                doc_ctx = cairo.Context(doc_surface)
+                set_default_line_style(doc_ctx)
+                if pre_matrix:
+                    doc_ctx.set_matrix(pre_matrix)
+            else:
+                doc_ctx = ctx
+
             #doc_ctx = ctx
             #doc_ctx.save()
             self.pre_draw(doc_ctx, root_shape=root_shape)
@@ -161,12 +177,12 @@ class DocumentShape(RectangleShape):
             if camera:
                 camera.reverse_pre_draw(doc_ctx, root_shape=root_shape)
 
-            #doc_ctx.save()
+            doc_ctx.save()
             self.doc_main_multi_shape.draw(doc_ctx,
                 drawing_size = drawing_size, fixed_border=fixed_border,
                 pre_matrix=doc_ctx.get_matrix()
             )
-            #doc_ctx.restore()
+            doc_ctx.restore()
             """
             if camera:
                 doc_ctx.save()
@@ -178,17 +194,18 @@ class DocumentShape(RectangleShape):
             doc_ctx.restore()
             """
 
-            orig_mat = ctx.get_matrix()
-            ctx.set_matrix(cairo.Matrix())
-            ctx.set_source_surface(doc_surface)
-            ctx.set_matrix(orig_mat)
+            if doc_surface:
+                orig_mat = ctx.get_matrix()
+                ctx.set_matrix(cairo.Matrix())
+                ctx.set_source_surface(doc_surface)
+                ctx.set_matrix(orig_mat)
 
-            ctx.save()
-            self.pre_draw(ctx, root_shape=root_shape)
-            self.draw_path(ctx)
-            ctx.clip()
-            ctx.paint()
-            ctx.restore()
+                ctx.save()
+                self.pre_draw(ctx, root_shape=root_shape)
+                self.draw_path(ctx)
+                ctx.clip()
+                ctx.paint()
+                ctx.restore()
 
         if self.border_color is not None:
             ctx.save()
@@ -200,7 +217,6 @@ class DocumentShape(RectangleShape):
             else:
                 self.draw_border(ctx)
                 ctx.restore()
-
 
 
     def cleanup(self):
