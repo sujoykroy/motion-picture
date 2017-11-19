@@ -225,8 +225,8 @@ class ShapePropBox(object):
 
     def file_widget_file_selected(self, file_widget, prop_name):
         if self.prop_object != None:
-            font = file_widget.get_filename()
-            self.prop_object.set_prop_value(prop_name, font)
+            filename = file_widget.get_filename()
+            self.prop_object.set_prop_value(prop_name, filename)
             self.draw_callback(file_widget)
 
     def color_button_clicked(self, color_button, prop_name):

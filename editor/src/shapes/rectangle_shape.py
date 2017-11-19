@@ -4,6 +4,11 @@ from shape import Shape
 class RectangleShape(Shape):
     TYPE_NAME = "rectangle"
 
+
+    @classmethod
+    def create_blank(cls, width, height):
+        return cls(Point(width*.5, height*.5), None, 0, None, width, height, 0)
+
     def __init__(self, anchor_at, border_color, border_width, fill_color, width, height, corner_radius):
         Shape.__init__(self, anchor_at, border_color, border_width, fill_color, width, height)
         self.corner_radius = corner_radius
