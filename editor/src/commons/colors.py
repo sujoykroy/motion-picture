@@ -106,6 +106,10 @@ class GradientColor(object):
             self.color_points[i].color.copy_from(other.color_points[i].color)
         self.pattern = None
 
+    def set_color_at(self, index, color):
+        self.color_points[index].color.copy_from(color)
+        self.get_pattern(forced=True)
+
     def set_inbetween(self, start_color, end_color, frac):
         if not isinstance(start_color, GradientColor) or not isinstance(end_color, GradientColor):
             return

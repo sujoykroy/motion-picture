@@ -567,7 +567,7 @@ class DocMovie(object):
         elif self.audio_only:
             audio_clip = AudioFrameMaker(self)
             audio_clip.write_audiofile(self.dest_filename)
-        elif self.process_count == 1 or self.is_gif == ".gif" or self.dry:
+        elif self.process_count == 1 or self.is_gif or self.dry:
             self.load_doc()
             frame_maker = VideoFrameMaker(self)
             video_clip = movie_editor.VideoClip(frame_maker.make_frame, duration=self.movie_duration)
@@ -579,7 +579,7 @@ class DocMovie(object):
             if self.dry:
                 return
             if self.is_gif:
-                frame_maker.write_gif(video_clip, fps)
+                frame_maker.write_gif(video_clip, self.fps)
             else:
                 video_clip.write_videofile(
                     self.dest_filename,

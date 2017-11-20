@@ -311,7 +311,7 @@ class CurveShape(Shape, Mirror):
             prop_dict = form.shapes_props.get(shape_name)
             if not prop_dict:
                 continue
-            prop_dict["translation"].translate(translation_shift.x, translation_shift.y)
+            #prop_dict["translation"].translate(translation_shift.x, translation_shift.y)
             prop_dict["anchor_at"].translate(anchor_at_shift.x, anchor_at_shift.y)
             prop_dict["width"] = point_group_shape.get_width()
             prop_dict["height"] = point_group_shape.get_height()
