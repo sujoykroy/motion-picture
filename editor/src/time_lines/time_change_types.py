@@ -51,12 +51,14 @@ class PeriodicChangeType(TimeChangeType):
     AMPLITUDE_NAME = "amplitude"
     PERIOD_NAME = "period"
     DAMP_NAME = "damp"
+    FREQ_DAMP_NAME = "fdamp"
 
     def __init__(self,  amplitude, period, phase):
         self.period = float(period)
         self.phase = phase
         self.amplitude = amplitude
         self.damp = 0
+        self.freq_damp = 0
 
     def get_xml_element(self):
         elm = TimeChangeType.get_xml_element(self)
@@ -64,6 +66,7 @@ class PeriodicChangeType(TimeChangeType):
         elm.attrib[self.AMPLITUDE_NAME] = "{0}".format(self.amplitude)
         elm.attrib[self.PERIOD_NAME] = "{0}".format(self.period)
         elm.attrib[self.DAMP_NAME] = "{0}".format(self.damp)
+        elm.attrib[self.FREQ_DAMP_NAME] = "{0}".format(self.freq_damp)
         return elm
 
     def set_period(self, period):
@@ -74,6 +77,7 @@ class PeriodicChangeType(TimeChangeType):
     def copy(self):
         newob = self.create_new_object(self.amplitude, self.period, self.phase)
         newob.damp = self.damp
+        newob.freq_damp = self.freq_damp
         return newob
 
     @classmethod
@@ -87,6 +91,7 @@ class PeriodicChangeType(TimeChangeType):
         period = float(elm.attrib.get(cls.PERIOD_NAME, 1.))
         change_type = cls(amplitude, period, phase)
         change_type.damp = float(elm.attrib.get(cls.DAMP_NAME, 0))
+        change_type.freq_damp = float(elm.attrib.get(cls.FREQ_DAMP_NAME, 0))
         return change_type
 
     def self_value_at(self, t):
@@ -127,10 +132,14 @@ class SineChangeType(PeriodicChangeType):
     TYPE_NAME = "sine"
 
     def self_value_at(self, t):
-        if isinstance(t, numpy.ndarray):
-            value = self.amplitude*numpy.sin(math.pi*2*t/self.period + self.phase*math.pi/180.)
+        if self.freq_damp != 0:
+            freq_mult = math.exp(-self.freq_damp*t)
         else:
-            value = self.amplitude*math.sin(math.pi*2*t/self.period + self.phase*math.pi/180.)
+            freq_mult = 1
+        if isinstance(t, numpy.ndarray):
+            value = self.amplitude*numpy.sin(math.pi*2*freq_mult*t/self.period + self.phase*math.pi/180.)
+        else:
+            value = self.amplitude*math.sin(math.pi*2*freq_mult*t/self.period + self.phase*math.pi/180.)
         return value
 
 
@@ -139,6 +148,12 @@ class TriangleChangeType(PeriodicChangeType):
 
     def self_value_at(self, t):
         frac = t/self.period
+
+        if self.freq_damp != 0:
+            freq_mult = math.exp(-self.freq_damp*t)
+        else:
+            freq_mult = 1
+        frac *= freq_mult
         frac = frac + self.phase/360.
         frac = frac % 1
         if isinstance(frac, numpy.ndarray):
@@ -146,6 +161,21 @@ class TriangleChangeType(PeriodicChangeType):
         else:
             if frac>.5: frac = 1-frac
         frac = frac * 2
+        return self.amplitude*frac
+
+class SawtoothChangeType(PeriodicChangeType):
+    TYPE_NAME = "sawt"
+
+    def self_value_at(self, t):
+        frac = t/self.period
+
+        if self.freq_damp != 0:
+            freq_mult = math.exp(-self.freq_damp*t)
+        else:
+            freq_mult = 1
+        frac *= freq_mult
+        frac = frac + self.phase/360.
+        frac = frac % 1
         return self.amplitude*frac
 
 class LoopChangeType(TimeChangeType):
@@ -157,6 +187,7 @@ class LoopChangeType(TimeChangeType):
 
     def value_at(self, start_value, end_value, t, duration):
         loop_duration = duration/(1.0*self.loop_count)
+
         t = t % loop_duration
         return super(LoopChangeType, self).value_at(start_value, end_value, t, loop_duration)
 

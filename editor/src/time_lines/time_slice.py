@@ -98,6 +98,8 @@ class TimeSlice(object):
                 change_type = SineChangeType.create_from_xml_element(change_type_elm)
             elif type_name ==  TriangleChangeType.TYPE_NAME:
                 change_type = TriangleChangeType.create_from_xml_element(change_type_elm)
+            elif type_name ==  SawtoothChangeType.TYPE_NAME:
+                change_type = SawtoothChangeType.create_from_xml_element(change_type_elm)
             elif type_name ==  LoopChangeType.TYPE_NAME:
                 change_type = LoopChangeType.create_from_xml_element(change_type_elm)
         prop_data = None
@@ -151,7 +153,7 @@ class TimeSlice(object):
     def set_change_type_class(self, change_type_class):
         if change_type_class and change_type_class.TYPE_NAME == self.change_type.TYPE_NAME:
             return #don't change if already of this type
-        if change_type_class in (SineChangeType, TriangleChangeType):
+        if change_type_class in (SineChangeType, TriangleChangeType, SawtoothChangeType):
             if self.has_multiple_prop():
                 amplitude=0
             else:

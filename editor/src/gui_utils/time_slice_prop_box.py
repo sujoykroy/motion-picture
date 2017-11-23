@@ -72,6 +72,7 @@ class TimeSlicePropBox(Gtk.Frame):
         self.add_editable_item("periodic", "phase", self.NUMBER)
         self.add_editable_item("periodic", "amplitude",self.NUMBER)
         self.add_editable_item("periodic", "damp", self.NUMBER)
+        self.add_editable_item("periodic", "freq_damp", self.NUMBER)
 
         self.add_editable_item("loop", "loop_count",self.NUMBER)
 
@@ -80,6 +81,7 @@ class TimeSlicePropBox(Gtk.Frame):
             ["Linear", TimeChangeType],
             ["Sine", SineChangeType],
             ["Triangle", TriangleChangeType],
+            ["Sawtooth", SawtoothChangeType],
             ["Loop", LoopChangeType]
         ])
         self.time_markers = None
