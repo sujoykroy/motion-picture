@@ -213,6 +213,8 @@ class MultiShapeTimeLine(object):
         self.shape_time_lines.remove(shape)
 
     def move_to(self, t, force_visible=True, audio_only=False):
+        if t<0:
+            return
         for shape, shape_time_line in self.shape_time_lines.iter_key_values():
             if audio_only:
                 if shape.__class__.__name__ not in ("AudioShape", "VideoShape"):
