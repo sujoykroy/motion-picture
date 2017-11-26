@@ -15,19 +15,21 @@ def get_path_with_ext(path, ext):
     return root+ext
 
 class BlenderDrawer(object):
-    def __init__(self, drawer_dir, temp_dir,
+    def __init__(self, drawer_dir, temp_dir=None,
                        params_filename="blender_params.py",
                        blend_filename="blender.blend",
                        designer_filename="blender_designer.py"):
         self.params = dict()
+        self.progress = 0
 
         self.temp_dir = temp_dir
-        self.image_path = "./blender_generated_image.png"
-        for i in range(100):
-            filepath = os.path.join(temp_dir, "blender_temp_{0}.png".format(time.time()))
-            if not os.path.isfile(filepath):
-                self.image_filepath = filepath
-                break
+        self.image_filepath = "./blender_generated_image.png"
+        if temp_dir is not None:
+            for i in range(100):
+                filepath = os.path.join(temp_dir, "blender_temp_{0}.png".format(time.time()))
+                if not os.path.isfile(filepath):
+                    self.image_filepath = filepath
+                    break
 
         self.blend_filepath = os.path.join(drawer_dir,
                                         get_path_with_ext(blend_filename, ".blend"))
@@ -56,8 +58,10 @@ class BlenderDrawer(object):
                          "-P", SCRIPT_LOADER_FILEPATH,
                          "--",
                          "--params_filepath", self.params_filepath,
+                         "--utils_folderpath", THIS_DIR,
                          "--image_filepath", self.image_filepath,
-                         "--designer_filepath", self.designer_filepath]
+                         "--designer_filepath", self.designer_filepath,
+                         "--progress", "{0}".format(self.progress)]
         for key in self.params_info.keys():
             args.extend(["--{0}".format(key), "{0}".format(self.params.get(key))])
         print(args)
