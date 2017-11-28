@@ -34,7 +34,7 @@ ThreeDShape.HQRender = args.hq_3d#should be true in production mode
 
 if args.codec == "mjpeg":
     if not args.ffmpeg_params:
-        args.ffmpeg_params = "-q:v 3"
+        args.ffmpeg_params = "-q:v 2"
 
 kwargs = dict(
     src_filename = args.src_filename,

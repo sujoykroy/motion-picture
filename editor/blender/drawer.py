@@ -50,7 +50,7 @@ class BlenderDrawer(object):
         self.image_surface = None
 
     def set_progress(self, value):
-        self.progess = value
+        self.progress = value
         self.image_surface = None
 
     def build_image(self):
@@ -64,7 +64,7 @@ class BlenderDrawer(object):
                          "--progress", "{0}".format(self.progress)]
         for key in self.params_info.keys():
             args.extend(["--{0}".format(key), "{0}".format(self.params.get(key))])
-        print(args)
+        #print(args)
         subprocess.call(args)
         self.image_surface = cairo.ImageSurface.create_from_png(self.image_filepath)
 
