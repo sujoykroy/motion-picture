@@ -20,6 +20,7 @@ class BlenderDrawer(object):
                        blend_filename="blender.blend",
                        designer_filename="blender_designer.py"):
         self.params = dict()
+        self.hidden_params = dict()
         self.progress = 0
 
         self.temp_dir = temp_dir
@@ -42,7 +43,11 @@ class BlenderDrawer(object):
 
         self.use_custom_surface = False
         self.image_surface = None
-        self.params_info = self.blender_params.params_info
+        self.params_info = dict()
+        for key, item in self.blender_params.params_info.items():
+            if item.get("hidden", False):
+                continue
+            self.params_info[key] = item
 
     def set_params(self, params):
         if params != self.params:
@@ -64,6 +69,9 @@ class BlenderDrawer(object):
                          "--progress", "{0}".format(self.progress)]
         for key in self.params_info.keys():
             args.extend(["--{0}".format(key), "{0}".format(self.params.get(key))])
+        for key in self.hidden_params.keys():
+            args.extend(["--{0}".format(key), "{0}".format(self.hidden_params.get(key))])
+
         #print(args)
         subprocess.call(args)
         self.image_surface = cairo.ImageSurface.create_from_png(self.image_filepath)

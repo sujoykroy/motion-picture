@@ -14,12 +14,12 @@ comand_parser.add_argument("--params_filepath")
 command_args = comand_parser.parse_args(sys.argv[start_index:start_index+2])
 
 blender_params = imp.load_source("blender_params", command_args.params_filepath)
-arg_types = {"number":float, "int": int}
+arg_types = {"number":float, "int": int, "text": str}
 for key, item in blender_params.params_info.items():
     comand_parser.add_argument(
         "--{0}".format(key),
         type=arg_types.get(item["type"], str),
-        default=item["default"])
+        default=item.get("default", None))
 comand_parser.add_argument("--designer_filepath")
 comand_parser.add_argument("--image_filepath")
 comand_parser.add_argument("--utils_folderpath")

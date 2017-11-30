@@ -14,7 +14,8 @@ setup(
                 'MotionPicture.tasks',
                 'MotionPicture.time_line_boxes',
                 'MotionPicture.time_lines',
-                'MotionPicture.shapes'],
+                'MotionPicture.shapes',
+                'MotionPicture.extras'],
     package_data = {'MotionPicture': [
                 'settings/main_style.css', 'settings/menu_accel_icon.txt',
                 'icons/*.xml', 'icons/predrawns/*.xml']}

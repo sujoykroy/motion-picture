@@ -2,6 +2,7 @@ from ..commons import *
 from rectangle_shape import RectangleShape, Shape
 from gi.repository import Gdk, GdkPixbuf
 from gi.repository.GdkPixbuf import Pixbuf
+from .. import settings as Settings
 
 class ImageShape(RectangleShape):
     TYPE_NAME = "Image"
@@ -46,6 +47,7 @@ class ImageShape(RectangleShape):
             if image_path == "//":
                 self.image_pixbuf = None
             elif image_path:
+                image_path = Settings.Directory.get_full_path(image_path)
                 try:
                     self.image_pixbuf = Pixbuf.new_from_file(image_path)
                 except:

@@ -9,3 +9,5 @@ from shapes import *
 import settings as Settings
 
 DocumentShape.Loader = Document
+
+import extras

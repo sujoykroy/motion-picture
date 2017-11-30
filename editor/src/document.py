@@ -557,19 +557,19 @@ class DocMovie(object):
     def make(self):
         ps_st = time.time()
 
-        if self.is_png:
-            self.load_doc()
-            if self.time_line:
-                self.time_line.move_to(self.start_time)
-            pixbuf = self.doc.get_pixbuf(self.width, self.height, bg_color=self.bg_color)
-            pixbuf.savev(self.dest_filename, "png", [], [])
-            self.unload_doc()
-        elif self.audio_only:
+        #if self.is_png:
+        #    self.load_doc()
+        #    if self.time_line:
+        #        self.time_line.move_to(self.start_time)
+        #    pixbuf = self.doc.get_pixbuf(self.width, self.height, bg_color=self.bg_color)
+        #    pixbuf.savev(self.dest_filename, "png", [], [])
+        #    self.unload_doc()
+        if self.audio_only:
             audio_clip = AudioFrameMaker(self)
             audio_clip.write_audiofile(self.dest_filename)
-        elif self.process_count == 1 or self.is_gif or self.dry:
+        elif self.process_count == 1 or self.is_gif or self.dry or self.is_png:
             self.load_doc()
-            frame_maker = VideoFrameMaker(self)
+            frame_maker = VideoFrameMaker(self, width=self.width, height=self.height)
             video_clip = movie_editor.VideoClip(frame_maker.make_frame, duration=self.movie_duration)
 
             if self.audio:
@@ -580,6 +580,8 @@ class DocMovie(object):
                 return
             if self.is_gif:
                 frame_maker.write_gif(video_clip, self.fps)
+            elif self.is_png:
+                frame_maker.write_png(video_clip, self.start_time, self.dest_filename)
             else:
                 video_clip.write_videofile(
                     self.dest_filename,
@@ -682,7 +684,7 @@ class AudioFrameMaker(movie_editor.AudioClip):
         return samples
 
 class VideoFrameMaker(object):
-    def __init__(self, doc_movie, wh=None, sleep=0):
+    def __init__(self, doc_movie, width=None, height=None, sleep=0):
         self.doc_movie = doc_movie
         self.sleep= sleep
 
@@ -693,8 +695,7 @@ class VideoFrameMaker(object):
             else:
                 self.bg_color = "FFFFFFFF"
 
-        if wh:
-            width, height = wh.split("x")
+        if width is not None and height is not None:
             self.width = float(width)
             self.height = float(height)
         else:
@@ -774,6 +775,12 @@ class VideoFrameMaker(object):
 
         self.ctx.restore()
         return ImageHelper.surface2array(self.surface, reformat=True, rgb_only=True)
+
+    def write_png(self, clip, t, filename):
+        self.make_frame(t)
+        pixbuf= Gdk.pixbuf_get_from_surface(
+            self.surface, 0, 0, self.surface.get_width(), self.surface.get_height())
+        pixbuf.savev(filename, "png", [], [])
 
     def write_gif(self, clip, fps=None, program= 'ImageMagick', opt="OptimizeTransparency"):
         filename = self.doc_movie.dest_filename

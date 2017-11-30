@@ -1,6 +1,7 @@
 import bpy
 import math
 import mathutils
+import numpy
 PI_PER_DEG = math.pi/180.
 
 class DrawingObject(object):
@@ -37,7 +38,7 @@ class DrawingObject(object):
 class Mesh(DrawingObject):
     CurrentScene = None
 
-    def __init__(self, name):
+    def __init__(self, name=None):
         super(Mesh, self).__init__(name)
         self.mesh = bpy.data.meshes.new(self.name)
         self.obj = bpy.data.objects.new(self.name, self.mesh)
@@ -151,6 +152,65 @@ class Mesh(DrawingObject):
                 edges.append([hi+1, 1])
         self.fill_with_data(verts, edges, faces)
 
+    def fill_from_path(self, path_xy_filepath, time_frac=0, line_divs=-1, round_divs=4):
+        xy_values = numpy.load(path_xy_filepath)
+        maxs = numpy.amax(xy_values, axis=1)[0]
+        xy_values[:, :, 0] = xy_values[:, :, 0]/maxs[0]
+        xy_values[:, :, 1] = xy_values[:, :, 1]/maxs[1]
+
+        angle_step  = math.pi*2./round_divs
+        circle_xy_values = numpy.zeros(0)
+        for ai in range(round_divs):
+            angle = ai*angle_step
+            x = math.cos(angle)
+            y = math.sin(angle)
+            circle_xy_values = numpy.append(circle_xy_values, (x, y))
+        circle_xy_values.shape = (-1, 2)
+
+        verts = []
+        faces = []
+        edges = []
+        time_index_frac = xy_values.shape[0]*time_frac
+        time_index = int(time_index_frac)
+        if time_index != time_index_frac and time_index <xy_values.shape[0]-1:
+            time_index_extra = time_index_frac-time_index
+        else:
+            time_index_extra = 0
+
+        if line_divs <= 0 or line_divs>xy_values.shape[1]:
+            line_divs = xy_values.shape[1]
+
+        line_indices = numpy.linspace(0, xy_values.shape[1]-1, line_divs, endpoint=True, dtype=numpy.int)
+
+        for li in range(len(line_indices)):
+            path_xy = xy_values[time_index, line_indices[li], :2]
+            if time_index_extra:
+                path_xy = path_xy + (xy_values[time_index+1, line_indices[li], :2]-path_xy)*time_index_extra
+            z = path_xy[1]
+            xys = circle_xy_values * path_xy[0]
+            for ri in range(round_divs):
+                xy = xys[ri, :]
+                verts.append((xy[0], xy[1], z))
+                if li>=len(line_indices)-1:
+                    continue
+                pi = li*round_divs+ri
+                if ri<round_divs-1:
+                    faces.append([pi, pi+1, pi+1+round_divs, pi+round_divs])
+                    edges.extend([
+                            [pi, pi+1],
+                            [pi+1, pi+1+round_divs],
+                            [pi+1+round_divs, pi+round_divs],
+                            [pi+round_divs, pi]
+                    ])
+                else:
+                    faces.append([pi, pi-round_divs+1, pi+1, pi+round_divs])
+                    edges.extend([
+                            [pi, pi-round_divs+1],
+                            [pi-round_divs+1, pi+1],
+                            [pi+1, pi+round_divs],
+                            [pi+round_divs, pi]
+                    ])
+        self.fill_with_data(verts, edges, faces)
 
 class Curve(DrawingObject):
     def __init__(self, name=None):

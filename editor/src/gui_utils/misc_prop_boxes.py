@@ -311,7 +311,7 @@ class CustomPropsBox(ShapePropBox):
             prop_name = custom_prop.prop_name
             prop_type_name = custom_prop.get_prop_type_name()
             if prop_type_name in ("number", "int"):
-                number_params = dict(value=0, lower=-1000000., upper=100000., step_increment=.1)
+                number_params = dict(value=0, lower=-1000000., upper=100000., step_increment=.1, digits=2)
                 if prop_type_name == "int":
                     number_params["digits"]=0
                     number_params["step_increment"] = 1
