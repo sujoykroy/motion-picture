@@ -728,14 +728,35 @@ class MultiShape(Shape):
                 orig_mat = ctx.get_matrix()
                 if pre_matrix:
                     ctx.set_matrix(cairo.Matrix())
+
+                if last_shape.fill_color is None:
+                    masking_surface = cairo.ImageSurface(
+                        cairo.FORMAT_ARGB32, int(drawing_size.x), int(drawing_size.y))
+                    masking_ctx = cairo.Context(masking_surface)
+                    if pre_matrix:
+                        masking_ctx.set_matrix(pre_matrix)
+                    MultiShape.draw_shape(last_shape, masking_ctx,
+                                drawing_size = drawing_size, fixed_border=fixed_border,
+                                no_camera=no_camera, exclude_camera_list=exclude_camera_list,
+                                root_shape=root_shape, pre_matrix=pre_matrix,
+                                show_non_renderable=display_non_renderable)
+                else:
+                    masking_surface = None
+
                 ctx.set_source_surface(masked_surface)
+                if masking_surface:
+                    ctx.mask_surface(masking_surface)
                 ctx.set_matrix(orig_mat)
-                ctx.save()
-                last_shape.pre_draw(ctx, root_shape=root_shape)
-                last_shape.draw_path(ctx)
-                ctx.clip()
-                ctx.paint()
-                ctx.restore()
+
+                if not masking_surface:
+                    ctx.save()
+                    last_shape.pre_draw(ctx, root_shape=root_shape)
+                    last_shape.draw_path(ctx)
+                    ctx.paint()
+                    ctx.restore()
+                else:
+                    ctx.fill()
+
                 if last_shape.renderable or show_non_renderable:
                     ctx.save()
                     last_shape.pre_draw(ctx, root_shape=root_shape)
