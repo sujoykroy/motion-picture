@@ -4,6 +4,21 @@ import mathutils
 import numpy
 PI_PER_DEG = math.pi/180.
 
+def get_path_xy_values(filepath, time_frac, x_offset=0):
+    xy_values = numpy.load(filepath)
+    maxs = numpy.amax(xy_values, axis=1)[0]
+    xy_values[:, :, 0] = xy_values[:, :, 0]/maxs[0]
+    xy_values[:, :, 1] = xy_values[:, :, 1]/maxs[1]
+    time_index_frac = (xy_values.shape[0]-1)*time_frac
+    time_index = int(time_index_frac)
+    path_xys = xy_values[time_index, :, :]
+    if time_index != time_index_frac and time_index <xy_values.shape[0]-1:
+        time_index_extra = time_index_frac-time_index
+        path_xys = path_xys + (xy_values[time_index+1, :, :]-path_xys)*time_index_extra
+
+    path_xys = path_xys + numpy.array([x_offset, 0, 0])
+    return path_xys
+
 class DrawingObject(object):
     NameSeed = 0
 
@@ -152,11 +167,10 @@ class Mesh(DrawingObject):
                 edges.append([hi+1, 1])
         self.fill_with_data(verts, edges, faces)
 
-    def fill_from_path(self, path_xy_filepath, time_frac=0, line_divs=-1, round_divs=4):
-        xy_values = numpy.load(path_xy_filepath)
-        maxs = numpy.amax(xy_values, axis=1)[0]
-        xy_values[:, :, 0] = xy_values[:, :, 0]/maxs[0]
-        xy_values[:, :, 1] = xy_values[:, :, 1]/maxs[1]
+
+
+    def fill_from_path(self, path_xy_filepath, time_frac=0, line_divs=-1, round_divs=4, x_offset=0):
+        path_xys = get_path_xy_values(path_xy_filepath, time_frac, x_offset)
 
         angle_step  = math.pi*2./round_divs
         circle_xy_values = numpy.zeros(0)
@@ -170,26 +184,21 @@ class Mesh(DrawingObject):
         verts = []
         faces = []
         edges = []
-        time_index_frac = xy_values.shape[0]*time_frac
-        time_index = int(time_index_frac)
-        if time_index != time_index_frac and time_index <xy_values.shape[0]-1:
-            time_index_extra = time_index_frac-time_index
-        else:
-            time_index_extra = 0
 
-        if line_divs <= 0 or line_divs>xy_values.shape[1]:
-            line_divs = xy_values.shape[1]
+        if line_divs <= 0 or line_divs>path_xys.shape[0]:
+            line_divs = path_xys.shape[0]
 
-        line_indices = numpy.linspace(0, xy_values.shape[1]-1, line_divs, endpoint=True, dtype=numpy.int)
-
+        line_indices = numpy.linspace(0, path_xys.shape[0]-1, line_divs, endpoint=True, dtype=numpy.int)
+        self.layer_vert_indices = []
         for li in range(len(line_indices)):
-            path_xy = xy_values[time_index, line_indices[li], :2]
-            if time_index_extra:
-                path_xy = path_xy + (xy_values[time_index+1, line_indices[li], :2]-path_xy)*time_index_extra
+            path_xy = path_xys[line_indices[li], :2]
             z = path_xy[1]
-            xys = circle_xy_values * path_xy[0]
+            xys = circle_xy_values * (path_xy[0] + x_offset)
+
+            circle_vert_indices = []
             for ri in range(round_divs):
                 xy = xys[ri, :]
+                circle_vert_indices.append(len(verts))
                 verts.append((xy[0], xy[1], z))
                 if li>=len(line_indices)-1:
                     continue
@@ -210,6 +219,7 @@ class Mesh(DrawingObject):
                             [pi+1, pi+round_divs],
                             [pi+round_divs, pi]
                     ])
+            self.layer_vert_indices.append(circle_vert_indices)
         self.fill_with_data(verts, edges, faces)
 
 class Curve(DrawingObject):
@@ -253,6 +263,7 @@ class Curve(DrawingObject):
         spline = self.curve.splines.new('BEZIER')
         spline.bezier_points.add(div+1)
         self.curve.dimensions = "3D"
+
         self.curve.bevel_depth = .1
         self.curve.bevel_resolution = 1
 

@@ -68,9 +68,19 @@ class BlenderDrawer(object):
                          "--designer_filepath", self.designer_filepath,
                          "--progress", "{0}".format(self.progress)]
         for key in self.params_info.keys():
-            args.extend(["--{0}".format(key), "{0}".format(self.params.get(key))])
+            value = self.params.get(key)
+            if isinstance(value, float):
+                value = "{0:f}".format(value)
+            else:
+                value = "{0}".format(value)
+            args.extend(["--{0}".format(key), value])
         for key in self.hidden_params.keys():
-            args.extend(["--{0}".format(key), "{0}".format(self.hidden_params.get(key))])
+            value = self.hidden_params.get(key)
+            if isinstance(value, float):
+                value = "{0:f}".format(value)
+            else:
+                value = "{0}".format(value)
+            args.extend(["--{0}".format(key), value])
 
         #print(args)
         subprocess.call(args)
