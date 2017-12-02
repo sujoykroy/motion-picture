@@ -120,6 +120,10 @@ class CustomShape(RectangleShape):
         if self.drawer:
             self.drawer.set_progress(self.progress)
 
+    def get_private_inner_shape(self, shape_name):
+        if shape_name == "_drawer_":
+            return self.drawer
+
     def draw(self, ctx, drawing_size=None, fixed_border=True, root_shape=None, pre_matrix=None):
         self.fill_shape_area(ctx, root_shape=root_shape)
 

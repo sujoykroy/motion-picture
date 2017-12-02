@@ -10,7 +10,6 @@ class Drawer(object):
             motion_offset=dict(type="number", default=0, step_increment=.01, digits=2),
         )
         self.use_custom_surface = False
-        self.text_shapes = []
 
     def set_params(self, params):
         self.params.update(params)
