@@ -38,6 +38,7 @@ class CustomShape(RectangleShape):
             params_text = Text.to_text(self.drawer.params)
         else:
             params_text = ""
+        params_text = params_text.replace("\\", "\\\\")
         elm.attrib["params"] = params_text
         return elm
 

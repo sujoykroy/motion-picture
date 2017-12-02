@@ -32,6 +32,10 @@ class Rect(object):
         self.width *= sx
         self.height *= sy
 
+    def translate(self, dx, dy):
+        self.left += dx
+        self.top += dy
+
     @classmethod
     def create_from_points(cls, *points):
         x0, y0 = points[0].x, points[0].y

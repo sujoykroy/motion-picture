@@ -162,7 +162,7 @@ class Document(object):
 
         #tree.write(self.filename)
         try:
-            tree.write(self.filename, encoding="utf-8",xml_declaration=True)
+            tree.write(self.filename, encoding="utf-8", xml_declaration=True)
             result = True
         except TypeError as e:
             print("{0}".format(e))

@@ -33,6 +33,7 @@ class TextShape(RectangleShape):
         self.exposure = 1.
         self.max_width_chars = -1
         self.character_shapes = None
+        self.use_text_surface = True
         self.readjust_sizes()
 
     @classmethod
@@ -89,13 +90,15 @@ class TextShape(RectangleShape):
         newob.exposure = self.exposure
         newob.max_width_chars = self.max_width_chars
 
-    def get_text_layout(self, ctx):
+    def get_text_layout(self, ctx, text=None, exclude_extents=True):
         layout = PangoCairo.create_layout(ctx)
         pango_font_desc = Pango.FontDescription.from_string(self.font)
         layout.set_wrap(Pango.WrapMode(0))
         layout.set_font_description(pango_font_desc)
 
-        layout.set_markup(self.display_text)
+        if text is None:
+            text = self.display_text
+        layout.set_markup(text)
 
         if (self.max_width_chars>0):
             font_size = pango_font_desc.get_size()
@@ -140,30 +143,65 @@ class TextShape(RectangleShape):
         layout.set_alignment(Pango.Alignment(int(round(self.line_align))))
 
         PangoCairo.update_layout(ctx, layout)
-        return layout, x-text_left, y-text_top
+        if exclude_extents:
+            x -= text_left
+            y -= text_top
+        return layout, x, y
 
     def draw(self, ctx, drawing_size=None, root_shape=None):
         self.draw_text(ctx)
 
-    def draw_text(self, ctx):
+    def get_letter_positions(self, text, rel_to_anchor):
+        text_surface = cairo.ImageSurface(
+            cairo.FORMAT_ARGB32, int(self.width), int(self.height))
+        text_ctx = cairo.Context(text_surface)
+        layout, x, y = self.get_text_layout(text_ctx, text=text)
+        rect_list = []
+        for index in range(len(text)):
+            rect = layout.index_to_pos(index)
+            rect = Rect(rect.x, rect.y, rect.width, rect.height)
+            rect.scale(1./Pango.SCALE, 1./Pango.SCALE)
+            rect.translate(x, y)
+            if rel_to_anchor:
+                rect.translate(-self.anchor_at.x, -self.anchor_at.y)
+            rect_list.append(rect)
+        return rect_list
+
+    def draw_text(self, ctx, exclude_extents=True):
         if not self.display_text:
             return
         ctx.save()
 
-        text_surface = cairo.ImageSurface(
-            cairo.FORMAT_ARGB32, int(self.width), int(self.height))
-        text_ctx = cairo.Context(text_surface)
+        if self.use_text_surface:
+            text_surface = cairo.ImageSurface(
+                cairo.FORMAT_ARGB32, int(self.width), int(self.height))
+            text_ctx = cairo.Context(text_surface)
+        else:
+            text_ctx = ctx
 
-
-        layout, x, y = self.get_text_layout(text_ctx)
+        layout, x, y = self.get_text_layout(text_ctx, exclude_extents=exclude_extents)
         text_ctx.move_to(x, y)
 
         text_rect = layout.get_pixel_extents()[0]
         if text_rect.width>0 and text_rect.height>0:
             PangoCairo.show_layout(text_ctx, layout)
 
-        ctx.set_source_surface(text_surface)
-        ctx.paint()
+        if self.use_text_surface:
+            ctx.set_source_surface(text_surface)
+            ctx.paint()
+
+        """
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.scale(1./Pango.SCALE, 1./Pango.SCALE)
+        for i in xrange(len(self.display_text)):
+            rect = layout.index_to_pos(i)
+            ctx.rectangle(rect.x, rect.y, rect.width, rect.height)
+            #ctx.rectangle(rect.x*1./Pango.SCALE, rect.y*1./Pango.SCALE, rect.width*1./Pango.SCALE, rect.height*1./Pango.SCALE)
+        ctx.restore()
+        draw_stroke(ctx, 1, "FF0000")
+        """
+
         """@Debugging
         ctx.new_path()
         ctx.translate(x, y)
