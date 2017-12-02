@@ -47,9 +47,12 @@ def draw_selection_border(ctx, color=(0,0,0,1)):
     ctx.stroke()
     ctx.restore()
 
-def draw_fill(ctx, color=Color(1, 1, 1,1)):
+def draw_fill(ctx, color=Color(1, 1, 1,1), even_odd=True):
     ctx.save()
-    ctx.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
+    if even_odd:
+        ctx.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
+    else:
+        ctx.set_fill_rule(cairo.FILL_RULE_WINDING)
     if isinstance(color, Color):
         ctx.set_source_rgba(*color.get_array())
     elif isinstance(color, str):

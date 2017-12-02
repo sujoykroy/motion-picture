@@ -144,7 +144,7 @@ class CurveJoinerShape(Shape):
             ctx.new_path()
             ctx.append_path(path)
             ctx.restore()
-            draw_fill(ctx, self.fill_color)
+            draw_fill(ctx, self.fill_color, even_odd=False)
 
         if self.border_width>0 and self.border_color:
             ctx.save()
