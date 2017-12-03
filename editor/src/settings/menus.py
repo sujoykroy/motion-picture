@@ -155,6 +155,8 @@ m.add(path="Shapes/Point Group/Remove Point from Point Group", icon="remove_from
       action_name="win.remove_point_from_point_group", icon_scale=1.2)
 m.add(path="Shapes/Point Group/Rebuild", icon="rebuild_point_group",
       action_name="win.rebuild_point_group", icon_scale=1.2)
+m.add(path="Shapes/Point Group/Break Into Singles", icon="break_into_singles",
+      action_name="win.break_points_into_point_shapes", icon_scale=1.2)
 
 m.add(path="Shapes/Convert To/Polygon", icon="convert_to_polygon", desc="Convert into Polygon",
       action_name="win.convert_shape_to", action_param="polygon", icon_scale=1.2)

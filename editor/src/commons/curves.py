@@ -699,6 +699,8 @@ class CurvePoint(object):
     POINT_TYPE_DEST = -1
     POINT_TYPE_ORIGIN = -2
 
+    POINT_TYPE_NAMES = {0:"c1", 1:"c2", -1:"d", -2:"o"}
+
     def __init__(self, curve_index, point_index, point_type):
         self.curve_index = curve_index
         self.point_index = point_index
@@ -749,6 +751,10 @@ class CurvePoint(object):
 
     def get_key(self):
         return hash("{0}{1}{2}".format(self.curve_index, self.point_index, self.point_type))
+
+    def get_formatted_name(self):
+        return u"c{0}p{1}{2}".format(self.curve_index,
+                self.point_index, self.POINT_TYPE_NAMES[self.point_type])
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)

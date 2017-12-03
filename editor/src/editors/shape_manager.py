@@ -1112,6 +1112,14 @@ class ShapeManager(object):
             return True
         return False
 
+    def break_points_into_point_shapes(self):
+        if not self.shape_editor: return False
+        if self.point_group_shape_editor: return False
+        selected_shape = self.shape_editor.shape
+        if not isinstance(selected_shape, CurveShape): return False
+        selected_shape.break_points_into_point_shapes()
+        return True
+
     def add_point_to_point_group(self):
         if not self.point_group_shape_editor:
             return False

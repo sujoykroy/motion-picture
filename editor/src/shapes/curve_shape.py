@@ -493,6 +493,39 @@ class CurveShape(Shape, Mirror):
                 return location
         return self.get_curve_point_location(curve_point)
 
+    def break_points_into_point_shapes(self):
+        curve_points = []
+        for i in xrange(len(self.curves)):
+            curve = self.curves[i]
+            curve_points.append(CurvePoint(i, -1, CurvePoint.POINT_TYPE_ORIGIN))
+            for j in xrange(len(curve.bezier_points)):
+                curve_points.append(CurvePoint(i, j, CurvePoint.POINT_TYPE_CONTROL_1))
+                curve_points.append(CurvePoint(i, j, CurvePoint.POINT_TYPE_CONTROL_2))
+                curve_points.append(CurvePoint(i, j, CurvePoint.POINT_TYPE_DEST))
+        for curve_point in curve_points:
+            if self.curve_point_map:
+                curve_point_shape = self.curve_point_map[curve_point.get_key()]
+                if curve_point_shape != self and \
+                   len(curve_point_shape.curve_point_group.points)==1:
+                    continue
+            else:
+                curve_point_shape = None
+
+            curve_point_group = CurvePointGroup()
+            curve_point_group.add_point(curve_point)
+            new_point_group_shape = self.add_new_point_group_shape(curve_point_group)
+            new_point_group_shape.set_locked_to(curve_point_shape)
+
+            attempt = 0
+            while True:
+                name = curve_point.get_formatted_name()
+                if attempt>0:
+                    name = u"{0}_{1}".formatted(name, attempt)
+                if not self.point_group_shapes.contain(name):
+                    break
+                attemp += 1
+            self.point_group_shapes.rename(new_point_group_shape.get_name(), name)
+
     def set_point_location(self, curve_point, location):
         if self.curve_point_map:
             curve_point_shape = self.curve_point_map[curve_point.get_key()]
