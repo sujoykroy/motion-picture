@@ -124,8 +124,8 @@ class Document(object):
             if guide:
                 self.guides.append(guide)
 
-        self.main_multi_shape.perform_post_create_from_xml()
         self.read_linked_clone_element(root)
+        self.main_multi_shape.perform_post_create_from_xml()
 
     def save(self, filename=None):
         result = False

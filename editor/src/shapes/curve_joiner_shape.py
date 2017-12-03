@@ -94,7 +94,7 @@ class CurveJoinerShape(Shape):
 
     def get_xml_element(self):
         elm = Shape.get_xml_element(self)
-        elm.attrib["joined_names"] = self.joined_names
+        elm.attrib["joined_names"] = u"{0}".format(self.joined_names)
         return elm
 
     @classmethod
@@ -119,6 +119,8 @@ class CurveJoinerShape(Shape):
         self.set_joined_names(self.joined_names)
 
     def set_joined_names(self, value):
+        if isinstance(value, str):
+            value = value.decode("utf-8")
         self.joined_names = value
         del self.joiner_items[:]
         for name in value.split(","):

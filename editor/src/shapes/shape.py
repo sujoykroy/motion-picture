@@ -310,6 +310,19 @@ class Shape(object):
             self.set_locked_to(self._locked_to, direct=True)
             self._locked_to = None
 
+    def get_interior_locked_shape_list(self, exclude_list):
+        result = []
+        for shape in self.get_interior_shapes():
+            if shape.get_interior_shapes():
+                result.extend(shape.get_interior_locked_shape_list(exclude_list))
+            if not shape.locked_shapes:
+                continue
+            for locked_shape in shape.locked_shapes:
+                if locked_shape in exclude_list:
+                    continue
+                result.append((locked_shape, locked_shape.get_locked_to()))
+        return result
+
     def set_locked_to(self, shape_name, direct=False):
         if isinstance(shape_name, Shape) or not shape_name:
             locked_to_shape = shape_name

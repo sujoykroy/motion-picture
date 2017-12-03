@@ -86,7 +86,7 @@ class MultiShape(Shape):
         self.imported_from = None
         self.imported_anchor_at = None#this prop might get deleted in future.
         self.pose_pixbufs = dict()
-        self.custom_shapes_editable = True
+        self.custom_props_editable = True
 
     def get_pose_pixbuf(self, pose_name):
         if pose_name not in self.pose_pixbufs:
@@ -125,6 +125,10 @@ class MultiShape(Shape):
     def copy_data_from_linked(self, build_lock=True):
         if not self.linked_to: return
 
+        interior_lock_list = self.get_interior_locked_shape_list(self.shapes.items)
+        for shape, locked_to in interior_lock_list:
+            shape.set_locked_to(None)
+
         for orig_shape in  self.linked_to.shapes:
             new_shape = orig_shape.copy(copy_name=True, deep_copy=True)
             new_shape.parent_shape = self
@@ -140,6 +144,9 @@ class MultiShape(Shape):
         del removable_shapes[:]
 
         self.shapes.order_like(self.linked_to.shapes.names)
+
+        for shape, locked_to in interior_lock_list:
+            shape.set_locked_to(locked_to)
 
         if build_lock:
             self.build_interior_locked_to(up=-10000000)

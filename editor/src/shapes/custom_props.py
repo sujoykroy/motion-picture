@@ -59,7 +59,7 @@ class CustomProp(object):
         elm.attrib["value"] = prop_value_str
         for linked_to in self.linked_to_items:
             linked_to_elm = XmlElement(self.LINKED_TO_TAG_NAME)
-            linked_to_elm.attrib["shape"] = linked_to.shape.get_name()
+            linked_to_elm.attrib["shape"] = u"{0}".format(linked_to.shape.get_name())
             linked_to_elm.attrib["prop"] = linked_to.prop_name
             elm.append(linked_to_elm)
         return elm
@@ -79,6 +79,8 @@ class CustomProp(object):
         newob.prop_value = prop_value
         for linked_to_elm in elm.findall(cls.LINKED_TO_TAG_NAME):
             linked_shape = linked_to_elm.attrib["shape"]
+            if isinstance(linked_shape, str):
+                linked_shape = linked_shape.decode("utf-8")
             linked_shape = shape.get_interior_shape(linked_shape)
             if not linked_shape:
                 continue
