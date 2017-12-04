@@ -230,13 +230,12 @@ class PolygonShape(Shape, Mirror):
         return shape
 
     def copy(self, copy_name=False, deep_copy=False):
-        newob = PolygonShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width,
-                            copy_value(self.fill_color), self.width, self.height)
+        newob = PolygonShape(self.anchor_at.copy(), copy_value(self.border_color), self.border_width, copy_value(self.fill_color), self.width, self.height)
         self.copy_into(newob, copy_name)
         for polygon in self.polygons:
             newob.polygons.append(polygon.copy())
         if deep_copy:
-            newob.forms = copy_dict(self.forms)
+            newob.forms = copy_value(self.forms)
         return newob
 
     def add_polygon(self, polygon):

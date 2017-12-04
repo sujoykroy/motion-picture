@@ -75,14 +75,14 @@ class ImageShape(RectangleShape):
     def draw(self, ctx, fixed_border, root_shape=None):
         if self.fill_color is not None:
             ctx.save()
-            self.pre_draw(ctx)
+            self.pre_draw(ctx, root_shape=root_shape)
             self.draw_path(ctx, for_fill=True)
             self.draw_fill(ctx)
             ctx.restore()
 
         if self.border_color is not None:
             ctx.save()
-            self.pre_draw(ctx)
+            self.pre_draw(ctx, root_shape=root_shape)
             self.draw_path(ctx, for_fill=False)
             self.draw_image(ctx)
             if fixed_border:
