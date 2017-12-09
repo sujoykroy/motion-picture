@@ -753,8 +753,10 @@ class CurvePoint(object):
         return hash("{0}{1}{2}".format(self.curve_index, self.point_index, self.point_type))
 
     def get_formatted_name(self):
-        return u"c{0}p{1}{2}".format(self.curve_index,
+        name = u"c{0}p{1}{2}".format(self.curve_index,
                 self.point_index, self.POINT_TYPE_NAMES[self.point_type])
+        name = name.replace("-", "m")
+        return name
 
     def get_xml_element(self):
         elm = XmlElement(self.TAG_NAME)

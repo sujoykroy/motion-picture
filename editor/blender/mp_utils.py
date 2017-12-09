@@ -19,6 +19,24 @@ def get_path_xy_values(filepath, time_frac, x_offset=0):
     path_xys = path_xys + numpy.array([x_offset, 0, 0])
     return path_xys
 
+
+def get_vector_euler(vector):
+    return mathutils.Vector(vector).to_track_quat('X', 'Z').to_euler('XYZ')
+
+
+def get_vector_like(vector, length):
+    vector = vector.normalized()
+    return vector*length
+
+def color_float_from_html(html):
+    arr = []
+    html = html[1:]
+    for i in range(0, len(html), 2):
+        arr.append(int(html[i:i+2], 16)/255.)
+    if len(arr)<4:
+        arr.append(1.)
+    return arr
+
 class DrawingObject(object):
     NameSeed = 0
 
@@ -50,12 +68,20 @@ class DrawingObject(object):
             x = y = z = xyz
         self.obj.delta_scale= (x, y, z)
 
+
 class Mesh(DrawingObject):
     CurrentScene = None
 
-    def __init__(self, name=None):
+    @classmethod
+    def new_from_object(cls, scene, mesh_object):
+        mesh = bpy.data.meshes.new_from_object(scene, mesh_object, True, 'RENDER')
+        return cls(mesh=mesh)
+
+    def __init__(self, name=None, mesh=None):
         super(Mesh, self).__init__(name)
-        self.mesh = bpy.data.meshes.new(self.name)
+        if mesh is None:
+            mesh = bpy.data.meshes.new(self.name)
+        self.mesh = mesh
         self.obj = bpy.data.objects.new(self.name, self.mesh)
         self.add_to_scene()
 
@@ -73,6 +99,20 @@ class Mesh(DrawingObject):
             [0, 4, 5, 1], [1, 5, 6 , 2],
             [2, 3, 7, 6], [0, 3, 7, 4]
         ]
+        self.fill_with_data(verts, [], faces)
+
+    def make_pyramid(self, corners, height, radius):
+        verts = [[0,0,height]]
+        faces = []
+        for i in range(corners):
+            angle = math.pi*2*i/corners
+            x = radius*math.cos(angle)
+            y = radius*math.sin(angle)
+            verts.append([x, y, 0])
+            if i <corners-1:
+                faces.append([0, i+1, i+2])
+            else:
+                faces.append([0, i+1, 1])
         self.fill_with_data(verts, [], faces)
 
     def make_rod(self, from_loc, to_loc, radius, radius_steps):
@@ -100,18 +140,23 @@ class Mesh(DrawingObject):
         self.obj.rotation_quaternion = span.to_track_quat('Z', 'Y')
 
     @staticmethod
-    def get_spherical_verts_faces(horiz_steps, vert_steps, sphere_top=1, radius=1):
+    def get_spherical_verts_faces(horiz_steps, vert_steps, sphere_top=1, radius=1, side_join=1):
         faces = []
         upper_points = []
         lower_points = []
         angle_step = 360./horiz_steps
+        if side_join:
+            extra_hstep = 0
+        else:
+            extra_hstep = -1
+            horiz_steps += 1
         upper_points_count = (vert_steps+sphere_top)*horiz_steps
         for vi in range(vert_steps+sphere_top):
             vfrac = (vi*1./vert_steps)
             xy_radius = radius*math.cos(vfrac*math.pi*.5)
             z = radius*math.sin(vfrac*math.pi*.5)
             for hi in range(horiz_steps):
-                angle = 2*math.pi*hi*1./horiz_steps
+                angle = 2*math.pi*hi*1./(horiz_steps+extra_hstep)
                 x = xy_radius*math.cos(angle)
                 y = xy_radius*math.sin(angle)
                 upper_points.append([x, y, z])
@@ -119,7 +164,9 @@ class Mesh(DrawingObject):
 
                 if vi>=(vert_steps-1+sphere_top):
                     continue
-                if hi<horiz_steps-1:
+                if side_join==0 and hi==horiz_steps-1:
+                    continue
+                if hi<horiz_steps-1 or side_join==0:
                     pi = vi*horiz_steps+hi
                     faces.append([pi, pi+1, pi+1+horiz_steps, pi+horiz_steps])
                     pi += upper_points_count
@@ -133,16 +180,16 @@ class Mesh(DrawingObject):
         verts = upper_points + lower_points
         return (verts, faces)
 
-    def make_sphere(self, horiz_steps, vert_steps, radius_steps=1, radius=1, sphere_top=1):
+    def make_sphere(self, horiz_steps, vert_steps, radius_steps=1, radius=1, sphere_top=1, side_join=1):
         if radius_steps == 1:
-            verts, faces = self.get_spherical_verts_faces(horiz_steps, vert_steps, radius=radius, sphere_top=sphere_top)
+            verts, faces = self.get_spherical_verts_faces(horiz_steps, vert_steps, radius=radius, sphere_top=sphere_top, side_join=side_join)
         else:
             verts = []
             for ri in range(radius_steps):
                 frac = (ri+1)*1./radius_steps
                 lverts, lfaces = self.get_spherical_verts_faces(
                     max(int(horiz_steps*frac), 1), max(int(vert_steps*frac), 1),
-                    radius=radius*frac, sphere_top=sphere_top)
+                    radius=radius*frac, sphere_top=sphere_top, side_join=side_join)
                 verts.extend(lverts)
             faces = []
         #print(radius_steps, faces)
@@ -254,11 +301,10 @@ class Curve(DrawingObject):
         self.curve.fill_mode = "FULL"
         self.curve.bevel_depth = .12
 
-    def add_line(self, from_loc, to_loc, div=1):
+    def add_line(self, from_loc, to_loc, div=1, keep_length=False):
         from_loc = mathutils.Vector(from_loc)
         to_loc = mathutils.Vector(to_loc)
         diff_loc = to_loc-from_loc
-
 
         spline = self.curve.splines.new('BEZIER')
         spline.bezier_points.add(div+1)
@@ -277,6 +323,11 @@ class Curve(DrawingObject):
             bzp.co = from_loc + diff_loc*dest_frac
             bzp.handle_left = from_loc + diff_loc*left_hand_frac
             bzp.handle_right = from_loc + diff_loc*right_hand_frac
+
+            if keep_length:
+                bzp.co = get_vector_like(bzp.co, keep_length)
+                bzp.handle_left = get_vector_like(bzp.handle_left, keep_length)
+                bzp.handle_right = get_vector_like(bzp.handle_right, keep_length)
 
             bzp.handle_left_type = "AUTO"
             bzp.handle_right_type = "AUTO"
