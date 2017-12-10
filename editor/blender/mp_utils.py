@@ -23,7 +23,6 @@ def get_path_xy_values(filepath, time_frac, x_offset=0):
 def get_vector_euler(vector):
     return mathutils.Vector(vector).to_track_quat('X', 'Z').to_euler('XYZ')
 
-
 def get_vector_like(vector, length):
     vector = vector.normalized()
     return vector*length
@@ -57,8 +56,12 @@ class DrawingObject(object):
         scene.objects.active = self.obj
         self.obj.select = True
 
-    def rotate(self, x=0, y=0, z=0):
-        self.obj.delta_rotation_euler = (x*PI_PER_DEG, y*PI_PER_DEG, z*PI_PER_DEG)
+    def rotate(self, x=0, y=0, z=0, deg=True):
+        if deg:
+            m = PI_PER_DEG
+        else:
+            m = 1
+        self.obj.delta_rotation_euler = (x*m, y*m, z*m)
 
     def move_to(self, x=0, y=0, z=0):
         self.obj.delta_location = (x, y, z)
