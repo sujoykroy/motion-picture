@@ -6,6 +6,7 @@ from moviepy.editor import *
 import sys
 from av_base import AVBase
 import threading, time, Queue
+from .. import settings as Settings
 
 class VideoProcessThread(threading.Thread):
     def __init__(self, clip, frame_queue, time_queue):
@@ -87,6 +88,8 @@ class VideoShape(RectangleShape, AVBase):
         return shape
 
     def set_av_filename(self, av_filename, recalculate=True):
+        if av_filename != "//":
+            av_filename = Settings.Directory.get_full_path(av_filename)
         if av_filename == "//":
             self.duration = 0
             self.video_clip = None
@@ -193,6 +196,7 @@ class VideoShape(RectangleShape, AVBase):
         filename = prop_data["video_path"] if prop_data else None
         if not filename or filename == "//":
             return
+        filename = Settings.Directory.get_full_path(filename)
         AVBase.draw_for_time_slice(
             self, ctx, filename, visible_time_span,
                        time_slice, time_slice_box, pixel_per_second)

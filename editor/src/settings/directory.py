@@ -8,7 +8,7 @@ class Directory(object):
         if not path:
             return path
         directory = os.path.dirname(path)
-        if not directory:
+        if not directory or not os.path.isdir(directory):
             for folder in Directory.All:
                 full_path = os.path.join(folder, path)
                 if os.path.isfile(full_path):
