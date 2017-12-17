@@ -56,12 +56,20 @@ class DrawingObject(object):
         scene.objects.active = self.obj
         self.obj.select = True
 
-    def rotate(self, x=0, y=0, z=0, deg=True):
+    def rotate(self, x=0, y=0, z=0, deg=True, globally=False):
         if deg:
             m = PI_PER_DEG
         else:
             m = 1
-        self.obj.delta_rotation_euler = (x*m, y*m, z*m)
+        if globally:
+            xmat = mathutils.Matrix.Rotation(x, 4, 'X')
+            ymat = mathutils.Matrix.Rotation(y, 4, 'Y')
+            zmat = mathutils.Matrix.Rotation(z, 4, 'Z')
+            rot_mat = xmat*ymat*zmat
+            print(rot_mat)
+            self.obj.matrix_world = self.obj.matrix_world*rot_mat
+        else:
+            self.obj.delta_rotation_euler = (x*m, y*m, z*m)
 
     def move_to(self, x=0, y=0, z=0):
         self.obj.delta_location = (x, y, z)
@@ -70,7 +78,6 @@ class DrawingObject(object):
         if xyz:
             x = y = z = xyz
         self.obj.delta_scale= (x, y, z)
-
 
 class Mesh(DrawingObject):
     CurrentScene = None
@@ -336,3 +343,11 @@ class Curve(DrawingObject):
             bzp.handle_right_type = "AUTO"
 
         self.curve.fill_mode = "FULL"
+
+class TextCurve(DrawingObject):
+    def __init__(self, name=None, text="Sample"):
+        super(TextCurve, self).__init__(name)
+        self.text_curve = bpy.data.curves.new(self.name, 'FONT')
+        self.obj = bpy.data.objects.new(self.name, self.text_curve)
+        self.add_to_scene()
+        self.text_curve.body = text

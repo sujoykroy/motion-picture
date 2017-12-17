@@ -422,7 +422,7 @@ class MultiShape(Shape):
             prop_dict, non_direct_props=["pose"])
 
     def set_shape_prop_for_all_poses(self, shape, prop_name):
-        for pose in self.poses.values():
+        for pose_name, pose in self.poses.items():
             old_prop_dict = pose[shape.get_name()]
             current_shape_prop_dict = shape.get_pose_prop_dict()
             if prop_name in old_prop_dict:
@@ -759,6 +759,7 @@ class MultiShape(Shape):
                     ctx.save()
                     last_shape.pre_draw(ctx, root_shape=root_shape)
                     last_shape.draw_path(ctx)
+                    ctx.clip()
                     ctx.paint()
                     ctx.restore()
                 else:

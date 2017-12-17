@@ -458,11 +458,13 @@ class DocMovie(object):
                        camera=None, bg_color=None,
                        audio_only=False, audio=True, process_count=1,
                        fps=24, resolution="1280x720", speed=1, dry=False,
-                       ffmpeg_params=FFMPEG_PARAMS, bit_rate=BIT_RATE, codec=CODEC):
+                       ffmpeg_params=FFMPEG_PARAMS, bit_rate=BIT_RATE, codec=CODEC,
+                       gif_params=""):
 
         width, height = resolution.split("x")
         self.width = float(width)
         self.height = float(height)
+        self.gif_params = gif_params
 
         if (src_filename[-3:] == ".py"):
             folder=os.path.dirname(dest_filename)
@@ -785,9 +787,7 @@ class VideoFrameMaker(object):
     def write_gif(self, clip, fps=None, program= 'ImageMagick', opt="OptimizeTransparency"):
         filename = self.doc_movie.dest_filename
         file_root, ext = os.path.splitext(filename)
-        print(fps, clip.duration)
-        tt = numpy.arange(0,clip.duration, 1.0/fps)
-
+        tt = numpy.arange(0, clip.duration, 1.0/fps)
         tempfiles = []
 
         print("Building file {0}".format(filename))
@@ -801,12 +801,15 @@ class VideoFrameMaker(object):
             self.surface.write_to_png(temp_filename)
 
         delay = int(100.0/fps)
-
         fuzz=1
         verbose=True
         loop=0
         dispose=True
         colors=None
+        if self.doc_movie.gif_params:
+            gif_params = self.doc_movie.gif_params.split(" ")
+        else:
+            gif_params = []
         if program == "ImageMagick":
             print("Optimizing GIF with ImageMagick... ")
             cmd = [moviepy.config.get_setting("IMAGEMAGICK_BINARY"),
@@ -817,8 +820,8 @@ class VideoFrameMaker(object):
                   "-coalesce",
                   "-layers", "%s"%opt,
                   "-fuzz", "%02d"%fuzz + "%",
-                  ]+(["-colors", "%d"%colors] if colors is not None else [])+[
-                  filename]
+                  ]+(["-colors", "%d"%colors] if colors is not None else [])+\
+                  gif_params + [filename]
 
         elif program == "ffmpeg":
 

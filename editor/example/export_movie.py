@@ -28,6 +28,7 @@ parser.add_argument("--codec", nargs="?")
 parser.add_argument("--dry", nargs="?", default=False, help="Do not render the final video.")
 parser.add_argument("src_filename")
 parser.add_argument("--process-count", nargs="?", default=3, type=int)
+parser.add_argument("--gif-params", nargs="?", default="", type=str)
 args = parser.parse_args()
 
 ThreeDShape.HQRender = args.hq_3d#should be true in production mode
@@ -50,7 +51,8 @@ kwargs = dict(
     fps = args.fps,
     resolution = args.resolution,
     process_count=args.process_count,
-    dry = args.dry
+    dry = args.dry,
+    gif_params = args.gif_params
 )
 for param in ["ffmpeg_params", "bit_rate", "codec"]:
     value = getattr(args, param)
@@ -60,7 +62,7 @@ for param in ["ffmpeg_params", "bit_rate", "codec"]:
 doc_movie = DocMovie(**kwargs)
 doc_movie.make()
 
-if not doc_movie.is_png:
+if not doc_movie.is_png and not doc_movie.is_gif:
     if args.audio_only:
         clip=AudioFileClip(args.dest_filename)
     else:
