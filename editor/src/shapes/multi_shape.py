@@ -746,7 +746,7 @@ class MultiShape(Shape):
                                 drawing_size = drawing_size, fixed_border=fixed_border,
                                 no_camera=no_camera, exclude_camera_list=exclude_camera_list,
                                 root_shape=root_shape, pre_matrix=pre_matrix,
-                                show_non_renderable=display_non_renderable)
+                                show_non_renderable=show_non_renderable)
                 else:
                     masking_surface = None
 
@@ -754,7 +754,6 @@ class MultiShape(Shape):
                 if masking_surface:
                     ctx.mask_surface(masking_surface)
                 ctx.set_matrix(orig_mat)
-
                 if not masking_surface:
                     ctx.save()
                     last_shape.pre_draw(ctx, root_shape=root_shape)

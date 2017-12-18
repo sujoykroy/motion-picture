@@ -6,6 +6,11 @@ import cairo
 class Drawer(object):
     def __init__(self):
         self.params = dict()
+        self.params_info = dict(
+            shape_name=dict(type="text", default=""),
+            time_line_name=dict(type="text", default=""),
+            steps=dict(type="int", default=10, lower=1)
+        )
 
     def set_params(self, params):
         self.params = dict(params)
