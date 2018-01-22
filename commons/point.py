@@ -11,6 +11,10 @@ class Point:
         self.x -= other.x
         self.y -= other.y
 
+    def add(self, other):
+        self.x += other.x
+        self.y += other.y
+
     def copy_from(self, other):
         self.x = other.x
         self.y = other.y

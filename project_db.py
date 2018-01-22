@@ -15,8 +15,11 @@ class ProjectDb:
     def get_slide_at_index(self, index):
         return self.slides[index]
 
-    def add_slide(self, slide):
-        self.slides.append(slide)
+    def add_slide(self, slide, before=None):
+        if before is not None:
+            self.slides.insert(before, slide)
+        else:
+            self.slides.append(slide)
         self._update()
 
     def add_image_files_from_dir(self, dir):

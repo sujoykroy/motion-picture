@@ -20,8 +20,23 @@ class Rectangle:
         self.y1 = other.y1
         self.y2 = other.y2
 
+    def to_dict(self):
+        return dict(x1=self.x1, x2=self.x2, y1=self.y1, y2=self.y2)
+
+    @staticmethod
+    def create_from_dict(dict_rect):
+        return Rectangle(
+            x1=dict_rect.get("x1", 0), x2=dict_rect.get("x2", 0),
+            y1=dict_rect.get("y1", 0), y2=dict_rect.get("y2", 0))
+
     def __eq__(self, other):
         return self.id_num == other.id_num
+
+    def standardize(self):
+        if self.x1>self.x2:
+            self.x1, self.x2 = self.x2, self.x1
+        if self.y1>self.y2:
+            self.y1, self.y2 = self.y2, self.y1
 
     def get_cx(self):
         return (self.x1+self.x2)*0.5
@@ -45,11 +60,17 @@ class Rectangle:
         if y2 is not None:
             self.y2 = y2
 
-    def translate(self, d):
-        self.x1 += d.x
-        self.x2 += d.x
-        self.y1 += d.y
-        self.y2 += d.y
+    def translate(self, d, sign=1):
+        self.x1 += sign*d.x
+        self.x2 += sign*d.x
+        self.y1 += sign*d.y
+        self.y2 += sign*d.y
+
+    def scale(self, sx, sy):
+        self.x1 *= sx
+        self.x2 *= sx
+        self.y1 *= sy
+        self.y2 *= sy
 
     def get_width(self):
         return abs(self.x2-self.x1)

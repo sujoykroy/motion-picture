@@ -27,7 +27,6 @@ class Application(tk.Frame):
 
         self.init_mouse_pos = Point()
         self.current_mouse_pos = Point()
-        self.image_offset = Point()
 
         self.crop_mode = None
         self.crop_rect = None
@@ -51,20 +50,21 @@ class Application(tk.Frame):
         self.create_editing_widgets()
         self.show_slide()
 
-    def create_editing_widgets(self,
-                                canvas_width=400, canvas_border=2):
+    def create_editing_widgets(self, canvas_width=400):
         canvas_height = canvas_width/self.app_config.aspect_ratio
-        self.canvas_size = Point(canvas_width, canvas_height)
-        self.canvas = tk.Canvas(self, width=canvas_width, height=canvas_height)
+        self.canvas_active_area = Rectangle(0, 0, canvas_width, canvas_height)
+        self.canvas = tk.Canvas(
+                    self, width=canvas_width, height=canvas_height, highlightbackground="black")
         self.canvas.pack()
         self.canvas.bind("<ButtonPress-1>", self.on_canvas_left_mouse_press)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_left_mouse_release)
         self.canvas.bind("<B1-Motion>", self.on_canvas_left_mouse_move)
 
+        self.canvas.crop_rect = None
+        self.canvas.corner_rect = None
+
         self.canvas_background = self.canvas.create_rectangle(
-            canvas_border, canvas_border,
-            canvas_width-canvas_border, canvas_height-canvas_border,
-            fill="white", width=canvas_border)
+            0, 0, canvas_width, canvas_height, fill="white", width=0)
 
         self.prev_button = tk.Button(
                     self, text="<<Prev", command=lambda: self.show_slide(-1))
@@ -74,7 +74,22 @@ class Application(tk.Frame):
             self, text="Next>>", command=self.show_slide)
         self.next_button.pack(side=tk.LEFT)
 
+        self.crop_button = tk.Button(
+                    self, text="Crop", command=self.crop_image_slide)
+        self.crop_button.pack(side=tk.RIGHT)
+
+    def clear_slide_display(self):
+        if self.canvas.crop_rect:
+            self.canvas.delete(self.canvas.crop_rect)
+        if self.canvas.corner_rect:
+            self.canvas.delete(self.canvas.corner_rect)
+        self.crop_rect = None
+        self.corner_rect = None
+        self.crop_button["state"] = "disable"
+
     def show_slide(self, rel=1):
+        self.clear_slide_display()
+
         slide_index =  self.active_slide_index + rel
         if slide_index<0:
             slide_index += self.db.slide_count
@@ -83,18 +98,30 @@ class Application(tk.Frame):
         self.active_slide = self.db.get_slide_at_index(slide_index)
         self.active_slide_index = slide_index
 
-        self.slide_image = CanvasImage(self.active_slide.get_image(), self.canvas_size)
-        self.image_offset.copy_from(self.slide_image.offset)
+        self.slide_image = CanvasImage(self.active_slide.get_image(), self.canvas_active_area)
         self.canvas.image = self.canvas.create_image(
                 self.slide_image.offset.x, self.slide_image.offset.y,
                 image=self.slide_image.tk_image, anchor="nw")
 
+    def crop_image_slide(self):
+        if not self.active_slide or self.active_slide.allow_cropping:
+            return
+        if not self.crop_rect or self.crop_rect.get_width()<10:
+            return
+        rect = self.slide_image.canvas2image(self.crop_rect)
+        new_image_slide = self.active_slide.crop(rect)
+        self.db.add_slide(new_image_slide, before=self.active_slide_index)
+        self.show_slide(0)
+
     def on_canvas_left_mouse_press(self, event):
+        if not self.active_slide or self.active_slide.allow_cropping:
+            return
         self.init_mouse_pos.assign(event.x, event.y)
         self.movable_rect =None
 
         if not self.crop_rect:
             self.crop_mode = self.MODE_CROP_CREATE
+            self.crop_button["state"] = "normal"
             pos = self.init_mouse_pos
 
             self.crop_rect = Rectangle(pos.x, pos.y, pos.x, pos.y)
@@ -139,6 +166,9 @@ class Application(tk.Frame):
 
     def on_canvas_left_mouse_release(self, event):
         self.movable_rect = None
+        if self.crop_rect:
+            self.crop_rect.standardize()
+        self.update_canvas_rects()
 
     def update_canvas_rects(self):
         self.crop_rect.adjust_to_aspect_ratio(self.app_config.aspect_ratio)
