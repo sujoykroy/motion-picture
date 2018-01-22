@@ -37,7 +37,7 @@ class Application(tk.Frame):
         self.active_slide = None
         self.slide_image = None
 
-        self.pack()
+        self.pack(expand=True, fill=tk.BOTH)
 
         #prompt for project filename
         project_filename = ""
@@ -56,36 +56,40 @@ class Application(tk.Frame):
 
     def create_editing_widgets(self, canvas_width=400):
         self.container_frame = tk.Frame(self)
-        self.container_frame.pack(side=tk.LEFT)
+        self.container_frame.pack(side=tk.LEFT, expand=1, fill=tk.BOTH)
+        self.container_frame.columnconfigure(0, weight=1)
+        self.container_frame.rowconfigure(0, weight=1)
+
 
         canvas_height = canvas_width/self.app_config.aspect_ratio
-        self.canvas_active_area = Rectangle(0, 0, canvas_width, canvas_height)
         self.canvas = tk.Canvas(self.container_frame,
                             width=canvas_width, height=canvas_height, highlightbackground="black")
-        self.canvas.pack()
+        self.canvas.grid(row=0, column=0, columnspan=3, sticky=tk.N+tk.S+tk.W+tk.E)
         self.canvas.bind("<ButtonPress-1>", self.on_canvas_left_mouse_press)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_left_mouse_release)
         self.canvas.bind("<B1-Motion>", self.on_canvas_left_mouse_move)
+        self.canvas.bind("<Configure>", self.on_canvas_resize)
 
         self.canvas.crop_rect = None
         self.canvas.corner_rect = None
         self.canvas.image = None
         self.canvas.text = None
 
+        self.canvas_active_area = Rectangle(0, 0, canvas_width, canvas_height)
         self.canvas_background = self.canvas.create_rectangle(
             0, 0, canvas_width, canvas_height, fill="white", width=0)
 
         self.prev_button = tk.Button(self.container_frame,
                                      text="<<Prev", command=lambda: self.show_slide(-1))
-        self.prev_button.pack(side=tk.LEFT)
+        self.prev_button.grid(row=1, column=0, sticky=tk.W)
 
         self.next_button = tk.Button(self.container_frame,
                                      text="Next>>", command=self.show_slide)
-        self.next_button.pack(side=tk.LEFT)
+        self.next_button.grid(row=1, column=1, sticky=tk.W)
 
         self.add_text_button = tk.Button(self.container_frame,
                                      text="Add Text Slide", command=self.add_text_slide)
-        self.add_text_button.pack(side=tk.RIGHT)
+        self.add_text_button.grid(row=1, column=2, sticky=tk.E)
 
         self.slide_tool_frame = tk.Frame(self)
         self.slide_tool_frame.pack(side=tk.RIGHT, fill=tk.Y)
@@ -111,7 +115,6 @@ class Application(tk.Frame):
         self.crop_button = tk.Button(self.slide_tool_frame,
                                      text="Crop", command=self.crop_image_slide)
         self.crop_button.pack(side=tk.BOTTOM)
-
 
     def set_states_of_image_options(self, state):
         for item in [self.align_label, self.text_alignlist, self.crop_button]:
@@ -241,6 +244,8 @@ class Application(tk.Frame):
         self.update_canvas_rects()
 
     def on_canvas_left_mouse_move(self, event):
+        if not self.slide_image:
+            return
         self.current_mouse_pos.assign(event.x, event.y)
         if not self.crop_mode:
             return
@@ -269,6 +274,14 @@ class Application(tk.Frame):
         if self.crop_rect:
             self.crop_rect.standardize()
         self.update_canvas_rects()
+
+    def on_canvas_resize(self, event):
+        canvas_width = self.canvas.winfo_width()
+        canvas_height = self.canvas.winfo_height()
+        self.canvas_active_area.set_values(x2=canvas_width, y2=canvas_height)
+        self.canvas.coords(self.canvas_background,
+                    0, 0, canvas_width, canvas_height)
+        self.show_slide(0)
 
     def update_canvas_rects(self):
         self.crop_rect.adjust_to_aspect_ratio(self.app_config.aspect_ratio)
