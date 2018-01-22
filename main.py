@@ -11,8 +11,8 @@ from app_config import AppConfig
 from project_db import ProjectDb
 
 from commons import Point, Rectangle
-from ui_tk import CanvasImage
-from slides import TextSlide, ImageSlide
+from ui_tk import CanvasImage, PreviewPlayer
+from slides import TextSlide, ImageSlide, VideoFrameMaker
 
 THIS_DIR = os.path.abspath(__file__)
 
@@ -64,7 +64,7 @@ class Application(tk.Frame):
         canvas_height = canvas_width/self.app_config.aspect_ratio
         self.canvas = tk.Canvas(self.container_frame,
                             width=canvas_width, height=canvas_height, highlightbackground="black")
-        self.canvas.grid(row=0, column=0, columnspan=3, sticky=tk.N+tk.S+tk.W+tk.E)
+        self.canvas.grid(row=0, column=0, columnspan=4, sticky=tk.N+tk.S+tk.W+tk.E)
         self.canvas.bind("<ButtonPress-1>", self.on_canvas_left_mouse_press)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_left_mouse_release)
         self.canvas.bind("<B1-Motion>", self.on_canvas_left_mouse_move)
@@ -87,9 +87,13 @@ class Application(tk.Frame):
                                      text="Next>>", command=self.show_slide)
         self.next_button.grid(row=1, column=1, sticky=tk.W)
 
+        self.preview_button = tk.Button(self.container_frame,
+                                     text="Preview", command=self.on_preview_button_click)
+        self.preview_button.grid(row=1, column=2, sticky=tk.E)
+
         self.add_text_button = tk.Button(self.container_frame,
                                      text="Add Text Slide", command=self.add_text_slide)
-        self.add_text_button.grid(row=1, column=2, sticky=tk.E)
+        self.add_text_button.grid(row=1, column=3, sticky=tk.E)
 
         self.slide_tool_frame = tk.Frame(self)
         self.slide_tool_frame.pack(side=tk.RIGHT, fill=tk.Y)
@@ -197,6 +201,11 @@ class Application(tk.Frame):
         text_slide = TextSlide(text="Put text here")
         self.db.add_slide(text_slide, before=self.active_slide_index)
         self.show_slide(0)
+
+    def on_preview_button_click(self):
+        self.video_frame_maker = VideoFrameMaker(self.db.slides, self.app_config)
+        self.preview_player = PreviewPlayer(self, self.video_frame_maker)
+        self.wait_window(self.preview_player.top)
 
     def on_text_alignment_select(self, event):
         sel = self.text_alignlist.curselection()

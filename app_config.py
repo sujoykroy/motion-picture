@@ -24,3 +24,10 @@ class AppConfig:
 
     def get_font_tuple(self):
         return (self.text_font_name, self.text_font_size)
+
+    def get_param(self, param_name, default_value):
+        return self.app_section.get(param_name, default_value)
+
+    def get_video_resolution(self):
+        w, h = self.app_section.get("video-resolution", "1280x720").split("x")
+        return (int(w), int(h))
