@@ -15,9 +15,11 @@ class ProjectDb:
     def get_slide_at_index(self, index):
         return self.slides[index]
 
-    def add_slide(self, slide, before=None):
+    def add_slide(self, slide, before=None, after=None):
         if before is not None:
             self.slides.insert(before, slide)
+        elif after is not None:
+            self.slides.insert(after+1, slide)
         else:
             self.slides.append(slide)
         self._update()

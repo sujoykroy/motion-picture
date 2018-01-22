@@ -6,8 +6,10 @@ from commons import Rectangle, Point
 class ImageSlide(Slide):
     TypeName = "image"
 
-    def __init__(self, filepath, rect=None, caption=None):
+    def __init__(self, filepath, rect=None, caption=""):
         super(ImageSlide, self).__init__(type=self.TypeName)
+        self.set_caption(caption)
+        self.set_caption_alignment("")
         self["filepath"] = filepath
         if rect:
             if isinstance(rect, dict):
@@ -21,6 +23,21 @@ class ImageSlide(Slide):
         if caption:
             self["caption"] = caption
         self.allow_croppping = True
+
+    def get_caption(self):
+        return self["cap"]
+
+    def set_caption(self, caption):
+        self["cap"] = caption
+
+    def set_caption_alignment(self, alignment):
+        self["align"] = alignment
+
+    def get_caption_alignment(self):
+        align = self["align"]
+        if not align:
+            align="bottom"
+        return align
 
     def get_image(self):
         image = ImageTk.Image.open(self["filepath"])
