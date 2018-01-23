@@ -1,4 +1,5 @@
 import random
+from PIL import Image
 
 from commons import Point
 
@@ -8,9 +9,10 @@ from .text_slide import TextSlide
 from .linear_change import LinearChange
 
 class VideoFrameMaker:
-    def __init__(self, slides, app_config):
+    def __init__(self, slides, config):
+        self.config = config
         self.duration = 0
-        self.video_resolution = Point(*app_config.get_video_resolution())
+        self.resolution = Point(*config.get_video_resolution())
         self.time_slices = []
         self.last_used_slide = None
         self.last_slide_image = None
@@ -26,14 +28,14 @@ class VideoFrameMaker:
             time_slice = TimeSlice(slide=slide)
 
             if slide.TypeName == TextSlide.TypeName:
-                duration = app_config.get_param("text-slide-durtion", 3)
+                duration = config.get_param("text-slide-durtion", 3)
             elif slide.rect:
                 random.seed()
-                duration = app_config.get_param("cropped-image-durtion", 1+random.random())
+                duration = config.get_param("cropped-image-durtion", 1+random.random())
             elif slide.get_filepath() in cropped_files:
-                duration = app_config.get_param("crop-orig-image-durtion", 3)
+                duration = config.get_param("crop-orig-image-durtion", 3)
             else:
-                duration = app_config.get_param("image-durtion", 5)
+                duration = config.get_param("image-durtion", 5)
                 random.seed()
                 if random.choice([True, False]):
                     zoom_change = LinearChange(1, random.random()*.5)
@@ -63,8 +65,22 @@ class VideoFrameMaker:
             rel_t = t - elapsed
 
         if time_slice.slide != self.last_used_slide:
-            self.last_slide_image = time_slice.slide.get_image(self.video_resolution)
-        self.last_used_slide = time_slice.slide
+            self.last_slide_image = time_slice.slide.get_image(self.resolution, self.config)
 
+        self.last_used_slide = time_slice.slide
         image = self.last_slide_image
+
+        sx = self.resolution.x/image.width
+        sy = self.resolution.y/image.height
+        sc = min(sx, sy)
+        image = image.resize((int(image.width*sc), int(image.height*sc)), resample=True)
+
+        ofx = int((self.resolution.x-image.width)*0.5)
+        ofy = int((self.resolution.y-image.height)*0.5)
+
+        container = Image.new("RGBA",
+                              (self.resolution.x, self.resolution.y),
+                              self.config.video_background_color)
+        container.paste(image, (ofx, ofy))
+        image = container
         return image

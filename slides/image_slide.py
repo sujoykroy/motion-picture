@@ -47,22 +47,11 @@ class ImageSlide(Slide):
             align="bottom"
         return align
 
-    def get_image(self, resolution=None):
+    def get_image(self, resolution=None, config=None):
         image = ImageTk.Image.open(self[FILEPATH])
         if self.rect:
             image = image.crop((self.rect.x1, self.rect.y1, self.rect.x2, self.rect.y2))
-        if resolution:
-            sx = resolution.x/image.width
-            sy = resolution.y/image.height
-            sc = min(sx, sy)
-            image = image.resize((int(image.width*sc), int(image.height*sc)), resample=True)
 
-            ofx = int((resolution.x-image.width)*0.5)
-            ofy = int((resolution.y-image.height)*0.5)
-
-            container = Image.new("RGBA", (resolution.x, resolution.y), "#FFFFFF00")
-            container.paste(image, (ofx, ofy))
-            image = container
         return image
 
     def crop(self, rect):
