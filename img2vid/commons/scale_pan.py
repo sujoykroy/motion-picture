@@ -23,6 +23,18 @@ class ScalePan:
             point.x-view_width*0.5, point.y-view_height*0.5,
             point.x+view_width*0.5, point.y+view_height*0.5)
 
+
+    def serialize(self):
+        data = dict(scale_start=self.scale_start,
+                    scale_end=self.scale_end,
+                    pan_polygon=self.pan_polygon.serialize())
+        return data
+
+    @classmethod
+    def create_from_data(cls, data):
+        pan_polygon = Polygon.create_from_data(data["pan_polygon"])
+        return cls(data["scale_start"], data["scale_end"], pan_polygon)
+
     @classmethod
     def create_random(cls, min_point_count, max_point_count):
         points = []

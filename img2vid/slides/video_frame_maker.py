@@ -1,5 +1,8 @@
 import random
+import numpy
 from PIL import Image
+
+from moviepy.editor import VideoClip
 
 from commons import Point, ScalePan
 
@@ -16,6 +19,7 @@ class VideoFrameMaker:
         self.time_slices = []
         self.last_used_slide = None
         self.last_slide_image = None
+        self.last_max_t = 0
 
         cropped_files = []
         for i in range(len(slides)):
@@ -42,6 +46,21 @@ class VideoFrameMaker:
             self.time_slices.append(time_slice)
             self.duration += duration
 
+    def serialize(self):
+        data = dict(slices=[])
+        for slice in self.time_slices:
+            data["slices"].append(slice.serialize())
+        return data
+
+    @classmethod
+    def create_from_data(cls, data, config):
+        ob = cls(slides=[], config=config)
+        for slice in data["slices"]:
+            slice = TimeSlice.create_from_data(slice)
+            ob.time_slices.append(slice)
+            ob.duration += slice.duration
+        return ob
+
     def get_image_at(self, t):
         elapsed = 0
         time_slice = None
@@ -59,7 +78,6 @@ class VideoFrameMaker:
         if time_slice.slide != self.last_used_slide:
             self.last_slide_image = time_slice.slide.get_renderable_image(
                                             self.resolution, self.config)
-
         self.last_used_slide = time_slice.slide
         image = self.last_slide_image
         image = time_slice.process(image, rel_t)
@@ -78,3 +96,18 @@ class VideoFrameMaker:
         container.paste(image, (ofx, ofy))
         image = container
         return image
+
+    def make_frame(self, t):
+        self.last_max_t = max(t, self.last_max_t)
+        image = self.get_image_at(t)
+        data = numpy.array(image, dtype=numpy.uint8)
+        data = data[:,:, :3]
+        return data
+
+    def make_video(self, dest, config):
+        self.last_max_t = 0
+        video_clip = VideoClip(self.make_frame, duration=self.duration)
+        video_clip.write_videofile(dest, fps=config.fps, codec=config.video_codec,
+                                   preset=config.ffmpeg_preset,
+                                   ffmpeg_params=config.ffmpeg_params,
+                                   bitrate=config.bit_rate)

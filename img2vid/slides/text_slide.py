@@ -14,6 +14,11 @@ class TextSlide(Slide):
         super(TextSlide, self).__init__(type=self.TypeName)
         self.set_text(text)
 
+    @classmethod
+    def create_from_data(cls, data):
+        ob = cls(data["text"])
+        return ob
+
     def set_text(self, text):
         self["text"] = text
 

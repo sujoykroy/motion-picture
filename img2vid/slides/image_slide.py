@@ -16,7 +16,7 @@ CAPTION_ALIGN = "align"
 class ImageSlide(Slide):
     TypeName = "image"
 
-    def __init__(self, filepath, rect=None, caption=""):
+    def __init__(self, filepath, rect=None, caption="", cap_align=""):
         super(ImageSlide, self).__init__(type=self.TypeName)
         self.set_caption(caption)
         self.set_caption_alignment("")
@@ -29,10 +29,16 @@ class ImageSlide(Slide):
                 self[RECT] = rect.to_dict()
                 self.rect = rect
         else:
+            self[RECT] = None
             self.rect = None
         if caption:
             self[CAPTION] = caption
         self.allow_croppping = True
+
+    @classmethod
+    def create_from_data(cls, data):
+        ob = cls(data[FILEPATH], data[RECT], data[CAPTION], data[CAPTION_ALIGN])
+        return ob
 
     def get_filepath(self):
         return self[FILEPATH]

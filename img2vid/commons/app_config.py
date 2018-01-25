@@ -9,8 +9,8 @@ class AppConfig:
         self.parser = configparser.ConfigParser()
         self.parser.read(filepath)
 
-        if AppConfig.APP_SECTION in self.parser:
-            self.app_section = self.parser[APP_SECTION]
+        if self.APP_SECTION in self.parser:
+            self.app_section = self.parser[self.APP_SECTION]
         else:
             self.app_section = {}
 
@@ -26,6 +26,13 @@ class AppConfig:
         self.caption_background_color = self.app_section.get("caption-bg-color", "#00000044")
 
         self.ppi = int(self.app_section.get("ppi", 320))
+
+        self.ffmpeg_params = self.app_section.get(
+                "ffmpeg-params", "-quality good -qmin 10 -qmax 42").split(" ")
+        self.bit_rate = self.app_section.get("bit-rate", "640k")
+        self.ffmpeg_preset = self.app_section.get("ffmpeg-preset", "superslow")
+        self.video_codec = self.app_section.get("video-codec", "mpeg4")
+        self.fps = int(self.app_section.get("fps", 25))
 
     def get_font_tuple(self):
         return (self.text_font_name, self.text_font_size)

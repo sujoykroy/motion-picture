@@ -7,14 +7,13 @@ import tkinter as tk
 from tkinter import filedialog
 import tkinter.scrolledtext as tkscrolledtext
 
-from app_config import AppConfig
 from project_db import ProjectDb
 
-from commons import Point, Rectangle
+from commons import Point, Rectangle, AppConfig
 from ui_tk import CanvasImage, PreviewPlayer
 from slides import TextSlide, ImageSlide, VideoFrameMaker
 
-THIS_DIR = os.path.abspath(__file__)
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class Application(tk.Frame):
     MODE_CROP_CREATE = 1
@@ -36,7 +35,9 @@ class Application(tk.Frame):
 
         self.active_slide = None
         self.slide_image = None
+        self.preview_player = None
 
+        self.master.protocol("WM_DELETE_WINDOW", self.on_window_close)
         self.pack(expand=True, fill=tk.BOTH)
 
         #prompt for project filename
@@ -203,8 +204,12 @@ class Application(tk.Frame):
         self.show_slide(0)
 
     def on_preview_button_click(self):
+        if self.preview_player:
+            return
         self.video_frame_maker = VideoFrameMaker(self.db.slides, self.app_config)
-        self.preview_player = PreviewPlayer(self, self.video_frame_maker)
+        self.preview_player = PreviewPlayer(
+            self, self.video_frame_maker, self.app_config, self.on_preview_window_close)
+        self.preview_player.top.bind("WM_DELETE_WINDOW", self.on_preview_window_close)
         self.wait_window(self.preview_player.top)
 
     def on_text_alignment_select(self, event):
@@ -291,6 +296,15 @@ class Application(tk.Frame):
         self.canvas.coords(self.canvas_background,
                     0, 0, canvas_width, canvas_height)
         self.show_slide(0)
+
+    def on_preview_window_close(self):
+        self.preview_player = None
+
+    def on_window_close(self):
+        if self.preview_player:
+            self.preview_player.close()
+        self.preview_player = None
+        self.master.destroy()
 
     def update_canvas_rects(self):
         self.crop_rect.adjust_to_aspect_ratio(self.app_config.aspect_ratio)

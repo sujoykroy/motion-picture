@@ -1,39 +1,68 @@
 import tkinter as tk
+from tkinter import filedialog
 
 from commons import Rectangle
+from slides import VideoProcess
 from .canvas_image import CanvasImage
+from .progress_bar import ProgressBar
 
 class PreviewPlayer:
-    def __init__(self, parent, video_frame_maker):
+    def __init__(self, parent, video_frame_maker, config, on_close_callback):
         self.fps = 10
+        self.config = config
         self.millisecond_per_frame = 1/self.fps
         self.video_frame_maker = video_frame_maker
-        top = self.top = tk.Toplevel(parent)
+        self.video_process = None
+        self.on_close_callback = on_close_callback
 
-        top.columnconfigure(0, weight=1)
+        top = self.top = tk.Toplevel(parent)
+        top.protocol("WM_DELETE_WINDOW", self.on_window_close)
+
+        top.columnconfigure(1, weight=5)
         top.rowconfigure(0, weight=1)
 
+        self.play_button = tk.Button(top, text="Play", command=self.on_playpause_button_clicked)
+        self.play_button.paused = True
+        self.play_button.grid(row=1, column=0, sticky=tk.S)
+
         self.canvas = tk.Canvas(top, highlightbackground="black")
-        self.canvas.grid(row=0, column=0, sticky=tk.N+tk.S+tk.W+tk.E)
+        self.canvas.grid(row=0, column=0, columnspan=3, sticky=tk.N+tk.W+tk.E+tk.S)
 
         self.slider = tk.Scale(top, from_=0, to=self.video_frame_maker.duration,
-                               orient=tk.HORIZONTAL, resolution=1/(self.video_frame_maker.duration*self.fps),
-                               command=self.on_slider_change)
-        self.slider.grid(row=1, column=0, sticky=tk.S+tk.W+tk.E)
+                               orient=tk.HORIZONTAL,
+                               resolution=1/(self.video_frame_maker.duration*self.fps))
+        self.slider.grid(row=1, column=1, columnspan=2, sticky=tk.N+tk.S+tk.W+tk.E)
+
+        self.progress_bar = ProgressBar(top, fill="#00FF00", height=25)
+        self.progress_bar.grid(row=2, column=0, columnspan=2, sticky=tk.S+tk.W+tk.E)
+
+        self.render_button = tk.Button(top, text="Render", command=self.on_render_button_clicked)
+        self.render_button.grid(row=2, column=2, sticky=tk.S)
 
         self.canvas_area = Rectangle()
         self.canvas.image = None
 
         self.slider_alaram_period = int(1000/self.fps)
         self.frame_alaram_period = self.slider_alaram_period*5
-        self.slider_alarm = self.top.after(self.slider_alaram_period, self.move_forward)
         self.frame_alarm = self.top.after(self.frame_alaram_period, self.show_frame)
+        self.slider_alarm = None
+        self.render_alarm = None
 
     def move_forward(self):
         self.slider.set(self.slider.get()+1/self.fps)
-        self.slider_alarm = self.top.after(int(1000/self.fps), self.move_forward)
+        self.progress_bar.set_progress(self.slider.get()/self.video_frame_maker.duration)
+        if self.slider_alarm:
+            self.slider_alarm = self.top.after(int(1000/self.fps), self.move_forward)
 
     def show_frame(self):
+        if self.video_process:
+            if not self.video_process.is_alive():
+                self.video_process = None
+            else:
+                self.slider.set(self.video_process.elapsed.value)
+                self.progress_bar.set_progress(
+                    self.video_process.elapsed.value/self.video_frame_maker.duration)
+
         t = self.slider.get()
         self.canvas_area.set_values(
             x2=self.canvas.winfo_width(), y2=self.canvas.winfo_height())
@@ -47,5 +76,39 @@ class PreviewPlayer:
                 image=self.canvas_image.tk_image, anchor="nw")
         self.frame_alarm = self.top.after(self.frame_alaram_period, self.show_frame)
 
-    def on_slider_change(self, event):
-        pass
+    def set_play_state(self, play):
+        if play:
+            self.slider_alarm = self.top.after(self.slider_alaram_period, self.move_forward)
+            self.play_button.paused = False
+            self.play_button["text"] = "Pause"
+        else:
+            self.slider_alarm = None
+            self.play_button.paused = True
+            self.play_button["text"] = "Play"
+
+    def on_render_button_clicked(self):
+        if self.video_process and self.video_process.is_alive():
+            return
+        video_filepath = filedialog.asksaveasfilename(filetypes=[("MP4", "*.mp4")])
+        if video_filepath:
+            self.set_play_state(False)
+            self.render_alarm = self.top.after(self.slider_alaram_period, self.move_forward)
+            self.video_process = VideoProcess(
+                self.video_frame_maker.serialize(), video_filepath, self.config.filepath)
+            self.video_process.start()
+
+    def on_window_close(self):
+        self.close()
+        self.top.destroy()
+        self.on_close_callback()
+
+    def on_playpause_button_clicked(self):
+        if self.play_button.paused:
+            self.set_play_state(play=True)
+        else:
+            self.set_play_state(play=False)
+
+    def close(self):
+        if self.video_process:
+            self.video_process.terminate()
+        self.video_process = None

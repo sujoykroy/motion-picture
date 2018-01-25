@@ -1,4 +1,6 @@
 from commons import ScalePan
+from .text_slide import TextSlide
+from .image_slide import ImageSlide
 
 class TimeSlice:
     def __init__(self, slide):
@@ -6,6 +8,25 @@ class TimeSlice:
         self.duration = 0
         self.scale_pan = None
         self.image = None
+
+    def serialize(self):
+        data = dict(slide=self.slide, duration=self.duration)
+        if self.scale_pan:
+            data["scale_pan"] = self.scale_pan.serialize()
+        return data
+
+    @classmethod
+    def create_from_data(cls, data):
+        slide_type = data["slide"]["type"]
+        if slide_type == TextSlide.TypeName:
+            slide = TextSlide.create_from_data(data["slide"])
+        else:
+            slide = ImageSlide.create_from_data(data["slide"])
+        slide = cls(slide)
+        slide.set_duration(data["duration"])
+        if "scale_pan" in data:
+            slide.set_scale_pan(ScalePan.create_from_data(data["scale_pan"]))
+        return slide
 
     def set_duration(self, duration):
         self.duration = duration
