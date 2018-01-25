@@ -48,7 +48,7 @@ class Application(tk.Frame):
         self.db = ProjectDb(project_filename)
 
         #image_dir = filedialog.askdirectory()
-        image_dir = "/home/sujoy/Pictures/Zenfone"
+        image_dir = "/home/sujoy/Pictures/Plants/Neem"
         self.db.add_image_files_from_dir(image_dir)
 
         self.create_editing_widgets()

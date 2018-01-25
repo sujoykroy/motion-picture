@@ -134,3 +134,6 @@ class Rectangle:
             if point.y<self.y2 or point.y>self.y1:
                 return False
         return True
+
+    def __repr__(self):
+        return "Rectangle(x1={0},y1={1},x2={2},y2={3})".format(self.x1, self.y1, self.x2, self.y2)

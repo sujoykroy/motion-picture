@@ -1,12 +1,12 @@
 import random
 from PIL import Image
 
-from commons import Point
+from commons import Point, ScalePan
 
 from .time_slice import TimeSlice
 from .image_slide import ImageSlide
 from .text_slide import TextSlide
-from .linear_change import LinearChange
+
 
 class VideoFrameMaker:
     def __init__(self, slides, config):
@@ -35,17 +35,9 @@ class VideoFrameMaker:
             elif slide.get_filepath() in cropped_files:
                 duration = config.get_param("crop-orig-image-durtion", 3)
             else:
+                if not slide.get_caption():
+                    time_slice.set_scale_pan(ScalePan.create_random(1, 6))
                 duration = config.get_param("image-durtion", 5)
-                random.seed()
-                if random.choice([True, False]):
-                    zoom_change = LinearChange(1, random.random()*.5)
-                else:
-                    zoom_change = LinearChange(random.random()*.5, 1)
-                time_slice.set_params_change("zoom", zoom_change)
-                time_slice.set_params_change(
-                    "cx", LinearChange(random.random(), random.random()))
-                time_slice.set_params_change(
-                    "cy", LinearChange(random.random(), random.random()))
             time_slice.set_duration(duration)
             self.time_slices.append(time_slice)
             self.duration += duration
@@ -70,6 +62,7 @@ class VideoFrameMaker:
 
         self.last_used_slide = time_slice.slide
         image = self.last_slide_image
+        image = time_slice.process(image, rel_t)
 
         sx = self.resolution.x/image.width
         sy = self.resolution.y/image.height
