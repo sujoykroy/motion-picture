@@ -65,7 +65,8 @@ class VideoFrameMaker:
             rel_t = t - elapsed
 
         if time_slice.slide != self.last_used_slide:
-            self.last_slide_image = time_slice.slide.get_image(self.resolution, self.config)
+            self.last_slide_image = time_slice.slide.get_renderable_image(
+                                            self.resolution, self.config)
 
         self.last_used_slide = time_slice.slide
         image = self.last_slide_image

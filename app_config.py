@@ -20,9 +20,12 @@ class AppConfig:
 
         self.video_background_color = self.app_section.get("video-bg-color", "#FFFFFF")
         self.text_background_color = self.app_section.get("text-bg-color", "#FF0000")
-        self.text_foreground_color = self.app_section.get("text-fg-color", "#FFFFFF")
+        self.text_foreground_color = self.app_section.get("text-fg-color", "#000000")
         self.text_font_name = self.app_section.get("text-font-name", "ariel")
-        self.text_font_size = int(self.app_section.get("text-font-size", "22"))
+        self.text_font_size = int(self.app_section.get("text-font-size", "12"))
+        self.caption_background_color = self.app_section.get("caption-bg-color", "#00000044")
+
+        self.ppi = int(self.app_section.get("ppi", 320))
 
     def get_font_tuple(self):
         return (self.text_font_name, self.text_font_size)
