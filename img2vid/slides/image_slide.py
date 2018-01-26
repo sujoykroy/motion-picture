@@ -19,7 +19,7 @@ class ImageSlide(Slide):
     def __init__(self, filepath, rect=None, caption="", cap_align=""):
         super(ImageSlide, self).__init__(type=self.TypeName)
         self.set_caption(caption)
-        self.set_caption_alignment("")
+        self.set_caption_alignment(cap_align)
         self[FILEPATH] = filepath
         if rect:
             if isinstance(rect, dict):
@@ -31,8 +31,6 @@ class ImageSlide(Slide):
         else:
             self[RECT] = None
             self.rect = None
-        if caption:
-            self[CAPTION] = caption
         self.allow_croppping = True
 
     @classmethod

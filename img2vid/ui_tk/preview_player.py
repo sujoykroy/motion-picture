@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import filedialog
+import wand
 
 from commons import Rectangle
-from slides import VideoProcess
+from slides import VideoProcess, VideoThread
 from .canvas_image import CanvasImage
 from .progress_bar import ProgressBar
 
@@ -93,8 +94,10 @@ class PreviewPlayer:
         if video_filepath:
             self.set_play_state(False)
             self.render_alarm = self.top.after(self.slider_alaram_period, self.move_forward)
-            self.video_process = VideoProcess(
-                self.video_frame_maker.serialize(), video_filepath, self.config.filepath)
+            if "-fopenmp" in wand.version.configure_options()["PCFLAGS"]:
+                self.video_process = VideoThread(self.video_frame_maker, video_filepath, self.config)
+            else:
+                self.video_process = VideoProcess(self.video_frame_maker, video_filepath, self.config)
             self.video_process.start()
 
     def on_window_close(self):

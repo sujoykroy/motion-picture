@@ -10,19 +10,37 @@ class ScalePan:
         self.scale_end = scale_end
         self.pan_polygon = pan_polygon
 
-    def get_view_rect(self, frac, aspect_ratio=1):
+    def get_view_rect(self, frac, bound_width=1, bound_height=1, aspect_ratio=1):
         scale = self.scale_start + (self.scale_end-self.scale_start)*frac
-        view_width = scale
-        view_height = scale/aspect_ratio
+        view_width = int(round(bound_width*scale))
+        view_height = int(round(view_width/aspect_ratio))
         center = Point(view_width*0.5, view_height*0.5)
 
         point = self.pan_polygon.get_point_at(frac)
-        point.scale(1-2*center.x, 1-2*center.y)
+        point.scale(view_width-2*center.x, view_height-2*center.y)
         point.add(center)
-        return Rectangle(
+        rect= Rectangle(
             point.x-view_width*0.5, point.y-view_height*0.5,
             point.x+view_width*0.5, point.y+view_height*0.5)
 
+        if rect.get_width() != view_width:
+            rect.x2 = rect.x1 + view_width
+        if rect.get_height() != view_height:
+            rect.y2 = rect.y1 + view_width
+
+        if rect.x1<0:
+            rect.x1 = 0
+            rect.x2 = view_width
+        if rect.x2>bound_width:
+            rect.x2 = bound_width
+            rect.x1 = bound_width-view_width
+        if rect.y1<0:
+            rect.y1 = 0
+            rect.y2 = view_height
+        if rect.y2>bound_height:
+            rect.y2 = bound_height
+            rect.y1 = bound_height-view_height
+        return rect
 
     def serialize(self):
         data = dict(scale_start=self.scale_start,

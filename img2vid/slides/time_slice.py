@@ -34,11 +34,11 @@ class TimeSlice:
     def set_scale_pan(self, scale_pan):
         self.scale_pan = scale_pan
 
-    def process(self, image, t):
+    def process(self, image, t, resolution):
         if not self.scale_pan:
-            return image
+            return (image, False)
         frac = t/self.duration
-        rect = self.scale_pan.get_view_rect(frac, image.width/image.height)
-        rect.scale(image.width, image.height)
+        rect = self.scale_pan.get_view_rect(
+            frac, image.width, image.height, resolution.get_ratio())
         image=image.crop((rect.x1, rect.y1, rect.x2, rect.y2))
-        return image
+        return (image, True)

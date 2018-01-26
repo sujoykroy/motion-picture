@@ -37,3 +37,6 @@ class Point:
         x = self.x + (other.x-self.x)*frac
         y = self.y + (other.y-self.y)*frac
         return Point(x, y)
+
+    def get_ratio(self):
+        return self.x/self.y

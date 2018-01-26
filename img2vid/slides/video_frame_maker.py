@@ -1,5 +1,6 @@
 import random
 import numpy
+import time
 from PIL import Image
 
 from moviepy.editor import VideoClip
@@ -20,6 +21,8 @@ class VideoFrameMaker:
         self.last_used_slide = None
         self.last_slide_image = None
         self.last_max_t = 0
+        self.delay = 0
+        self.make_frame_callback = None
 
         cropped_files = []
         for i in range(len(slides)):
@@ -80,12 +83,16 @@ class VideoFrameMaker:
                                             self.resolution, self.config)
         self.last_used_slide = time_slice.slide
         image = self.last_slide_image
-        image = time_slice.process(image, rel_t)
+        image, processed = time_slice.process(image, rel_t, self.resolution)
 
-        sx = self.resolution.x/image.width
-        sy = self.resolution.y/image.height
-        sc = min(sx, sy)
-        image = image.resize((int(image.width*sc), int(image.height*sc)), resample=True)
+        if not processed:
+            sx = self.resolution.x/image.width
+            sy = self.resolution.y/image.height
+            sc = min(sx, sy)
+            image = image.resize(
+                (int(round(image.width*sc)), int(round(image.height*sc))), resample=True)
+        else:
+            image = image.resize((int(self.resolution.x), int(self.resolution.y)), resample=True)
 
         ofx = int((self.resolution.x-image.width)*0.5)
         ofy = int((self.resolution.y-image.height)*0.5)
@@ -98,7 +105,11 @@ class VideoFrameMaker:
         return image
 
     def make_frame(self, t):
+        time.sleep(self.delay)
         self.last_max_t = max(t, self.last_max_t)
+        if self.make_frame_callback:
+            if not self.make_frame_callback():
+                raise Exception("Terminate Now!")
         image = self.get_image_at(t)
         data = numpy.array(image, dtype=numpy.uint8)
         data = data[:,:, :3]
