@@ -25,7 +25,7 @@ class AppConfig:
         self.text_font_size = int(self.app_section.get("text-font-size", "12"))
         self.caption_background_color = self.app_section.get("caption-bg-color", "#FFFFFF44")
 
-        self.ppi = int(self.app_section.get("ppi", 320))
+        self.ppi = int(self.app_section.get("ppi", 340))
 
         self.ffmpeg_params = self.app_section.get(
                 "ffmpeg-params", "-quality good -qmin 10 -qmax 42").split(" ")

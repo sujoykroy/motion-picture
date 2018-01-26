@@ -51,7 +51,6 @@ class PreviewPlayer:
 
     def move_forward(self):
         self.slider.set(self.slider.get()+1/self.fps)
-        self.progress_bar.set_progress(self.slider.get()/self.video_frame_maker.duration)
         if self.slider_alarm:
             self.slider_alarm = self.top.after(int(1000/self.fps), self.move_forward)
 
@@ -59,6 +58,7 @@ class PreviewPlayer:
         if self.video_process:
             if not self.video_process.is_alive():
                 self.video_process = None
+                self.play_button["state"] = "normal"
             else:
                 self.slider.set(self.video_process.elapsed.value)
                 self.progress_bar.set_progress(
@@ -94,6 +94,7 @@ class PreviewPlayer:
         if video_filepath:
             self.progress_bar.set_text(video_filepath)
             self.set_play_state(False)
+            self.play_button["state"] = "disable"
             self.render_alarm = self.top.after(self.slider_alaram_period, self.move_forward)
             if "-fopenmp" in wand.version.configure_options()["PCFLAGS"]:
                 self.video_process = VideoThread(self.video_frame_maker, video_filepath, self.config)

@@ -43,7 +43,7 @@ class Application(tk.Frame):
         self.pack(expand=True, fill=tk.BOTH)
 
         self.init_frame = tk.Frame(self)
-        self.init_frame.pack()
+        self.init_frame.pack(expand=True, fill=tk.BOTH)
         self.create_button = tk.Button(
                         self.init_frame, text="Create New Project",
                         command=self.on_create_project_button_clicked, default=tk.ACTIVE)
@@ -224,24 +224,22 @@ class Application(tk.Frame):
             project_filename= filedialog.askopenfilename(filetypes=filetypes)
         else:
             project_filename= filedialog.asksaveasfilename(filetypes=filetypes)
-        if not project_filename:
-            self.master.destroy()
         return project_filename
 
     def on_create_project_button_clicked(self):
         project_filename= self.open_or_create_file(open=False)
         if not project_filename:
             return
-        self.db = ProjectDb(project_filename)
-
         image_dir = filedialog.askdirectory()
 
         if not image_dir:
-            self.master.destroy()
             return
+
+        self.db = ProjectDb()
+        self.db.set_filepath(project_filename)
         self.db.add_image_files_from_dir(image_dir)
         if not self.db.slide_count:
-            self.master.destroy()
+            self.db = None
             return
         self.db.save()
 

@@ -20,7 +20,7 @@ class TextSlide(Slide):
         return ob
 
     def set_text(self, text):
-        self["text"] = text
+        self["text"] = text.strip()
 
     def get_text(self):
         return self["text"]

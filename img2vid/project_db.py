@@ -4,11 +4,11 @@ import json
 from slides import ImageSlide, TextSlide
 
 class ProjectDb:
-    def __init__(self, filepath):
+    def __init__(self, filepath=None):
         self.filepath = filepath
         self.data = dict(slides=[])
         self.slides = self.data["slides"]
-        if os.path.isfile(self.filepath):
+        if self.filepath and os.path.isfile(self.filepath):
             with open(self.filepath, "r") as f:
                 data = json.load(f)
                 for slide in data["slides"]:
@@ -18,6 +18,9 @@ class ProjectDb:
                         slide = ImageSlide.create_from_data(slide)
                     self.add_slide(slide)
         self._update()
+
+    def set_filepath(self, filepath):
+        self.filepath = filepath
 
     def get_slide_at_index(self, index):
         return self.slides[index]

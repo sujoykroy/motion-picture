@@ -45,7 +45,7 @@ class ImageSlide(Slide):
         return self[CAPTION]
 
     def set_caption(self, caption):
-        self[CAPTION] = caption
+        self[CAPTION] = caption.strip()
 
     def set_caption_alignment(self, alignment):
         self[CAPTION_ALIGN] = alignment
@@ -100,7 +100,7 @@ class ImageSlide(Slide):
 
                     if caption_align == "center":
                         text_top = (resolution.y-metric.text_height)*0.5
-                        text_top += metric.character_height+metric.descender
+                        #text_top += metric.character_height+metric.descender
                     else:
                         adjusted_top = (resolution.y-(orig_image.height+metric.text_height))*0.5
                         if caption_align == "top":
@@ -121,7 +121,7 @@ class ImageSlide(Slide):
                         width = int(text_box_width), height = int(metric.text_height))
 
                     context.fill_color = WandColor(config.text_foreground_color)
-                    context.text(x=int(resolution.x*.5), y=int(text_top-metric.descender), body=caption)
+                    context.text(x=int(resolution.x*.5), y=int(text_top+metric.descender), body=caption)
                     context(canvas)
 
                 temporary_file = tempfile.SpooledTemporaryFile()

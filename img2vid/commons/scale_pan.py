@@ -17,16 +17,11 @@ class ScalePan:
         center = Point(view_width*0.5, view_height*0.5)
 
         point = self.pan_polygon.get_point_at(frac)
-        point.scale(view_width-2*center.x, view_height-2*center.y)
+        point.scale(bound_width-2*center.x, bound_height-2*center.y)
         point.add(center)
         rect= Rectangle(
             point.x-view_width*0.5, point.y-view_height*0.5,
             point.x+view_width*0.5, point.y+view_height*0.5)
-
-        if rect.get_width() != view_width:
-            rect.x2 = rect.x1 + view_width
-        if rect.get_height() != view_height:
-            rect.y2 = rect.y1 + view_width
 
         if rect.x1<0:
             rect.x1 = 0
@@ -60,15 +55,17 @@ class ScalePan:
         point_count = int(min_point_count+(max_point_count-min_point_count)*random.random())
         if point_count<2:
             point_count = 2
-        for i in range(int(point_count)):
+        for i in range(point_count):
             random.seed()
             point = Point(random.random(), random.random())
+            if i>0:
+                while(point.distance(points[-1])<0.5):
+                    point = Point(random.random(), random.random())
             points.append(point)
-        scale_start = 1
-        scale_end = random.random()
-        choice = random.choice([0, 1, 2])
-        if choice == 1:
+
+        scale_start = 0.5 - random.random()*0.5
+        scale_end = 0.5 + random.random()*0.5
+        random.seed()
+        if random.choice([True, False]):
             scale_start, scale_end = scale_end, scale_start
-        elif choice == 2:
-            scale_start = scale_end
         return ScalePan(scale_start, scale_end, Polygon(points))
