@@ -24,7 +24,7 @@ class ImageSlide(Slide):
         if rect:
             if isinstance(rect, dict):
                 self[RECT] = rect
-                self.rect = Rectangle.create_from_dict(dict)
+                self.rect = Rectangle.create_from_dict(rect)
             else:
                 self[RECT] = rect.to_dict()
                 self.rect = rect

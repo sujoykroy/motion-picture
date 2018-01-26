@@ -1,16 +1,23 @@
 import os
+import json
 
-from slides import ImageSlide
+from slides import ImageSlide, TextSlide
 
 class ProjectDb:
     def __init__(self, filepath):
         self.filepath = filepath
+        self.data = dict(slides=[])
+        self.slides = self.data["slides"]
         if os.path.isfile(self.filepath):
             with open(self.filepath, "r") as f:
-                self.data = json.load(f)
-        else:
-            self.data = dict(slides=[])
-        self.slides = self.data["slides"]
+                data = json.load(f)
+                for slide in data["slides"]:
+                    if slide["type"] == TextSlide.TypeName:
+                        slide = TextSlide.create_from_data(slide)
+                    else:
+                        slide = ImageSlide.create_from_data(slide)
+                    self.add_slide(slide)
+        self._update()
 
     def get_slide_at_index(self, index):
         return self.slides[index]
@@ -22,6 +29,10 @@ class ProjectDb:
             self.slides.insert(after+1, slide)
         else:
             self.slides.append(slide)
+        self._update()
+
+    def remove_slide(self, index):
+        del self.slides[index]
         self._update()
 
     def add_image_files_from_dir(self, dir):
@@ -39,4 +50,4 @@ class ProjectDb:
         if not self.filepath:
             return
         with open(self.filepath, "w") as f:
-            json.dump(f)
+            json.dump(self.data, f)

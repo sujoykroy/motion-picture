@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 import tkinter.scrolledtext as tkscrolledtext
 
 from project_db import ProjectDb
@@ -28,6 +29,7 @@ class Application(tk.Frame):
         self.init_mouse_pos = Point()
         self.current_mouse_pos = Point()
 
+        self.db = None
         self.crop_mode = None
         self.crop_rect = None
         self.corner_rect = None
@@ -40,36 +42,32 @@ class Application(tk.Frame):
         self.master.protocol("WM_DELETE_WINDOW", self.on_window_close)
         self.pack(expand=True, fill=tk.BOTH)
 
-        #prompt for project filename
-        project_filename = ""
-        """
-        project_filename= filedialog.asksaveasfilename(
-                                    filetypes=[("JSON", "*.json")])
-        """
-        self.db = ProjectDb(project_filename)
+        self.init_frame = tk.Frame(self)
+        self.init_frame.pack()
+        self.create_button = tk.Button(
+                        self.init_frame, text="Create New Project",
+                        command=self.on_create_project_button_clicked, default=tk.ACTIVE)
+        self.create_button.pack(side=tk.LEFT, padx=5, pady=5, expand=1, fill=tk.X)
 
-        #image_dir = filedialog.askdirectory()
-        image_dir = "/home/sujoy/Pictures/Plants/Neem"
-        self.db.add_image_files_from_dir(image_dir)
-
-        self.create_editing_widgets()
-        self.show_slide()
+        self.open_button = tk.Button(
+                        self.init_frame, text="Open Existing Project",
+                        command=self.on_open_project_button_clicked, default=tk.ACTIVE)
+        self.open_button.pack(side=tk.RIGHT, padx=5, pady=5, expand=1, fill=tk.X)
 
     def create_editing_widgets(self, canvas_width=400):
         self.container_frame = tk.Frame(self)
         self.container_frame.pack(side=tk.LEFT, expand=1, fill=tk.BOTH)
-        self.container_frame.columnconfigure(0, weight=1)
+        self.container_frame.columnconfigure(1, weight=1)
         self.container_frame.rowconfigure(0, weight=1)
 
 
         canvas_height = canvas_width/self.app_config.aspect_ratio
         self.canvas = tk.Canvas(self.container_frame,
                             width=canvas_width, height=canvas_height, highlightbackground="black")
-        self.canvas.grid(row=0, column=0, columnspan=4, sticky=tk.N+tk.S+tk.W+tk.E)
+        self.canvas.grid(row=0, column=0, columnspan=5, sticky=tk.N+tk.S+tk.W+tk.E)
         self.canvas.bind("<ButtonPress-1>", self.on_canvas_left_mouse_press)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_left_mouse_release)
         self.canvas.bind("<B1-Motion>", self.on_canvas_left_mouse_move)
-        self.canvas.bind("<Configure>", self.on_canvas_resize)
 
         self.canvas.crop_rect = None
         self.canvas.corner_rect = None
@@ -84,17 +82,20 @@ class Application(tk.Frame):
                                      text="<<Prev", command=lambda: self.show_slide(-1))
         self.prev_button.grid(row=1, column=0, sticky=tk.W)
 
+        self.slide_info_label = tk.Label(self.container_frame, text="0/0")
+        self.slide_info_label.grid(row=1, column=1)
+
         self.next_button = tk.Button(self.container_frame,
                                      text="Next>>", command=self.show_slide)
-        self.next_button.grid(row=1, column=1, sticky=tk.W)
+        self.next_button.grid(row=1, column=2, sticky=tk.W)
 
         self.preview_button = tk.Button(self.container_frame,
                                      text="Preview", command=self.on_preview_button_click)
-        self.preview_button.grid(row=1, column=2, sticky=tk.E)
+        self.preview_button.grid(row=1, column=3, sticky=tk.E)
 
         self.add_text_button = tk.Button(self.container_frame,
                                      text="Add Text Slide", command=self.add_text_slide)
-        self.add_text_button.grid(row=1, column=3, sticky=tk.E)
+        self.add_text_button.grid(row=1, column=4, sticky=tk.E)
 
         self.slide_tool_frame = tk.Frame(self)
         self.slide_tool_frame.pack(side=tk.RIGHT, fill=tk.Y)
@@ -120,6 +121,12 @@ class Application(tk.Frame):
         self.crop_button = tk.Button(self.slide_tool_frame,
                                      text="Crop", command=self.crop_image_slide)
         self.crop_button.pack(side=tk.BOTTOM)
+
+        self.delete_slide_button = tk.Button(self.slide_tool_frame,
+                                     text="Delete Slide", command=self.delete_slide)
+        self.delete_slide_button.pack(side=tk.BOTTOM)
+
+        self.canvas.bind("<Configure>", self.on_canvas_resize)
 
     def set_states_of_image_options(self, state):
         for item in [self.align_label, self.text_alignlist, self.crop_button]:
@@ -165,6 +172,8 @@ class Application(tk.Frame):
         self.active_slide = self.db.get_slide_at_index(slide_index)
         self.active_slide_index = slide_index
 
+        self.slide_info_label["text"] = "{0}/{1}".format(slide_index+1, self.db.slide_count)
+
         if self.active_slide.TypeName == ImageSlide.TypeName:
             self.set_states_of_image_options("normal")
 
@@ -202,6 +211,53 @@ class Application(tk.Frame):
         text_slide = TextSlide(text="Put text here")
         self.db.add_slide(text_slide, before=self.active_slide_index)
         self.show_slide(0)
+
+    def delete_slide(self):
+        if messagebox.askyesno("Delete Slide", "Do you really want to delete this slide?"):
+            self.db.remove_slide(self.active_slide_index)
+            self.active_slide_index = min(self.active_slide_index, self.db.slide_count-1)
+            self.show_slide(0)
+
+    def open_or_create_file(self, open=True):
+        filetypes = [("JSON", "*.json")]
+        if open:
+            project_filename= filedialog.askopenfilename(filetypes=filetypes)
+        else:
+            project_filename= filedialog.asksaveasfilename(filetypes=filetypes)
+        if not project_filename:
+            self.master.destroy()
+        return project_filename
+
+    def on_create_project_button_clicked(self):
+        project_filename= self.open_or_create_file(open=False)
+        if not project_filename:
+            return
+        self.db = ProjectDb(project_filename)
+
+        image_dir = filedialog.askdirectory()
+
+        if not image_dir:
+            self.master.destroy()
+            return
+        self.db.add_image_files_from_dir(image_dir)
+        if not self.db.slide_count:
+            self.master.destroy()
+            return
+        self.db.save()
+
+        self.init_frame.destroy()
+        self.create_editing_widgets()
+        self.show_slide()
+
+    def on_open_project_button_clicked(self):
+        project_filename= self.open_or_create_file(open=True)
+        if not project_filename:
+            return
+        self.db = ProjectDb(project_filename)
+
+        self.init_frame.destroy()
+        self.create_editing_widgets()
+        self.show_slide()
 
     def on_preview_button_click(self):
         if self.preview_player:
@@ -304,6 +360,8 @@ class Application(tk.Frame):
         if self.preview_player:
             self.preview_player.close()
         self.preview_player = None
+        if self.db:
+            self.db.save()
         self.master.destroy()
 
     def update_canvas_rects(self):
@@ -319,5 +377,15 @@ class Application(tk.Frame):
 tk_root = tk.Tk()
 tk_root.title("Img2Vid")
 
+
 app = Application(master=tk_root)
+
+#place the window at the center of screen
+tk_root.withdraw()
+tk_root.update_idletasks()
+x = (tk_root.winfo_screenwidth() - tk_root.winfo_reqwidth()) / 2
+y = (tk_root.winfo_screenheight() - tk_root.winfo_reqheight()) / 2
+tk_root.geometry("+%d+%d" % (x, y))
+tk_root.deiconify()
+
 app.mainloop()

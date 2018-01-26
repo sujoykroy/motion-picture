@@ -92,6 +92,7 @@ class PreviewPlayer:
             return
         video_filepath = filedialog.asksaveasfilename(filetypes=[("MP4", "*.mp4")])
         if video_filepath:
+            self.progress_bar.set_text(video_filepath)
             self.set_play_state(False)
             self.render_alarm = self.top.after(self.slider_alaram_period, self.move_forward)
             if "-fopenmp" in wand.version.configure_options()["PCFLAGS"]:

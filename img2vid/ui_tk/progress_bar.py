@@ -5,6 +5,7 @@ class ProgressBar(tk.Canvas):
         super(ProgressBar, self).__init__(master=master, **kwargs)
         self.progress = 0
         self.rect = self.create_rectangle(0, 0, 0, 0, fill=fill)
+        self.text_ob = self.create_text(0, 0, justify="center", anchor=tk.CENTER)
         self.bind("<Configure>", self.on_canvas_resize)
 
     def on_canvas_resize(self, event):
@@ -14,8 +15,12 @@ class ProgressBar(tk.Canvas):
         self.progress = value
         self.redraw()
 
+    def set_text(self, text):
+        self.itemconfig(self.text_ob, text=text)
+
     def redraw(self):
         self.coords(
             self.rect, 0, 0,
             self.winfo_width()*self.progress,
             self.winfo_height())
+        self.coords(self.text_ob, self.winfo_width()*0.5, self.winfo_height()*0.5)
