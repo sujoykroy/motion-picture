@@ -3,18 +3,13 @@
 import os
 
 import json
-from collections import OrderedDict
 
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 import tkinter.scrolledtext as tkscrolledtext
 
-from project_db import ProjectDb
-
 from commons import Point, Rectangle, AppConfig
-from ui_tk import CanvasImage, PreviewPlayer
-from slides import TextSlide, ImageSlide, VideoFrameMaker
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -43,28 +38,29 @@ class Application(tk.Frame):
 
         self.master.protocol("WM_DELETE_WINDOW", self.on_window_close)
         self.pack(expand=True, fill=tk.BOTH)
+        self.create_project_widgets()
 
-        self.init_frame = tk.Frame(self)
-        self.init_frame.pack(expand=True, fill=tk.BOTH)
-        self.create_button = tk.Button(
-                        self.init_frame, text="Create New Project",
+    def create_project_widgets(self):
+        self.project_frame = tk.Frame(self)
+        self.project_frame.pack(expand=True, fill=tk.BOTH)
+        self.create_project_button = tk.Button(
+                        self.project_frame, text="Create New Project",
                         command=self.on_create_project_button_clicked, default=tk.ACTIVE)
-        self.create_button.pack(side=tk.LEFT, padx=5, pady=5, expand=1, fill=tk.X)
+        self.create_project_button.pack(side=tk.LEFT, padx=5, pady=5, expand=1, fill=tk.X)
 
-        self.open_button = tk.Button(
-                        self.init_frame, text="Open Existing Project",
+        self.open_project_button = tk.Button(
+                        self.project_frame, text="Open Existing Project",
                         command=self.on_open_project_button_clicked, default=tk.ACTIVE)
-        self.open_button.pack(side=tk.RIGHT, padx=5, pady=5, expand=1, fill=tk.X)
+        self.open_project_button.pack(side=tk.RIGHT, padx=5, pady=5, expand=1, fill=tk.X)
 
     def create_editing_widgets(self, canvas_width=400):
-        self.container_frame = tk.Frame(self)
-        self.container_frame.pack(side=tk.LEFT, expand=1, fill=tk.BOTH)
-        self.container_frame.columnconfigure(1, weight=1)
-        self.container_frame.rowconfigure(0, weight=1)
-
+        self.editing_frame = tk.Frame(self)
+        self.editing_frame.pack(side=tk.LEFT, expand=1, fill=tk.BOTH)
+        self.editing_frame.columnconfigure(1, weight=1)
+        self.editing_frame.rowconfigure(0, weight=1)
 
         canvas_height = canvas_width/self.app_config.aspect_ratio
-        self.canvas = tk.Canvas(self.container_frame,
+        self.canvas = tk.Canvas(self.editing_frame,
                             width=canvas_width, height=canvas_height, highlightbackground="black")
         self.canvas.grid(row=0, column=0, columnspan=5, sticky=tk.N+tk.S+tk.W+tk.E)
         self.canvas.bind("<ButtonPress-1>", self.on_canvas_left_mouse_press)
@@ -80,22 +76,22 @@ class Application(tk.Frame):
         self.canvas_background = self.canvas.create_rectangle(
             0, 0, canvas_width, canvas_height, fill="white", width=0)
 
-        self.prev_button = tk.Button(self.container_frame,
+        self.prev_button = tk.Button(self.editing_frame,
                                      text="<<Prev", command=lambda: self.show_slide(-1))
         self.prev_button.grid(row=1, column=0, sticky=tk.W)
 
-        self.slide_info_label = tk.Label(self.container_frame, text="0/0")
+        self.slide_info_label = tk.Label(self.editing_frame, text="0/0")
         self.slide_info_label.grid(row=1, column=1)
 
-        self.next_button = tk.Button(self.container_frame,
+        self.next_button = tk.Button(self.editing_frame,
                                      text="Next>>", command=self.show_slide)
         self.next_button.grid(row=1, column=2, sticky=tk.W)
 
-        self.preview_button = tk.Button(self.container_frame,
+        self.preview_button = tk.Button(self.editing_frame,
                                      text="Preview", command=self.on_preview_button_click)
         self.preview_button.grid(row=1, column=3, sticky=tk.E)
 
-        self.add_text_button = tk.Button(self.container_frame,
+        self.add_text_button = tk.Button(self.editing_frame,
                                      text="Add Text Slide", command=self.add_text_slide)
         self.add_text_button.grid(row=1, column=4, sticky=tk.E)
 
@@ -245,7 +241,7 @@ class Application(tk.Frame):
             return
         self.db.save()
 
-        self.init_frame.destroy()
+        self.project_frame.destroy()
         self.create_editing_widgets()
         self.show_slide()
 
@@ -255,7 +251,7 @@ class Application(tk.Frame):
             return
         self.db = ProjectDb(project_filename)
 
-        self.init_frame.destroy()
+        self.project_frame.destroy()
         self.create_editing_widgets()
         self.show_slide()
 
@@ -374,18 +370,47 @@ class Application(tk.Frame):
     def set_canvas_rect(self, canvas_rect, rect):
         self.canvas.coords(canvas_rect, rect.x1, rect.y1, rect.x2, rect.y2)
 
-tk_root = tk.Tk()
-tk_root.title("Img2Vid")
+class Root(tk.Tk):
+    def __init__(self):
+        super(Root, self).__init__()
+        self.title("Img2Vid")
 
+    def show_at_center(self):
+        #place the window at the center of screen
+        self.withdraw()
+        self.update_idletasks()
+        x = (self.winfo_screenwidth() - self.winfo_reqwidth()) / 2
+        y = (self.winfo_screenheight() - self.winfo_reqheight()) / 2
+        self.geometry("+%d+%d" % (x, y))
+        self.deiconify()
 
-app = Application(master=tk_root)
+def is_magick_found():
+    try:
+        import wand.api
+    except ImportError as e:
+        return False
+    return True
 
-#place the window at the center of screen
-tk_root.withdraw()
-tk_root.update_idletasks()
-x = (tk_root.winfo_screenwidth() - tk_root.winfo_reqwidth()) / 2
-y = (tk_root.winfo_screenheight() - tk_root.winfo_reqheight()) / 2
-tk_root.geometry("+%d+%d" % (x, y))
-tk_root.deiconify()
+while not is_magick_found():
+    from commons import EnvironConfig
+    environ_config = EnvironConfig(os.path.join(THIS_DIR, "environ.ini"))
+    if environ_config.get_magick_home():
+        os.environ["MAGICK_HOME"] = environ_config.get_magick_home()
+    if not is_magick_found():
+        from magick_home_loader import MagickHomeLoader
+        tk_root = Root()
+        app = MagickHomeLoader(master=tk_root, config=environ_config)
+        tk_root.show_at_center()
+        app.mainloop()
+        if app.closing:
+            break
 
-app.mainloop()
+if is_magick_found():
+    from project_db import ProjectDb
+    from ui_tk import CanvasImage, PreviewPlayer
+    from slides import TextSlide, ImageSlide, VideoFrameMaker
+
+    tk_root = Root()
+    app = Application(master=tk_root)
+    tk_root.show_at_center()
+    app.mainloop()
