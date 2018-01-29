@@ -38,14 +38,6 @@ class ProjectDb:
         del self.slides[index]
         self._update()
 
-    def add_image_files_from_dir(self, dir):
-        for filename in os.listdir(dir):
-            root, ext = os.path.splitext(filename)
-            if ext in (".jpg", ".png"):
-                filepath = os.path.join(dir, filename)
-                slide = ImageSlide(filepath=filepath)
-                self.add_slide(slide)
-
     def _update(self):
         self.slide_count = len(self.slides)
 

@@ -34,6 +34,14 @@ class AppConfig:
         self.video_codec = self.app_section.get("video-codec", "mpeg4")
         self.fps = int(self.app_section.get("fps", 25))
 
+        exts = self.app_section.get("image-extensions",
+                                    ".jpg, .jpeg, .JPG, .JPEG, .png").split(",")
+        self.image_extensions = []
+        for ext in exts:
+            ext = ext.strip()
+            if ext:
+                self.image_extensions.append(ext)
+
     def get_font_tuple(self):
         return (self.text_font_name, self.text_font_size)
 
@@ -43,3 +51,9 @@ class AppConfig:
     def get_video_resolution(self):
         w, h = self.app_section.get("video-resolution", "1280x720").split("x")
         return (int(w), int(h))
+
+    def get_image_types(self):
+        types = []
+        for ext in self.image_extensions:
+            types.append("*" + ext)
+        return ", ".join(types)

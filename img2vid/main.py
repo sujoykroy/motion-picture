@@ -40,7 +40,7 @@ class Application(tk.Frame):
         self.master.resize(width, height)
 
         self.text_align_options =  ["top", "bottom", "center"]
-        self.active_slide_index = -1
+        self.active_slide_index = 0
         self.frame_mode = -1
         self.init_mouse_pos = Point()
         self.current_mouse_pos = Point()
@@ -92,6 +92,7 @@ class Application(tk.Frame):
         self.project_frame = None
 
     def create_editing_widgets(self, canvas_width=400):
+        self.active_slide_index = 0
         self.frame_mode = self.FRAME_MODE_EDITING
 
         self.editing_frame = tk.Frame(self, relief=tk.RIDGE, borderwidth=1)
@@ -176,6 +177,8 @@ class Application(tk.Frame):
         self.master.show_at_center()
 
     def destroy_editing_widgets(self):
+        if self.db:
+            self.db.save()
         if self.editing_frame:
             self.editing_frame.destroy()
             self.slide_tool_frame.destroy()
@@ -278,6 +281,13 @@ class Application(tk.Frame):
                 filetypes=filetypes, title="Choose folder and write filename to save new project")
         return project_filename
 
+    def add_image_files(self, image_files):
+        for filepath in image_files:
+            root, ext = os.path.splitext(filepath)
+            if ext.lower() in self.app_config.image_extensions:
+                slide = ImageSlide(filepath=filepath)
+                self.db.add_slide(slide)
+
     def on_crop_image_slide_button_click(self):
         if not self.active_slide or self.active_slide.allow_cropping:
             return
@@ -304,27 +314,18 @@ class Application(tk.Frame):
         if not project_filename:
             return
         self.db = None
-        for i in range(3):
-            image_dir = filedialog.askdirectory(title="Select a folder to import images.")
-
-            if not image_dir:
+        for i in range(2):
+            image_files = filedialog.askopenfilenames(
+                title="Select images to import",
+                filetypes=[("Images", self.app_config.get_image_types()),
+                           ("All Files", "*.*")])
+            if not image_files:
                 messagebox.showerror("Error",
-                                     "No folder is selected to import images.\n" +
-                                     "To proceed with new project, "+
-                                     "you need to select a folder to import images.")
+                                     "You need to select at least one image to create the project.")
                 continue
-            if not self.db:
-                self.db = ProjectDb()
-                self.db.set_filepath(project_filename)
-
-            self.db.add_image_files_from_dir(image_dir)
-            if not self.db.slide_count:
-                messagebox.showerror("Error",
-                                     "No image is found in folder {0}.\n".format(image_dir) +
-                                     "To proceed with new project, " +
-                                     "you need to select a folder with images to import them.")
-                continue
-
+            self.db = ProjectDb()
+            self.db.set_filepath(project_filename)
+            self.add_image_files(image_files)
             self.db.save()
             break
 
@@ -333,7 +334,7 @@ class Application(tk.Frame):
             self.create_editing_widgets()
             self.show_slide()
         else:
-            messagebox.showerror("Error", "Unable to create new project")
+            messagebox.showerror("Error", "Unable to create new project!")
 
     def on_open_project_button_click(self):
         project_filename= self.open_or_create_file(open=True)
@@ -343,7 +344,7 @@ class Application(tk.Frame):
 
         self.destroy_project_widgets()
         self.create_editing_widgets()
-        self.show_slide()
+        self.show_slide(0)
 
     def on_quit_project_button_click(self):
         self.master.destroy()
@@ -459,8 +460,6 @@ class Application(tk.Frame):
             self.destroy_editing_widgets()
             self.create_project_widgets()
             return
-        if self.db:
-            self.db.save()
         self.master.destroy()
 
     def update_canvas_rects(self):

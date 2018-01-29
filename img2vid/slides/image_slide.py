@@ -7,6 +7,7 @@ from wand.color import Color as WandColor
 
 from .slide import Slide
 from commons import Rectangle, Point
+from commons.image_utils import reverse_orient
 
 FILEPATH = "filepath"
 RECT = "rect"
@@ -33,6 +34,12 @@ class ImageSlide(Slide):
             self.rect = None
         self.allow_croppping = True
 
+    def get_exif_orient(self):
+        exif = {}
+        with WandImage(filename=self.get_filepath()) as image:
+            return image.metadata.get("exif:Orientation", None)
+        return None
+
     @classmethod
     def create_from_data(cls, data):
         ob = cls(data[FILEPATH], data[RECT], data[CAPTION], data[CAPTION_ALIGN])
@@ -58,6 +65,7 @@ class ImageSlide(Slide):
 
     def get_image(self):
         image = ImageTk.Image.open(self[FILEPATH])
+        image = reverse_orient(image, exif_orient=self.get_exif_orient())
         if self.rect:
             image = image.crop((self.rect.x1, self.rect.y1, self.rect.x2, self.rect.y2))
         return image
@@ -87,6 +95,7 @@ class ImageSlide(Slide):
                         allowed_height = resolution.y
 
                     orig_image = WandImage(filename=self[FILEPATH])
+                    orig_image = reverse_orient(orig_image, exif_orient=self.get_exif_orient())
                     if self.rect:
                         orig_image.crop(
                             int(self.rect.x1), int(self.rect.y1),
