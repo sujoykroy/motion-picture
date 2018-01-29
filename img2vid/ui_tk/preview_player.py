@@ -16,29 +16,37 @@ class PreviewPlayer:
         self.video_process = None
         self.on_close_callback = on_close_callback
 
-        top = self.top = tk.Toplevel(parent)
+        top = self.top = tk.Toplevel(parent, relief=tk.RIDGE, borderwidth=1)
         top.protocol("WM_DELETE_WINDOW", self.on_window_close)
 
-        top.columnconfigure(1, weight=5)
-        top.rowconfigure(0, weight=1)
+        top.columnconfigure(1, weight=1)
+        top.rowconfigure(1, weight=1)
+
+        self.top_packer = tk.Frame(top, relief=tk.GROOVE, borderwidth=1)
+        self.top_packer.grid(row=0, column=0, columnspan=2, sticky=tk.W+tk.E)
+
+        self.close_button = tk.Button(self.top_packer, text="Close",
+                                       command=self.on_close_button_clicked)
+        self.close_button.pack(side=tk.RIGHT)
+
+        self.render_button = tk.Button(self.top_packer, text="Render",
+                                       command=self.on_render_button_clicked)
+        self.render_button.pack(side=tk.LEFT)
+
+        self.canvas = tk.Canvas(top, highlightbackground="black")
+        self.canvas.grid(row=1, column=0, columnspan=2, sticky=tk.N+tk.W+tk.E+tk.S)
 
         self.play_button = tk.Button(top, text="Play", command=self.on_playpause_button_clicked)
         self.play_button.paused = True
-        self.play_button.grid(row=1, column=0, sticky=tk.S)
-
-        self.canvas = tk.Canvas(top, highlightbackground="black")
-        self.canvas.grid(row=0, column=0, columnspan=3, sticky=tk.N+tk.W+tk.E+tk.S)
+        self.play_button.grid(row=2, column=0, sticky=tk.S)
 
         self.slider = tk.Scale(top, from_=0, to=self.video_frame_maker.duration,
                                orient=tk.HORIZONTAL,
                                resolution=1/(self.video_frame_maker.duration*self.fps))
-        self.slider.grid(row=1, column=1, columnspan=2, sticky=tk.N+tk.S+tk.W+tk.E)
+        self.slider.grid(row=2, column=1, sticky=tk.N+tk.S+tk.W+tk.E)
 
         self.progress_bar = ProgressBar(top, fill="#00FF00", height=25)
-        self.progress_bar.grid(row=2, column=0, columnspan=2, sticky=tk.S+tk.W+tk.E)
-
-        self.render_button = tk.Button(top, text="Render", command=self.on_render_button_clicked)
-        self.render_button.grid(row=2, column=2, sticky=tk.S)
+        self.progress_bar.grid(row=3, column=0, columnspan=2, sticky=tk.S+tk.W+tk.E)
 
         self.canvas_area = Rectangle()
         self.canvas.image = None
@@ -87,6 +95,10 @@ class PreviewPlayer:
             self.play_button.paused = True
             self.play_button["text"] = "Play"
 
+    def on_close_button_clicked(self):
+        self.close()
+        self.on_close_callback()
+
     def on_render_button_clicked(self):
         if self.video_process and self.video_process.is_alive():
             return
@@ -104,7 +116,6 @@ class PreviewPlayer:
 
     def on_window_close(self):
         self.close()
-        self.top.destroy()
         self.on_close_callback()
 
     def on_playpause_button_clicked(self):
@@ -117,3 +128,4 @@ class PreviewPlayer:
         if self.video_process:
             self.video_process.terminate()
         self.video_process = None
+        self.top.destroy()

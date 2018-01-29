@@ -19,6 +19,7 @@ class ProgressBar(tk.Canvas):
         self.itemconfig(self.text_ob, text=text)
 
     def redraw(self):
+        self.itemconfig(self.rect, state=(tk.HIDDEN if self.progress==0 else tk.NORMAL))
         self.coords(
             self.rect, 0, 0,
             self.winfo_width()*self.progress,

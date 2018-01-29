@@ -13,16 +13,35 @@ from commons import Point, Rectangle, AppConfig
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
+def show_tk_widget_at_center(tk_widget, use_req=False):
+    tk_widget.withdraw()
+    tk_widget.update_idletasks()
+    if use_req:
+        x = (tk_widget.winfo_screenwidth() - tk_widget.winfo_reqwidth()) / 2
+        y = (tk_widget.winfo_screenheight() - tk_widget.winfo_reqheight()) / 2
+    else:
+        x = (tk_widget.winfo_screenwidth() - tk_widget.winfo_width()) / 2
+        y = (tk_widget.winfo_screenheight() - tk_widget.winfo_height()) / 2
+    tk_widget.geometry("+%d+%d" % (x, y))
+    tk_widget.deiconify()
+    tk_widget.update_idletasks()
+
 class Application(tk.Frame):
+    FRAME_MODE_CREATE_OPEN = 0
+    FRAME_MODE_EDITING = 1
+
     MODE_CROP_CREATE = 1
     MODE_CROP_MOVE = 2
     MODE_CROP_RESIZE = 3
 
-    def __init__(self, master=None, config_filename="app.ini"):
+    def __init__(self, master=None, config_filename="app.ini", width=800, height=400):
         super(Application, self).__init__(master=master)
         self.app_config = AppConfig(os.path.join(THIS_DIR, config_filename))
-        self.active_slide_index = -1
+        self.master.resize(width, height)
 
+        self.text_align_options =  ["top", "bottom", "center"]
+        self.active_slide_index = -1
+        self.frame_mode = -1
         self.init_mouse_pos = Point()
         self.current_mouse_pos = Point()
 
@@ -36,33 +55,54 @@ class Application(tk.Frame):
         self.slide_image = None
         self.preview_player = None
 
+        self.project_frame = None
+        self.editing_frame = None
+
         self.master.protocol("WM_DELETE_WINDOW", self.on_window_close)
         self.pack(expand=True, fill=tk.BOTH)
         self.create_project_widgets()
 
     def create_project_widgets(self):
+        self.frame_mode = self.FRAME_MODE_CREATE_OPEN
         self.project_frame = tk.Frame(self)
         self.project_frame.pack(expand=True, fill=tk.BOTH)
         self.create_project_button = tk.Button(
                         self.project_frame, text="Create New Project",
-                        command=self.on_create_project_button_clicked, default=tk.ACTIVE)
-        self.create_project_button.pack(side=tk.LEFT, padx=5, pady=5, expand=1, fill=tk.X)
+                        command=self.on_create_project_button_click)
+        self.create_project_button.pack(padx=5, pady=5, fill=tk.BOTH, expand=1)
 
         self.open_project_button = tk.Button(
                         self.project_frame, text="Open Existing Project",
-                        command=self.on_open_project_button_clicked, default=tk.ACTIVE)
-        self.open_project_button.pack(side=tk.RIGHT, padx=5, pady=5, expand=1, fill=tk.X)
+                        command=self.on_open_project_button_click, default=tk.ACTIVE)
+        self.open_project_button.pack(padx=5, pady=5, fill=tk.BOTH, expand=1)
+
+        self.quit_project_button = tk.Button(
+                        self.project_frame, text="Quit",
+                        command=self.on_quit_project_button_click)
+        self.quit_project_button.pack(padx=5, pady=5, fill=tk.BOTH, expand=1)
+
+        self.master.show_at_center()
+
+    def destroy_project_widgets(self):
+        if self.project_frame:
+            self.project_frame.destroy()
+        self.create_project_button = None
+        self.open_project_button = None
+        self.quit_project_button = None
+        self.project_frame = None
 
     def create_editing_widgets(self, canvas_width=400):
-        self.editing_frame = tk.Frame(self)
+        self.frame_mode = self.FRAME_MODE_EDITING
+
+        self.editing_frame = tk.Frame(self, relief=tk.RIDGE, borderwidth=1)
         self.editing_frame.pack(side=tk.LEFT, expand=1, fill=tk.BOTH)
         self.editing_frame.columnconfigure(1, weight=1)
-        self.editing_frame.rowconfigure(0, weight=1)
+        self.editing_frame.rowconfigure(1, weight=1)
 
         canvas_height = canvas_width/self.app_config.aspect_ratio
         self.canvas = tk.Canvas(self.editing_frame,
                             width=canvas_width, height=canvas_height, highlightbackground="black")
-        self.canvas.grid(row=0, column=0, columnspan=5, sticky=tk.N+tk.S+tk.W+tk.E)
+        self.canvas.grid(row=1, column=0, columnspan=3, sticky=tk.N+tk.S+tk.W+tk.E)
         self.canvas.bind("<ButtonPress-1>", self.on_canvas_left_mouse_press)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_left_mouse_release)
         self.canvas.bind("<B1-Motion>", self.on_canvas_left_mouse_move)
@@ -78,25 +118,17 @@ class Application(tk.Frame):
 
         self.prev_button = tk.Button(self.editing_frame,
                                      text="<<Prev", command=lambda: self.show_slide(-1))
-        self.prev_button.grid(row=1, column=0, sticky=tk.W)
+        self.prev_button.grid(row=2, column=0, sticky=tk.W)
 
         self.slide_info_label = tk.Label(self.editing_frame, text="0/0")
-        self.slide_info_label.grid(row=1, column=1)
+        self.slide_info_label.grid(row=2, column=1)
 
         self.next_button = tk.Button(self.editing_frame,
                                      text="Next>>", command=self.show_slide)
-        self.next_button.grid(row=1, column=2, sticky=tk.W)
+        self.next_button.grid(row=2, column=2, sticky=tk.W)
 
-        self.preview_button = tk.Button(self.editing_frame,
-                                     text="Preview", command=self.on_preview_button_click)
-        self.preview_button.grid(row=1, column=3, sticky=tk.E)
-
-        self.add_text_button = tk.Button(self.editing_frame,
-                                     text="Add Text Slide", command=self.add_text_slide)
-        self.add_text_button.grid(row=1, column=4, sticky=tk.E)
-
-        self.slide_tool_frame = tk.Frame(self)
-        self.slide_tool_frame.pack(side=tk.RIGHT, fill=tk.Y)
+        self.slide_tool_frame = tk.Frame(self.editing_frame)
+        self.slide_tool_frame.grid(row=1, column=3, rowspan=2, sticky=tk.N+tk.S)
 
         self.caption_label = tk.Label(self.slide_tool_frame, text="Caption")
         self.caption_label.pack()
@@ -109,7 +141,6 @@ class Application(tk.Frame):
         self.align_label = tk.Label(self.slide_tool_frame, text="Alignment")
         self.align_label.pack()
 
-        self.text_align_options =  ["top", "bottom", "center"]
         self.text_alignlist = tk.Listbox(self.slide_tool_frame, height=5)
         for item in self.text_align_options:
             self.text_alignlist.insert(tk.END, item)
@@ -117,14 +148,56 @@ class Application(tk.Frame):
         self.text_alignlist.pack()
 
         self.crop_button = tk.Button(self.slide_tool_frame,
-                                     text="Crop", command=self.crop_image_slide)
+                                     text="Crop", command=self.on_crop_image_slide_button_click)
         self.crop_button.pack(side=tk.BOTTOM)
 
-        self.delete_slide_button = tk.Button(self.slide_tool_frame,
-                                     text="Delete Slide", command=self.delete_slide)
-        self.delete_slide_button.pack(side=tk.BOTTOM)
+        self.on_delete_slide_button_click_button = tk.Button(self.slide_tool_frame,
+                                     text="Delete Slide", command=self.on_delete_slide_button_click)
+        self.on_delete_slide_button_click_button.pack(side=tk.BOTTOM)
+
+
+        self.bottom_packer = tk.Frame(self.editing_frame, relief=tk.GROOVE, borderwidth=1)
+        self.bottom_packer.grid(row=0, column=0, columnspan=4, sticky=tk.E+tk.W)
+
+        self.close_editing_button = tk.Button(self.bottom_packer,
+                                     text="Close", command=self.on_close_editing_button_click)
+        self.close_editing_button.pack(side=tk.RIGHT)
+
+        self.preview_button = tk.Button(self.bottom_packer,
+                                     text="Preview", command=self.on_preview_button_click)
+        self.preview_button.pack(side=tk.RIGHT)
+
+        self.add_text_button = tk.Button(self.bottom_packer,
+                                     text="Add Text Slide", command=self.on_add_text_slide_button_click)
+        self.add_text_button.pack(side=tk.LEFT)
 
         self.canvas.bind("<Configure>", self.on_canvas_resize)
+
+        self.master.show_at_center()
+
+    def destroy_editing_widgets(self):
+        if self.editing_frame:
+            self.editing_frame.destroy()
+            self.slide_tool_frame.destroy()
+
+
+        self.editing_frame  = None
+        self.slide_tool_frame = None
+
+        self.canvas_active_area = None
+        self.canvas_background = None
+        self.prev_button = None
+        self.slide_info_label = None
+        self.next_button = None
+        self.preview_button = None
+        self.add_text_button = None
+        self.slide_tool_frame = None
+        self.caption_label = None
+        self.caption_text = None
+        self.align_label = None
+        self.text_alignlist = None
+        self.crop_button = None
+        self.on_delete_slide_button_click_button = None
 
     def set_states_of_image_options(self, state):
         for item in [self.align_label, self.text_alignlist, self.crop_button]:
@@ -195,7 +268,17 @@ class Application(tk.Frame):
                 justify="center")
             self.caption_text.insert(tk.END, self.active_slide.get_text())
 
-    def crop_image_slide(self):
+    def open_or_create_file(self, open=True):
+        filetypes = [("JSON", "*.json")]
+        if open:
+            project_filename= filedialog.askopenfilename(
+                filetypes=filetypes, title="Select a project file to open")
+        else:
+            project_filename= filedialog.asksaveasfilename(
+                filetypes=filetypes, title="Choose folder and write filename to save new project")
+        return project_filename
+
+    def on_crop_image_slide_button_click(self):
         if not self.active_slide or self.active_slide.allow_cropping:
             return
         if not self.crop_rect or self.crop_rect.get_width()<10:
@@ -205,55 +288,65 @@ class Application(tk.Frame):
         self.db.add_slide(new_image_slide, after=self.active_slide_index)
         self.show_slide(1)
 
-    def add_text_slide(self):
+    def on_add_text_slide_button_click(self):
         text_slide = TextSlide(text="Put text here")
         self.db.add_slide(text_slide, before=self.active_slide_index)
         self.show_slide(0)
 
-    def delete_slide(self):
+    def on_delete_slide_button_click(self):
         if messagebox.askyesno("Delete Slide", "Do you really want to delete this slide?"):
             self.db.remove_slide(self.active_slide_index)
             self.active_slide_index = min(self.active_slide_index, self.db.slide_count-1)
             self.show_slide(0)
 
-    def open_or_create_file(self, open=True):
-        filetypes = [("JSON", "*.json")]
-        if open:
-            project_filename= filedialog.askopenfilename(filetypes=filetypes)
-        else:
-            project_filename= filedialog.asksaveasfilename(filetypes=filetypes)
-        return project_filename
-
-    def on_create_project_button_clicked(self):
+    def on_create_project_button_click(self):
         project_filename= self.open_or_create_file(open=False)
         if not project_filename:
             return
-        image_dir = filedialog.askdirectory()
+        self.db = None
+        for i in range(3):
+            image_dir = filedialog.askdirectory(title="Select a folder to import images.")
 
-        if not image_dir:
-            return
+            if not image_dir:
+                messagebox.showerror("Error",
+                                     "No folder is selected to import images.\n" +
+                                     "To proceed with new project, "+
+                                     "you need to select a folder to import images.")
+                continue
+            if not self.db:
+                self.db = ProjectDb()
+                self.db.set_filepath(project_filename)
 
-        self.db = ProjectDb()
-        self.db.set_filepath(project_filename)
-        self.db.add_image_files_from_dir(image_dir)
-        if not self.db.slide_count:
-            self.db = None
-            return
-        self.db.save()
+            self.db.add_image_files_from_dir(image_dir)
+            if not self.db.slide_count:
+                messagebox.showerror("Error",
+                                     "No image is found in folder {0}.\n".format(image_dir) +
+                                     "To proceed with new project, " +
+                                     "you need to select a folder with images to import them.")
+                continue
 
-        self.project_frame.destroy()
-        self.create_editing_widgets()
-        self.show_slide()
+            self.db.save()
+            break
 
-    def on_open_project_button_clicked(self):
+        if self.db and self.db.slide_count:
+            self.destroy_project_widgets()
+            self.create_editing_widgets()
+            self.show_slide()
+        else:
+            messagebox.showerror("Error", "Unable to create new project")
+
+    def on_open_project_button_click(self):
         project_filename= self.open_or_create_file(open=True)
         if not project_filename:
             return
         self.db = ProjectDb(project_filename)
 
-        self.project_frame.destroy()
+        self.destroy_project_widgets()
         self.create_editing_widgets()
         self.show_slide()
+
+    def on_quit_project_button_click(self):
+        self.master.destroy()
 
     def on_preview_button_click(self):
         if self.preview_player:
@@ -261,8 +354,13 @@ class Application(tk.Frame):
         self.video_frame_maker = VideoFrameMaker(self.db.slides, self.app_config)
         self.preview_player = PreviewPlayer(
             self, self.video_frame_maker, self.app_config, self.on_preview_window_close)
+        show_tk_widget_at_center(self.preview_player.top, use_req=True)
         self.preview_player.top.bind("WM_DELETE_WINDOW", self.on_preview_window_close)
         self.wait_window(self.preview_player.top)
+
+    def on_close_editing_button_click(self):
+        self.destroy_editing_widgets()
+        self.create_project_widgets()
 
     def on_text_alignment_select(self, event):
         sel = self.text_alignlist.curselection()
@@ -355,7 +453,12 @@ class Application(tk.Frame):
     def on_window_close(self):
         if self.preview_player:
             self.preview_player.close()
+
         self.preview_player = None
+        if self.frame_mode == self.FRAME_MODE_EDITING:
+            self.destroy_editing_widgets()
+            self.create_project_widgets()
+            return
         if self.db:
             self.db.save()
         self.master.destroy()
@@ -376,13 +479,10 @@ class Root(tk.Tk):
         self.title("Img2Vid")
 
     def show_at_center(self):
-        #place the window at the center of screen
-        self.withdraw()
-        self.update_idletasks()
-        x = (self.winfo_screenwidth() - self.winfo_reqwidth()) / 2
-        y = (self.winfo_screenheight() - self.winfo_reqheight()) / 2
-        self.geometry("+%d+%d" % (x, y))
-        self.deiconify()
+        show_tk_widget_at_center(self)
+
+    def resize(self, width, height):
+        self.geometry('{}x{}'.format(width, height))
 
 def is_magick_found():
     try:
