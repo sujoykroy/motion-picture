@@ -1,4 +1,5 @@
-import PIL
+import PIL.Image
+from PIL import ImageTk
 from wand.image import Image as WandImage
 
 EXIF_ORIENTATION = {
@@ -34,3 +35,6 @@ def reverse_orient(image, exif_orient=None, orientation=None):
             image.rotate(90)
     return image
 
+def create_blank_image(width, height, fill_color):
+    image = PIL.Image.new("RGBA", (int(width), int(height)), fill_color)
+    return ImageTk.PhotoImage(image)

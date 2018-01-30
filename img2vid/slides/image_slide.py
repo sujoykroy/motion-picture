@@ -70,6 +70,19 @@ class ImageSlide(Slide):
             image = image.crop((self.rect.x1, self.rect.y1, self.rect.x2, self.rect.y2))
         return image
 
+    def get_caption_size(self, config):
+        caption = self.get_caption()
+        size = None
+        if caption:
+            with WandImage(resolution=config.ppi, width=1, height=1) as canvas:
+                with WandDrawing() as context:
+                    context.text_alignment = "center"
+                    context.font = config.text_font_name
+                    context.font_size = int(round(config.text_font_size*config.ppi/72))
+                    metric = context.get_font_metrics(canvas, self.get_caption(), multiline=True)
+                    size = Point(metric.text_width, metric.text_height)
+        return size
+
     def crop(self, rect):
         if self.rect:
             rect = rect.copy()
@@ -81,7 +94,9 @@ class ImageSlide(Slide):
         caption = self.get_caption()
         caption_align = self.get_caption_alignment()
         if caption:
-            with WandImage(resolution=config.ppi, width=resolution.x, height=resolution.y) as canvas:
+            with WandImage(resolution=config.ppi,
+                           width=resolution.x, height=resolution.y,
+                           background = WandColor(config.video_background_color)) as canvas:
                 canvas.units = "pixelsperinch"
                 with WandDrawing() as context:
                     context.text_alignment = "center"
@@ -109,7 +124,6 @@ class ImageSlide(Slide):
 
                     if caption_align == "center":
                         text_top = (resolution.y-metric.text_height)*0.5
-                        #text_top += metric.character_height+metric.descender
                     else:
                         adjusted_top = (resolution.y-(orig_image.height+metric.text_height))*0.5
                         if caption_align == "top":
@@ -129,8 +143,10 @@ class ImageSlide(Slide):
                         top=int(text_top-metric.character_height),
                         width = int(text_box_width), height = int(metric.text_height))
 
-                    context.fill_color = WandColor(config.text_foreground_color)
-                    context.text(x=int(resolution.x*.5), y=int(text_top+metric.descender), body=caption)
+                    context.fill_color = WandColor(config.caption_foreground_color)
+                    context.text(
+                        x=int(resolution.x*.5),
+                        y=int(text_top+metric.descender), body=caption)
                     context(canvas)
 
                 temporary_file = tempfile.SpooledTemporaryFile()

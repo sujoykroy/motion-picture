@@ -40,3 +40,6 @@ class Point:
 
     def get_ratio(self):
         return self.x/self.y
+
+    def __repr__(self):
+        return "Point(x={0}, y={1})".format(self.x, self.y);

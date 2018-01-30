@@ -18,12 +18,13 @@ class AppConfig:
         ws, hs = aspect_ratio_text.split("x")[:2]
         self.aspect_ratio = float(ws)/float(hs)
 
-        self.video_background_color = self.app_section.get("video-bg-color", "#FFFFFF")
+        self.video_background_color = self.app_section.get("video-bg-color", "#CCCCCC")
         self.text_background_color = self.app_section.get("text-bg-color", "#FF0000")
         self.text_foreground_color = self.app_section.get("text-fg-color", "#000000")
         self.text_font_name = self.app_section.get("text-font-name", "ariel")
         self.text_font_size = int(self.app_section.get("text-font-size", "12"))
         self.caption_background_color = self.app_section.get("caption-bg-color", "#FFFFFF44")
+        self.caption_foreground_color = self.app_section.get("caption-fg-color", "#000000")
 
         self.ppi = int(self.app_section.get("ppi", 340))
 
@@ -57,3 +58,6 @@ class AppConfig:
         for ext in self.image_extensions:
             types.append("*" + ext)
         return ", ".join(types)
+
+    def get_font(self):
+        return "{0} {1}".format(self.text_font_name, self.text_font_size)

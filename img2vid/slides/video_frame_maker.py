@@ -96,7 +96,6 @@ class VideoFrameMaker:
 
         ofx = int((self.resolution.x-image.width)*0.5)
         ofy = int((self.resolution.y-image.height)*0.5)
-
         container = Image.new("RGBA",
                               (self.resolution.x, self.resolution.y),
                               self.config.video_background_color)

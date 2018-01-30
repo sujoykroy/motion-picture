@@ -9,8 +9,6 @@ from tkinter import filedialog
 from tkinter import messagebox
 import tkinter.scrolledtext as tkscrolledtext
 
-from commons import Point, Rectangle, AppConfig
-
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def show_tk_widget_at_center(tk_widget, use_req=False):
@@ -112,6 +110,7 @@ class Application(tk.Frame):
         self.canvas.corner_rect = None
         self.canvas.image = None
         self.canvas.text = None
+        self.canvas.cap_bg = None
 
         self.canvas_active_area = Rectangle(0, 0, canvas_width, canvas_height)
         self.canvas_background = self.canvas.create_rectangle(
@@ -177,13 +176,14 @@ class Application(tk.Frame):
         self.master.show_at_center()
 
     def destroy_editing_widgets(self):
+        self.clear_slide_display()
         if self.db:
             self.db.save()
         if self.editing_frame:
             self.editing_frame.destroy()
             self.slide_tool_frame.destroy()
 
-
+        self.canvas = None
         self.editing_frame  = None
         self.slide_tool_frame = None
 
@@ -213,27 +213,92 @@ class Application(tk.Frame):
     def clear_slide_display(self):
         if self.canvas.crop_rect:
             self.canvas.delete(self.canvas.crop_rect)
+            self.canvas.crop_rect = None
         if self.canvas.corner_rect:
             self.canvas.delete(self.canvas.corner_rect)
+            self.canvas.corner_rect = None
         if self.canvas.image:
             self.canvas.delete(self.canvas.image)
+            self.canvas.image = None
         if self.canvas.text:
             self.canvas.delete(self.canvas.text)
+            self.canvas.text = None
+        if self.canvas.cap_bg:
+            self.canvas.delete(self.canvas.cap_bg)
+            self.canvas.cap_bg= None
 
-        self.canvas.crop_rect = None
-        self.canvas.corner_rect = None
-        self.canvas.image = None
-        self.canvas.text = None
-
-        self.crop_rect = None
-        self.corner_rect = None
+        self.canvas.cap_bg_image = None
         self.slide_image = None
         self.crop_mode = None
+        self.crop_rect = None
+        self.corner_rect = None
 
         self.text_alignlist.selection_clear(0, tk.END)
         self.caption_text.delete("1.0", tk.END)
         self.set_states_of_image_options("disable")
-        self.canvas.itemconfig(self.canvas_background, fill="white")
+        self.canvas.itemconfig(self.canvas_background, fill=self.app_config.video_background_color)
+
+    def update_image_slide_on_canvas(self):
+        image_area = self.canvas_active_area.copy()
+        caption_size = self.active_slide.get_caption_size(self.app_config)
+
+        if caption_size:
+            caption_size.scale(self.canvas.scale, self.canvas.scale)
+            align = self.active_slide.get_caption_alignment()
+            if align == "top":
+                image_area.set_values(y1=image_area.y1+caption_size.y)
+            elif align == "bottom":
+                image_area.set_values(y2=image_area.y2-caption_size.y)
+
+        self.slide_image.fit_inside(image_area)
+        if caption_size:
+            caption_size.x = max(caption_size.x, self.slide_image.image.width)
+
+        if not self.canvas.image:
+            self.canvas.image = self.canvas.create_image(
+                self.slide_image.offset.x, self.slide_image.offset.y,
+                image=self.slide_image.tk_image, anchor=tk.N+tk.W)
+        else:
+            self.canvas.itemconfig(self.canvas.image, image=self.slide_image.tk_image)
+            self.canvas.coords(self.canvas.image,
+                               self.slide_image.offset.x, self.slide_image.offset.y)
+
+        if caption_size:
+            self.canvas.cap_bg_image = image_utils.create_blank_image(
+                caption_size.x, caption_size.y, self.app_config.caption_background_color)
+            if not self.canvas.cap_bg:
+                self.canvas.cap_bg = self.canvas.create_image(0,0, image=self.canvas.cap_bg_image)
+            else:
+                self.canvas.itemconfig(self.canvas.cap_bg, image=self.canvas.cap_bg_image)
+
+            if not self.canvas.text:
+                self.canvas.text = self.canvas.create_text(
+                    0, 0, text=self.active_slide.get_caption(),
+                    font=self.app_config.get_font(), justify="center",
+                    fill=self.app_config.caption_foreground_color)
+            else:
+                self.canvas.itemconfig(self.canvas.text, text=self.active_slide.get_caption())
+
+            align = self.active_slide.get_caption_alignment()
+            if align == "top":
+                cap_x = self.canvas.winfo_width()*.5
+                cap_y = self.slide_image.offset.y-caption_size.y*0.5
+            elif align == "bottom":
+                cap_x = self.canvas.winfo_width()*.5
+                cap_y = self.slide_image.offset.y+self.slide_image.image.height+caption_size.y*0.5
+            else:#center
+                cap_x = self.canvas.winfo_width()*0.5
+                cap_y = self.canvas.winfo_height()*0.5
+
+            self.canvas.coords(self.canvas.text, cap_x, cap_y)
+            self.canvas.coords(self.canvas.cap_bg, cap_x, cap_y)
+        else:
+            if self.canvas.text:
+                self.canvas.delete(self.canvas.text)
+                self.canvas.text = None
+            if self.canvas.cap_bg:
+                self.canvas.delete(self.canvas.capt_rect)
+                self.canvas.cap_bg = None
 
     def show_slide(self, rel=1):
         self.clear_slide_display()
@@ -251,10 +316,9 @@ class Application(tk.Frame):
         if self.active_slide.TypeName == ImageSlide.TypeName:
             self.set_states_of_image_options("normal")
 
-            self.slide_image = CanvasImage(self.active_slide.get_image(), self.canvas_active_area)
-            self.canvas.image = self.canvas.create_image(
-                    self.slide_image.offset.x, self.slide_image.offset.y,
-                    image=self.slide_image.tk_image, anchor="nw")
+            self.slide_image = CanvasImage(self.active_slide.get_image())
+            self.update_image_slide_on_canvas()
+
             self.caption_text.insert(tk.END, self.active_slide.get_caption())
             align = self.active_slide.get_caption_alignment()
             self.text_alignlist.selection_set(self.text_align_options.index(align))
@@ -263,13 +327,13 @@ class Application(tk.Frame):
             self.canvas.itemconfig(self.canvas_background, fill=self.app_config.text_background_color)
 
             self.canvas.text = self.canvas.create_text(
-                self.canvas_active_area.get_cx(),
-                self.canvas_active_area.get_cy(),
+                self.canvas_active_area.get_cx(), self.canvas_active_area.get_cy(),
                 text=self.active_slide.get_text(),
                 fill=self.app_config.text_foreground_color,
                 font = self.app_config.get_font_tuple(),
-                justify="center")
+                justify=tk.CENTER)
             self.caption_text.insert(tk.END, self.active_slide.get_text())
+        self.canvas.update_idletasks()
 
     def open_or_create_file(self, open=True):
         filetypes = [("JSON", "*.json")]
@@ -368,6 +432,8 @@ class Application(tk.Frame):
         if sel and sel[0]<len(self.text_align_options):
             align = self.text_align_options[sel[0]]
             self.active_slide.set_caption_alignment(align)
+            if self.active_slide.TypeName == ImageSlide.TypeName:
+                self.update_image_slide_on_canvas()
 
     def on_key_in_caption_text(self, event):
         if not self.active_slide:
@@ -375,6 +441,7 @@ class Application(tk.Frame):
         text = self.caption_text.get(1.0, tk.END)
         if self.active_slide.TypeName == ImageSlide.TypeName:
             self.active_slide.set_caption(text)
+            self.update_image_slide_on_canvas()
         elif self.active_slide.TypeName == TextSlide.TypeName:
             self.active_slide.set_text(text)
             self.canvas.itemconfig(self.canvas.text, text=text)
@@ -417,7 +484,7 @@ class Application(tk.Frame):
         if self.crop_mode == self.MODE_CROP_CREATE:
             self.crop_rect.set_values(x2=self.current_mouse_pos.x, y2=self.current_mouse_pos.y)
             self.crop_rect.keep_x2y2_inside_bound(self.slide_image.bound_rect)
-        else:
+        elif self.movable_rect:
             diff_point = self.current_mouse_pos.diff(self.init_mouse_pos)
 
             rect = self.init_movable_rect.copy()
@@ -443,9 +510,17 @@ class Application(tk.Frame):
     def on_canvas_resize(self, event):
         canvas_width = self.canvas.winfo_width()
         canvas_height = self.canvas.winfo_height()
-        self.canvas_active_area.set_values(x2=canvas_width, y2=canvas_height)
+
+        video_width, video_height = self.app_config.get_video_resolution()
+        self.canvas.scale = min(canvas_width/video_width, canvas_height/video_height)
+
+        self.canvas_active_area.set_cxy_wh(
+            cx = canvas_width*0.5, cy=canvas_height*0.5,
+            w=video_width*self.canvas.scale, h=video_height*self.canvas.scale)
+
         self.canvas.coords(self.canvas_background,
-                    0, 0, canvas_width, canvas_height)
+                           self.canvas_active_area.x1, self.canvas_active_area.y1,
+                           self.canvas_active_area.x2, self.canvas_active_area.y2)
         self.show_slide(0)
 
     def on_preview_window_close(self):
@@ -463,11 +538,13 @@ class Application(tk.Frame):
         self.master.destroy()
 
     def update_canvas_rects(self):
-        self.crop_rect.adjust_to_aspect_ratio(self.app_config.aspect_ratio)
-        self.corner_rect.set_cxy_wh(cx=self.crop_rect.x2,
+        if self.crop_rect:
+            self.crop_rect.adjust_to_aspect_ratio(self.app_config.aspect_ratio)
+            self.set_canvas_rect(self.canvas.crop_rect, self.crop_rect)
+        if self.corner_rect:
+            self.corner_rect.set_cxy_wh(cx=self.crop_rect.x2,
                                     cy=self.crop_rect.y2, w=5, h=5)
-        self.set_canvas_rect(self.canvas.crop_rect, self.crop_rect)
-        self.set_canvas_rect(self.canvas.corner_rect, self.corner_rect)
+            self.set_canvas_rect(self.canvas.corner_rect, self.corner_rect)
 
     def set_canvas_rect(self, canvas_rect, rect):
         self.canvas.coords(canvas_rect, rect.x1, rect.y1, rect.x2, rect.y2)
@@ -505,6 +582,8 @@ while not is_magick_found():
             break
 
 if is_magick_found():
+    from commons import Point, Rectangle, AppConfig
+    import commons.image_utils as image_utils
     from project_db import ProjectDb
     from ui_tk import CanvasImage, PreviewPlayer
     from slides import TextSlide, ImageSlide, VideoFrameMaker
