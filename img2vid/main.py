@@ -7,6 +7,7 @@ import json
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import simpledialog
 import tkinter.scrolledtext as tkscrolledtext
 
 from PIL import ImageTk
@@ -295,6 +296,21 @@ class Application(tk.Frame):
                 self.canvas.delete(self.canvas.cap_img)
                 self.canvas.cap_img = None
 
+    def update_text_slide_on_canvas(self):
+        text_image = self.active_slide.get_renderable_image(self.app_config)
+        text_image = text_image.resize(
+            (int(text_image.width*self.canvas.scale),
+             int(text_image.height*self.canvas.scale)), resample=True)
+        self.text_img = ImageTk.PhotoImage(text_image)
+        if not self.canvas.text:
+            self.canvas.text = self.canvas.create_image(100, 0, image=self.text_img)
+        else:
+            self.canvas.itemconfig(self.canvas.text, image=self.text_img)
+        self.canvas.coords(
+            self.canvas.text,
+            int(self.canvas.winfo_width()*0.5),
+            int(self.canvas.winfo_height()*0.5))
+
     def show_slide(self, rel=1):
         self.clear_slide_display()
 
@@ -320,13 +336,7 @@ class Application(tk.Frame):
 
         elif self.active_slide.TypeName == TextSlide.TypeName:
             self.canvas.itemconfig(self.canvas_background, fill=self.app_config.text_background_color)
-
-            self.canvas.text = self.canvas.create_text(
-                self.canvas_active_area.get_cx(), self.canvas_active_area.get_cy(),
-                text=self.active_slide.get_text(),
-                fill=self.app_config.text_foreground_color,
-                font = self.app_config.get_font_tuple(),
-                justify=tk.CENTER)
+            self.update_text_slide_on_canvas()
             self.caption_text.insert(tk.END, self.active_slide.get_text())
         self.canvas.update_idletasks()
 
@@ -358,9 +368,16 @@ class Application(tk.Frame):
         self.show_slide(1)
 
     def on_add_text_slide_button_click(self):
-        text_slide = TextSlide(text="Put text here")
-        self.db.add_slide(text_slide, before=self.active_slide_index)
-        self.show_slide(0)
+        text=simpledialog.askstring("Text Slide", "Enter text to display")
+        if text:
+            text = text.strip()
+        if text:
+            text_slide = TextSlide(text=text)
+            self.db.add_slide(text_slide, before=self.active_slide_index)
+            self.show_slide(0)
+        else:
+            messagebox.showerror(
+                "Error", "You need to provide some text to create a text slide.")
 
     def on_delete_slide_button_click(self):
         if messagebox.askyesno("Delete Slide", "Do you really want to delete this slide?"):
@@ -439,7 +456,7 @@ class Application(tk.Frame):
             self.update_image_slide_on_canvas()
         elif self.active_slide.TypeName == TextSlide.TypeName:
             self.active_slide.set_text(text)
-            self.canvas.itemconfig(self.canvas.text, text=text)
+            self.update_text_slide_on_canvas()
 
     def on_canvas_left_mouse_press(self, event):
         if not self.slide_image:
