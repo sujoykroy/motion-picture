@@ -9,6 +9,8 @@ from tkinter import filedialog
 from tkinter import messagebox
 import tkinter.scrolledtext as tkscrolledtext
 
+from PIL import ImageTk
+
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def show_tk_widget_at_center(tk_widget, use_req=False):
@@ -110,7 +112,7 @@ class Application(tk.Frame):
         self.canvas.corner_rect = None
         self.canvas.image = None
         self.canvas.text = None
-        self.canvas.cap_bg = None
+        self.canvas.cap_img = None
 
         self.canvas_active_area = Rectangle(0, 0, canvas_width, canvas_height)
         self.canvas_background = self.canvas.create_rectangle(
@@ -223,11 +225,11 @@ class Application(tk.Frame):
         if self.canvas.text:
             self.canvas.delete(self.canvas.text)
             self.canvas.text = None
-        if self.canvas.cap_bg:
-            self.canvas.delete(self.canvas.cap_bg)
-            self.canvas.cap_bg= None
+        if self.canvas.cap_img:
+            self.canvas.delete(self.canvas.cap_img)
+            self.canvas.cap_img= None
 
-        self.canvas.cap_bg_image = None
+        self.canvas.cap_img_image = None
         self.slide_image = None
         self.crop_mode = None
         self.crop_rect = None
@@ -240,19 +242,25 @@ class Application(tk.Frame):
 
     def update_image_slide_on_canvas(self):
         image_area = self.canvas_active_area.copy()
-        caption_size = self.active_slide.get_caption_size(self.app_config)
-
-        if caption_size:
-            caption_size.scale(self.canvas.scale, self.canvas.scale)
+        caption_metric = self.active_slide.get_caption_metric(self.app_config)
+        if caption_metric:
             align = self.active_slide.get_caption_alignment()
             if align == "top":
-                image_area.set_values(y1=image_area.y1+caption_size.y)
+                image_area.set_values(y1=image_area.y1+caption_metric.height*self.canvas.scale)
             elif align == "bottom":
-                image_area.set_values(y2=image_area.y2-caption_size.y)
+                image_area.set_values(y2=image_area.y2-caption_metric.height*self.canvas.scale)
 
         self.slide_image.fit_inside(image_area)
-        if caption_size:
-            caption_size.x = max(caption_size.x, self.slide_image.image.width)
+
+        if caption_metric:
+            caption_image = self.active_slide.get_caption_image(
+                                self.slide_image.image.width/self.canvas.scale,
+                                caption_metric, self.app_config, use_pil=True)
+            caption_image = caption_image.resize(
+                (int(caption_image.width*self.canvas.scale),
+                 int(caption_image.height*self.canvas.scale)), resample=True)
+            caption_size = Point(caption_image.width, caption_image.height)
+
 
         if not self.canvas.image:
             self.canvas.image = self.canvas.create_image(
@@ -263,42 +271,29 @@ class Application(tk.Frame):
             self.canvas.coords(self.canvas.image,
                                self.slide_image.offset.x, self.slide_image.offset.y)
 
-        if caption_size:
-            self.canvas.cap_bg_image = image_utils.create_blank_image(
-                caption_size.x, caption_size.y, self.app_config.caption_background_color)
-            if not self.canvas.cap_bg:
-                self.canvas.cap_bg = self.canvas.create_image(0,0, image=self.canvas.cap_bg_image)
+        if caption_metric:
+            self.canvas.cap_img_image = ImageTk.PhotoImage(image=caption_image)
+            if not self.canvas.cap_img:
+                self.canvas.cap_img = self.canvas.create_image(0,0, image=self.canvas.cap_img_image, fill=None)
             else:
-                self.canvas.itemconfig(self.canvas.cap_bg, image=self.canvas.cap_bg_image)
-
-            if not self.canvas.text:
-                self.canvas.text = self.canvas.create_text(
-                    0, 0, text=self.active_slide.get_caption(),
-                    font=self.app_config.get_font(), justify="center",
-                    fill=self.app_config.caption_foreground_color)
-            else:
-                self.canvas.itemconfig(self.canvas.text, text=self.active_slide.get_caption())
+                self.canvas.itemconfig(self.canvas.cap_img, image=self.canvas.cap_img_image)
 
             align = self.active_slide.get_caption_alignment()
             if align == "top":
                 cap_x = self.canvas.winfo_width()*.5
-                cap_y = self.slide_image.offset.y-caption_size.y*0.5
+                cap_y = self.slide_image.offset.y-caption_image.height*0.5
             elif align == "bottom":
                 cap_x = self.canvas.winfo_width()*.5
-                cap_y = self.slide_image.offset.y+self.slide_image.image.height+caption_size.y*0.5
+                cap_y = self.slide_image.offset.y+self.slide_image.image.height+caption_image.height*0.5
             else:#center
                 cap_x = self.canvas.winfo_width()*0.5
                 cap_y = self.canvas.winfo_height()*0.5
 
-            self.canvas.coords(self.canvas.text, cap_x, cap_y)
-            self.canvas.coords(self.canvas.cap_bg, cap_x, cap_y)
+            self.canvas.coords(self.canvas.cap_img, cap_x, cap_y)
         else:
-            if self.canvas.text:
-                self.canvas.delete(self.canvas.text)
-                self.canvas.text = None
-            if self.canvas.cap_bg:
-                self.canvas.delete(self.canvas.capt_rect)
-                self.canvas.cap_bg = None
+            if self.canvas.cap_img:
+                self.canvas.delete(self.canvas.cap_img)
+                self.canvas.cap_img = None
 
     def show_slide(self, rel=1):
         self.clear_slide_display()
@@ -511,12 +506,12 @@ class Application(tk.Frame):
         canvas_width = self.canvas.winfo_width()
         canvas_height = self.canvas.winfo_height()
 
-        video_width, video_height = self.app_config.get_video_resolution()
-        self.canvas.scale = min(canvas_width/video_width, canvas_height/video_height)
+        video_wh = self.app_config.video_resolution
+        self.canvas.scale = min(canvas_width/video_wh.x, canvas_height/video_wh.y)
 
         self.canvas_active_area.set_cxy_wh(
             cx = canvas_width*0.5, cy=canvas_height*0.5,
-            w=video_width*self.canvas.scale, h=video_height*self.canvas.scale)
+            w=video_wh.x*self.canvas.scale, h=video_wh.y*self.canvas.scale)
 
         self.canvas.coords(self.canvas_background,
                            self.canvas_active_area.x1, self.canvas_active_area.y1,

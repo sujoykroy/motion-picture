@@ -1,18 +1,20 @@
 import tempfile
-from PIL import Image as tkImage
+from PIL import Image as PImage
 from PIL import ImageTk
 from wand.image import Image as WandImage
 from wand.drawing import Drawing as WandDrawing
 from wand.color import Color as WandColor
 
 from .slide import Slide
-from commons import Rectangle, Point
+from commons import Rectangle, Point, CustomFontMetric
 from commons.image_utils import reverse_orient
 
 FILEPATH = "filepath"
 RECT = "rect"
 CAPTION = "cap"
 CAPTION_ALIGN = "align"
+
+INCH2PIXEL = 72
 
 class ImageSlide(Slide):
     TypeName = "image"
@@ -70,18 +72,54 @@ class ImageSlide(Slide):
             image = image.crop((self.rect.x1, self.rect.y1, self.rect.x2, self.rect.y2))
         return image
 
-    def get_caption_size(self, config):
+    def get_caption_metric(self, config):
         caption = self.get_caption()
-        size = None
+        metric = None
         if caption:
             with WandImage(resolution=config.ppi, width=1, height=1) as canvas:
                 with WandDrawing() as context:
                     context.text_alignment = "center"
                     context.font = config.text_font_name
-                    context.font_size = int(round(config.text_font_size*config.ppi/72))
+                    context.font_size = int(round(config.text_font_size*config.ppi/INCH2PIXEL))
                     metric = context.get_font_metrics(canvas, self.get_caption(), multiline=True)
-                    size = Point(metric.text_width, metric.text_height)
-        return size
+                    metric = CustomFontMetric(metric)
+                    metric.height = metric.text_height + 2*config.caption_padding
+                    metric.top_offset = metric.ascender + config.caption_padding
+                    metric.width = metric.text_width + 2*config.caption_padding
+        return metric
+
+    def get_caption_image(self, min_width, metric, config, use_pil=False):
+        width = int(max(min_width, metric.width))
+        height = int(metric.height)
+
+        canvas = WandImage(resolution=config.ppi,
+                           width=width, height=height,
+                           background=WandColor(config.caption_background_color))
+        canvas.format = "png"
+        with WandDrawing() as context:
+            context.fill_color = WandColor(config.caption_foreground_color)
+            context.text_alignment = "center"
+            context.font = config.text_font_name
+            context.font_size = int(round(config.text_font_size*config.ppi/INCH2PIXEL))
+            context.text(
+                    x=int(width*0.5),
+                    y=int(metric.top_offset), body=self.get_caption())
+            context(canvas)
+        if not use_pil:
+            return canvas
+        temporary_file = tempfile.SpooledTemporaryFile()
+
+        canvas.save(file=temporary_file)
+        canvas.save(filename="/home/sujoy/Pictures/test.png")
+        canvas = None
+
+        image = PImage.open(temporary_file)
+        image.load()
+
+        container = PImage.new("RGBA", (width, height))
+        container.paste(image, (0, 0))
+        temporary_file.close()
+        return container
 
     def crop(self, rect):
         if self.rect:
@@ -90,22 +128,20 @@ class ImageSlide(Slide):
         newob = ImageSlide(self[FILEPATH], rect)
         return newob
 
-    def get_renderable_image(self, resolution, config):
+    def get_renderable_image(self, config):
         caption = self.get_caption()
-        caption_align = self.get_caption_alignment()
         if caption:
+            caption_align = self.get_caption_alignment()
+            resolution = config.video_resolution
+
+            caption_metric = self.get_caption_metric(config)
             with WandImage(resolution=config.ppi,
                            width=resolution.x, height=resolution.y,
                            background = WandColor(config.video_background_color)) as canvas:
                 canvas.units = "pixelsperinch"
                 with WandDrawing() as context:
-                    context.text_alignment = "center"
-                    context.font = config.text_font_name
-                    context.font_size = int(round(config.text_font_size*config.ppi/72))
-                    metric = context.get_font_metrics(canvas, self.get_caption(), multiline=True)
-
                     if caption_align != "center":
-                        allowed_height = resolution.y - metric.text_height
+                        allowed_height = resolution.y - caption_metric.height
                     else:
                         allowed_height = resolution.y
 
@@ -119,41 +155,32 @@ class ImageSlide(Slide):
                     orig_image.resize(width=int(orig_image.width*scale),
                                       height=int(orig_image.height*scale))
 
+                    caption_image = self.get_caption_image(orig_image.width, caption_metric, config)
+
                     img_left = int((resolution.x-orig_image.width)*0.5)
                     img_top = int((resolution.y-orig_image.height)*0.5)
 
+                    caption_left = (resolution.x-caption_image.width)*0.5
                     if caption_align == "center":
-                        text_top = (resolution.y-metric.text_height)*0.5
+                        caption_top = (resolution.y-caption_image.height)*0.5
                     else:
-                        adjusted_top = (resolution.y-(orig_image.height+metric.text_height))*0.5
+                        adjusted_top = (resolution.y-(orig_image.height+caption_image.height))*0.5
                         if caption_align == "top":
-                            text_top = adjusted_top
-                            img_top = adjusted_top + metric.text_height
+                            caption_top = adjusted_top
+                            img_top = adjusted_top + caption_image.height
                         elif caption_align == "bottom":
                             img_top = adjusted_top
-                            text_top = adjusted_top + orig_image.height
-                    text_top += metric.character_height
+                            caption_top = adjusted_top + orig_image.height
 
                     canvas.composite(image=orig_image, left=int(img_left), top=int(img_top))
-
-                    context.fill_color = WandColor(config.caption_background_color)
-                    text_box_width = max(orig_image.width, metric.text_width)
-                    context.rectangle(
-                        left=(resolution.x-text_box_width)*0.5,
-                        top=int(text_top-metric.character_height),
-                        width = int(text_box_width), height = int(metric.text_height))
-
-                    context.fill_color = WandColor(config.caption_foreground_color)
-                    context.text(
-                        x=int(resolution.x*.5),
-                        y=int(text_top+metric.descender), body=caption)
+                    canvas.composite(image=caption_image, left=int(caption_left), top=int(caption_top))
                     context(canvas)
 
                 temporary_file = tempfile.SpooledTemporaryFile()
                 canvas.format = "png"
                 canvas.save(file=temporary_file)
 
-                image = tkImage.open(temporary_file)
+                image = PImage.open(temporary_file)
                 image.load()
                 temporary_file.close()
         else:

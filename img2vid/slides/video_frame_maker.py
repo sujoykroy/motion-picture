@@ -16,7 +16,7 @@ class VideoFrameMaker:
     def __init__(self, slides, config):
         self.config = config
         self.duration = 0
-        self.resolution = Point(*config.get_video_resolution())
+        self.resolution = config.video_resolution
         self.time_slices = []
         self.last_used_slide = None
         self.last_slide_image = None
@@ -79,8 +79,7 @@ class VideoFrameMaker:
             rel_t = t - elapsed
 
         if time_slice.slide != self.last_used_slide:
-            self.last_slide_image = time_slice.slide.get_renderable_image(
-                                            self.resolution, self.config)
+            self.last_slide_image = time_slice.slide.get_renderable_image(self.config)
         self.last_used_slide = time_slice.slide
         image = self.last_slide_image
         image, processed = time_slice.process(image, rel_t, self.resolution)

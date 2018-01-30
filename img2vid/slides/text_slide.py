@@ -25,7 +25,8 @@ class TextSlide(Slide):
     def get_text(self):
         return self["text"]
 
-    def get_renderable_image(self, resolution, config):
+    def get_renderable_image(self, config):
+        resolution = config.video_resolution
         with WandImage(resolution=config.ppi, width=resolution.x, height=resolution.y,
                        background=WandColor(config.text_background_color)) as canvas:
             canvas.units = "pixelsperinch"
