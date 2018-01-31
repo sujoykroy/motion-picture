@@ -48,6 +48,9 @@ class AppConfig:
             if ext:
                 self.image_extensions.append(ext)
 
+        self.fade_out_duration = self.app_section.get("fade-out-duration", 2)
+        self.fade_in_duration = self.app_section.get("fade-in-duration", 2)
+
     def get_font_tuple(self):
         return (self.text_font_name, self.text_font_size)
 

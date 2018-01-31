@@ -150,6 +150,27 @@ class Application(tk.Frame):
         self.text_alignlist.bind("<ButtonRelease-1>", self.on_text_alignment_select)
         self.text_alignlist.pack()
 
+        filter_types = Slide.get_filter_types()
+
+        self.filter_frame = tk.Frame(self.slide_tool_frame)
+        self.filter_frame.pack()
+
+        self.filter_label = tk.Label(self.filter_frame, text="Filters")
+        self.filter_label.pack(pady=5)
+
+        self.filter_check_buttons = {}
+        for filter_code in sorted(filter_types.keys()):
+            filter_name = filter_types[filter_code]
+            filter_var = tk.IntVar()
+
+            filter_check_button = tk.Checkbutton(
+                            self.filter_frame, text=filter_name,
+                            variable=filter_var, command=self.on_filter_check_button_change)
+            filter_check_button.pack(anchor=tk.W)
+            filter_check_button.filter_var = filter_var
+            filter_check_button.filter_code = filter_code
+            self.filter_check_buttons[filter_code] = filter_check_button
+
         self.crop_button = tk.Button(self.slide_tool_frame,
                                      text="Crop", command=self.on_crop_image_slide_button_click)
         self.crop_button.pack(side=tk.BOTTOM)
@@ -207,7 +228,11 @@ class Application(tk.Frame):
         self.align_label = None
         self.text_alignlist = None
         self.crop_button = None
+        self.filter_frame = None
         self.on_delete_slide_button_click_button = None
+        for filter_check_button in self.filter_check_buttons.values():
+            filter_check_button.destroy()
+        self.fitler_check_buttons = None
 
     def set_states_of_image_options(self, state):
         for item in [self.align_label, self.text_alignlist, self.crop_button]:
@@ -244,6 +269,8 @@ class Application(tk.Frame):
         self.caption_text.delete("1.0", tk.END)
         self.set_states_of_image_options("disable")
         self.canvas.itemconfig(self.canvas_background, fill=self.app_config.video_background_color)
+        for filter_check_button in self.filter_check_buttons.values():
+            filter_check_button.filter_var.set(0)
 
     def update_image_slide_on_canvas(self):
         image_area = self.canvas_active_area.copy()
@@ -327,6 +354,8 @@ class Application(tk.Frame):
         self.active_slide_index = slide_index
 
         self.slide_info_label["text"] = "{0}/{1}".format(slide_index+1, self.db.slide_count)
+        for filter_code in self.active_slide.filters:
+            self.filter_check_buttons[filter_code].filter_var.set(1)
 
         if self.active_slide.TypeName == ImageSlide.TypeName:
             self.set_states_of_image_options("normal")
@@ -486,6 +515,13 @@ class Application(tk.Frame):
             self.active_slide.set_text(text)
             self.update_text_slide_on_canvas()
 
+
+    def on_filter_check_button_change(self):
+        filters = []
+        for filter_check_button in self.filter_check_buttons.values():
+            if filter_check_button.filter_var.get() == 1:
+                filters.append(filter_check_button.filter_code)
+        self.active_slide.set_filters(filters)
     def on_canvas_left_mouse_press(self, event):
         if not self.slide_image:
             return
@@ -626,7 +662,7 @@ if is_magick_found():
     import commons.image_utils as image_utils
     from project_db import ProjectDb
     from ui_tk import CanvasImage, PreviewPlayer
-    from slides import TextSlide, ImageSlide, VideoFrameMaker
+    from slides import TextSlide, ImageSlide, VideoFrameMaker, Slide
 
     tk_root = Root()
     app = Application(master=tk_root)

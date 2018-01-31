@@ -13,13 +13,16 @@ FILEPATH = "filepath"
 RECT = "rect"
 CAPTION = "cap"
 CAPTION_ALIGN = "align"
+TRANSITION = "trans"
 
 INCH2PIXEL = 72
 
 class ImageSlide(Slide):
     TypeName = "image"
 
-    def __init__(self, filepath, rect=None, caption="", cap_align=""):
+    def __init__(self, filepath,
+                 rect=None, caption="", cap_align="",
+                 transition=None):
         super(ImageSlide, self).__init__(type=self.TypeName)
         self.set_caption(caption)
         self.set_caption_alignment(cap_align)
@@ -34,6 +37,7 @@ class ImageSlide(Slide):
         else:
             self[RECT] = None
             self.rect = None
+        self[TRANSITION] = transition
         self.allow_croppping = True
 
     def get_exif_orient(self):
@@ -45,6 +49,7 @@ class ImageSlide(Slide):
     @classmethod
     def create_from_data(cls, data):
         ob = cls(data[FILEPATH], data[RECT], data[CAPTION], data[CAPTION_ALIGN])
+        ob.load_from_data(data)
         return ob
 
     def get_filepath(self):

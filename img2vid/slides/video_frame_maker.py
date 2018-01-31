@@ -18,8 +18,7 @@ class VideoFrameMaker:
         self.duration = 0
         self.resolution = config.video_resolution
         self.time_slices = []
-        self.last_used_slide = None
-        self.last_slide_image = None
+        self.last_used_slides = {}
         self.last_max_t = 0
         self.delay = 0
         self.make_frame_callback = None
@@ -32,7 +31,10 @@ class VideoFrameMaker:
 
         for i in range(len(slides)):
             slide = slides[i]
-            time_slice = TimeSlice(slide=slide)
+            time_slice = TimeSlice(slide=slide, config=self.config)
+            if i==0 and time_slice.pre_trans_dur>0:
+                self.duration += time_slice.pre_trans_dur
+            time_slice.set_abs_time_offset(self.duration-time_slice.pre_trans_dur)
 
             if slide.TypeName == TextSlide.TypeName:
                 duration = config.get_param("text-slide-durtion", 3)
@@ -45,9 +47,12 @@ class VideoFrameMaker:
                 if not slide.get_caption():
                     time_slice.set_scale_pan(ScalePan.create_random(1, 6))
                 duration = config.get_param("image-durtion", 5)
-            time_slice.set_duration(duration)
+
+            time_slice.set_main_duration(duration)
             self.time_slices.append(time_slice)
             self.duration += duration
+
+        self.duration += self.time_slices[-1].post_trans_dur
 
     def serialize(self):
         data = dict(slices=[])
@@ -66,41 +71,47 @@ class VideoFrameMaker:
 
     def get_image_at(self, t):
         elapsed = 0
-        time_slice = None
+        active_time_slices = []
         for tm in self.time_slices:
-            if t<elapsed+tm.duration:
-                time_slice = tm
-                break
-            elapsed += tm.duration
-        if not time_slice:
-            time_slice = self.time_slices[-1]
-            rel_t = time_slice.duration
-        else:
-            rel_t = t - elapsed
+            if tm.is_within(t):
+                active_time_slices.append(tm)
 
-        if time_slice.slide != self.last_used_slide:
-            self.last_slide_image = time_slice.slide.get_renderable_image(self.config)
-        self.last_used_slide = time_slice.slide
-        image = self.last_slide_image
-        image, processed = time_slice.process(image, rel_t, self.resolution)
 
-        if not processed:
+
+        final_img_buffer = None
+        used_slides = {}
+        for time_slice in (active_time_slices):
+            if time_slice.slide not in self.last_used_slides:
+                image = time_slice.slide.get_renderable_image(self.config)
+            else:
+                image = self.last_used_slides[time_slice.slide]
+            used_slides[time_slice.slide] = image
+
+            image = time_slice.process(image, t, self.resolution)
+
+            container = Image.new("RGBA",
+                                  (self.resolution.x, self.resolution.y),
+                                  self.config.video_background_color)
             sx = self.resolution.x/image.width
             sy = self.resolution.y/image.height
             sc = min(sx, sy)
             image = image.resize(
                 (int(round(image.width*sc)), int(round(image.height*sc))), resample=True)
-        else:
-            image = image.resize((int(self.resolution.x), int(self.resolution.y)), resample=True)
 
-        ofx = int((self.resolution.x-image.width)*0.5)
-        ofy = int((self.resolution.y-image.height)*0.5)
-        container = Image.new("RGBA",
-                              (self.resolution.x, self.resolution.y),
-                              self.config.video_background_color)
-        container.paste(image, (ofx, ofy))
-        image = container
-        return image
+            ofx = int((self.resolution.x-image.width)*0.5)
+            ofy = int((self.resolution.y-image.height)*0.5)
+            container.paste(image, (ofx, ofy))
+
+            img_buffer = numpy.array(container, dtype=numpy.uint8)
+            if final_img_buffer is None:
+                final_img_buffer = img_buffer
+            else:
+                final_img_buffer = (final_img_buffer + img_buffer)*0.5
+
+        self.last_used_slides.clear()
+        self.last_used_slides.update(used_slides)
+
+        return Image.fromarray(final_img_buffer.astype(numpy.uint8))
 
     def make_frame(self, t):
         time.sleep(self.delay)

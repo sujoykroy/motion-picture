@@ -17,6 +17,7 @@ class TextSlide(Slide):
     @classmethod
     def create_from_data(cls, data):
         ob = cls(data["text"])
+        ob.load_from_data(data)
         return ob
 
     def set_text(self, text):
