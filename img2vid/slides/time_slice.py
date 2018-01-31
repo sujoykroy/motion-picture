@@ -1,4 +1,4 @@
-from commons import ScalePan
+from commons import ScalePan, Point
 from .text_slide import TextSlide
 from .image_slide import ImageSlide
 
@@ -38,7 +38,11 @@ class TimeSlice:
         if not self.scale_pan:
             return (image, False)
         frac = t/self.duration
+        clearance = 10
         rect = self.scale_pan.get_view_rect(
-            frac, image.width, image.height, resolution.get_ratio())
+            frac,
+            image.width-clearance, image.height-clearance,
+            resolution.get_ratio())
+        rect.translate(Point(clearance, clearance))
         image=image.crop((rect.x1, rect.y1, rect.x2, rect.y2))
         return (image, True)

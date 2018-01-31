@@ -11,6 +11,7 @@ class PreviewPlayer:
     def __init__(self, parent, video_frame_maker, config, on_close_callback):
         self.fps = 10
         self.config = config
+        self.video_filepath = None
         self.millisecond_per_frame = 1/self.fps
         self.video_frame_maker = video_frame_maker
         self.video_process = None
@@ -72,6 +73,10 @@ class PreviewPlayer:
                 self.video_process = None
                 self.play_button["state"] = tk.NORMAL
                 self.render_button["state"] = tk.NORMAL
+                if not video_error:
+                    messagebox.showinfo(
+                        "Complete",
+                        "Video is rendered successfully at {}".format(self.video_filepath))
             else:
                 self.slider.set(self.video_process.elapsed.value)
                 self.progress_bar.set_progress(
@@ -109,6 +114,7 @@ class PreviewPlayer:
             return
         video_filepath = filedialog.asksaveasfilename()
         if video_filepath:
+            self.video_filepath = video_filepath
             self.progress_bar.set_text(video_filepath)
             self.set_play_state(False)
             self.play_button["state"] = tk.DISABLED

@@ -23,18 +23,6 @@ class ScalePan:
             point.x-view_width*0.5, point.y-view_height*0.5,
             point.x+view_width*0.5, point.y+view_height*0.5)
 
-        if rect.x1<0:
-            rect.x1 = 0
-            rect.x2 = view_width
-        if rect.x2>bound_width:
-            rect.x2 = bound_width
-            rect.x1 = bound_width-view_width
-        if rect.y1<0:
-            rect.y1 = 0
-            rect.y2 = view_height
-        if rect.y2>bound_height:
-            rect.y2 = bound_height
-            rect.y1 = bound_height-view_height
         return rect
 
     def serialize(self):

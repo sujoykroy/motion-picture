@@ -174,6 +174,10 @@ class Application(tk.Frame):
                                      text="Add Text Slide", command=self.on_add_text_slide_button_click)
         self.add_text_button.pack(side=tk.LEFT)
 
+        self.add_image_button = tk.Button(self.bottom_packer,
+                                     text="Add Image Slide(s)", command=self.on_add_image_slide_button_click)
+        self.add_image_button.pack(side=tk.LEFT)
+
         self.canvas.bind("<Configure>", self.on_canvas_resize)
 
         self.master.show_at_center()
@@ -350,12 +354,22 @@ class Application(tk.Frame):
                 filetypes=filetypes, title="Choose folder and write filename to save new project")
         return project_filename
 
-    def add_image_files(self, image_files):
+    def get_image_files_from_user(self):
+        image_files = filedialog.askopenfilenames(
+                title="Select images to import",
+                filetypes=[("Images", self.app_config.get_image_types()),
+                           ("All Files", "*.*")])
+        return image_files
+
+    def add_image_files(self, image_files, after_index=None):
+        count = 0
         for filepath in image_files:
             root, ext = os.path.splitext(filepath)
             if ext.lower() in self.app_config.image_extensions:
                 slide = ImageSlide(filepath=filepath)
-                self.db.add_slide(slide)
+                self.db.add_slide(slide, after=after_index)
+                count += 1
+        return count
 
     def on_crop_image_slide_button_click(self):
         if not self.active_slide or self.active_slide.allow_cropping:
@@ -366,6 +380,15 @@ class Application(tk.Frame):
         new_image_slide = self.active_slide.crop(rect)
         self.db.add_slide(new_image_slide, after=self.active_slide_index)
         self.show_slide(1)
+
+    def on_add_image_slide_button_click(self):
+        image_files = self.get_image_files_from_user()
+        if not image_files or \
+           self.add_image_files(image_files, self.active_slide_index) == 0:
+            messagebox.showerror(
+                "Error", "No proper image file is available to import")
+        else:
+            self.show_slide(1)
 
     def on_add_text_slide_button_click(self):
         text=simpledialog.askstring("Text Slide", "Enter text to display")
@@ -380,6 +403,10 @@ class Application(tk.Frame):
                 "Error", "You need to provide some text to create a text slide.")
 
     def on_delete_slide_button_click(self):
+        if self.db.slide_count == 1:
+            messagebox.showerror(
+                "Low slide count", "You need to keep at least one slide in the project.")
+            return
         if messagebox.askyesno("Delete Slide", "Do you really want to delete this slide?"):
             self.db.remove_slide(self.active_slide_index)
             self.active_slide_index = min(self.active_slide_index, self.db.slide_count-1)
@@ -391,10 +418,7 @@ class Application(tk.Frame):
             return
         self.db = None
         for i in range(2):
-            image_files = filedialog.askopenfilenames(
-                title="Select images to import",
-                filetypes=[("Images", self.app_config.get_image_types()),
-                           ("All Files", "*.*")])
+            image_files = self.get_image_files_from_user()
             if not image_files:
                 messagebox.showerror("Error",
                                      "You need to select at least one image to create the project.")
