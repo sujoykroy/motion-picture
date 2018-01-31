@@ -423,7 +423,7 @@ class Application(tk.Frame):
         self.show_slide(0)
 
     def on_quit_project_button_click(self):
-        self.master.destroy()
+        self.on_window_close()
 
     def on_preview_button_click(self):
         if self.preview_player:
@@ -436,6 +436,10 @@ class Application(tk.Frame):
         self.wait_window(self.preview_player.top)
 
     def on_close_editing_button_click(self):
+        if self.preview_player:
+            self.preview_player.close()
+            self.preview_player = None
+
         self.destroy_editing_widgets()
         self.create_project_widgets()
 
@@ -541,8 +545,8 @@ class Application(tk.Frame):
     def on_window_close(self):
         if self.preview_player:
             self.preview_player.close()
+            self.preview_player = None
 
-        self.preview_player = None
         if self.frame_mode == self.FRAME_MODE_EDITING:
             self.destroy_editing_widgets()
             self.create_project_widgets()

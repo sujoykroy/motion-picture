@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 import wand
 
 from commons import Rectangle
@@ -64,9 +64,14 @@ class PreviewPlayer:
 
     def show_frame(self):
         if self.video_process:
+            video_error = self.video_process.get_error()
+            if video_error:
+                messagebox.showerror("Error in Rendering", str(self.video_process.error))
+                self.video_process.clear_error()
             if not self.video_process.is_alive():
                 self.video_process = None
-                self.play_button["state"] = "normal"
+                self.play_button["state"] = tk.NORMAL
+                self.render_button["state"] = tk.NORMAL
             else:
                 self.slider.set(self.video_process.elapsed.value)
                 self.progress_bar.set_progress(
@@ -102,13 +107,14 @@ class PreviewPlayer:
     def on_render_button_clicked(self):
         if self.video_process and self.video_process.is_alive():
             return
-        video_filepath = filedialog.asksaveasfilename(filetypes=[("MP4", "*.mp4")])
+        video_filepath = filedialog.asksaveasfilename()
         if video_filepath:
             self.progress_bar.set_text(video_filepath)
             self.set_play_state(False)
-            self.play_button["state"] = "disable"
+            self.play_button["state"] = tk.DISABLED
+            self.render_button["state"] = tk.DISABLED
             self.render_alarm = self.top.after(self.slider_alaram_period, self.move_forward)
-            if "-fopenmp" in wand.version.configure_options()["PCFLAGS"]:
+            if True or "-fopenmp" in wand.version.configure_options()["PCFLAGS"]:#TODO
                 self.video_process = VideoThread(self.video_frame_maker, video_filepath, self.config)
             else:
                 self.video_process = VideoProcess(self.video_frame_maker, video_filepath, self.config)

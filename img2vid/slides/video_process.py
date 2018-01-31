@@ -1,6 +1,7 @@
 import multiprocessing
 import threading
 import time
+import ctypes
 
 from commons import AppConfig
 from slides import VideoFrameMaker
@@ -12,6 +13,7 @@ class VideoProcess(multiprocessing.Process):
         self.dest_filename = dest_filename
         self.config_filename = config.filepath
         self.elapsed = multiprocessing.Value('f', 0)
+        self.error = multiprocessing.Value('c', b" ")
         self.video_frame_maker = None
         self.config = None
         self.update_thread = None
@@ -20,14 +22,24 @@ class VideoProcess(multiprocessing.Process):
         self.config = AppConfig(self.config_filename)
         self.video_frame_maker = VideoFrameMaker.create_from_data(self.maker_data, self.config)
         self.update_thread = UpdateThread(self)
-        self.video_frame_maker.make_video(self.dest_filename, self.config)
+        try:
+            self.video_frame_maker.make_video(self.dest_filename, self.config)
+        except Exception as e:
+           self.error.value = str(e)
         self.update_thread.close()
+
+    def get_error(self):
+        return self.error.value.strip()
+
+    def clear_error(self):
+        self.error.value = b" "
 
 class UpdateThread(threading.Thread):
     def __init__(self, process):
         super(UpdateThread, self).__init__()
         self.process = process
         self.should_close = False
+        self.error = None
         self.start()
 
     def close(self):
@@ -53,6 +65,13 @@ class VideoThread(threading.Thread):
         self.video_frame_maker.make_frame_callback = self.update_elapsed
         self.config = config
         self.should_close = False
+        self.error = None
+
+    def get_error(self):
+        return self.error
+
+    def clear_error(self):
+        self.error = None
 
     def update_elapsed(self):
         self.elapsed.value = self.video_frame_maker.last_max_t
@@ -66,5 +85,5 @@ class VideoThread(threading.Thread):
     def run(self):
         try:
             self.video_frame_maker.make_video(self.dest_filename, self.config)
-        except:
-            pass
+        except Exception as e:
+            self.error = e
