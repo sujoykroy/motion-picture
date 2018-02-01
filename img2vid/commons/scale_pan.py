@@ -25,6 +25,14 @@ class ScalePan:
 
         return rect
 
+    def get_polygon_points(self, bound_width=1, bound_height=1, aspect_ratio=1):
+        points = []
+        for i in range(bound_width):
+            frac = i/bound_width
+            rect = self.get_view_rect(frac, bound_width, bound_height, aspect_ratio)
+            points.append(Point(rect.get_cx(), rect.get_cy()))
+        return points
+
     def serialize(self):
         data = dict(scale_start=self.scale_start,
                     scale_end=self.scale_end,
@@ -43,6 +51,7 @@ class ScalePan:
         point_count = int(min_point_count+(max_point_count-min_point_count)*random.random())
         if point_count<2:
             point_count = 2
+
         for i in range(point_count):
             random.seed()
             point = Point(random.random(), random.random())

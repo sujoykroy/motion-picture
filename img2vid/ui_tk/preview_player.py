@@ -105,10 +105,6 @@ class PreviewPlayer:
             self.play_button.paused = True
             self.play_button["text"] = "Play"
 
-    def on_close_button_clicked(self):
-        self.close()
-        self.on_close_callback()
-
     def on_render_button_clicked(self):
         if self.video_process and self.video_process.is_alive():
             return
@@ -125,6 +121,10 @@ class PreviewPlayer:
             else:
                 self.video_process = VideoProcess(self.video_frame_maker, video_filepath, self.config)
             self.video_process.start()
+
+    def on_close_button_clicked(self):
+        self.close()
+        self.on_close_callback()
 
     def on_window_close(self):
         self.close()

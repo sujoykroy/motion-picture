@@ -368,7 +368,7 @@ class Application(tk.Frame):
             self.text_alignlist.selection_set(self.text_align_options.index(align))
 
         elif self.active_slide.TypeName == TextSlide.TypeName:
-            self.canvas.itemconfig(self.canvas_background, fill=self.app_config.text_background_color)
+            #self.canvas.itemconfig(self.canvas_background, fill=self.app_config.text_background_color)
             self.update_text_slide_on_canvas()
             self.caption_text.insert(tk.END, self.active_slide.get_text())
         self.canvas.update_idletasks()
@@ -386,8 +386,8 @@ class Application(tk.Frame):
     def get_image_files_from_user(self):
         image_files = filedialog.askopenfilenames(
                 title="Select images to import",
-                filetypes=[("Images", self.app_config.get_image_types()),
-                           ("All Files", "*.*")])
+                filetypes=(("Images", self.app_config.get_image_types()),
+                           ("All Files", "*.*")))
         return image_files
 
     def add_image_files(self, image_files, after_index=None):
@@ -643,6 +643,14 @@ def is_magick_found():
         return False
     return True
 
+import traceback
+def get_magick_error():
+    try:
+        import wand.api
+    except ImportError as e:
+        return str(traceback.format_exc())
+    return ""
+
 while not is_magick_found():
     from commons import EnvironConfig
     environ_config = EnvironConfig(os.path.join(THIS_DIR, "environ.ini"))
@@ -651,7 +659,9 @@ while not is_magick_found():
     if not is_magick_found():
         from magick_home_loader import MagickHomeLoader
         tk_root = Root()
-        app = MagickHomeLoader(master=tk_root, config=environ_config)
+        app = MagickHomeLoader(master=tk_root,
+                               config=environ_config,
+                               error_msg = get_magick_error())
         tk_root.show_at_center()
         app.mainloop()
         if app.closing:

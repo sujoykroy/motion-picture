@@ -50,6 +50,7 @@ class AppConfig:
 
         self.fade_out_duration = self.app_section.get("fade-out-duration", 2)
         self.fade_in_duration = self.app_section.get("fade-in-duration", 2)
+        self.video_debug = (self.app_section.get("video-debug", "False") == "True")
 
     def get_font_tuple(self):
         return (self.text_font_name, self.text_font_size)
@@ -61,7 +62,7 @@ class AppConfig:
         types = []
         for ext in self.image_extensions:
             types.append("*" + ext)
-        return ", ".join(types)
+        return " ".join(types)
 
     def get_font(self):
         return "{0} {1}".format(self.text_font_name, self.text_font_size)

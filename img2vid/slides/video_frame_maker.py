@@ -87,7 +87,7 @@ class VideoFrameMaker:
                 image = self.last_used_slides[time_slice.slide]
             used_slides[time_slice.slide] = image
 
-            image = time_slice.process(image, t, self.resolution)
+            image = time_slice.process(image, t, self.config)
 
             container = Image.new("RGBA",
                                   (self.resolution.x, self.resolution.y),
@@ -106,7 +106,7 @@ class VideoFrameMaker:
             if final_img_buffer is None:
                 final_img_buffer = img_buffer
             else:
-                final_img_buffer = (final_img_buffer + img_buffer)*0.5
+                final_img_buffer = numpy.maximum(final_img_buffer, img_buffer)
 
         self.last_used_slides.clear()
         self.last_used_slides.update(used_slides)

@@ -5,6 +5,9 @@ class Point:
         self.x = x
         self.y = y
 
+    def copy(self):
+        return Point(self.x, self.y)
+
     def assign(self, x, y):
         self.x = x
         self.y = y
