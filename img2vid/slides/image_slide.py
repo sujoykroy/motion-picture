@@ -115,7 +115,6 @@ class ImageSlide(Slide):
         temporary_file = tempfile.SpooledTemporaryFile()
 
         canvas.save(file=temporary_file)
-        canvas.save(filename="/home/sujoy/Pictures/test.png")
         canvas = None
 
         image = PImage.open(temporary_file)

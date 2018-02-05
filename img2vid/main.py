@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-
 import json
 
 import tkinter as tk
@@ -11,8 +10,12 @@ from tkinter import simpledialog
 import tkinter.scrolledtext as tkscrolledtext
 
 from PIL import ImageTk
+import imageio
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+#Pre Download FFMPEG
+imageio.plugins.ffmpeg.download()
 
 def show_tk_widget_at_center(tk_widget, use_req=False):
     tk_widget.withdraw()
@@ -344,6 +347,8 @@ class Application(tk.Frame):
 
     def show_slide(self, rel=1):
         self.clear_slide_display()
+        if self.db.slide_count == 0:
+            return
 
         slide_index =  self.active_slide_index + rel
         if slide_index<0:
@@ -381,6 +386,10 @@ class Application(tk.Frame):
         else:
             project_filename= filedialog.asksaveasfilename(
                 filetypes=filetypes, title="Choose folder and write filename to save new project")
+        if project_filename:
+            root, ext = os.path.splitext(project_filename)
+            if ext != ".json":
+                project_filename += ".json"
         return project_filename
 
     def get_image_files_from_user(self):
