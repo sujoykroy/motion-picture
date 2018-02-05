@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import json
 
 import tkinter as tk
@@ -29,6 +30,12 @@ def show_tk_widget_at_center(tk_widget, use_req=False):
     tk_widget.geometry("+%d+%d" % (x, y))
     tk_widget.deiconify()
     tk_widget.update_idletasks()
+
+def exit_smoothly():
+    try:
+        sys.exit()
+    except:
+        pass
 
 class Application(tk.Frame):
     FRAME_MODE_CREATE_OPEN = 0
@@ -531,6 +538,7 @@ class Application(tk.Frame):
             if filter_check_button.filter_var.get() == 1:
                 filters.append(filter_check_button.filter_code)
         self.active_slide.set_filters(filters)
+
     def on_canvas_left_mouse_press(self, event):
         if not self.slide_image:
             return
@@ -687,3 +695,5 @@ if is_magick_found():
     app = Application(master=tk_root)
     tk_root.show_at_center()
     app.mainloop()
+
+exit_smoothly()
