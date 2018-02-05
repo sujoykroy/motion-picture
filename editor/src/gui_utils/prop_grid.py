@@ -1,10 +1,10 @@
 from gi.repository import Gtk
-from shape_prop_box import ShapePropBox
-from shape_form_prop_box import ShapeFormPropBox
-from curve_smooth_prop_box import CurveSmoothPropBox
-from misc_prop_boxes import CustomPropsBox
-from point_group_shape_list_box import PointGroupShapeListBox
-from interior_pose_box import InteriorPoseBox
+from .shape_prop_box import ShapePropBox
+from .shape_form_prop_box import ShapeFormPropBox
+from .curve_smooth_prop_box import CurveSmoothPropBox
+from .misc_prop_boxes import CustomPropsBox
+from .point_group_shape_list_box import PointGroupShapeListBox
+from .interior_pose_box import InteriorPoseBox
 
 class PropGrid(Gtk.Grid):
     def __init__(self):

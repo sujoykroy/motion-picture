@@ -1,6 +1,6 @@
 import math, numpy
-from point3d import Point3d
-from texture_map_color import *
+from .point3d import Point3d
+from .texture_map_color import *
 
 DEG2PI = math.pi/180.
 

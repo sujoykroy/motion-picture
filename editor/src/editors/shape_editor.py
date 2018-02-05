@@ -229,9 +229,9 @@ class ShapeEditor(object):
 
         elif isinstance(shape, PolygonShape):
             polygon_shape = shape
-            for polygon_index in xrange(len(polygon_shape.polygons)):
+            for polygon_index in range(len(polygon_shape.polygons)):
                 polygon = polygon_shape.polygons[polygon_index]
-                for point_index in xrange(len(polygon.points)):
+                for point_index in range(len(polygon.points)):
                     point = polygon.points[point_index]
                     point_eb = self.new_edit_box(PolygonPointEditBox(
                         point, polygon_index, point_index), INNER)

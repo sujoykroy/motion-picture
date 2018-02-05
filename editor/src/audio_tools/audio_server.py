@@ -1,10 +1,10 @@
 import pyaudio
-import Queue
+from queue import Queue
 import numpy
 import threading
 import time
-from audio_group import AudioGroup
-from audio_block import AudioBlock
+from .audio_group import AudioGroup
+from .audio_block import AudioBlock
 #import mido
 
 class MidiThread(threading.Thread):
@@ -61,11 +61,11 @@ class AudioServer(threading.Thread):
         self.pa_manager = pyaudio.PyAudio()
 
         self.output_device_index = None
-        for i in xrange(self.pa_manager.get_host_api_count()):
+        for i in range(self.pa_manager.get_host_api_count()):
             host_api_info = self.pa_manager.get_host_api_info_by_index(i)
             if host_api_info["name"].lower().find(host_api_name.lower()) == -1:
                 continue
-            for j in xrange(host_api_info["deviceCount"]):
+            for j in range(host_api_info["deviceCount"]):
                 device_info = self.pa_manager.get_device_info_by_host_api_device_index(i, j)
                 self.output_device_index = device_info["index"]
 

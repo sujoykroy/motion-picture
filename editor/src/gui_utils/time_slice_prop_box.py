@@ -1,10 +1,10 @@
 from gi.repository import Gtk
-from name_value_combo_box import NameValueComboBox
-from image_combo_box import ImageComboBox
+from .name_value_combo_box import NameValueComboBox
+from .image_combo_box import ImageComboBox
 from ..time_lines.time_change_types import *
 from ..commons import get_displayble_prop_name, Text
-from file_op import *
-from buttons import create_new_image_button
+from .file_op import *
+from .buttons import create_new_image_button
 
 class TimeSlicePropBox(Gtk.Frame):
     NUMBER = 0

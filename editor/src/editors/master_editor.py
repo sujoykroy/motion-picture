@@ -1,7 +1,7 @@
 from gi.repository import Gtk, Gdk, GLib
 import os, math, cairo
 import threading
-import Queue
+import queue
 import time
 
 from ..shapes import *
@@ -12,14 +12,14 @@ from ..time_lines import *
 from ..audio_tools import AudioServer
 
 from ..document import Document
-from shape_manager import ShapeManager
-from shape_editor import ShapeEditor
-from time_line_editor import TimeLineEditor
-from custom_prop_editor import CustomPropEditor
+from .shape_manager import ShapeManager
+from .shape_editor import ShapeEditor
+from .time_line_editor import TimeLineEditor
+from .custom_prop_editor import CustomPropEditor
 
 from .. import settings as Settings
 from ..settings import EditingChoice
-from camera_viewer import CamerViewerBox, CameraViewerDialog
+from .camera_viewer import CamerViewerBox, CameraViewerDialog
 
 MODE_NEW_SHAPE_CREATE = "MODE_NEW_SHAPE_CREATE"
 
@@ -826,7 +826,7 @@ class DrawerThread(threading.Thread):
         super(DrawerThread, self).__init__()
         self.editor = editor
         self.should_exit = False
-        self.draw_queue = Queue.Queue()
+        self.draw_queue = queue.Queue()
         self.start()
 
     def draw(self):
@@ -839,7 +839,7 @@ class DrawerThread(threading.Thread):
             try:
                 ret = self.draw_queue.get(block=False)
                 c += 1
-            except Queue.Empty:
+            except queue.Empty:
                 if ret and keep_last:
                     self.draw_queue.put(ret)
                 break
@@ -856,7 +856,7 @@ class DrawerThread(threading.Thread):
                     draw = True
                     time.sleep(.01)
                     c += 1
-            except Queue.Empty:
+            except queue.Empty:
                 pass
             if draw:
                 self.editor.pre_draw_on_surface()

@@ -1,5 +1,5 @@
 from xml.etree.ElementTree import Element as XmlElement
-from time_change_types import *
+from .time_change_types import *
 from ..commons import copy_dict, copy_list, Text
 import numpy
 

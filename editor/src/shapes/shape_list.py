@@ -32,7 +32,7 @@ class ShapeList(object):
         if not self.contain(old_shape):
             self.add(new_shape)
             return
-        if isinstance(old_shape, unicode):
+        if isinstance(old_shape, str):
             index = self.names.index(old_shape)
             old_shape = self.items[index]
         else:
@@ -48,7 +48,6 @@ class ShapeList(object):
             self.names.append(shape_name)
         else:
             exception_text = "Attempt to append duplicate shape[{0}] in list.".format(shape._name)
-            print(shape_name)
             print(exception_text)
             #raise Exception(exception_text)
 
@@ -91,7 +90,7 @@ class ShapeList(object):
         return self.items[index]
 
     def contain(self, shape):
-        if isinstance(shape, unicode):
+        if isinstance(shape, str):
             return (shape in self.names)
         return (shape in self.items)
 

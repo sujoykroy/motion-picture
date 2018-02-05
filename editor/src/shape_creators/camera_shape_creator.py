@@ -1,6 +1,6 @@
 from ..commons import *
 from ..shapes import CameraShape, RectEditBox
-from rectangle_shape_creator import RectangleShapeCreator
+from .rectangle_shape_creator import RectangleShapeCreator
 from ..settings import config
 
 class CameraShapeCreator(RectangleShapeCreator):

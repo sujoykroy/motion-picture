@@ -1,11 +1,11 @@
 import numpy, cairo, math
 from scipy import ndimage
 
-from object3d import Object3d
-from point3d import Point3d
-from polygon3d import Polygon3d
-from draw_utils import *
-from colors import hsv_to_rgb, rgb_to_hsv
+from .object3d import Object3d
+from .point3d import Point3d
+from .polygon3d import Polygon3d
+from .draw_utils import *
+from .colors import hsv_to_rgb, rgb_to_hsv
 
 def surface2array(surface):
     data = surface.get_data()

@@ -1,7 +1,7 @@
 from ..commons import *
-from shape import Shape
-from rectangle_shape import RectangleShape
-from oval_shape import OvalShape
+from .shape import Shape
+from .rectangle_shape import RectangleShape
+from .oval_shape import OvalShape
 
 MARGIN = 10
 

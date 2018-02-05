@@ -1,5 +1,5 @@
 from gi.repository import Gtk
-from name_value_combo_box import NameValueComboBox
+from .name_value_combo_box import NameValueComboBox
 
 class PointGroupShapeListBox(object):
     def __init__(self, select_callback):

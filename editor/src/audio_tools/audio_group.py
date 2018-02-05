@@ -1,5 +1,5 @@
 import threading
-from audio_block import AudioBlock
+from .audio_block import AudioBlock
 from ..commons import AudioMessage
 
 class AudioGroup(AudioBlock):

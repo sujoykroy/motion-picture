@@ -1,7 +1,7 @@
 from gi.repository import Gtk, GObject
-import Queue
+from queue import Queue
 from ..audio_tools import AudioServer, AudioFileBlock
-from buttons import create_new_image_button
+from .buttons import create_new_image_button
 
 class FileOp(object):
     @staticmethod

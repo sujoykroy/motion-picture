@@ -1,5 +1,5 @@
 import numpy, cairo, os
-from misc import *
+from .misc import *
 from xml.etree.ElementTree import Element as XmlElement
 
 class TextureResources(object):

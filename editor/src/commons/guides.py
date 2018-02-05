@@ -1,6 +1,6 @@
-from colors import Color
-from point import Point
-from draw_utils import draw_stroke, draw_text
+from .colors import Color
+from .point import Point
+from .draw_utils import draw_stroke, draw_text
 from xml.etree.ElementTree import Element as XmlElement
 
 GUIDE_COLOR = Color.parse("0000ffaa")

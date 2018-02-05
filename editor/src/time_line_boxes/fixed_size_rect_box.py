@@ -1,6 +1,6 @@
 from ..commons import Point
 from ..commons.draw_utils import *
-from rect_box import RectBox
+from .rect_box import RectBox
 
 class FixedSizeRectBox(RectBox):
     def __init__(self, parent_box, width, height, border_color, border_width,

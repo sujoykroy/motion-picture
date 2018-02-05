@@ -94,10 +94,6 @@ class BlenderDrawer(object):
         ctx.rectangle(0, 0, width, height)
         sx = width*1./surface.get_width()
         sy = height*1./surface.get_height()
-        if sx<1:
-            ctx.translate(-(surface.get_width()-width)*.5, 0)
-        if sy<1:
-            ctx.translate(0, -(surface.get_height()-height)*.5)
         ctx.scale(sx , sy)
         ctx.set_source_surface(surface)
         ctx.paint()

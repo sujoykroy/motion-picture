@@ -1,5 +1,8 @@
 from gi.repository import Gtk, GObject, Gdk
 import time
+import threading
+import queue
+import numpy
 
 from ..commons import *
 from ..commons.draw_utils import *
@@ -11,10 +14,6 @@ from ..settings import EditingChoice
 from .. import settings as Settings
 from ..gui_utils.buttons import *
 from ..audio_tools import AudioServer, AudioBlock
-import threading
-import Queue
-import numpy
-
 
 EDITOR_LINE_COLOR = "ff0000"
 TIME_SLICE_START_X = PropTimeLineBox.TOTAL_LABEL_WIDTH + SHAPE_LINE_LEFT_PADDING
@@ -1075,7 +1074,7 @@ class PlayHeadMoverThread(threading.Thread):
         super(PlayHeadMoverThread, self).__init__()
         self.time_line_editor = editor
         self.should_exit = False
-        self.time_queue = Queue.Queue()
+        self.time_queue = queue.Queue()
         self.start()
 
     def move_to(self, move_to_time, force_visible):
@@ -1088,7 +1087,7 @@ class PlayHeadMoverThread(threading.Thread):
             try:
               ret = self.time_queue.get(block=False)
               c += 1
-            except Queue.Empty:
+            except queue.Empty:
                 if ret and keep_last:
                     self.time_queue.put(ret)
                 break
@@ -1107,7 +1106,7 @@ class PlayHeadMoverThread(threading.Thread):
                     force_visible = ret[1]
                     time.sleep(.01)
                     c += 1
-            except Queue.Empty:
+            except queue.Empty:
                 pass
             if move_to is not None:
                 st = time.time()

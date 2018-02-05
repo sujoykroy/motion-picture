@@ -1,10 +1,10 @@
 from ..commons import *
-from shape import Shape
-from shape_list import ShapeList
-from curves_form import CurvesForm
-from curve_point_group_shape import CurvePointGroupShape
+from .shape import Shape
+from .shape_list import ShapeList
+from .curves_form import CurvesForm
+from .curve_point_group_shape import CurvePointGroupShape
 from xml.etree.ElementTree import Element as XmlElement
-from mirror import *
+from .mirror import *
 
 REL_ABS_ANCHOR_AT = "rel_abs_anchor_at"
 
@@ -96,11 +96,11 @@ class CurveShape(Shape, Mirror):
         self.curve_point_map.clear()
         if not self.point_group_shapes:
             return
-        for i in xrange(len(self.curves)):
+        for i in range(len(self.curves)):
             curve = self.curves[i]
             self.add_curve_point(
                 CurvePoint(i, -1, CurvePoint.POINT_TYPE_ORIGIN), self)
-            for j in xrange(len(curve.bezier_points)):
+            for j in range(len(curve.bezier_points)):
                 self.add_curve_point(
                     CurvePoint(i, j, CurvePoint.POINT_TYPE_CONTROL_1), self)
                 self.add_curve_point(
@@ -495,10 +495,10 @@ class CurveShape(Shape, Mirror):
 
     def break_points_into_point_shapes(self):
         curve_points = []
-        for i in xrange(len(self.curves)):
+        for i in range(len(self.curves)):
             curve = self.curves[i]
             curve_points.append(CurvePoint(i, -1, CurvePoint.POINT_TYPE_ORIGIN))
-            for j in xrange(len(curve.bezier_points)):
+            for j in range(len(curve.bezier_points)):
                 curve_points.append(CurvePoint(i, j, CurvePoint.POINT_TYPE_CONTROL_1))
                 curve_points.append(CurvePoint(i, j, CurvePoint.POINT_TYPE_CONTROL_2))
                 curve_points.append(CurvePoint(i, j, CurvePoint.POINT_TYPE_DEST))
@@ -536,7 +536,7 @@ class CurveShape(Shape, Mirror):
         self.set_curve_point_location(curve_point, location)
 
     def adjust_origins(self):
-        for i in xrange(len(self.curves)):
+        for i in range(len(self.curves)):
             curve = self.curves[i]
             if not curve.closed:
                 continue
@@ -590,9 +590,9 @@ class CurveShape(Shape, Mirror):
                 ctx.move_to(start_point.x, start_point.y)
 
             if reverse:
-                range_object = xrange(len(curve.bezier_points)-1, -2, -1)
+                range_object = range(len(curve.bezier_points)-1, -2, -1)
             else:
-                range_object = xrange(len(curve.bezier_points))
+                range_object = range(len(curve.bezier_points))
 
             for point_index in range_object:
                 if reverse and point_index==-1:
@@ -650,7 +650,7 @@ class CurveShape(Shape, Mirror):
         self.build_baked_points(curve_index)
         baked_points = self.baked_points[curve_index]
         count = int(round(baked_points.shape[0]*self.exposure))
-        for i in xrange(count):
+        for i in range(count):
             x = baked_points[i][0]
             y = baked_points[i][1]
             if i == 0:
@@ -666,21 +666,21 @@ class CurveShape(Shape, Mirror):
             return
 
         paths = []
-        for curve_index in xrange(len(self.curves)):
+        for curve_index in range(len(self.curves)):
             self.draw_curve(ctx, curve_index)
             paths.append(ctx.copy_path())
         if self.mirror != 0:
             scales, rotations = self.get_scales_n_rotations()
 
             for scale in scales:
-                for curve_index in xrange(len(self.curves)):
+                for curve_index in range(len(self.curves)):
                     curve = self.curves[curve_index]
                     if not for_fill or (for_fill and curve.closed):
                         self.draw_curve(ctx, curve_index, scale=scale)
                         paths.append(ctx.copy_path())
 
             for angle in rotations:
-                for curve_index in xrange(len(self.curves)):
+                for curve_index in range(len(self.curves)):
                     curve = self.curves[curve_index]
                     if not for_fill or (for_fill and curve.closed):
                         self.draw_curve(ctx, curve_index, angle=angle)
@@ -693,7 +693,7 @@ class CurveShape(Shape, Mirror):
         curve = self.curves[curve_index]
         if self.curve_point_map:
             points = CurvePoint.get_curve_points_for_curve(curve_index, self.curves)
-            for i in xrange(len(points)):
+            for i in range(len(points)):
                 points[i] = self.get_point_location(points[i])
             outline = Polygon(points=points).get_outline()
         else:
@@ -729,7 +729,7 @@ class CurveShape(Shape, Mirror):
     def fit_size_to_include_all(self):
         self.adjust_origins()
         outline = None
-        for curve_index in xrange(len(self.curves)):
+        for curve_index in range(len(self.curves)):
             if outline is None:
                 outline = self.get_curve_outline(curve_index)
             else:
@@ -751,7 +751,7 @@ class CurveShape(Shape, Mirror):
 
         dx = -outline.left/self.width
         dy = -outline.top/self.height
-        for curve_index in xrange(len(self.curves)):
+        for curve_index in range(len(self.curves)):
             self.translate_curve(curve_index, dx, dy)
             if sx is not None and sy is not None:
                 self.scale_curve(curve_index, sx, sy)

@@ -8,15 +8,15 @@ from gi.repository import Gdk, GdkPixbuf
 from gi.repository.GdkPixbuf import Pixbuf
 import cairo, os
 
-import settings as Settings
-from commons import *
-from shapes import *
-from commons.guides import Guide
-from tasks import TaskManager
-from time_lines import MultiShapeTimeLine
-from time_lines import TimeSlice
+from . import settings as Settings
+from .commons import *
+from .shapes import *
+from .commons.guides import Guide
+from .tasks import TaskManager
+from .time_lines import MultiShapeTimeLine
+from .time_lines import TimeSlice
 
-from audio_tools import AudioBlock
+from .audio_tools import AudioBlock
 
 import moviepy.editor as movie_editor
 import numpy
@@ -200,8 +200,6 @@ class Document(object):
                 continue
             for linked_clone_element in linked_elem.findall("dest"):
                 name_text = linked_clone_element.text
-                if isinstance(name_text, str):
-                    name_text = name_text.decode("utf-8")
                 linked_clone_name = name_text.split(".")
                 linked_shape = get_shape_at_hierarchy(self.main_multi_shape, linked_clone_name)
                 if not linked_shape:

@@ -1,6 +1,6 @@
-from bezier_point import BezierPoint
-from point import Point, RAD_PER_DEG
-from rect import Rect
+from .bezier_point import BezierPoint
+from .point import Point, RAD_PER_DEG
+from .rect import Rect
 from xml.etree.ElementTree import Element as XmlElement
 import numpy, math
 from scipy.spatial import distance, KDTree
@@ -536,7 +536,7 @@ class PseudoBezierPoints(object):
         return self.pseudo_points[index]
 
     def __len__(self):
-        return (len(self.curve.all_points)-1)/3
+        return int((len(self.curve.all_points)-1)/3)
 
     def __iter__(self):
         for i in range(len(self)):

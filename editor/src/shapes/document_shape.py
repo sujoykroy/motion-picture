@@ -1,4 +1,4 @@
-from rectangle_shape import RectangleShape
+from .rectangle_shape import RectangleShape
 from ..commons import *
 
 class DocumentShape(RectangleShape):

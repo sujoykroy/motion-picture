@@ -1,6 +1,6 @@
 import cairo, numpy
-from point import Point
-from texture_map_color import *
+from .point import Point
+from .texture_map_color import *
 
 class Color(object):
     def __init__(self, red, green, blue, alpha):

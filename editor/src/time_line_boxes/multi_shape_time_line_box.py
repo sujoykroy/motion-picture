@@ -1,7 +1,7 @@
-from box import Box
-from sizes import *
+from .box import Box
+from .sizes import *
 from ..commons import OrderedDict
-from shape_time_line_box import ShapeTimeLineBox
+from .shape_time_line_box import ShapeTimeLineBox
 
 class MultiShapeTimeLineBox(Box):
     def __init__(self, multi_shape_time_line):
@@ -33,7 +33,7 @@ class MultiShapeTimeLineBox(Box):
                         prop_time_line_box.prop_time_line.prop_name, ", ".join(slice_indices)))
             shape_indices.append("Shape:{1}\nProps:{1}".format(
                 shape_time_line_box.shape_time_line.shape.get_name(), "\n".join(prop_indices)))
-        print "\nINDEX Data \n".join(shape_indices)
+        print("\nINDEX Data \n".join(shape_indices))
 
     def update(self):
         for shape in self.shape_time_line_boxes.keys:

@@ -4,8 +4,8 @@ from gi.repository import Gdk, GdkPixbuf
 from gi.repository.GdkPixbuf import Pixbuf
 import time, cairo
 from xml.etree.ElementTree import Element as XmlElement
-from mirror import Mirror
-from shape_list import ShapeList
+from .mirror import Mirror
+from .shape_list import ShapeList
 
 class Shape(object):
     ID_SEED = 0
@@ -566,8 +566,6 @@ class Shape(object):
             self.pre_matrix = Matrix.from_text(pre_matrix_str)
         name = elm.attrib.get("name", None)
         if name:
-            if isinstance(name, str):
-                name = name.decode("utf-8")
             self._name = name.replace(".", "")
         if isinstance(self, Mirror):
             Mirror.assign_params_from_xml_element(self, elm)

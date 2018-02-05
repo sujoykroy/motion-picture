@@ -1,5 +1,5 @@
 import numpy
-from audio_block import AudioBlock
+from .audio_block import AudioBlock
 from ..commons import AudioMessage
 import moviepy.editor as movie_editor
 

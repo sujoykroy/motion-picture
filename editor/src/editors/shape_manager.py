@@ -1,8 +1,8 @@
 from gi.repository import GdkPixbuf
 import os
 
-from shape_editor import ShapeEditor
-from gradient_color_editor import GradientColorEditor
+from .shape_editor import ShapeEditor
+from .gradient_color_editor import GradientColorEditor
 
 from ..commons import *
 from ..commons.draw_utils import *

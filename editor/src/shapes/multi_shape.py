@@ -1,26 +1,26 @@
 from ..commons import *
-from shape import Shape
-from shape_list import ShapeList
-from rectangle_shape import RectangleShape
-from oval_shape import OvalShape
-from ring_shape import RingShape
-from curve_shape import CurveShape
-from polygon_shape import PolygonShape
-from image_shape import ImageShape
-from image_seq_shape import ImageSeqShape
-from video_shape import VideoShape
-from audio_shape import AudioShape
-from text_shape import TextShape
-from camera_shape import CameraShape
-from threed_shape import ThreeDShape
-from document_shape import DocumentShape
-from custom_shape import CustomShape
-from curve_joiner_shape import CurveJoinerShape
-from mimic_shape import MimicShape
-from curves_form import CurvesForm
+from .shape import Shape
+from .shape_list import ShapeList
+from .rectangle_shape import RectangleShape
+from .oval_shape import OvalShape
+from .ring_shape import RingShape
+from .curve_shape import CurveShape
+from .polygon_shape import PolygonShape
+from .image_shape import ImageShape
+from .image_seq_shape import ImageSeqShape
+from .video_shape import VideoShape
+from .audio_shape import AudioShape
+from .text_shape import TextShape
+from .camera_shape import CameraShape
+from .threed_shape import ThreeDShape
+from .document_shape import DocumentShape
+from .custom_shape import CustomShape
+from .curve_joiner_shape import CurveJoinerShape
+from .mimic_shape import MimicShape
+from .curves_form import CurvesForm
 from xml.etree.ElementTree import Element as XmlElement
-from custom_props import *
-from mimic_shape import MimicShape
+from .custom_props import *
+from .mimic_shape import MimicShape
 
 REL_ABS_ANCHOR_AT = "rel_abs_anchor_at"
 
@@ -239,8 +239,6 @@ class MultiShape(Shape):
 
         for pose_elm in elm.findall(cls.POSE_TAG_NAME):
             pose_name = pose_elm.attrib["name"]
-            if isinstance(pose_name, str):
-                pose_name = pose_name.decode("utf-8")
             pose = dict()
             for pose_shape_elm in pose_elm.findall(cls.POSE_SHAPE_TAG_NAME):
                 shape_name, prop_dict = cls.create_pose_prop_dict_from_xml_element(pose_shape_elm)
@@ -713,7 +711,7 @@ class MultiShape(Shape):
                 last_shape = multi_shape.shapes.get_at_index(-1)
             else:
                 last_shape = None
-            for i in xrange(renderable_shapes_count):
+            for i in range(renderable_shapes_count):
                 child_shape = multi_shape.shapes.get_at_index(i)
                 if not child_shape.visible:
                     continue

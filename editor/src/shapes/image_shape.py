@@ -1,5 +1,5 @@
 from ..commons import *
-from rectangle_shape import RectangleShape, Shape
+from .rectangle_shape import RectangleShape, Shape
 from gi.repository import Gdk, GdkPixbuf
 from gi.repository.GdkPixbuf import Pixbuf
 from .. import settings as Settings

@@ -1,6 +1,6 @@
 from xml.etree.ElementTree import Element as XmlElement
 from ..commons import *
-from time_slice import TimeSlice
+from .time_slice import TimeSlice
 
 class PropTimeLine(object):
     TAG_NAME = "prop_time_line"

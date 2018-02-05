@@ -1,4 +1,4 @@
-from shape_prop_box import *
+from .shape_prop_box import *
 
 class CommonShapePropBox(ShapePropBox):
     def __init__(self, parent_window, draw_callback, shape_name_checker, insert_time_slice_callback):    

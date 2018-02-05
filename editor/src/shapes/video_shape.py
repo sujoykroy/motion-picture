@@ -1,11 +1,12 @@
 from ..commons import *
-from rectangle_shape import RectangleShape, Shape
+from .rectangle_shape import RectangleShape, Shape
 from gi.repository import Gdk, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 from moviepy.editor import *
 import sys
-from av_base import AVBase
-import threading, time, Queue
+from .av_base import AVBase
+import threading, time
+import queue
 from .. import settings as Settings
 
 class VideoProcessThread(threading.Thread):
@@ -29,7 +30,7 @@ class VideoProcessThread(threading.Thread):
             try:
                 time_pos = self.time_queue.get(block=False)
                 self.time_queue.task_done()
-            except Queue.Empty as e:
+            except queue.Empty as e:
                 time_pos = -1
             if time_pos>=0:
                 self.lock.acquire()
@@ -37,7 +38,7 @@ class VideoProcessThread(threading.Thread):
                 self.lock.release()
                 try:
                     self.frame_queue.put(frame, block=False)
-                except Queue.Full as e:
+                except queue.Full as e:
                     pass
             elapsedTime = time.time() - startTime
             diffTime = self.period - elapsedTime
@@ -139,8 +140,8 @@ class VideoShape(RectangleShape, AVBase):
         if self.use_thread and VideoShape.USE_IMAGE_THREAD:
             if self.time_pos>0:
                 if self.image_process_thread is None:
-                    self.frame_queue = Queue.Queue(1)
-                    self.time_queue = Queue.Queue(1)
+                    self.frame_queue = queue.Queue(1)
+                    self.time_queue = queue.Queue(1)
                     self.image_process_thread = VideoProcessThread(
                         self.video_clip, self.frame_queue, self.time_queue)
                     self.image_process_thread.start()
@@ -148,7 +149,7 @@ class VideoShape(RectangleShape, AVBase):
             if self.image_process_thread is not None:
                 try:
                     self.time_queue.put(self.time_pos, block=False)
-                except Queue.Full as e:
+                except queue.Full as e:
                     pass
         if not self.use_thread or self.image_process_thread is None:
             frame = self.video_clip.reader.get_frame(self.time_pos)
@@ -170,7 +171,7 @@ class VideoShape(RectangleShape, AVBase):
             try:
                 frame = self.frame_queue.get(block=False)
                 self.frame_queue.task_done()
-            except Queue.Empty as e:
+            except queue.Empty as e:
                 frame = None
             if frame is not None:
                 self.image_pixbuf = self.get_pixbuf_from_frame(frame)

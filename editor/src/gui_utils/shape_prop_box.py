@@ -1,11 +1,11 @@
 from gi.repository import Gtk, Gdk
-from name_value_combo_box import NameValueComboBox
-from image_combo_box import ImageComboBox
-from image_color_dialog import ImageColorDialog
-from buttons import *
+from .name_value_combo_box import NameValueComboBox
+from .image_combo_box import ImageComboBox
+from .image_color_dialog import ImageColorDialog
+from .buttons import *
 from ..commons import Point, Color, get_displayble_prop_name
 from ..commons import LinearGradientColor, RadialGradientColor
-from file_op import *
+from .file_op import *
 
 PROP_TYPE_NUMBER_ENTRY = 0
 PROP_TYPE_COLOR = 1

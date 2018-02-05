@@ -1,7 +1,7 @@
 from gi.repository import Gtk
-from image_combo_box import ImageComboBox
-from helper_dialogs import TextInputDialog, YesNoDialog
-from buttons import *
+from .image_combo_box import ImageComboBox
+from .helper_dialogs import TextInputDialog, YesNoDialog
+from .buttons import *
 
 class ShapeFormPropBox(object):
     def __init__(self, draw_callback, insert_time_slice_callback):

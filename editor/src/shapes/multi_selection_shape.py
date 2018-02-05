@@ -1,7 +1,7 @@
-from multi_shape import MultiShape
+from .multi_shape import MultiShape
 from ..commons.draw_utils import draw_rounded_rectangle
 from ..commons import Point
-from shape import Shape
+from .shape import Shape
 
 MULTI_SELECTION_SHAPE = "MULTI_SELECTION_SHAPE"
 

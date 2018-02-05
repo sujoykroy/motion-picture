@@ -1,5 +1,5 @@
 from ..commons import *
-from shape import Shape
+from .shape import Shape
 
 class OvalShape(Shape):
     TYPE_NAME = "oval"

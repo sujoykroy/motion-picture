@@ -3,26 +3,25 @@ from gi.repository import Gdk, GdkPixbuf
 from gi.repository.GdkPixbuf import Pixbuf
 import sys, os, cairo
 
-from editors import MasterEditor, ShapeEditor
-from gui_utils import *
-from gui_utils.menu_builder import MenuItem
-from gui_utils.helper_dialogs import NoticeDialog
-from document import Document, DocModule
-import settings as Settings
-from settings import EditingChoice, Directory
-from commons import OrderedDict
-from commons.draw_utils import draw_text
-from tasks import *
-from shapes import MultiShape, CurveShape, MultiSelectionShape
-from shapes import get_hierarchy_names, get_shape_at_hierarchy
-from shapes import MultiShapeModule
-from shape_creators import CurveShapeCreator
+from .editors import MasterEditor, ShapeEditor
+from .gui_utils import *
+from .gui_utils.menu_builder import MenuItem
+from .gui_utils.helper_dialogs import NoticeDialog
+from .document import Document, DocModule
+from . import settings as Settings
+from .settings import EditingChoice, Directory
+from .commons import OrderedDict
+from .commons.draw_utils import draw_text
+from .tasks import *
+from .shapes import MultiShape, CurveShape, MultiSelectionShape
+from .shapes import get_hierarchy_names, get_shape_at_hierarchy
+from .shapes import MultiShapeModule
+from .shape_creators import CurveShapeCreator
 
 THIS_FOLDER = os.path.dirname(__file__)
 
 from gi.repository import GObject
 GObject.threads_init()
-
 
 Document.load_modules(os.path.join(os.getcwd(), "*.xml"))
 

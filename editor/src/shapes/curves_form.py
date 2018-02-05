@@ -1,5 +1,5 @@
 from xml.etree.ElementTree import Element as XmlElement
-from shape import Shape
+from .shape import Shape
 from ..commons import Curve
 
 class CurvesForm(object):

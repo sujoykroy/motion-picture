@@ -1,9 +1,9 @@
 from gi.repository import Gtk
-from name_value_combo_box import NameValueComboBox
-from image_combo_box import ImageComboBox
-from helper_dialogs import TextInputDialog, YesNoDialog
+from .name_value_combo_box import NameValueComboBox
+from .image_combo_box import ImageComboBox
+from .helper_dialogs import TextInputDialog, YesNoDialog
 from ..time_lines import MultiShapeTimeLine
-from buttons import *
+from .buttons import *
 
 class MultiShapeInternalPropBox(Gtk.VBox):
     def __init__(self, draw_callback, timeline_load_callback, insert_time_slice_callback):

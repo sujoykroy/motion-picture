@@ -1,10 +1,10 @@
 import numpy
 
-from object3d import Object3d
-from texture_map_color import TextureMapColor
-from misc import *
-from draw_utils import *
-from colors import Color
+from .object3d import Object3d
+from .texture_map_color import TextureMapColor
+from .misc import *
+from .draw_utils import *
+from .colors import Color
 
 from xml.etree.ElementTree import Element as XmlElement
 

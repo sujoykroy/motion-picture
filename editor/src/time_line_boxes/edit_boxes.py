@@ -1,8 +1,8 @@
 from ..commons import Point
 from ..commons.draw_utils import *
-from sizes import *
-from rect_box import RectBox
-from fixed_size_rect_box import FixedSizeRectBox
+from .sizes import *
+from .rect_box import RectBox
+from .fixed_size_rect_box import FixedSizeRectBox
 
 class ExpandBox(FixedSizeRectBox):
     def __init__(self, parent_box, move_to_callback):

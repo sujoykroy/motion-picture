@@ -1,11 +1,11 @@
-from object3d import Object3d
-from polygon3d import Polygon3d
-from light3d import Light3d
-from polygroup3d import PolyGroup3d
-from texture_map_color import TextureMapColor
+from .object3d import Object3d
+from .polygon3d import Polygon3d
+from .light3d import Light3d
+from .polygroup3d import PolyGroup3d
+from .texture_map_color import TextureMapColor
 
-from colors import Color
-from texture_map_color import *
+from .colors import Color
+from .texture_map_color import *
 
 import os, numpy, cairo
 import collada

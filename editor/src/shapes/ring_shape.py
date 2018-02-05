@@ -1,6 +1,6 @@
 from ..commons import *
-from shape import Shape
-from oval_shape import OvalShape
+from .shape import Shape
+from .oval_shape import OvalShape
 
 class RingShape(OvalShape):
     TYPE_NAME = "ring"

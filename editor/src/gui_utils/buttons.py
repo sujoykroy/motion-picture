@@ -2,7 +2,7 @@ from .. import settings
 from ..commons import *
 from ..document import Document
 from gi.repository import Gtk, GdkPixbuf, GObject, Gdk
-from name_value_combo_box import NameValueComboBox
+from .name_value_combo_box import NameValueComboBox
 import os, cairo
 
 def create_new_image_button(icon_name,

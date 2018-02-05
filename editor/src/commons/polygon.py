@@ -1,5 +1,5 @@
-from point import Point
-from rect import Rect
+from .point import Point
+from .rect import Rect
 from xml.etree.ElementTree import Element as XmlElement
 import numpy, math
 

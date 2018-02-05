@@ -1,6 +1,6 @@
 from gi.repository import Gtk
-from name_value_combo_box import NameValueComboBox
-import buttons
+from .name_value_combo_box import NameValueComboBox
+from . import buttons
 
 class InteriorPoseBox(object):
     def __init__(self, insert_time_slice_callback):

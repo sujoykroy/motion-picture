@@ -1,6 +1,6 @@
-from config import *
-from menus import TopMenuItem
-from directory import Directory
+from .config import *
+from .menus import TopMenuItem
+from .directory import Directory
 
 class EditingChoice:
     LOCK_SHAPE_MOVEMENT = False

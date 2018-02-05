@@ -1,4 +1,4 @@
-from shape import Shape
+from .shape import Shape
 from xml.etree.ElementTree import Element as XmlElement
 from ..commons import Point
 

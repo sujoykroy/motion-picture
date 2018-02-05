@@ -1,8 +1,8 @@
 from gi.repository import Pango, PangoCairo
 from ..commons import *
 import cairo
-from shape import Shape
-from rectangle_shape import RectangleShape
+from .shape import Shape
+from .rectangle_shape import RectangleShape
 import math
 
 X_ALIGN_LEFT = 0

@@ -1,6 +1,6 @@
 from gi.repository import Gtk
-from file_op import FileSelect
-from name_value_combo_box import NameValueComboBox
+from .file_op import FileSelect
+from .name_value_combo_box import NameValueComboBox
 from ..commons import ImageColor
 
 class ImageColorDialog(Gtk.Dialog):

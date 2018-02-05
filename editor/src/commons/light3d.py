@@ -1,5 +1,5 @@
-from object3d import Object3d
-from point3d import Point3d
+from .object3d import Object3d
+from .point3d import Point3d
 import numpy
 from xml.etree.ElementTree import Element as XmlElement
 

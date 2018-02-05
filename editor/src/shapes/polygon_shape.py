@@ -1,7 +1,7 @@
 from ..commons import *
-from shape import Shape
+from .shape import Shape
 from xml.etree.ElementTree import Element as XmlElement
-from mirror import *
+from .mirror import *
 
 class PolygonFormRenderer(object):
     def __init__(self, polygon_shape, form_name):

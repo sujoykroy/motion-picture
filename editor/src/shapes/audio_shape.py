@@ -1,9 +1,10 @@
 from ..commons import *
 from ..audio_tools import AudioFileBlock, AudioBlock
-from av_base import AVBase
-from text_shape import *
+from .av_base import AVBase
+from .text_shape import *
 import sys, os
-import time, Queue
+import time
+from queue import Queue
 
 class AudioShape(TextShape, AVBase):
     TYPE_NAME = "Audio"

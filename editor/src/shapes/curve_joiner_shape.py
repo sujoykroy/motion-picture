@@ -1,8 +1,8 @@
-from shape import Shape
+from .shape import Shape
 from ..commons import Rect, copy_value, draw_fill, draw_stroke, draw_oval
 from ..commons import Text, CurvePoint
 import math
-from curve_shape import CurveShape
+from .curve_shape import CurveShape
 
 class JoinerItem(object):
     def __init__(self, joiner_shape, curve_name):

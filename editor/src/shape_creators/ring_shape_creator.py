@@ -1,6 +1,6 @@
 from ..commons import *
 from ..shapes import RingShape, RectEditBox
-from rectangle_shape_creator import RectangleShapeCreator
+from .rectangle_shape_creator import RectangleShapeCreator
 
 class RingShapeCreator(RectangleShapeCreator):
     def __init__(self, point):

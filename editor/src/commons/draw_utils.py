@@ -1,5 +1,5 @@
-from colors import *
-from rect import Rect
+from .colors import *
+from .rect import Rect
 import  cairo, math
 from gi.repository import Pango, PangoCairo
 

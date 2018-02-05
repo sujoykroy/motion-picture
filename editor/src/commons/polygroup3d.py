@@ -1,12 +1,12 @@
 import numpy
 from xml.etree.ElementTree import Element as XmlElement
 
-from object3d import Object3d
-from polygon3d import Polygon3d
-from point3d import Point3d
-from misc import *
-from texture_map_color import *
-from colors import *
+from .object3d import Object3d
+from .polygon3d import Polygon3d
+from .point3d import Point3d
+from .misc import *
+from .texture_map_color import *
+from .colors import *
 
 DEFAULT_BORDER_COLOR = Color.from_html("000000")
 DEFAULT_FILL_COLOR = Color.from_html("CCCCCC")

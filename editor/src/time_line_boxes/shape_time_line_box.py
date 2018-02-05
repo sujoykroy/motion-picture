@@ -1,8 +1,8 @@
 from ..commons import OrderedDict
 from ..commons.draw_utils import *
-from box import Box
-from sizes import *
-from prop_time_line_box import PropTimeLineBox
+from .box import Box
+from .sizes import *
+from .prop_time_line_box import PropTimeLineBox
 from .. import settings
 
 class ShapeTimeLineBox(Box):

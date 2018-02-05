@@ -1,7 +1,7 @@
 import time, numpy
 import moviepy.editor as movie_editor
-from audio_block import AudioBlock
-from audio_samples_block import AudioSamplesBlock
+from .audio_block import AudioBlock
+from .audio_samples_block import AudioSamplesBlock
 
 class AudioFileBlockCache(object):
     TotalMemory = 0

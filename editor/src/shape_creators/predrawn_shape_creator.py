@@ -1,6 +1,6 @@
 from ..commons import *
 from ..shapes import RectEditBox, MultiShape
-from rectangle_shape_creator import RectangleShapeCreator
+from .rectangle_shape_creator import RectangleShapeCreator
 
 class PredrawnShapeCreator(RectangleShapeCreator):
     def __init__(self, point, document):

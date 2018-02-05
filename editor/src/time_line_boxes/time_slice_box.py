@@ -1,8 +1,8 @@
 from ..commons.draw_utils import *
 from ..commons import copy_value
-from sizes import *
-from box import Box
-from edit_boxes import *
+from .sizes import *
+from .box import Box
+from .edit_boxes import *
 from ..time_lines.time_change_types import *
 from ..shapes import AudioShape
 

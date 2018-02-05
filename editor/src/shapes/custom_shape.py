@@ -1,9 +1,9 @@
-from rectangle_shape import RectangleShape
+from .rectangle_shape import RectangleShape
 from ..commons import *
 import parser
 import imp
 from .. import settings as Settings
-from custom_props import CustomProps, CustomProp
+from .custom_props import CustomProps, CustomProp
 
 class CustomShape(RectangleShape):
     TYPE_NAME = "custom"

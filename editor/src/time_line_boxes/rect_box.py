@@ -1,4 +1,4 @@
-from box import Box
+from .box import Box
 from ..commons.colors import Color
 from ..commons.draw_utils import *
 

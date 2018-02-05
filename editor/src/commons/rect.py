@@ -1,4 +1,4 @@
-from point import Point
+from .point import Point
 
 class Rect(object):
     def __init__(self, left, top, width, height, corner_radius=0):

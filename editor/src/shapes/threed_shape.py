@@ -1,6 +1,6 @@
 from ..commons import *
-from shape import Shape
-from rectangle_shape import RectangleShape
+from .shape import Shape
+from .rectangle_shape import RectangleShape
 from .. import settings as Settings
 
 import math, time

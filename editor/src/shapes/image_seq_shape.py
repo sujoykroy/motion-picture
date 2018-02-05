@@ -1,5 +1,5 @@
 from ..commons import *
-from image_shape import ImageShape
+from .image_shape import ImageShape
 import os
 from .. import settings as Settings
 
