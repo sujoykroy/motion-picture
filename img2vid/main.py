@@ -22,19 +22,19 @@ def show_tk_widget_at_center(tk_widget, use_req=False):
     tk_widget.withdraw()
     tk_widget.update_idletasks()
     if use_req:
-        x = (tk_widget.winfo_screenwidth() - tk_widget.winfo_reqwidth()) / 2
-        y = (tk_widget.winfo_screenheight() - tk_widget.winfo_reqheight()) / 2
+        geo_x = (tk_widget.winfo_screenwidth() - tk_widget.winfo_reqwidth()) / 2
+        geo_y = (tk_widget.winfo_screenheight() - tk_widget.winfo_reqheight()) / 2
     else:
-        x = (tk_widget.winfo_screenwidth() - tk_widget.winfo_width()) / 2
-        y = (tk_widget.winfo_screenheight() - tk_widget.winfo_height()) / 2
-    tk_widget.geometry("+%d+%d" % (x, y))
+        geo_x = (tk_widget.winfo_screenwidth() - tk_widget.winfo_width()) / 2
+        geo_y = (tk_widget.winfo_screenheight() - tk_widget.winfo_height()) / 2
+    tk_widget.geometry("+%d+%d" % (geo_x, geo_y))
     tk_widget.deiconify()
     tk_widget.update_idletasks()
 
 def exit_smoothly():
     try:
         sys.exit()
-    except:
+    except SystemExit:
         pass
 
 class Application(tk.Frame):
@@ -50,13 +50,13 @@ class Application(tk.Frame):
         self.app_config = AppConfig(os.path.join(THIS_DIR, config_filename))
         self.master.resize(width, height)
 
-        self.text_align_options =  ["top", "bottom", "center"]
+        self.text_align_options = ["top", "bottom", "center"]
         self.active_slide_index = 0
         self.frame_mode = -1
         self.init_mouse_pos = Point()
         self.current_mouse_pos = Point()
 
-        self.db = None
+        self.database = None
         self.crop_mode = None
         self.crop_rect = None
         self.corner_rect = None
@@ -78,18 +78,18 @@ class Application(tk.Frame):
         self.project_frame = tk.Frame(self)
         self.project_frame.pack(expand=True, fill=tk.BOTH)
         self.create_project_button = tk.Button(
-                        self.project_frame, text="Create New Project",
-                        command=self.on_create_project_button_click)
+            self.project_frame, text="Create New Project",
+            command=self.on_create_project_button_click)
         self.create_project_button.pack(padx=5, pady=5, fill=tk.BOTH, expand=1)
 
         self.open_project_button = tk.Button(
-                        self.project_frame, text="Open Existing Project",
-                        command=self.on_open_project_button_click, default=tk.ACTIVE)
+            self.project_frame, text="Open Existing Project",
+            command=self.on_open_project_button_click, default=tk.ACTIVE)
         self.open_project_button.pack(padx=5, pady=5, fill=tk.BOTH, expand=1)
 
         self.quit_project_button = tk.Button(
-                        self.project_frame, text="Quit",
-                        command=self.on_quit_project_button_click)
+            self.project_frame, text="Quit",
+            command=self.on_quit_project_button_click)
         self.quit_project_button.pack(padx=5, pady=5, fill=tk.BOTH, expand=1)
 
         self.master.show_at_center()
@@ -113,7 +113,8 @@ class Application(tk.Frame):
 
         canvas_height = canvas_width/self.app_config.aspect_ratio
         self.canvas = tk.Canvas(self.editing_frame,
-                            width=canvas_width, height=canvas_height, highlightbackground="black")
+                                width=canvas_width, height=canvas_height,
+                                highlightbackground="black")
         self.canvas.grid(row=1, column=0, columnspan=3, sticky=tk.N+tk.S+tk.W+tk.E)
         self.canvas.bind("<ButtonPress-1>", self.on_canvas_left_mouse_press)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_left_mouse_release)
@@ -147,7 +148,7 @@ class Application(tk.Frame):
         self.caption_label.pack()
 
         self.caption_text = tkscrolledtext.ScrolledText(
-                        self.slide_tool_frame, height="5", width="40")
+            self.slide_tool_frame, height="5", width="40")
         self.caption_text.pack()
         self.caption_text.bind("<KeyRelease>", self.on_key_in_caption_text)
 
@@ -174,8 +175,8 @@ class Application(tk.Frame):
             filter_var = tk.IntVar()
 
             filter_check_button = tk.Checkbutton(
-                            self.filter_frame, text=filter_name,
-                            variable=filter_var, command=self.on_filter_check_button_change)
+                self.filter_frame, text=filter_name,
+                variable=filter_var, command=self.on_filter_check_button_change)
             filter_check_button.pack(anchor=tk.W)
             filter_check_button.filter_var = filter_var
             filter_check_button.filter_code = filter_code
@@ -185,28 +186,30 @@ class Application(tk.Frame):
                                      text="Crop", command=self.on_crop_image_slide_button_click)
         self.crop_button.pack(side=tk.BOTTOM)
 
-        self.on_delete_slide_button_click_button = tk.Button(self.slide_tool_frame,
-                                     text="Delete Slide", command=self.on_delete_slide_button_click)
-        self.on_delete_slide_button_click_button.pack(side=tk.BOTTOM)
+        self.on_delete_slide_button_click = tk.Button(
+            self.slide_tool_frame, text="Delete Slide", command=self.on_delete_slide_button_click)
+        self.on_delete_slide_button_click.pack(side=tk.BOTTOM)
 
 
         self.bottom_packer = tk.Frame(self.editing_frame, relief=tk.GROOVE, borderwidth=1)
         self.bottom_packer.grid(row=0, column=0, columnspan=4, sticky=tk.E+tk.W)
 
-        self.close_editing_button = tk.Button(self.bottom_packer,
-                                     text="Close", command=self.on_close_editing_button_click)
+        self.close_editing_button = tk.Button(
+            self.bottom_packer, text="Close", command=self.on_close_editing_button_click)
         self.close_editing_button.pack(side=tk.RIGHT)
 
         self.preview_button = tk.Button(self.bottom_packer,
-                                     text="Preview", command=self.on_preview_button_click)
+                                        text="Preview", command=self.on_preview_button_click)
         self.preview_button.pack(side=tk.RIGHT)
 
         self.add_text_button = tk.Button(self.bottom_packer,
-                                     text="Add Text Slide", command=self.on_add_text_slide_button_click)
+                                         text="Add Text Slide",
+                                         command=self.on_add_text_slide_button_click)
         self.add_text_button.pack(side=tk.LEFT)
 
         self.add_image_button = tk.Button(self.bottom_packer,
-                                     text="Add Image Slide(s)", command=self.on_add_image_slide_button_click)
+                                          text="Add Image Slide(s)",
+                                          command=self.on_add_image_slide_button_click)
         self.add_image_button.pack(side=tk.LEFT)
 
         self.canvas.bind("<Configure>", self.on_canvas_resize)
@@ -215,14 +218,14 @@ class Application(tk.Frame):
 
     def destroy_editing_widgets(self):
         self.clear_slide_display()
-        if self.db:
-            self.db.save()
+        if self.database:
+            self.database.save()
         if self.editing_frame:
             self.editing_frame.destroy()
             self.slide_tool_frame.destroy()
 
         self.canvas = None
-        self.editing_frame  = None
+        self.editing_frame = None
         self.slide_tool_frame = None
 
         self.canvas_active_area = None
@@ -239,7 +242,7 @@ class Application(tk.Frame):
         self.text_alignlist = None
         self.crop_button = None
         self.filter_frame = None
-        self.on_delete_slide_button_click_button = None
+        self.on_delete_slide_button_click = None
         for filter_check_button in self.filter_check_buttons.values():
             filter_check_button.destroy()
         self.fitler_check_buttons = None
@@ -267,7 +270,7 @@ class Application(tk.Frame):
             self.canvas.text = None
         if self.canvas.cap_img:
             self.canvas.delete(self.canvas.cap_img)
-            self.canvas.cap_img= None
+            self.canvas.cap_img = None
 
         self.canvas.cap_img_image = None
         self.slide_image = None
@@ -296,13 +299,12 @@ class Application(tk.Frame):
 
         if caption_metric:
             caption_image = self.active_slide.get_caption_image(
-                                self.slide_image.image.width/self.canvas.scale,
-                                caption_metric, self.app_config, use_pil=True)
+                self.slide_image.image.width/self.canvas.scale,
+                caption_metric, self.app_config, use_pil=True)
             caption_image = caption_image.resize(
                 (int(caption_image.width*self.canvas.scale),
                  int(caption_image.height*self.canvas.scale)), resample=True)
             caption_size = Point(caption_image.width, caption_image.height)
-
 
         if not self.canvas.image:
             self.canvas.image = self.canvas.create_image(
@@ -316,7 +318,8 @@ class Application(tk.Frame):
         if caption_metric:
             self.canvas.cap_img_image = ImageTk.PhotoImage(image=caption_image)
             if not self.canvas.cap_img:
-                self.canvas.cap_img = self.canvas.create_image(0,0, image=self.canvas.cap_img_image, fill=None)
+                self.canvas.cap_img = self.canvas.create_image(
+                    0, 0, image=self.canvas.cap_img_image, fill=None)
             else:
                 self.canvas.itemconfig(self.canvas.cap_img, image=self.canvas.cap_img_image)
 
@@ -326,7 +329,9 @@ class Application(tk.Frame):
                 cap_y = self.slide_image.offset.y-caption_image.height*0.5
             elif align == "bottom":
                 cap_x = self.canvas.winfo_width()*.5
-                cap_y = self.slide_image.offset.y+self.slide_image.image.height+caption_image.height*0.5
+                cap_y = self.slide_image.offset.y + \
+                        self.slide_image.image.height + \
+                        caption_image.height*0.5
             else:#center
                 cap_x = self.canvas.winfo_width()*0.5
                 cap_y = self.canvas.winfo_height()*0.5
@@ -354,18 +359,18 @@ class Application(tk.Frame):
 
     def show_slide(self, rel=1):
         self.clear_slide_display()
-        if self.db.slide_count == 0:
+        if self.database.slide_count == 0:
             return
 
-        slide_index =  self.active_slide_index + rel
-        if slide_index<0:
-            slide_index += self.db.slide_count
-        slide_index %= self.db.slide_count
+        slide_index = self.active_slide_index + rel
+        if slide_index < 0:
+            slide_index += self.database.slide_count
+        slide_index %= self.database.slide_count
 
-        self.active_slide = self.db.get_slide_at_index(slide_index)
+        self.active_slide = self.database.get_slide_at_index(slide_index)
         self.active_slide_index = slide_index
 
-        self.slide_info_label["text"] = "{0}/{1}".format(slide_index+1, self.db.slide_count)
+        self.slide_info_label["text"] = "{0}/{1}".format(slide_index+1, self.database.slide_count)
         for filter_code in self.active_slide.filters:
             self.filter_check_buttons[filter_code].filter_var.set(1)
 
@@ -380,7 +385,6 @@ class Application(tk.Frame):
             self.text_alignlist.selection_set(self.text_align_options.index(align))
 
         elif self.active_slide.TypeName == TextSlide.TypeName:
-            #self.canvas.itemconfig(self.canvas_background, fill=self.app_config.text_background_color)
             self.update_text_slide_on_canvas()
             self.caption_text.insert(tk.END, self.active_slide.get_text())
         self.canvas.update_idletasks()
@@ -388,10 +392,10 @@ class Application(tk.Frame):
     def open_or_create_file(self, open=True):
         filetypes = [("JSON", "*.json")]
         if open:
-            project_filename= filedialog.askopenfilename(
+            project_filename = filedialog.askopenfilename(
                 filetypes=filetypes, title="Select a project file to open")
         else:
-            project_filename= filedialog.asksaveasfilename(
+            project_filename = filedialog.asksaveasfilename(
                 filetypes=filetypes, title="Choose folder and write filename to save new project")
         if project_filename:
             root, ext = os.path.splitext(project_filename)
@@ -401,9 +405,12 @@ class Application(tk.Frame):
 
     def get_image_files_from_user(self):
         image_files = filedialog.askopenfilenames(
-                title="Select images to import",
-                filetypes=(("Images", self.app_config.get_image_types()),
-                           ("All Files", "*.*")))
+            title="Select images to import",
+            filetypes=(
+                ("Images", self.app_config.get_image_types()),
+                ("All Files", "*.*")
+            )
+        )
         return image_files
 
     def add_image_files(self, image_files, after_index=None):
@@ -412,18 +419,18 @@ class Application(tk.Frame):
             root, ext = os.path.splitext(filepath)
             if ext.lower() in self.app_config.image_extensions:
                 slide = ImageSlide(filepath=filepath)
-                self.db.add_slide(slide, after=after_index)
+                self.database.add_slide(slide, after=after_index)
                 count += 1
         return count
 
     def on_crop_image_slide_button_click(self):
         if not self.active_slide or self.active_slide.allow_cropping:
             return
-        if not self.crop_rect or self.crop_rect.get_width()<10:
+        if not self.crop_rect or self.crop_rect.get_width() < 10:
             return
         rect = self.slide_image.canvas2image(self.crop_rect)
         new_image_slide = self.active_slide.crop(rect)
-        self.db.add_slide(new_image_slide, after=self.active_slide_index)
+        self.database.add_slide(new_image_slide, after=self.active_slide_index)
         self.show_slide(1)
 
     def on_add_image_slide_button_click(self):
@@ -436,45 +443,45 @@ class Application(tk.Frame):
             self.show_slide(1)
 
     def on_add_text_slide_button_click(self):
-        text=simpledialog.askstring("Text Slide", "Enter text to display")
+        text = simpledialog.askstring("Text Slide", "Enter text to display")
         if text:
             text = text.strip()
         if text:
             text_slide = TextSlide(text=text)
-            self.db.add_slide(text_slide, before=self.active_slide_index)
+            self.database.add_slide(text_slide, before=self.active_slide_index)
             self.show_slide(0)
         else:
             messagebox.showerror(
                 "Error", "You need to provide some text to create a text slide.")
 
     def on_delete_slide_button_click(self):
-        if self.db.slide_count == 1:
+        if self.database.slide_count == 1:
             messagebox.showerror(
                 "Low slide count", "You need to keep at least one slide in the project.")
             return
         if messagebox.askyesno("Delete Slide", "Do you really want to delete this slide?"):
-            self.db.remove_slide(self.active_slide_index)
-            self.active_slide_index = min(self.active_slide_index, self.db.slide_count-1)
+            self.database.remove_slide(self.active_slide_index)
+            self.active_slide_index = min(self.active_slide_index, self.database.slide_count-1)
             self.show_slide(0)
 
     def on_create_project_button_click(self):
-        project_filename= self.open_or_create_file(open=False)
+        project_filename = self.open_or_create_file(open=False)
         if not project_filename:
             return
-        self.db = None
+        self.database = None
         for i in range(2):
             image_files = self.get_image_files_from_user()
             if not image_files:
                 messagebox.showerror("Error",
                                      "You need to select at least one image to create the project.")
                 continue
-            self.db = ProjectDb()
-            self.db.set_filepath(project_filename)
+            self.database = ProjectDb()
+            self.database.set_filepath(project_filename)
             self.add_image_files(image_files)
-            self.db.save()
+            self.database.save()
             break
 
-        if self.db and self.db.slide_count:
+        if self.database and self.database.slide_count:
             self.destroy_project_widgets()
             self.create_editing_widgets()
             self.show_slide()
@@ -482,10 +489,10 @@ class Application(tk.Frame):
             messagebox.showerror("Error", "Unable to create new project!")
 
     def on_open_project_button_click(self):
-        project_filename= self.open_or_create_file(open=True)
+        project_filename = self.open_or_create_file(open=True)
         if not project_filename:
             return
-        self.db = ProjectDb(project_filename)
+        self.database = ProjectDb(project_filename)
 
         self.destroy_project_widgets()
         self.create_editing_widgets()
@@ -497,7 +504,7 @@ class Application(tk.Frame):
     def on_preview_button_click(self):
         if self.preview_player:
             return
-        self.video_frame_maker = VideoFrameMaker(self.db.slides, self.app_config)
+        self.video_frame_maker = VideoFrameMaker(self.database.slides, self.app_config)
         self.preview_player = PreviewPlayer(
             self, self.video_frame_maker, self.app_config, self.on_preview_window_close)
         show_tk_widget_at_center(self.preview_player.top, use_req=True)
@@ -514,7 +521,7 @@ class Application(tk.Frame):
 
     def on_text_alignment_select(self, event):
         sel = self.text_alignlist.curselection()
-        if sel and sel[0]<len(self.text_align_options):
+        if sel and sel[0] < len(self.text_align_options):
             align = self.text_align_options[sel[0]]
             self.active_slide.set_caption_alignment(align)
             if self.active_slide.TypeName == ImageSlide.TypeName:
@@ -543,7 +550,7 @@ class Application(tk.Frame):
         if not self.slide_image:
             return
         self.init_mouse_pos.assign(event.x, event.y)
-        self.movable_rect =None
+        self.movable_rect = None
 
         if not self.crop_rect:
             self.crop_mode = self.MODE_CROP_CREATE
@@ -586,7 +593,7 @@ class Application(tk.Frame):
 
             if self.crop_mode == self.MODE_CROP_RESIZE:
                 self.crop_rect.set_values(
-                        x2=self.corner_rect.get_cx(), y2=self.corner_rect.get_cy())
+                    x2=self.corner_rect.get_cx(), y2=self.corner_rect.get_cy())
                 self.crop_rect.keep_x2y2_inside_bound(self.slide_image.bound_rect)
             elif self.crop_mode == self.MODE_CROP_MOVE:
                 self.crop_rect.keep_x1y1_inside_bound(self.slide_image.bound_rect)
@@ -608,7 +615,7 @@ class Application(tk.Frame):
         self.canvas.scale = min(canvas_width/video_wh.x, canvas_height/video_wh.y)
 
         self.canvas_active_area.set_cxy_wh(
-            cx = canvas_width*0.5, cy=canvas_height*0.5,
+            cx=canvas_width*0.5, cy=canvas_height*0.5,
             w=video_wh.x*self.canvas.scale, h=video_wh.y*self.canvas.scale)
 
         self.canvas.coords(self.canvas_background,
@@ -636,7 +643,7 @@ class Application(tk.Frame):
             self.set_canvas_rect(self.canvas.crop_rect, self.crop_rect)
         if self.corner_rect:
             self.corner_rect.set_cxy_wh(cx=self.crop_rect.x2,
-                                    cy=self.crop_rect.y2, w=5, h=5)
+                                        cy=self.crop_rect.y2, w=5, h=5)
             self.set_canvas_rect(self.canvas.corner_rect, self.corner_rect)
 
     def set_canvas_rect(self, canvas_rect, rect):
@@ -678,7 +685,7 @@ while not is_magick_found():
         tk_root = Root()
         app = MagickHomeLoader(master=tk_root,
                                config=environ_config,
-                               error_msg = get_magick_error())
+                               error_msg=get_magick_error())
         tk_root.show_at_center()
         app.mainloop()
         if app.closing:
