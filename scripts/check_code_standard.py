@@ -5,6 +5,7 @@ import subprocess
 import tkinter as tk
 from tkinter import simpledialog
 import tkinter.scrolledtext as tkscrolledtext
+from pylint import epylint as lint
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 EXCLUDE_NAMES = [ "\.git.*"]
@@ -95,10 +96,15 @@ class CodeStandardChecker(tk.Frame):
         heading = "Running pylint:\nfile:{}\n".format(filepath)
         self.output_text.insert(tk.END, heading)
 
-        args = "pylint {0}".format(filepath).split(" ")
+        args = [filepath]
+        args.extend(["--msg-template", '{C}:{line:3d},{column:2d}:{msg}({symbol})'])
         args.extend(["--rcfile", os.path.join(THIS_DIR, "pylintrc.ini")])
-        process = subprocess.run(args, stdout=subprocess.PIPE)
-        self.output_text.insert(tk.END, process.stdout)
+        (pylint_stdout, pylint_stderr) = lint.py_run(" ".join(args), return_std=True)
+        self.output_text.insert(tk.END,
+                                pylint_stdout.read()+"\n"+\
+                                pylint_stderr.read())
+        closing = "pylint is completed."
+        self.output_text.insert(tk.END, closing)
 
     def run_pylint_on_selected_file(self, *args):
         self.run_selected_button["state"] = tk.DISABLED
