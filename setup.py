@@ -32,5 +32,6 @@ setup(
         'console_scripts':[
             'img2vid=img2vid:main'
         ]
-    }
+    },
+    test_suite='tests.test_all'
 )
