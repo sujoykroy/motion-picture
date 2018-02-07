@@ -69,7 +69,7 @@ class CodeStandardChecker(tk.Frame):
                                         command=self.on_window_close)
         self.quit_button.pack(side=tk.RIGHT)
 
-        self.root_dir = os.path.join(THIS_DIR)
+        self.root_dir = os.path.join(THIS_DIR, '..', 'img2vid')
         self.filepaths = []
         self.load_files(self.root_dir, len(self.root_dir)+1)
 

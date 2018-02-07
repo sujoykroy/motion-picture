@@ -1,3 +1,5 @@
+from .gui import MainApp
+
 def main():
-    """Entry point for the application script"""
-    print("hello2")
+    main_app = MainApp(title="Img2Vid", width=800, height=400)
+    main_app.start()
