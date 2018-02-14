@@ -6,7 +6,11 @@ Check <install-dir>/requirements.txt file for required Python packages.
 Usage
 =========
 
-Open <install-dir>/img2vid/main.py from Thonny and run the script.
+To install the package in development mode,
+open <install-dir>/scripts/install_devel.py from Thonny and run the script.
+
+To actually run the main application,
+open <install-dir>/scripts/run_simple.py from Thonny and run the script.
 
 
 Tests
