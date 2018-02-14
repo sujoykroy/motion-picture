@@ -186,6 +186,7 @@ import sphinx.apidoc
 print(os.path.join(THIS_DIR, 'api'))
 sphinx.apidoc.main([
     '',
+    '-f',
     '-o',
     os.path.join(THIS_DIR, 'api'),
     img2vid_project_dir

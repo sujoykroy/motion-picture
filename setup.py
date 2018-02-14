@@ -33,5 +33,8 @@ setup(
             'img2vid=img2vid:main'
         ]
     },
-    test_suite='tests.test_all'
+    test_suite='tests.test_all',
+    package_data={
+        'img2vid': ['configs/*.ini']
+    }
 )

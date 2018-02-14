@@ -8,7 +8,7 @@ import tkinter.scrolledtext as tkscrolledtext
 from pylint import epylint as lint
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-EXCLUDE_NAMES = [ "\.git.*"]
+EXCLUDE_NAMES = ["\.git.*"]
 
 class CodeStandardChecker(tk.Frame):
     def __init__(self, master, width=1000, height=400):

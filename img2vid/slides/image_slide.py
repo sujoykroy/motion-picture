@@ -1,192 +1,80 @@
-import tempfile
-from PIL import Image as PImage
-from PIL import ImageTk
-from wand.image import Image as WandImage
-from wand.drawing import Drawing as WandDrawing
-from wand.color import Color as WandColor
-
 from .slide import Slide
-from commons import Rectangle, Point, CustomFontMetric
-from commons.image_utils import reverse_orient
-
-FILEPATH = "filepath"
-RECT = "rect"
-CAPTION = "cap"
-CAPTION_ALIGN = "align"
-TRANSITION = "trans"
-
-INCH2PIXEL = 72
+from ..geom import Point, Rectangle
 
 class ImageSlide(Slide):
-    TypeName = "image"
+    TYPE_NAME = "image"
+    KEY_FILEPATH = "filepath"
+    KEY_RECT = "rect"
+    KEY_CAPTION = "cap"
+    KEY_CAP_ALIGN = "align"
 
-    def __init__(self, filepath,
-                 rect=None, caption="", cap_align="",
-                 transition=None):
-        super(ImageSlide, self).__init__(type=self.TypeName)
-        self.set_caption(caption)
-        self.set_caption_alignment(cap_align)
-        self[FILEPATH] = filepath
-        if rect:
-            if isinstance(rect, dict):
-                self[RECT] = rect
-                self.rect = Rectangle.create_from_dict(rect)
-            else:
-                self[RECT] = rect.to_dict()
-                self.rect = rect
-        else:
-            self[RECT] = None
-            self.rect = None
-        self[TRANSITION] = transition
-        self.allow_croppping = True
+    CAP_ALIGN_TOP = "top"
+    CAP_ALIGN_CENTER = "center"
+    CAP_ALIGN_BOTTOM = "bottom"
+    CAP_ALIGNMENTS = [CAP_ALIGN_TOP, CAP_ALIGN_CENTER, CAP_ALIGN_BOTTOM]
 
-    def get_exif_orient(self):
-        exif = {}
-        with WandImage(filename=self.get_filepath()) as image:
-            return image.metadata.get("exif:Orientation", None)
-        return None
+    def __init__(self, filepath, rect=None, caption="", cap_align=""):
+        super().__init__()
+        self._caption = caption.strip()
+        if not cap_align:
+            cap_align = "bottom"
+        self._cap_align = cap_align
+        self._filepath = filepath
+        self._rect = rect
 
-    @classmethod
-    def create_from_data(cls, data):
-        ob = cls(data[FILEPATH], data[RECT], data[CAPTION], data[CAPTION_ALIGN])
-        ob.load_from_data(data)
-        return ob
+    @property
+    def crop_allowed(self):
+        return True
 
-    def get_filepath(self):
-        return self[FILEPATH]
+    @property
+    def text(self):
+        return self._caption
 
-    def get_caption(self):
-        return self[CAPTION]
+    @text.setter
+    def text(self, value):
+        self._caption = value.strip()
 
-    def set_caption(self, caption):
-        self[CAPTION] = caption.strip()
+    @property
+    def caption(self):
+        return self._caption
 
-    def set_caption_alignment(self, alignment):
-        self[CAPTION_ALIGN] = alignment
+    @property
+    def filepath(self):
+        return self._filepath
 
-    def get_caption_alignment(self):
-        align = self[CAPTION_ALIGN]
-        if not align:
-            align="bottom"
-        return align
+    @property
+    def cap_align(self):
+        return self._cap_align
 
-    def get_image(self):
-        image = ImageTk.Image.open(self[FILEPATH])
-        image = reverse_orient(image, exif_orient=self.get_exif_orient())
-        if self.rect:
-            image = image.crop((self.rect.x1, self.rect.y1, self.rect.x2, self.rect.y2))
-        return image
+    @cap_align.setter
+    def cap_align(self, value):
+        self._cap_align = value
 
-    def get_caption_metric(self, config):
-        caption = self.get_caption()
-        metric = None
-        if caption:
-            with WandImage(resolution=config.ppi, width=1, height=1) as canvas:
-                with WandDrawing() as context:
-                    context.text_alignment = "center"
-                    context.font = config.text_font_name
-                    context.font_size = int(round(config.text_font_size*config.ppi/INCH2PIXEL))
-                    metric = context.get_font_metrics(canvas, self.get_caption(), multiline=True)
-                    metric = CustomFontMetric(metric)
-                    metric.height = metric.text_height + 2*config.caption_padding
-                    metric.top_offset = metric.ascender + config.caption_padding
-                    metric.width = metric.text_width + 2*config.caption_padding
-        return metric
-
-    def get_caption_image(self, min_width, metric, config, use_pil=False):
-        width = int(max(min_width, metric.width))
-        height = int(metric.height)
-
-        canvas = WandImage(resolution=config.ppi,
-                           width=width, height=height,
-                           background=WandColor(config.caption_background_color))
-        canvas.format = "png"
-        with WandDrawing() as context:
-            context.fill_color = WandColor(config.caption_foreground_color)
-            context.text_alignment = "center"
-            context.font = config.text_font_name
-            context.font_size = int(round(config.text_font_size*config.ppi/INCH2PIXEL))
-            context.text(
-                    x=int(width*0.5),
-                    y=int(metric.top_offset), body=self.get_caption())
-            context(canvas)
-        if not use_pil:
-            return canvas
-        temporary_file = tempfile.SpooledTemporaryFile()
-
-        canvas.save(file=temporary_file)
-        canvas = None
-
-        image = PImage.open(temporary_file)
-        image.load()
-
-        container = PImage.new("RGBA", (width, height))
-        container.paste(image, (0, 0))
-        temporary_file.close()
-        return container
+    @property
+    def rect(self):
+        return self._rect
 
     def crop(self, rect):
-        if self.rect:
+        if self._rect:
             rect = rect.copy()
-            rect.translate(Point(self.rect.x1, self.rect.y1))
-        newob = ImageSlide(self[FILEPATH], rect)
+            rect.translate(Point(self._rect.x1, self._rect.y1))
+        newob = ImageSlide(self._filepath, rect)
         return newob
 
-    def get_renderable_image(self, config):
-        caption = self.get_caption()
-        if caption:
-            caption_align = self.get_caption_alignment()
-            resolution = config.video_resolution
+    def get_json(self):
+        data = super().get_json()
+        data[self.KEY_FILEPATH] = self._filepath
+        if self._rect:
+            data[self.KEY_RECT] = self._rect.get_json()
+        data[self.KEY_CAPTION] = self._caption
+        data[self.KEY_CAP_ALIGN] = self._cap_align
+        return data
 
-            caption_metric = self.get_caption_metric(config)
-            with WandImage(resolution=config.ppi,
-                           width=resolution.x, height=resolution.y,
-                           background = WandColor(config.video_background_color)) as canvas:
-                canvas.units = "pixelsperinch"
-                with WandDrawing() as context:
-                    if caption_align != "center":
-                        allowed_height = resolution.y - caption_metric.height
-                    else:
-                        allowed_height = resolution.y
-
-                    orig_image = WandImage(filename=self[FILEPATH])
-                    orig_image = reverse_orient(orig_image, exif_orient=self.get_exif_orient())
-                    if self.rect:
-                        orig_image.crop(
-                            int(self.rect.x1), int(self.rect.y1),
-                            int(self.rect.x2), int(self.rect.y2))
-                    scale = min(resolution.x/orig_image.width, allowed_height/orig_image.height)
-                    orig_image.resize(width=int(orig_image.width*scale),
-                                      height=int(orig_image.height*scale))
-
-                    caption_image = self.get_caption_image(orig_image.width, caption_metric, config)
-
-                    img_left = int((resolution.x-orig_image.width)*0.5)
-                    img_top = int((resolution.y-orig_image.height)*0.5)
-
-                    caption_left = (resolution.x-caption_image.width)*0.5
-                    if caption_align == "center":
-                        caption_top = (resolution.y-caption_image.height)*0.5
-                    else:
-                        adjusted_top = (resolution.y-(orig_image.height+caption_image.height))*0.5
-                        if caption_align == "top":
-                            caption_top = adjusted_top
-                            img_top = adjusted_top + caption_image.height
-                        elif caption_align == "bottom":
-                            img_top = adjusted_top
-                            caption_top = adjusted_top + orig_image.height
-
-                    canvas.composite(image=orig_image, left=int(img_left), top=int(img_top))
-                    canvas.composite(image=caption_image, left=int(caption_left), top=int(caption_top))
-                    context(canvas)
-
-                temporary_file = tempfile.SpooledTemporaryFile()
-                canvas.format = "png"
-                canvas.save(file=temporary_file)
-
-                image = PImage.open(temporary_file)
-                image.load()
-                temporary_file.close()
-        else:
-            image = self.get_image()
-        return image
+    @classmethod
+    def create_from_json(cls, data):
+        newob = cls(filepath=data.get(cls.KEY_FILEPATH),
+                    rect=Rectangle.create_from_json(data.get(cls.KEY_RECT)),
+                    caption=data.get(cls.KEY_CAPTION),
+                    cap_align=data.get(cls.KEY_CAP_ALIGN))
+        newob.load_effects_from_json(data)
+        return newob
