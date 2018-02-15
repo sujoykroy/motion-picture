@@ -12,7 +12,6 @@ from .project_manager import ProjectManager
 from .slide_editor import SlideEditor
 from .base_app import BaseApp
 
-
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class FlowMode(Enum):

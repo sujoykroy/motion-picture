@@ -8,8 +8,10 @@ from .video_render_config import VideoRenderConfig
 from .path_config import PathConfig
 
 class AppConfig:
-    def __init__(self, filename="app.ini"):
-        self._parser = PathConfig.create_parser(filename)
+    FILENAME = "app.ini"
+
+    def __init__(self):
+        self._parser = PathConfig.create_parser(self.FILENAME)
 
         section = self.get_section("general")
         ppi = int(section.get("ppi", 340))

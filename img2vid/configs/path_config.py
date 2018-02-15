@@ -18,6 +18,14 @@ class PathConfig:
 
     @staticmethod
     def create_parser(filename):
+        """Returns configparse for given filename.
+        filename will be searched inside app and in user local folder.
+        The settings in later will override that of previous.
+
+        :param filename: Name of the file to read from
+        :type filename: `str`
+        :rtype: `ConfigParser`
+        """
         filepaths = PathConfig.get_filepaths(filename)
         parser = configparser.ConfigParser()
         parser.optionxform = str

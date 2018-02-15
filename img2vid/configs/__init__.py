@@ -5,4 +5,5 @@ from .debug_config import DebugConfig
 from .video_render_config import VideoRenderConfig
 from .app_config import AppConfig
 from .environ_config import EnvironConfig
+from .logging_config import LoggingConfig
 
