@@ -1,5 +1,6 @@
 import time
 import random
+import logging
 
 import numpy
 import PIL.Image
@@ -194,7 +195,11 @@ class VideoRenderer:
             if numpy.amin(alpha_values) < 1:
                 for i in range(3):
                     img_buffer[:, :, i] = img_buffer[:, :, i]*alpha_values
-            final_img_buffer = numpy.maximum(final_img_buffer, img_buffer)
+            try:
+                final_img_buffer = numpy.maximum(final_img_buffer, img_buffer)
+            except ValueError as err:
+                logging.getLogger(__name__).error(err)
+                logging.getLogger(__name__).info("Slide:{}".format(tslice.slide.get_json()))
             img_buffer = None
 
         for tslice in self._last_used_slices-used_slices:
