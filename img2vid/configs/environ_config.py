@@ -2,6 +2,7 @@ import os
 import traceback
 import platform
 import itertools
+import logging
 import ctypes.util
 
 from .path_config import PathConfig
@@ -49,13 +50,17 @@ class EnvironConfig:
     @classmethod
     def is_magick_found(cls, load_var=False):
         if platform.system == "Drawin":
+            found = False
             for path in ['', '/opt/', '/opt/local/']:
                 if path:
-                    config.set_varaible(cls.MAGICK_HOME, path)
+                    config = cls()
+                    config.set_variable(cls.MAGICK_HOME, path)
                     config.load_variable(cls.MAGICK_HOME)
                 try:
                     import wand.api#pylint: disable=unused-variable
                 except ImportError:
+                    logging.getLogger(__name__).error(
+                        "ImageMagick not found in path [{}]".format(path))
                     continue
                 return True
         if load_var:

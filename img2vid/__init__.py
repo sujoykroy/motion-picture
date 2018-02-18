@@ -21,7 +21,6 @@ def main():
         logging.critical(error_msg)
         sys.exit(error_msg)
         return
-    logging.info("Application Started.")
 
     from .ui_tk.main_app import MainApp
     main_app = MainApp(title="Img2Vid", width=800, height=400)
