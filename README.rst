@@ -17,5 +17,5 @@ Tests
 ========
 
 * Open system shell from Thonny.
-* cd <install-dir>/tests
-* python -m unittest
+* cd <install-dir>
+* python setup.py test

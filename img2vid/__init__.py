@@ -16,7 +16,7 @@ def main():
     logging_config.apply_on_logger(logging.getLogger())
     logging.info("Application Started.")
 
-    if True or not load_image_magick():
+    if not load_image_magick():
         error_msg ="ImageMagick is not found! Aborting the program."
         logging.critical(error_msg)
         sys.exit(error_msg)

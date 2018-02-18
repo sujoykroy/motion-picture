@@ -11,17 +11,20 @@ from img2vid.effects import FadeIn, FadeOut, ScalePan
 class TestVideoRenderer(unittest.TestCase):
 
     def setUp(self):
+        AppConfig.OLD_FILENAME = AppConfig.FILENAME
         self.temp_files = []
 
     def tearDown(self):
         for temp_file in self.temp_files:
             temp_file.close()
         del self.temp_files[:]
+        AppConfig.FILENAME = AppConfig.OLD_FILENAME
 
     def create_mock_app_config(self):
         file_ob = tempfile.NamedTemporaryFile()
         self.temp_files.append(file_ob);
-        return AppConfig(file_ob.name)
+        AppConfig.FILENAME = file_ob.name
+        return AppConfig()
 
     def create_mock_image_file(self, width, height, fil_color="#FFFFFF"):
         file_ob = tempfile.NamedTemporaryFile()

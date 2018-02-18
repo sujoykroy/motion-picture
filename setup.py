@@ -1,4 +1,4 @@
-"""Seup for img2vid
+"""Setup for img2vid
 """
 
 from setuptools import setup, find_packages

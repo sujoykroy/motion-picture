@@ -4,6 +4,9 @@ import configparser
 ROOT_CONFIG_DIR = os.path.abspath(os.path.dirname(__file__))
 LOCAL_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".img2vid")
 
+if not os.path.isdir(LOCAL_CONFIG_DIR):
+    os.makedirs(LOCAL_CONFIG_DIR)
+
 class PathConfig:
     @staticmethod
     def get_filepaths(filename):
