@@ -28,6 +28,9 @@ class SlidePropEditor(Frame):
         self.widgets.align_list.bind("<ButtonRelease-1>", self._text_align_changed)
         self.widgets.align_list.pack()
 
+        self.widgets.apply_button = self._create_button(
+            "Apply", self._apply_slide_change, None)
+
         self.widgets.effects_label = self._create_label("Effects", pady=5)
 
         self.widgets.effects_frame = tk.Frame(self.base)
@@ -53,6 +56,7 @@ class SlidePropEditor(Frame):
         self.widgets.delete_slide_button = self._create_button(
             "Delete Slide", self._delete_slide, tk.BOTTOM)
 
+
     def set_slide(self, slide):
         self.widgets.text.delete("1.0", tk.END)
         self.widgets.align_list.selection_clear(0, tk.END)
@@ -71,6 +75,7 @@ class SlidePropEditor(Frame):
             align_index = ImageSlide.CAP_ALIGNMENTS.index(self._slide.cap_align)
             self.widgets.align_list.selection_set(align_index)
 
+        self.widgets.apply_button["state"] = align_state
         self.widgets.crop_button["state"] = align_state
         self.widgets.align_label["state"] = align_state
         self.widgets.align_list["state"] = align_state
@@ -86,6 +91,10 @@ class SlidePropEditor(Frame):
             return
         text = self.widgets.text.get(1.0, tk.END)
         self._slide.text = text
+        if isinstance(self._slide, TextSlide):
+            self.events.slide_updated.fire()
+
+    def _apply_slide_change(self):
         self.events.slide_updated.fire()
 
     def _text_align_changed(self, _event):
@@ -95,8 +104,6 @@ class SlidePropEditor(Frame):
         if sel:
             align = ImageSlide.CAP_ALIGNMENTS[sel[0]]
             self._slide.cap_align = align
-            if self._slide.text:
-                self.events.slide_updated.fire()
 
     def _effect_check_changed(self):
         if not self._slide:
