@@ -28,7 +28,6 @@ class MagickHomeLoader(BaseApp):
 
         self.error_text = tkscrolledtext.ScrolledText(self.frame, height="5", width="40")
         self.error_text.grid(row=1, column=0, columnspan=2, sticky=tk.E+tk.W+tk.N+tk.S)
-        self.error_text["state"] = tk.DISABLED
 
         self.folder_var = tk.StringVar()
         self.folder_var.set(
@@ -72,10 +71,8 @@ class MagickHomeLoader(BaseApp):
         msg += self.config.get_magick_names()
         msg += "\nDebug:\n" +  self.config.get_magick_error()
 
-        self.error_text["state"] = tk.NORMAL
         self.error_text.delete(1.0, tk.END)
         self.error_text.insert(tk.END, msg)
-        #self.error_text["state"] = tk.DISABLED
 
     def _close_window(self):
         self.destroy()

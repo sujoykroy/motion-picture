@@ -1,6 +1,7 @@
 import time
 import random
 import logging
+import traceback
 
 import numpy
 import PIL.Image
@@ -130,6 +131,11 @@ class SlideTimeSlice:
             self._cached_image = image
 
         image = render_info.image
+        video_config = app_config.video_render
+        if image.width != video_config.width or \
+           image.height != video_config.height:
+            image = ImageRenderer.fit_full(image, video_config.width, video_config.height)
+
         for tslice in self.effect_slices:
             if rel_time > tslice.end_time or \
                rel_time < tslice.start_time:
@@ -197,8 +203,8 @@ class VideoRenderer:
                     img_buffer[:, :, i] = img_buffer[:, :, i]*alpha_values
             try:
                 final_img_buffer = numpy.maximum(final_img_buffer, img_buffer)
-            except ValueError as err:
-                logging.getLogger(__name__).error(err)
+            except ValueError:
+                logging.getLogger(__name__).error(traceback.format_exc())
                 logging.getLogger(__name__).info("Slide:{}".format(tslice.slide.get_json()))
             img_buffer = None
 

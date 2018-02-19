@@ -2,81 +2,12 @@ from types import SimpleNamespace
 import tkinter as tk
 import PIL.ImageTk
 
-from ..geom import Point, Rectangle
+from ..geom import Point
 from .frame import Frame
 from ..slides import TextSlide, ImageSlide
 from ..renderer import ImageRenderer
+from .image_fitter import ImageFitter
 from .image_region import ImageRegionManager
-
-class ImageFitter:
-    def __init__(self):
-        self.render_info = None
-        self.canvas_size = Point(0, 0)
-
-        self.rects = SimpleNamespace()
-        self.rects.image = Rectangle(0, 0, 0, 0)
-        self.rects.screen = Rectangle(0, 0, 0, 0)
-        self.rects.editable = Rectangle(0, 0, 0, 0)
-
-        self.orig_image_scale = 1
-        self.image_tk = None
-
-    def build_screen_area(self, width, height, screen_config):
-        self.canvas_size.assign(width, height)
-
-        scale = min(
-            width/screen_config.width, height/screen_config.height)
-        if scale == 0:
-            self.rects.screen.set_values(0, 0, 0, 0)
-            return
-        screen_width = int(screen_config.width*scale)
-        screen_height = int(screen_config.height*scale)
-
-        screen_left = int((width-screen_width)*0.5)
-        screen_top = int((height-screen_height)*0.5)
-
-        self.rects.screen.set_values(
-            x1=screen_left,
-            y1=screen_top,
-            x2=screen_left+screen_width,
-            y2=screen_top+screen_height)
-        self.fit()
-
-    def fit(self):
-        if not self.render_info:
-            return
-        if self.canvas_size.x == 0:
-            return
-
-        image = self.render_info.image
-        width = self.rects.screen.width
-        height = int(image.height*width/image.width)
-
-        if height > self.rects.screen.height:
-            height = self.rects.screen.height
-            width = int(image.width*height/image.height)
-
-        self.orig_image_scale = width/image.width
-        self.rects.editable.copy_from(self.render_info.editable_rect)
-        self.rects.editable.same_scale(self.orig_image_scale)
-
-        image = ImageRenderer.resize(image, width, height)
-        left = int((self.canvas_size.x-width)*0.5)
-        top = int((self.canvas_size.y-height)*0.5)
-
-        self.rects.image.set_values(
-            x1=left, y1=top,
-            x2=left+width, y2=top+height)
-
-        self.rects.editable.translate(
-            Point(self.rects.image.x1, self.rects.image.y1))
-        self.image_tk = PIL.ImageTk.PhotoImage(image=image)
-
-    def reverse_transform_rect(self, rect):
-        rect.translate(
-            Point(self.rects.editable.x1, self.rects.editable.y1), sign=-1)
-        rect.same_scale(1/self.orig_image_scale)
-        return rect
 
 class ImageEditor(Frame):
     def __init__(self, master, app_config):
@@ -88,8 +19,9 @@ class ImageEditor(Frame):
         self._fitter = ImageFitter()
         self._mouse_pos = SimpleNamespace(start=Point(0, 0), end=Point(0, 0))
 
-        canvas = tk.Canvas(master=self.base,
-                highlightbackground=self.app_config.editor_back_color)
+        canvas = tk.Canvas(
+            master=self.base,
+            highlightbackground=self.app_config.editor_back_color)
         self.widgets.canvas = canvas
         canvas.pack(fill=tk.BOTH, expand=1)
         canvas.slide_image = None
@@ -109,8 +41,9 @@ class ImageEditor(Frame):
 
     def get_region_rects(self):
         rects = self._region_manager.get_region_rects()
-        for rect in rects:
-            self._fitter.reverse_transform_rect(rect)
+        for i, rect in enumerate(rects):
+            rect = self._fitter.reverse_transform_rect(rect)
+            rects[i] = rect
         return rects
 
     def set_slide(self, slide):

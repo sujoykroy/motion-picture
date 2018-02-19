@@ -1,9 +1,10 @@
 from ..geom import Rectangle
 
 class RenderInfo:
-    def __init__(self, image, editable_rect=None):
+    def __init__(self, image, editable_rect=None, orig_image_scale=1):
         self._image = image
         self._editable_rect = editable_rect
+        self.orig_image_scale = orig_image_scale
 
     @property
     def image(self):

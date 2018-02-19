@@ -53,7 +53,6 @@ class ImageRenderer:
             return RenderInfo(image)
 
         caption_metric = TextAnalyser.get_font_metric(slide.caption, image_config)
-        screen_bg_color = wand.color.Color(screen_config.back_color)
         with wand.image.Image(resolution=image_config.ppi,
                               width=screen_config.width,
                               height=screen_config.height) as canvas:
@@ -67,8 +66,12 @@ class ImageRenderer:
                 else:
                     allowed_height = screen_config.height
 
-                file_image = cls.fit_inside(
+                fitted_image = cls.fit_inside(
                     file_image, screen_config.width, allowed_height)
+                orig_image_scale = fitted_image.width/file_image.width
+                file_image = fitted_image
+                del fitted_image
+
                 cap_image = cls.text2image(
                     text=slide.caption, min_width=file_image.width,
                     text_config=image_config, wand_image=True)
@@ -103,7 +106,7 @@ class ImageRenderer:
         editable_rect = Rectangle(
             img_pos.x, img_pos.y,
             img_pos.x+file_image.width, img_pos.y+file_image.height)
-        return RenderInfo(image, editable_rect)
+        return RenderInfo(image, editable_rect, orig_image_scale)
 
     @classmethod
     def fetch_image(cls, filepath, crop, wand_image=False):
@@ -160,13 +163,26 @@ class ImageRenderer:
         return image
 
     @classmethod
+    def fit_full(cls, image, width, height):
+        """"This will make the image fit given width and height.
+        To keep aspcet ratio, it will automactically cut of some boder zones."""
+
+        max_scale = max(width/image.width, height/image.height)
+        image = cls.same_scale(image, max_scale)
+        rect = Rectangle()
+        rect.set_cxy_wh(
+            image.width/2, image.height/2,
+            width, height)
+        return cls.crop(image, rect)
+
+    @classmethod
     def same_scale(cls, image, scale):
         return cls.resize(
             image, int(image.width*scale), int(image.height*scale))
 
     @staticmethod
     def resize(image, width, height):
-        if isinstance (image, wand.image.Image):
+        if isinstance(image, wand.image.Image):
             image = wand.image.Image(image=image)
             image.resize(width, height)
         else:
@@ -175,7 +191,7 @@ class ImageRenderer:
 
     @classmethod
     def crop(cls, image, rect):
-        if isinstance (image, wand.image.Image):
+        if isinstance(image, wand.image.Image):
             image.crop(
                 int(rect.x1), int(rect.y1), int(rect.x2), int(rect.y2))
         else:

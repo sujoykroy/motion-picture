@@ -3,6 +3,7 @@ import tempfile
 
 from utils import ImageUtils
 
+from img2vid.geom import Rectangle
 from img2vid.configs import AppConfig
 from img2vid.slides import Project, TextSlide
 from img2vid.renderer import ImageRenderer, VideoRenderer
@@ -168,5 +169,21 @@ class TestVideoRenderer(unittest.TestCase):
         self.assertEqual(slide_slice.effect_slices[0].end_time, 2)
 
         self.assertEqual(slide_slice.end_time, app_config.image.duration+2)
+
+    def test_cropped_image_slides(self):
+        project = Project()
+
+        temp_file = self.create_mock_image_file(100, 200)
+        project.add_image_files([temp_file.name])
+        project.add_slide(project.slides[0].crop(Rectangle(10, 10, 20, 20)))
+        project.remove_slide(0)
+
+        app_config = self.create_mock_app_config()
+
+        video_renderer = VideoRenderer.create_from_project(project, app_config)
+        slide_slice = video_renderer.slices[0]
+        image = slide_slice.get_image_at(0, app_config)
+        self.assertEqual(image.width, app_config.video_render.width)
+        self.assertEqual(image.height, app_config.video_render.height)
 if __name__ == "__main__":
     unittest.main()
