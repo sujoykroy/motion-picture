@@ -23,3 +23,19 @@ Tests
 Profiling
 =========
 To check the profile stat, run  <install-dir>/scripts/profiling.py
+
+Executable building
+======================
+In order make executable in Windows run,
+* cd <install-dir>
+* python setup.py py2exe
+
+In order make executable in Windows run,
+* cd <install-dir>
+* python setup.py py2app
+
+To make sure py2app/py2exe is properly installed, run,
+* cd <install-dir>
+* python setup.py --help-commands
+
+This should list py2app and py2exe as available commands.
