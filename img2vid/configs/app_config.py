@@ -10,8 +10,10 @@ from .path_config import PathConfig
 class AppConfig:
     FILENAME = "app.ini"
 
-    def __init__(self):
-        self._parser = PathConfig.create_parser(self.FILENAME)
+    def __init__(self, filename=None):
+        if not filename:
+            filename = self.FILENAME
+        self._parser = PathConfig.create_parser(filename)
 
         section = self.get_section("general")
         ppi = int(section.get("ppi", 340))

@@ -19,3 +19,7 @@ Tests
 * Open system shell from Thonny.
 * cd <install-dir>
 * python setup.py test
+
+Profiling
+=========
+To check the profile stat, run  <install-dir>/scripts/profiling.py
