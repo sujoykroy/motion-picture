@@ -5,6 +5,13 @@ from setuptools import setup, find_packages
 
 import codecs
 import os
+import platform
+
+if platform.system() == "Windows":
+    try:
+        import py2exe
+    except ImportError:
+        pass
 
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
