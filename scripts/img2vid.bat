@@ -1,0 +1,8 @@
+@ECHO OFF
+
+SET BASE_DIR=%~dp0
+SET VCRUNTIME=%BASE_DIR%vcruntime140.dll
+SET MAGICK_HOME=%BASE_DIR%ImageMagick-6.9.9-Q16-HDRI1
+SET TCL_LIBRARY=%BASE_DIR%ActiveTcl\lib\tcl8.6
+SET TK_LIBRARY=%BASE_DIR%ActiveTcl\lib\tk8.6
+%BASE_DIR%\run_simple.exe
