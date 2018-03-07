@@ -103,13 +103,12 @@ Building exectable on windows
     from ..time_mirror import time_mirror
     from ..time_symmetrize import time_symmetrize
 
-* Copy ActiveTcl\lib from C:\ActiveTcl (wherever it was installed)
-  into run_simple.dist\ActiveTcl
+* Run scripts\build_with_nuitka.bat
+  You may need to edit the file to adjust different file path.
 
-* Copy CORE_RL_magick_.dll, CORE_RL_wand_.dll from
-  C:\Program Files\ImageMagick-6.9.9-Q16-HDRI (or wherever it was installed)
-  into run_simple.dist\ImageMagick-6.9.9-Q16-HDRI
 
-* Copy C:\Devel\img2vid\scripts\img2vid.bat into run_simple.dist\
+Legacy ImageMagick binaries,
+=============================================
+You can download legacey ImageMagick from https://legacy.imagemagick.org/script/binary-releases.php
 
-Now, run img2vid.bat. If everything is ok, it should perform as expected.
+
