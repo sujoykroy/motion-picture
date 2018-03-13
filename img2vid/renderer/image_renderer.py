@@ -28,7 +28,7 @@ class ImageRenderer:
     @staticmethod
     def apply_caption(context, caption, text_config):
         if caption.font_family:
-            context.font = caption.font_family
+            context.font_family = caption.font_family
         else:
             context.font = text_config.font_name
 
@@ -45,6 +45,8 @@ class ImageRenderer:
 
         if caption.font_style:
             context.font_style = caption.font_style
+        if caption.font_weight:
+            context.font_weight = caption.font_weight
 
     @classmethod
     def fetch_image(cls, filepath, crop, wand_image=False):

@@ -34,6 +34,12 @@ class TextPropEditor(Frame):
             "<<ComboboxSelected>>", self._set_font_style)
         self.widgets.font_style_combo.pack()
 
+        self.widgets.font_weight_label = self._create_label("Font Weight", 5)
+        self.widgets.font_weight_scale = tk.Scale(
+            self.base, from_=100, to=900, resolution=1,
+            orient=tk.HORIZONTAL, command=self._set_font_weight)
+        self.widgets.font_weight_scale.pack()
+
         self.widgets.font_size_label = self._create_label("Font Size", 5)
         self.widgets.font_size_scale = tk.Scale(
             self.base, from_=1, to=50, resolution=1,
@@ -77,6 +83,10 @@ class TextPropEditor(Frame):
 
     def _set_font_size(self, _):
         self._caption.font_size = self.widgets.font_size_scale.get()
+        self.events.caption_updated.fire()
+
+    def _set_font_weight(self, _):
+        self._caption.font_weight = self.widgets.font_weight_scale.get()
         self.events.caption_updated.fire()
 
     def _create_label(self, text, pady=0):

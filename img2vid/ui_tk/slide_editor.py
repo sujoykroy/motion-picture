@@ -111,7 +111,7 @@ class SlideEditor(Frame):
     def _ask_for_text_slide(self):
         text = Dialog.ask_for_text("Text Slide", "Enter text to display")
         if text:
-            slide = TextSlide(text=text)
+            slide = TextSlide.new_with_text(text=text)
             self._project.add_slide(slide, before=self._slide_index)
             self.move_to_slide()
         else:

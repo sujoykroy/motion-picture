@@ -26,3 +26,9 @@ class TextSlide(Slide):
         newob = cls(caption=caption)
         newob.load_effects_from_json(data)
         return newob
+
+    @classmethod
+    def new_with_text(cls, text):
+        caption = Caption({'text': text})
+        newob = cls(caption)
+        return newob

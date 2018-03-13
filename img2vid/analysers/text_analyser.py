@@ -1,14 +1,26 @@
+import re
+
 import wand.image
 import wand.drawing
 import wand.version
 
 from .font_metric import FontMetric
 
+FONT_REPLACERS = "(?i)(" +\
+                 "|".join(wand.drawing.STYLE_TYPES + ('bold',)) + \
+                 ")"
 
 class TextAnalyser:
     @staticmethod
     def get_font_families():
-        return wand.version.fonts()
+        fonts = wand.version.fonts()
+        return fonts
+        for i in range(len(fonts)):
+            font = fonts[i]
+            font = re.sub(FONT_REPLACERS, "", font)
+            font = re.sub("(--|-$)", "", font)
+            fonts[i] = font
+        return sorted(list(set(fonts)))
 
     @staticmethod
     def get_font_styles():
@@ -25,7 +37,7 @@ class TextAnalyser:
                 else:
                     context.font = text_config.font_name
                 if caption.font_size:
-                    context.font_size = \
+                   context.font_size = \
                         text_config.get_font_point_to_pixel(caption.font_size)
                 else:
                     context.font_size = text_config.font_pixel_size

@@ -1,3 +1,4 @@
+import re
 from ..configs import TextConfig
 
 class Caption:
@@ -12,8 +13,7 @@ class Caption:
 
     @text.setter
     def text(self, value):
-        if value == "\n":
-            value = ""
+        value  = re.sub("[\r\n]$", "", value)
         self._params['text'] = value
 
     @property
