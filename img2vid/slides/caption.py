@@ -48,7 +48,7 @@ class Caption:
 
     @property
     def font_color(self):
-        return self._params.get('font_color')
+        return self._params.get('font_color', '')
 
     @font_color.setter
     def font_color(self, value):
@@ -61,6 +61,14 @@ class Caption:
     @font_style.setter
     def font_style(self, value):
         self._params['font_style'] = value
+
+    @property
+    def back_color(self):
+        return self._params.get('back_color', '')
+
+    @back_color.setter
+    def back_color(self, value):
+        self._params['back_color'] = value
 
     def get_json(self):
         return dict(self._params)

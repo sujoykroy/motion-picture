@@ -71,11 +71,12 @@ class ImageRenderer:
         font_metric = TextAnalyser.get_font_metric(caption, text_config)
         width = int(max(min_width, font_metric.width))
         height = int(font_metric.height)
+        back_color = caption.back_color or text_config.back_color
 
         canvas = wand.image.Image(
             resolution=text_config.ppi,
             width=width, height=height,
-            background=wand.color.Color(text_config.back_color))
+            background=wand.color.Color(back_color))
         canvas.format = "png"
         with wand.drawing.Drawing() as context:
             cls.apply_caption(context, caption, text_config)

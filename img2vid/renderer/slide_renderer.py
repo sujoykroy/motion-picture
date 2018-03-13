@@ -57,11 +57,11 @@ class ImageSlideBuilder:
 class SlideRenderer:
     @classmethod
     def build_text_slide(cls, slide, screen_config, text_config):
-        bg_color = wand.color.Color(text_config.back_color)
+        back_color = slide.caption.back_color or text_config.back_color
         with wand.image.Image(resolution=text_config.ppi,
+                              background=wand.color.Color(back_color),
                               width=screen_config.width,
-                              height=screen_config.height,
-                              background=bg_color) as canvas:
+                              height=screen_config.height) as canvas:
             canvas.units = ImageRenderer.PIXEL_PER_INCH
             with wand.drawing.Drawing() as context:
                 ImageRenderer.apply_caption(context, slide.caption, text_config)

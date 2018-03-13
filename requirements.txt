@@ -5,3 +5,4 @@ numpy>=1.14.0
 Pillow>=5.0.0
 tqdm>=4.11.2
 Wand>=0.4.4
+tkcolorpicker

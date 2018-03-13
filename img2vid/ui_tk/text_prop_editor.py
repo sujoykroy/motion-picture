@@ -2,8 +2,12 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.scrolledtext as tkscrolledtext
 
+import PIL.ImageTk
+
 from ..analysers import TextAnalyser
+from ..renderer import ImageRenderer
 from .frame import Frame
+from .color_button import ColorButton
 
 class TextPropEditor(Frame):
     def __init__(self, master, app_config):
@@ -12,6 +16,7 @@ class TextPropEditor(Frame):
             app_config=app_config,
             event_names=["caption_updated"]
         )
+        self._text_config = None
         self._caption = None
 
         self.widgets.text_label = self._create_label("Caption")
@@ -46,10 +51,30 @@ class TextPropEditor(Frame):
             orient=tk.HORIZONTAL, command=self._set_font_size)
         self.widgets.font_size_scale.pack(expand=1, fill=tk.X)
 
+        self.widgets.color_container = tk.Frame(self.base)
+        self.widgets.color_container.pack()
+
+        self.widgets.font_color_label = tk.Label(
+            self.widgets.color_container, text="Font Color")
+        self.widgets.font_color_label.grid(row=0, column=0)
+        self.widgets.font_color_button = ColorButton(
+            self.widgets.color_container, "Font Color",
+            100, 20, command=self._set_font_color)
+        self.widgets.font_color_button.base.grid(row=0, column=1)
+
+        self.widgets.back_color_label = tk.Label(
+            self.widgets.color_container, text="back Color")
+        self.widgets.back_color_label.grid(row=1, column=0)
+        self.widgets.back_color_button = ColorButton(
+            self.widgets.color_container, "back Color",
+            100, 20, command=self._set_back_color)
+        self.widgets.back_color_button.base.grid(row=1, column=1)
+
         self.widgets.apply_button = self._create_button(
             "Apply", self._apply_slide_change, None)
 
     def set_caption(self, caption, text_config):
+        self._text_config = text_config
         self.widgets.text.delete("1.0", tk.END)
         self._caption = caption
         if not self._caption:
@@ -58,10 +83,14 @@ class TextPropEditor(Frame):
         self.widgets.font_family_combo.set(self._caption.font_family)
         self.widgets.font_style_combo.set(self._caption.font_style)
 
-        font_size = self._caption.font_size
-        if not font_size:
-            font_size = text_config.font_size
-        self.widgets.font_size_scale.set(font_size)
+        self.widgets.font_size_scale.set(
+            self._caption.font_size or text_config.font_size)
+
+        self.widgets.font_color_button.color = \
+            self._caption.font_color or text_config.font_color
+
+        self.widgets.back_color_button.color = \
+            self._caption.back_color or text_config.back_color
 
     def _text_changed(self, _event):
         if not self._caption:
@@ -89,8 +118,18 @@ class TextPropEditor(Frame):
         self._caption.font_weight = self.widgets.font_weight_scale.get()
         self.events.caption_updated.fire()
 
-    def _create_label(self, text, pady=0):
-        label = tk.Label(self.base, text=text)
+    def _set_font_color(self):
+        self._caption.font_color = self.widgets.font_color_button.color
+        self.events.caption_updated.fire()
+
+    def _set_back_color(self):
+        self._caption.back_color = self.widgets.back_color_button.color
+        self.events.caption_updated.fire()
+
+    def _create_label(self, text, pady=0, parent=None):
+        if parent is None:
+            parent = self.base
+        label = tk.Label(parent, text=text)
         label.pack(pady=pady)
         return label
 
