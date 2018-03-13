@@ -35,3 +35,6 @@ class TextConfig:
     @property
     def font_pixel_size(self):
         return int(round(self.font_size*self.ppi/self.INCH2PIXEL))
+
+    def get_font_point_to_pixel(self, point_size):
+        return int(round(point_size*self.ppi/self.INCH2PIXEL))

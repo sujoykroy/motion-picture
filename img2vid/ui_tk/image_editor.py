@@ -5,7 +5,7 @@ import PIL.ImageTk
 from ..geom import Point
 from .frame import Frame
 from ..slides import TextSlide, ImageSlide
-from ..renderer import ImageRenderer
+from ..renderer import ImageRenderer, SlideRenderer
 from .image_fitter import ImageFitter
 from .image_region import ImageRegionManager
 
@@ -51,12 +51,12 @@ class ImageEditor(Frame):
         self._slide = slide
 
         if isinstance(slide, TextSlide):
-            render_info = ImageRenderer.build_text_slide(
+            render_info = SlideRenderer.build_text_slide(
                 slide,
                 self.app_config.video_render,
                 self.app_config.text)
         elif isinstance(slide, ImageSlide):
-            render_info = ImageRenderer.build_image_slide(
+            render_info = SlideRenderer.build_image_slide(
                 slide,
                 self.app_config.video_render,
                 self.app_config.image)

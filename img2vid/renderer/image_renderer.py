@@ -3,20 +3,17 @@ import tempfile
 import PIL
 import PIL.Image
 
+import numpy
 import wand.image
 import wand.drawing
 import wand.color
 
-import numpy
-
-from ..geom import Rectangle, Point
-from ..slides import ImageSlide
+from ..geom import Rectangle
 from ..analysers import ImageAnalyser, TextAnalyser
-from .render_info import RenderInfo
-
-PIXEL_PER_INCH = "pixelsperinch"
 
 class ImageRenderer:
+    PIXEL_PER_INCH = "pixelsperinch"
+
     EXIF_TO_RENDERER_ORIENTATION = {
         '2' : PIL.Image.FLIP_LEFT_RIGHT,
         '3' : [PIL.Image.FLIP_LEFT_RIGHT, PIL.Image.FLIP_TOP_BOTTOM],
@@ -27,86 +24,27 @@ class ImageRenderer:
         '8' : PIL.Image.ROTATE_90
     }
 
-    @classmethod
-    def build_text_slide(cls, slide, screen_config, text_config):
-        bg_color = wand.color.Color(text_config.back_color)
-        with wand.image.Image(resolution=text_config.ppi,
-                              width=screen_config.width,
-                              height=screen_config.height,
-                              background=bg_color) as canvas:
-            canvas.units = PIXEL_PER_INCH
-            with wand.drawing.Drawing() as context:
-                context.font = text_config.font_name
-                context.fill_color = wand.color.Color(text_config.font_color)
-                context.font_size = text_config.font_pixel_size
-                context.gravity = "center"
-                context.text(x=0, y=0, body=slide.text)
-                context(canvas)
-                image = cls.wand2pil(canvas)
-        return RenderInfo(image)
 
-    @classmethod
-    def build_image_slide(cls, slide, screen_config, image_config):
-        if not slide.caption:
-            image = cls.fetch_image(
-                filepath=slide.filepath, crop=slide.rect)
-            return RenderInfo(image)
+    @staticmethod
+    def apply_caption(context, caption, text_config):
+        if caption.font_family:
+            context.font = caption.font_family
+        else:
+            context.font = text_config.font_name
 
-        caption_metric = TextAnalyser.get_font_metric(slide.caption, image_config)
-        with wand.image.Image(resolution=image_config.ppi,
-                              width=screen_config.width,
-                              height=screen_config.height) as canvas:
-            canvas.units = PIXEL_PER_INCH
-            with wand.drawing.Drawing() as context:
-                file_image = cls.fetch_image(
-                    filepath=slide.filepath, crop=slide.rect, wand_image=True)
+        if caption.font_size:
+            context.font_size = \
+                text_config.get_font_point_to_pixel(caption.font_size)
+        else:
+            context.font_size = text_config.font_pixel_size
 
-                if slide.cap_align != ImageSlide.CAP_ALIGN_CENTER:
-                    allowed_height = screen_config.height - caption_metric.height
-                else:
-                    allowed_height = screen_config.height
+        if caption.font_color:
+            context.fill_color = wand.color.Color(caption.font_color)
+        else:
+            context.fill_color = wand.color.Color(text_config.font_color)
 
-                fitted_image = cls.fit_inside(
-                    file_image, screen_config.width, allowed_height)
-                orig_image_scale = fitted_image.width/file_image.width
-                file_image = fitted_image
-                del fitted_image
-
-                cap_image = cls.text2image(
-                    text=slide.caption, min_width=file_image.width,
-                    text_config=image_config, wand_image=True)
-
-                img_pos = Point(
-                    int((screen_config.width-file_image.width)*0.5),
-                    int((screen_config.height-file_image.height)*0.5))
-
-                cap_pos = Point(
-                    (screen_config.width-cap_image.width)*0.5, 0)
-                if slide.cap_align == ImageSlide.CAP_ALIGN_CENTER:
-                    cap_pos.y = (screen_config.height-cap_image.height)*0.5
-                else:
-                    adjusted_top = \
-                        (screen_config.height-(file_image.height+cap_image.height))*0.5
-                    if slide.cap_align == ImageSlide.CAP_ALIGN_TOP:
-                        cap_pos.y = adjusted_top
-                        img_pos.y = adjusted_top + cap_image.height
-                    elif slide.cap_align == ImageSlide.CAP_ALIGN_BOTTOM:
-                        img_pos.y = adjusted_top
-                        cap_pos.y = adjusted_top + file_image.height
-
-                img_pos.x = int(img_pos.x)
-                img_pos.y = int(img_pos.y)
-                cap_pos.x = int(cap_pos.x)
-                cap_pos.y = int(cap_pos.y)
-
-                canvas.composite(image=file_image, left=img_pos.x, top=img_pos.y)
-                canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
-                context(canvas)
-                image = cls.wand2pil(canvas)
-        editable_rect = Rectangle(
-            img_pos.x, img_pos.y,
-            img_pos.x+file_image.width, img_pos.y+file_image.height)
-        return RenderInfo(image, editable_rect, orig_image_scale)
+        if caption.font_style:
+            context.font_style = caption.font_style
 
     @classmethod
     def fetch_image(cls, filepath, crop, wand_image=False):
@@ -127,8 +65,8 @@ class ImageRenderer:
         return image
 
     @classmethod
-    def text2image(cls, text, min_width, text_config, wand_image=False):
-        font_metric = TextAnalyser.get_font_metric(text, text_config)
+    def caption2image(cls, caption, min_width, text_config, wand_image=False):
+        font_metric = TextAnalyser.get_font_metric(caption, text_config)
         width = int(max(min_width, font_metric.width))
         height = int(font_metric.height)
 
@@ -138,12 +76,11 @@ class ImageRenderer:
             background=wand.color.Color(text_config.back_color))
         canvas.format = "png"
         with wand.drawing.Drawing() as context:
-            context.fill_color = wand.color.Color(text_config.font_color)
+            cls.apply_caption(context, caption, text_config)
+
             context.text_alignment = "center"
-            context.font = text_config.font_name
-            context.font_size = text_config.font_pixel_size
             context.text(
-                x=int(width*0.5), y=int(font_metric.top_offset), body=text)
+                x=int(width*0.5), y=int(font_metric.top_offset), body=caption.text)
             context(canvas)
             if wand_image:
                 image = canvas

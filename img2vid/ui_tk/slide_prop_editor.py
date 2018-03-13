@@ -1,10 +1,29 @@
 import tkinter as tk
-import tkinter.scrolledtext as tkscrolledtext
+import tkinter.ttk as ttk
 
 from .frame import Frame
 from .dialog import Dialog
+from .text_prop_editor import TextPropEditor
 
 from ..slides import ImageSlide, TextSlide
+
+class TextTab:
+    def __init__(self, frame_base, app_config):
+        self.editor = TextPropEditor(frame_base, app_config)
+        self.tab_id = None
+        self.notebook = None
+
+    def attach(self, tab_text, notebook):
+        self.notebook = notebook
+        self.notebook.add(self.editor.base, text=tab_text)
+        self.tab_id = notebook.tabs()[-1]
+
+    def show(self):
+        self.notebook.add(self.editor.base)
+        self.notebook.select(self.editor.base)
+
+    def hide(self):
+        self.notebook.hide(self.editor.base)
 
 class SlidePropEditor(Frame):
     def __init__(self, master, app_config):
@@ -15,21 +34,15 @@ class SlidePropEditor(Frame):
         )
         self._slide = None
 
-        self.widgets.text_label = self._create_label("Caption")
-        self.widgets.text = tkscrolledtext.ScrolledText(
-            self.base, height="5", width="40")
-        self.widgets.text.pack()
-        self.widgets.text.bind("<KeyRelease>", self._text_changed)
+        self.widgets.notebook = ttk.Notebook(self.base)
+        self.widgets.notebook.pack()
 
-        self.widgets.align_label = self._create_label("Alignment")
-        self.widgets.align_list = tk.Listbox(self.base, height=5)
-        for alignment in ImageSlide.CAP_ALIGNMENTS:
-            self.widgets.align_list .insert(tk.END, alignment)
-        self.widgets.align_list.bind("<ButtonRelease-1>", self._text_align_changed)
-        self.widgets.align_list.pack()
-
-        self.widgets.apply_button = self._create_button(
-            "Apply", self._apply_slide_change, None)
+        self.text_tabs = {}
+        for name in ImageSlide.CAP_ALIGNMENTS + ['text']:
+            tab = TextTab(self.base, app_config)
+            self.text_tabs[name] = tab
+            tab.attach(name, self.widgets.notebook)
+            tab.editor.events.caption_updated.bind(self._caption_updated)
 
         self.widgets.effects_label = self._create_label("Effects", pady=5)
 
@@ -56,54 +69,38 @@ class SlidePropEditor(Frame):
         self.widgets.delete_slide_button = self._create_button(
             "Delete Slide", self._delete_slide, tk.BOTTOM)
 
-
     def set_slide(self, slide):
-        self.widgets.text.delete("1.0", tk.END)
-        self.widgets.align_list.selection_clear(0, tk.END)
         for check_button in self.widgets.effect_checks.values():
             check_button.effect_var.set(0)
+
+        #Hide all tabs
+        for tab_name in self.text_tabs:
+            self.text_tabs[tab_name].hide()
 
         self._slide = slide
         if not self._slide:
             return
+
         if isinstance(self._slide, TextSlide):
             align_state = tk.DISABLED
-            self.widgets.text_label["text"] = "Text"
+            tab = self.text_tabs['text']
+            tab.editor.set_caption(
+                self._slide.caption, self.app_config.text)
+            tab.show()
         else:
             align_state = tk.NORMAL
-            self.widgets.text_label["text"] = "Caption"
-            align_index = ImageSlide.CAP_ALIGNMENTS.index(self._slide.cap_align)
-            self.widgets.align_list.selection_set(align_index)
+            for cap_name in ImageSlide.CAP_ALIGNMENTS:
+                tab = self.text_tabs[cap_name]
+                tab.editor.set_caption(
+                    self._slide.get_caption(cap_name), self.app_config.image)
+                tab.show()
 
-        self.widgets.apply_button["state"] = align_state
         self.widgets.crop_button["state"] = align_state
-        self.widgets.align_label["state"] = align_state
-        self.widgets.align_list["state"] = align_state
 
-        self.widgets.text.insert(tk.END, self._slide.text)
         for effect_name in self._slide.effects:
             check_button = self.widgets.effect_checks.get(effect_name)
             if check_button:
                 check_button.effect_var.set(1)
-
-    def _text_changed(self, _event):
-        if not self._slide:
-            return
-        text = self.widgets.text.get(1.0, tk.END)
-        self._slide.text = text
-        if isinstance(self._slide, TextSlide):
-            self.events.slide_updated.fire()
-
-    def _apply_slide_change(self):
-        self.events.slide_updated.fire()
-
-    def _text_align_changed(self, _event):
-        if not self._slide:
-            return
-        sel = self.widgets.align_list.curselection()
-        if sel:
-            align = ImageSlide.CAP_ALIGNMENTS[sel[0]]
-            self._slide.cap_align = align
 
     def _effect_check_changed(self):
         if not self._slide:
@@ -130,6 +127,9 @@ class SlidePropEditor(Frame):
             "Do you really want to delete this slide?")
         if yes:
             self.events.delete_slide.fire()
+
+    def _caption_updated(self):
+        self.events.slide_updated.fire()
 
     def _create_label(self, text, pady=0):
         label = tk.Label(self.base, text=text)

@@ -1,28 +1,28 @@
 from .slide import Slide
+from .caption import Caption
 
 class TextSlide(Slide):
     TYPE_NAME = "text"
-    KEY_TEXT = "text"
+    KEY_CAPTION = "cap"
 
-    def __init__(self, text):
+    def __init__(self, caption=None):
         super().__init__()
-        self._text = text
+        if not caption:
+            caption = Caption()
+        self._caption = caption
 
     @property
-    def text(self):
-        return self._text
-
-    @text.setter
-    def text(self, value):
-        self._text = value
+    def caption(self):
+        return self._caption
 
     def get_json(self):
         data = super().get_json()
-        data[self.KEY_TEXT] = self._text
+        data[self.KEY_CAPTION] = self._caption.get_json()
         return data
 
     @classmethod
     def create_from_json(cls, data):
-        newob = cls(text=data.get(cls.KEY_TEXT))
+        caption = Caption.create_from_json(data.get(cls.KEY_CAPTION))
+        newob = cls(caption=caption)
         newob.load_effects_from_json(data)
         return newob

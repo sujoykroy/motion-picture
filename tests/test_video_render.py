@@ -65,7 +65,7 @@ class TestVideoRenderer(unittest.TestCase):
 
         temp_file = self.create_mock_image_file(100, 200)
         project.add_image_files([temp_file.name])
-        project.slides[0].text = "Some Caption"
+        project.slides[0].get_caption("top").text = "Some Caption"
 
         app_config = self.create_mock_app_config()
 
@@ -157,7 +157,7 @@ class TestVideoRenderer(unittest.TestCase):
 
         temp_file = self.create_mock_image_file(100, 200, "#FFFFFF")
         project.add_image_files([temp_file.name])
-        project.slides[0].text = "Caption"
+        project.slides[0].get_caption("top").text = "Caption"
         project.slides[0].add_effect(FadeIn, dict(duration=2))
 
         video_renderer = VideoRenderer.create_from_project(project, app_config)

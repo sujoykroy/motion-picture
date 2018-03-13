@@ -9,6 +9,7 @@ import moviepy.editor
 
 from ..slides import TextSlide, ImageSlide
 from .image_renderer import ImageRenderer
+from .slide_renderer import SlideRenderer
 from .. import effects as SlideEffects
 
 class EffectTimeSlice:
@@ -121,10 +122,10 @@ class SlideTimeSlice:
         image = self._cached_image
         if not image:
             if isinstance(self.slide, TextSlide):
-                render_info = ImageRenderer.build_text_slide(
+                render_info = SlideRenderer.build_text_slide(
                     self.slide, app_config.video_render, app_config.text)
             elif isinstance(self.slide, ImageSlide):
-                render_info = ImageRenderer.build_image_slide(
+                render_info = SlideRenderer.build_image_slide(
                     self.slide, app_config.video_render, app_config.image)
             else:
                 return None
@@ -205,7 +206,7 @@ class VideoRenderer:
                 final_img_buffer = numpy.maximum(final_img_buffer, img_buffer)
             except ValueError:
                 logging.getLogger(__name__).error(traceback.format_exc())
-                logging.getLogger(__name__).info("Slide:{}".format(tslice.slide.get_json()))
+                logging.getLogger(__name__).info("Slide: %s", tslice.slide.get_json())
             img_buffer = None
 
         for tslice in self._last_used_slices-used_slices:
@@ -261,7 +262,7 @@ class VideoRenderer:
                     sduration = app_config.image.random_crop_duration
                 elif slide.filepath in cropped_files:
                     sduration = app_config.image.crop_source_duration
-                if not slide.rect and not slide.caption:
+                if not slide.rect and not slide.has_caption:
                     effect = SlideEffects.ScalePan.create_random(1, 6)
                     seffects[effect.TYPE_NAME] = effect
             if sduration == 0:
