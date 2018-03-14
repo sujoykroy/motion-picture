@@ -90,7 +90,7 @@ class AppConfig:
     @property
     def video_types(self):
         return (
-            ("MOV files", "*.mov, *MOV"),
+            ("MOV files", "*.mov *MOV"),
             ("MPEG files", "*.mpeg"),
             ("All Files", "*.*")
         )

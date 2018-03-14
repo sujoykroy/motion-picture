@@ -51,6 +51,21 @@ class Dialog:
         return image_files
 
     @staticmethod
+    def ask_for_video_files(file_types, start_dir=None):
+        """Open filedialog to select multiple video files
+
+        :param file_types: list of allowed file types
+        :type file_types: :class:`List[Tuple[str, str]]`
+        :returns: Selected filepaths
+        :rtype: :class:`List[str]`
+
+        """
+        video_files = filedialog.askopenfilenames(
+            title="Select videos to import", filetypes=file_types,
+            initialdir=start_dir)
+        return video_files
+
+    @staticmethod
     def ask_for_new_video_file(file_types, default_ext):
         """Open filedialog to select video file"""
         start_dir = os.path.expanduser("~")

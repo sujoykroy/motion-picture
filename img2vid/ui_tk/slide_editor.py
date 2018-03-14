@@ -8,7 +8,7 @@ from .slide_navigator import SlideNavigator
 from .dialog import Dialog
 from .preview_player import PreviewPlayer
 
-from ..slides import TextSlide, ImageSlide
+from ..slides import TextSlide, ImageSlide, VideoSlide
 from ..renderer import VideoRenderer
 
 class SlideEditor(Frame):
@@ -53,6 +53,11 @@ class SlideEditor(Frame):
             self._add_tool_button(
                 "Add Image Slide(s)",
                 self._ask_for_image_slides,
+                tk.LEFT)
+        self.widgets.add_video_slide_btn = \
+            self._add_tool_button(
+                "Add Video Slide(s)",
+                self._ask_for_video_slides,
                 tk.LEFT)
 
         self.widgets.image_editor = ImageEditor(self.base, self.app_config)
@@ -138,6 +143,24 @@ class SlideEditor(Frame):
             self.move_to_slide(count)
         else:
             error_msg = "You have not selected any image to add."
+            Dialog.show_error("Error", error_msg)
+
+    def _ask_for_video_slides(self):
+        if isinstance(self._slide, ImageSlide):
+            start_dir = os.path.dirname(self._slide.filepath)
+        else:
+            start_dir = None
+        video_files = Dialog.ask_for_video_files(
+            self.app_config.video_types, start_dir=start_dir)
+        if video_files:
+            count = 0
+            for video_file in video_files:
+                slide = VideoSlide(filepath=video_file)
+                self._project.add_slide(slide, after=self._slide_index+count)
+                count += 1
+            self.move_to_slide(count)
+        else:
+            error_msg = "You have not selected any video to add."
             Dialog.show_error("Error", error_msg)
 
     def _ask_for_closing(self):

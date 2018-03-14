@@ -10,6 +10,7 @@ import wand.color
 
 from ..geom import Rectangle
 from ..analysers import ImageAnalyser, TextAnalyser
+from .file_cache import FileCache
 
 class ImageRenderer:
     PIXEL_PER_INCH = "pixelsperinch"
@@ -47,6 +48,20 @@ class ImageRenderer:
             context.font_style = caption.font_style
         if caption.font_weight:
             context.font_weight = caption.font_weight
+
+    @classmethod
+    def fetch_video_frame(cls, filepath, time_pos, crop, wand_image=False):
+        frame = FileCache.get_video_clip(filepath).reader.get_frame(time_pos)
+        image = PIL.Image.fromarray(frame).convert("RGBA")
+        if crop:
+            image = image.crop((crop.x1, crop.y1, crop.x2, crop.y2))
+        if wand_image:
+            image_file = tempfile.SpooledTemporaryFile()
+            image.save(image_file, format="PNG")
+            image_file.seek(0)
+            image = wand.image.Image(file=image_file, format="png")
+            image_file.close()
+        return image
 
     @classmethod
     def fetch_image(cls, filepath, crop, wand_image=False):

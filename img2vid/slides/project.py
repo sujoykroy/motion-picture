@@ -4,6 +4,7 @@ import json
 
 from .slide import Slide
 from .image_slide import ImageSlide
+from .video_slide import VideoSlide
 from .text_slide import TextSlide
 
 class Project:
@@ -85,6 +86,8 @@ class Project:
             slide_type = data[Slide.KEY_TYPE]
             if slide_type == TextSlide.TYPE_NAME:
                 return TextSlide.create_from_json(data)
+            if slide_type == VideoSlide.TYPE_NAME:
+                return VideoSlide.create_from_json(data)
             if slide_type == ImageSlide.TYPE_NAME:
                 return ImageSlide.create_from_json(data)
         return None

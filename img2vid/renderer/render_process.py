@@ -15,7 +15,7 @@ class ImageRenderProcess(multiprocessing.Process):
     def __init__(self):
         super().__init__()
         self._in_queue = multiprocessing.Queue()
-        self._out_queue = multiprocessing.Queue(10)
+        self._out_queue = multiprocessing.Queue(1)
 
     def run(self):
         while True:
@@ -54,6 +54,7 @@ class ImageRenderProcess(multiprocessing.Process):
         return RenderInfo.create_from_json(render_info_data)
 
     def build_slide(self, slide, screen_config, extra_config):
+        self.clear()
         self._in_queue.put((
             self.ACTION_SLIDE_IMAGE,
             slide.get_json(),

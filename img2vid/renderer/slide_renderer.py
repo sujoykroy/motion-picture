@@ -2,7 +2,7 @@ import wand.image
 import wand.drawing
 import wand.color
 
-from ..slides import ImageSlide
+from ..slides import ImageSlide, VideoSlide
 from ..analysers import TextAnalyser
 from .render_info import RenderInfo
 from .image_renderer import ImageRenderer
@@ -10,14 +10,25 @@ from ..geom import Rectangle, Point
 
 class ImageSlideBuilder:
     def __init__(self, slide):
+        self.slide = slide
         self.captions = slide.active_captions
-        self.file_image = ImageRenderer.fetch_image(
-            filepath=slide.filepath, crop=slide.rect, wand_image=True)
         self.orig_image_scale = 1
         self.cap_images = {}
         self.total_cap_height = 0
         self.draw_top = 0
         self.draw_bottom = 0
+
+    def fetch_image(self):
+        wand_image = bool(self.captions)
+        if self.slide.TYPE_NAME == VideoSlide.TYPE_NAME:
+            self.file_image = ImageRenderer.fetch_video_frame(
+                filepath=self.slide.filepath,
+                time_pos=self.slide.abs_current_pos,
+                crop=self.slide.rect, wand_image=wand_image)
+        else:
+            self.file_image = ImageRenderer.fetch_image(
+                filepath=self.slide.filepath,
+                crop=self.slide.rect, wand_image=wand_image)
 
     def get_min_img_height(self, screen_config, image_config):
         max_img_height = screen_config.height
@@ -73,12 +84,12 @@ class SlideRenderer:
 
     @classmethod
     def build_image_slide(cls, slide, screen_config, image_config):
-        if not slide.active_captions:
-            image = ImageRenderer.fetch_image(
-                filepath=slide.filepath, crop=slide.rect)
-            return RenderInfo(image)
-
         builder = ImageSlideBuilder(slide)
+        builder.fetch_image()
+
+        if not builder.captions:
+            return RenderInfo(builder.file_image)
+
         with wand.image.Image(resolution=image_config.ppi,
                               width=screen_config.width,
                               height=screen_config.height) as canvas:

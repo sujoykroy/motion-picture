@@ -4,12 +4,13 @@ import tkinter.ttk as ttk
 from .frame import Frame
 from .dialog import Dialog
 from .text_prop_editor import TextPropEditor
+from .video_prop_editor import VideoPropEditor
 
-from ..slides import ImageSlide, TextSlide
+from ..slides import ImageSlide, TextSlide, VideoSlide
 
-class TextTab:
-    def __init__(self, frame_base, app_config):
-        self.editor = TextPropEditor(frame_base, app_config)
+class EditorTab:
+    def __init__(self, editor):
+        self.editor = editor
         self.tab_id = None
         self.notebook = None
 
@@ -37,12 +38,13 @@ class SlidePropEditor(Frame):
         self.widgets.notebook = ttk.Notebook(self.base)
         self.widgets.notebook.pack()
 
-        self.text_tabs = {}
+        self.editor_tabs = {}
         for name in ImageSlide.CAP_ALIGNMENTS + ['text']:
-            tab = TextTab(self.base, app_config)
-            self.text_tabs[name] = tab
-            tab.attach(name, self.widgets.notebook)
-            tab.editor.events.caption_updated.bind(self._caption_updated)
+            tab = self._add_editor_tab(name, TextPropEditor(self.base, app_config))
+            tab.editor.events.caption_updated.bind(self._slide_updated)
+
+        tab = self._add_editor_tab('video', VideoPropEditor(self.base, app_config))
+        tab.editor.events.video_updated.bind(self._slide_updated)
 
         self.widgets.effects_label = self._create_label("Effects", pady=5)
 
@@ -74,8 +76,8 @@ class SlidePropEditor(Frame):
             check_button.effect_var.set(0)
 
         #Hide all tabs
-        for tab_name in self.text_tabs:
-            self.text_tabs[tab_name].hide()
+        for tab_name in self.editor_tabs:
+            self.editor_tabs[tab_name].hide()
 
         self._slide = slide
         if not self._slide:
@@ -83,16 +85,20 @@ class SlidePropEditor(Frame):
 
         if isinstance(self._slide, TextSlide):
             align_state = tk.DISABLED
-            tab = self.text_tabs['text']
+            tab = self.editor_tabs['text']
             tab.editor.set_caption(
                 self._slide.caption, self.app_config.text)
             tab.show()
         else:
             align_state = tk.NORMAL
             for cap_name in ImageSlide.CAP_ALIGNMENTS:
-                tab = self.text_tabs[cap_name]
+                tab = self.editor_tabs[cap_name]
                 tab.editor.set_caption(
                     self._slide.get_caption(cap_name), self.app_config.image)
+                tab.show()
+            if slide.TYPE_NAME == VideoSlide.TYPE_NAME:
+                tab = self.editor_tabs['video']
+                tab.editor.set_slide(self._slide)
                 tab.show()
 
         self.widgets.crop_button["state"] = align_state
@@ -128,8 +134,14 @@ class SlidePropEditor(Frame):
         if yes:
             self.events.delete_slide.fire()
 
-    def _caption_updated(self):
+    def _slide_updated(self):
         self.events.slide_updated.fire()
+
+    def _add_editor_tab(self, name, editor):
+        tab = EditorTab(editor)
+        self.editor_tabs[name] = tab
+        tab.attach(name, self.widgets.notebook)
+        return tab
 
     def _create_label(self, text, pady=0):
         label = tk.Label(self.base, text=text)

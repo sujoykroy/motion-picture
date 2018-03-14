@@ -7,7 +7,7 @@ import numpy
 import PIL.Image
 import moviepy.editor
 
-from ..slides import TextSlide, ImageSlide
+from ..slides import TextSlide, ImageSlide, VideoSlide
 from .image_renderer import ImageRenderer
 from .slide_renderer import SlideRenderer
 from .. import effects as SlideEffects
@@ -124,6 +124,10 @@ class SlideTimeSlice:
             if isinstance(self.slide, TextSlide):
                 render_info = SlideRenderer.build_text_slide(
                     self.slide, app_config.video_render, app_config.text)
+            elif isinstance(self.slide, VideoSlide):
+                self.slide.current_pos = rel_time
+                render_info = SlideRenderer.build_image_slide(
+                    self.slide, app_config.video_render, app_config.image)
             elif isinstance(self.slide, ImageSlide):
                 render_info = SlideRenderer.build_image_slide(
                     self.slide, app_config.video_render, app_config.image)
@@ -255,8 +259,12 @@ class VideoRenderer:
             sduration = 0
             if slide.TYPE_NAME == TextSlide.TYPE_NAME:
                 sduration = app_config.text.duration
-            elif slide.TYPE_NAME == ImageSlide.TYPE_NAME:
-                sduration = app_config.image.duration
+            elif slide.TYPE_NAME in (ImageSlide.TYPE_NAME, VideoSlide.TYPE_NAME):
+                if slide.TYPE_NAME == VideoSlide.TYPE_NAME:
+                    sduration = slide.duration
+                    print("sduration", sduration)
+                else:
+                    sduration = app_config.image.duration
                 if slide.rect:
                     random.seed()
                     sduration = app_config.image.random_crop_duration
