@@ -10,6 +10,7 @@ from .preview_player import PreviewPlayer
 
 from ..slides import TextSlide, ImageSlide, VideoSlide
 from ..renderer import VideoRenderer
+from ..configs import AppConfig
 
 class SlideEditor(Frame):
     def __init__(self, master, app_config, project):
@@ -174,7 +175,7 @@ class SlideEditor(Frame):
             return
         video_renderer = VideoRenderer.create_from_project(
             self._project, self.app_config)
-        player = PreviewPlayer(self.base.master, self.app_config, video_renderer)
+        player = PreviewPlayer(self.base.master, AppConfig(), video_renderer)
         player.events.close.bind(self._delete_preview)
         self.widgets.preview_player = player
 

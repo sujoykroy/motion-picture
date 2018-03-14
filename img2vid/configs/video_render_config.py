@@ -1,6 +1,23 @@
 class VideoRenderConfig:
     def __init__(self, **kwargs):
-        self.params = kwargs
+        self.params = dict(kwargs)
+        self._scale = 1
+
+    @property
+    def scaled_width(self):
+        return int(self.width*self.scale)
+
+    @property
+    def scaled_height(self):
+        return int(self.height*self.scale)
+
+    @property
+    def scale(self):
+        return self.params.get("scale", 1)
+
+    @scale.setter
+    def scale(self, value):
+        self.params["scale"] = value
 
     @property
     def width(self):
@@ -44,6 +61,9 @@ class VideoRenderConfig:
 
     def get_json(self):
         return dict(self.params)
+
+    def copy(self):
+        return VideoRenderConfig(self.params)
 
     @classmethod
     def create_from_json(cls, data):

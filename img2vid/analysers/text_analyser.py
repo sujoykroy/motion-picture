@@ -41,6 +41,7 @@ class TextAnalyser:
                         text_config.get_font_point_to_pixel(caption.font_size)
                 else:
                     context.font_size = text_config.font_pixel_size
+                context.font_size *= text_config.scale
                 metric = context.get_font_metrics(canvas, caption.text, multiline=True)
                 metric = FontMetric(metric)
                 metric.height = metric.text_height + 2*text_config.padding

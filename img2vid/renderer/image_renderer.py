@@ -25,7 +25,6 @@ class ImageRenderer:
         '8' : PIL.Image.ROTATE_90
     }
 
-
     @staticmethod
     def apply_caption(context, caption, text_config):
         if caption.font_family:
@@ -38,6 +37,7 @@ class ImageRenderer:
                 text_config.get_font_point_to_pixel(caption.font_size)
         else:
             context.font_size = text_config.font_pixel_size
+        context.font_size *= text_config.scale
 
         if caption.font_color:
             context.fill_color = wand.color.Color(caption.font_color)

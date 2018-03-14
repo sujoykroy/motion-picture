@@ -20,3 +20,6 @@ class ImageConfig(TextConfig):
     def random_crop_duration(self):
         diff = self.params["max_crop_duration"]-self.params["min_crop_duration"]
         return self.params["min_crop_duration"]+random.random()*diff
+
+    def copy(self):
+        return ImageConfig(self.params)

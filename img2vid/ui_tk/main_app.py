@@ -36,6 +36,7 @@ class MainApp(BaseApp):
         self._active_frame = None
         self._project = None
         self._config = AppConfig()
+        self._config.set_scale(.25)
         self._set_frame_mode(FlowMode.PROJECT_MANAGE)
 
     def start(self):

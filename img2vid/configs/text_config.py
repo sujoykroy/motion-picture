@@ -6,6 +6,14 @@ class TextConfig:
         self.params = dict(kwargs)
 
     @property
+    def scale(self):
+        return self.params.get("scale", 1)
+
+    @scale.setter
+    def scale(self, value):
+        self.params["scale"] = value
+
+    @property
     def font_name(self):
         return self.params.get("font_name")
 
@@ -39,6 +47,9 @@ class TextConfig:
 
     def get_font_point_to_pixel(self, point_size):
         return int(round(point_size*self.ppi/self.INCH2PIXEL))
+
+    def copy(self):
+        return TextConfig(self.params)
 
     def get_json(self):
         data = dict(self.params)

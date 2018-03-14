@@ -79,6 +79,11 @@ class AppConfig:
             return self._parser[section_name]
         return {}
 
+    def set_scale(self, value):
+        self.video_render.scale = value
+        self.image.scale = value
+        self.text.scale = value
+
     @property
     def image_types(self):
         return (
