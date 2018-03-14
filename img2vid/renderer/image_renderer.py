@@ -9,8 +9,8 @@ import wand.drawing
 import wand.color
 
 from ..geom import Rectangle
+from ..slides import VideoCache
 from ..analysers import ImageAnalyser, TextAnalyser
-from .file_cache import FileCache
 
 class ImageRenderer:
     PIXEL_PER_INCH = "pixelsperinch"
@@ -51,8 +51,8 @@ class ImageRenderer:
 
     @classmethod
     def fetch_video_frame(cls, filepath, time_pos, crop, wand_image=False):
-        frame = FileCache.get_video_clip(filepath).reader.get_frame(time_pos)
-        image = PIL.Image.fromarray(frame).convert("RGBA")
+        frame = VideoCache.get_video_clip(filepath).reader.get_frame(time_pos)
+        image = PIL.Image.fromarray(frame.copy()).convert("RGBA")
         if crop:
             image = image.crop((crop.x1, crop.y1, crop.x2, crop.y2))
         if wand_image:

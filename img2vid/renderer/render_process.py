@@ -2,7 +2,7 @@ import multiprocessing
 import time
 import queue
 
-from ..slides import Project
+from ..slides import Project, VideoCache
 from ..configs import VideoRenderConfig, TextConfig, ImageConfig
 from ..renderer import SlideRenderer
 from .render_info import RenderInfo
@@ -32,6 +32,7 @@ class ImageRenderProcess(multiprocessing.Process):
                 action_data = action[1:]
 
             if action_name == self.ACTION_SHUTDOWN:
+                VideoCache.clear_cache()
                 break
 
             if action_data:
@@ -76,7 +77,7 @@ class ImageRenderProcess(multiprocessing.Process):
 
     def shutdown(self):
         self._in_queue.put((self.ACTION_SHUTDOWN,))
-        self.join(20)
+        self.join(5)
         self.terminate()
 
     @staticmethod

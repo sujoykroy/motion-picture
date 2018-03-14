@@ -4,6 +4,34 @@ from .image_slide import ImageSlide
 from ..geom import Point, Rectangle
 from .caption import Caption
 
+class VideoCache:
+    _VideoObjects = {}
+
+    @classmethod
+    def get_video_clip(cls, filepath):
+        if filepath not in cls._VideoObjects:
+            cls.clear_cache()
+            cls._VideoObjects[filepath] = VideoFileClip(filepath, has_mask=True)
+        return cls._VideoObjects[filepath]
+
+    @classmethod
+    def clear_cache(cls):
+        for clip in cls._VideoObjects.values():
+            cls.close_clip(clip)
+        cls._VideoObjects.clear()
+
+    @classmethod
+    def close_clip(cls, clip):
+        try:
+            clip.reader.close()
+            del clip.reader
+            if clip.audio != None:
+                clip.audio.reader.close_proc()
+                del clip.audio
+            del clip
+        except Exception as e:
+            sys.exc_clear()
+
 class VideoSlide(ImageSlide):
     TYPE_NAME = "video"
     KEY_START_AT = "start_at"
@@ -37,7 +65,7 @@ class VideoSlide(ImageSlide):
     @property
     def full_duration(self):
         if self._full_duration is None:
-            self._full_duration = VideoFileClip(self.filepath).reader.duration
+            self._full_duration = VideoCache.get_video_clip(self.filepath).reader.duration
         return self._full_duration
 
     @property
@@ -61,6 +89,16 @@ class VideoSlide(ImageSlide):
     @property
     def duration(self):
         return self.end_at-self.start_at
+
+    def crop(self, rect):
+        if self._rect:
+            rect = rect.copy()
+            rect.translate(Point(self._rect.x1, self._rect.y1))
+        newob = VideoSlide(self._filepath, rect)
+        newob.start_at = self.start_at
+        newob.end_at = self.end_at
+        newob.abs_current_pos = self.abs_current_pos
+        return newob
 
     def get_json(self):
         data = super().get_json()

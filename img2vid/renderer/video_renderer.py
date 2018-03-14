@@ -262,7 +262,6 @@ class VideoRenderer:
             elif slide.TYPE_NAME in (ImageSlide.TYPE_NAME, VideoSlide.TYPE_NAME):
                 if slide.TYPE_NAME == VideoSlide.TYPE_NAME:
                     sduration = slide.duration
-                    print("sduration", sduration)
                 else:
                     sduration = app_config.image.duration
                 if slide.rect:
