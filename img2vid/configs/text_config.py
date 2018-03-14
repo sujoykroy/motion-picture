@@ -1,5 +1,6 @@
 class TextConfig:
     INCH2PIXEL = 72
+    TYPE_NAME = 'text_config'
 
     def __init__(self, **kwargs):
         self.params = dict(kwargs)
@@ -38,3 +39,12 @@ class TextConfig:
 
     def get_font_point_to_pixel(self, point_size):
         return int(round(point_size*self.ppi/self.INCH2PIXEL))
+
+    def get_json(self):
+        data = dict(self.params)
+        data['TYPE_NAME'] = self.TYPE_NAME
+        return data
+
+    @classmethod
+    def create_from_json(cls, data):
+        return cls(**data)

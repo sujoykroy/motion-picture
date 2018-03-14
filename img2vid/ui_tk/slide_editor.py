@@ -71,6 +71,10 @@ class SlideEditor(Frame):
             row=1, column=1, rowspan=2, sticky=tk.N+tk.S)
         self.move_to_slide(0)
 
+    def destroy(self):
+        self.widgets.image_editor.destroy()
+        super().destroy()
+
     def move_to_slide(self, incre=0):
         if self._project.slide_count == 0:
             self._slide = None

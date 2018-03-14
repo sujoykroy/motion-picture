@@ -41,3 +41,10 @@ class VideoRenderConfig:
     @property
     def video_ext(self):
         return self.params["video_ext"]
+
+    def get_json(self):
+        return dict(self.params)
+
+    @classmethod
+    def create_from_json(cls, data):
+        return cls(**data)

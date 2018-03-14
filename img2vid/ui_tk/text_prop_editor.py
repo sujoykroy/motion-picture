@@ -66,7 +66,7 @@ class TextPropEditor(Frame):
             self.widgets.color_container, text="back Color")
         self.widgets.back_color_label.grid(row=1, column=0)
         self.widgets.back_color_button = ColorButton(
-            self.widgets.color_container, "back Color",
+            self.widgets.color_container, "Back Color",
             100, 20, command=self._set_back_color)
         self.widgets.back_color_button.base.grid(row=1, column=1)
 

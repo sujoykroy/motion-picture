@@ -2,6 +2,8 @@ import random
 from .text_config import TextConfig
 
 class ImageConfig(TextConfig):
+    TYPE_NAME = 'image_config'
+
     @property
     def min_crop_duration(self):
         return self.params["min_crop_duration"]

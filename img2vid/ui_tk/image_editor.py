@@ -5,7 +5,8 @@ import PIL.ImageTk
 from ..geom import Point
 from .frame import Frame
 from ..slides import TextSlide, ImageSlide
-from ..renderer import ImageRenderer, SlideRenderer
+from ..renderer import ImageRenderer
+from ..renderer import ImageRenderProcess
 from .image_fitter import ImageFitter
 from .image_region import ImageRegionManager
 
@@ -18,6 +19,8 @@ class ImageEditor(Frame):
         self._slide = None
         self._fitter = ImageFitter()
         self._mouse_pos = SimpleNamespace(start=Point(0, 0), end=Point(0, 0))
+        self._render_process = ImageRenderProcess()
+        self._render_process.start()
 
         canvas = tk.Canvas(
             master=self.base,
@@ -38,6 +41,11 @@ class ImageEditor(Frame):
             fill=self.app_config.editor_back_color, width=0)
 
         self._region_manager = ImageRegionManager(canvas)
+        self._update_render_info()
+
+    def destroy(self):
+        self._render_process.shutdown()
+        super().destroy()
 
     def get_region_rects(self):
         rects = self._region_manager.get_region_rects()
@@ -50,26 +58,30 @@ class ImageEditor(Frame):
         same_slide = (self._slide == slide)
         self._slide = slide
 
+        if not same_slide:
+            self._render_process.clear()
+            self._clear_slide()
+            self._region_manager.clear()
+
         if isinstance(slide, TextSlide):
-            render_info = SlideRenderer.build_text_slide(
+            self._render_process.build_slide(
                 slide,
                 self.app_config.video_render,
                 self.app_config.text)
         elif isinstance(slide, ImageSlide):
-            render_info = SlideRenderer.build_image_slide(
+            self._render_process.build_slide(
                 slide,
                 self.app_config.video_render,
                 self.app_config.image)
-        else:
-            render_info = None
-        self._fitter.render_info = render_info
-        self._fitter.fit()
-        self._update_region_manager()
 
-        if not same_slide:
-            self._clear_slide()
-            self._region_manager.clear()
-        self._redraw_slide()
+    def _update_render_info(self):
+        render_info = self._render_process.get_render_info()
+        if render_info:
+            self._fitter.render_info = render_info
+            self._fitter.fit()
+            self._update_region_manager()
+            self._redraw_slide()
+        self.base.after(100, self._update_render_info)
 
     def _update_region_manager(self):
         self._region_manager.bound_rect = self._fitter.rects.editable
