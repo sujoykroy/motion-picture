@@ -121,17 +121,18 @@ class SlideTimeSlice:
 
     def get_image_at(self, rel_time, app_config):
         image = self._cached_image
+        progress = rel_time/self.duration
         if not image:
             if isinstance(self.slide, TextSlide):
                 render_info = SlideRenderer.build_text_slide(
-                    self.slide, app_config.video_render, app_config.text)
+                    self.slide, app_config.video_render, app_config.text, progress)
             elif isinstance(self.slide, VideoSlide):
                 self.slide.current_pos = rel_time
                 render_info = SlideRenderer.build_image_slide(
-                    self.slide, app_config.video_render, app_config.image)
+                    self.slide, app_config.video_render, app_config.image, progress)
             elif isinstance(self.slide, ImageSlide):
                 render_info = SlideRenderer.build_image_slide(
-                    self.slide, app_config.video_render, app_config.image)
+                    self.slide, app_config.video_render, app_config.image, progress)
             else:
                 return None
             self._cached_image = image

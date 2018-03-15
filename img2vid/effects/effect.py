@@ -37,6 +37,9 @@ class Effect:
                 value = param.parse(kwargs[key])
                 self.set_param(key, value)
 
+    def transform(self, **kwargs):
+        pass
+
     def get_json(self):
         data = {}
         data[self.KEY_TYPE] = self.TYPE_NAME

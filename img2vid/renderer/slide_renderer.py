@@ -21,7 +21,7 @@ class ImageSlideBuilder:
         self.draw_top = 0
         self.draw_bottom = 0
 
-    def fetch_image(self):
+    def fetch_image(self, progress):
         wand_image = bool(self.captions)
         if self.slide.TYPE_NAME == VideoSlide.TYPE_NAME:
             self.file_image = ImageUtils.fetch_video_frame(
@@ -36,7 +36,8 @@ class ImageSlideBuilder:
         if self.slide.effects:
             for effect in self.slide.effects.values():
                 if effect.APPLY_ON == Effect.APPLY_TYPE_IMAGE:
-                    self.file_image = effect.transform(self.file_image)
+                    self.file_image = effect.transform(
+                        image=self.file_image, progress=progress)
 
         if wand_image:
             self.file_image = ImageUtils.pil2wand(self.file_image)
@@ -77,7 +78,7 @@ class ImageSlideBuilder:
 
 class SlideRenderer:
     @classmethod
-    def build_text_slide(cls, slide, screen_config, text_config):
+    def build_text_slide(cls, slide, screen_config, text_config, progress=1):
         back_color = slide.caption.back_color or text_config.back_color
         with wand.image.Image(resolution=text_config.ppi,
                               background=wand.color.Color(back_color),
@@ -93,9 +94,9 @@ class SlideRenderer:
         return RenderInfo(image)
 
     @classmethod
-    def build_image_slide(cls, slide, screen_config, image_config):
+    def build_image_slide(cls, slide, screen_config, image_config, progress=1):
         builder = ImageSlideBuilder(slide)
-        builder.fetch_image()
+        builder.fetch_image(progress)
 
         if not builder.captions:
             return RenderInfo(builder.file_image)
