@@ -37,7 +37,8 @@ class VideoSlide(ImageSlide):
     @property
     def full_duration(self):
         if self._full_duration is None:
-            self._full_duration = VideoCache.get_video_clip(self.filepath).reader.duration
+            self._full_duration = VideoCache.get_video_clip(self.filepath).duration
+            VideoCache.clear_cache()#Hack to prevent uknown preview lock
         return self._full_duration
 
     @property
