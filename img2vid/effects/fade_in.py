@@ -3,9 +3,8 @@ from .effect_param import EffectParam
 
 class FadeIn(Effect):
     TYPE_NAME = "fade_in"
-    KEY_DURATION = "dur"
 
-    PARAMS = {'duration': EffectParam(float, 2)}
+    PARAMS = [EffectParam('duration', 'float', 2, unit='sec')]
 
     def __init__(self, duration):
         super().__init__()
@@ -13,17 +12,3 @@ class FadeIn(Effect):
 
     def get_value_at(self, frac):
         return frac
-
-    def get_json(self):
-        """Returns json representation."""
-        data = super().get_json()
-        data[self.KEY_DURATION] = self.duration
-        return data
-
-    @classmethod
-    def create_from_json(cls, data):
-        if data.get(cls.KEY_TYPE, None) != cls.TYPE_NAME:
-            return None
-        duration = float(data.get(cls.KEY_DURATION))
-        newob = cls(duration=duration)
-        return newob

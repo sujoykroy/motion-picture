@@ -11,7 +11,7 @@ class Effect:
 
     _IdSeed = 0
 
-    PARAMS = {}
+    PARAMS = []
     APPLY_ON = None
 
     def __init__(self):
@@ -21,28 +21,48 @@ class Effect:
     def __hash__(self):
         return hash("Effect{}".format(self._id_num))
 
+    def set_param(self, param_name, value):
+        if hasattr(self, param_name):
+            setattr(self, param_name, value)
+
+    def get_param(self, param_name):
+        if hasattr(self, param_name):
+            return getattr(self, param_name)
+        raise AttributeError
+
+    def update_from_values(self, **kwargs):
+        for param in self.PARAMS:
+            key = param.name
+            if key in kwargs:
+                value = param.parse(kwargs[key])
+                self.set_param(key, value)
+
     def get_json(self):
-        """Returns json representation."""
         data = {}
         data[self.KEY_TYPE] = self.TYPE_NAME
+        for param in self.PARAMS:
+            key = param.name
+            data[key] = getattr(self, key)
         return data
 
     @classmethod
     def create_from_values(cls, value_data):
         arg_dict = {}
-        for key, param in cls.PARAMS.items():
+        for param in cls.PARAMS:
+            key = param.name
             if key in value_data:
                 value = value_data[key]
                 value = param.parse(value)
             else:
-                value = param.default_value
+                value = param.default
             arg_dict[key] = value
         return cls(**arg_dict)
 
-    def update_from_values(self, **kwargs):
-        for key, value in kwargs.items():
-            if key in self.PARAMS:
-                param = self.PARAMS[key]
-                value = param.parse(value)
-                if hasattr(self, param):
-                    setattr(self, param, value)
+    @classmethod
+    def create_from_json(cls, data):
+        kwargs = {}
+        for param in cls.PARAMS:
+            key = param.name
+            kwargs[key] = data.get(key)
+        newob = cls(**kwargs)
+        return newob
