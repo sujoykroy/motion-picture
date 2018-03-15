@@ -5,6 +5,7 @@ from .frame import Frame
 from .dialog import Dialog
 from .text_prop_editor import TextPropEditor
 from .video_prop_editor import VideoPropEditor
+from .effects_prop_editor import EffectsPropEditor
 
 from ..slides import ImageSlide, TextSlide, VideoSlide
 
@@ -46,25 +47,8 @@ class SlidePropEditor(Frame):
         tab = self._add_editor_tab('video', VideoPropEditor(self.base, app_config))
         tab.editor.events.video_updated.bind(self._slide_updated)
 
-        self.widgets.effects_label = self._create_label("Effects", pady=5)
-
-        self.widgets.effects_frame = tk.Frame(self.base)
-        self.widgets.effects_frame.pack()
-
-        self.widgets.effect_checks = dict()
-        for effect_name in sorted(app_config.effects.keys()):
-            effect_config = app_config.effects[effect_name]
-
-            effect_var = tk.IntVar()
-            check_button = tk.Checkbutton(
-                self.widgets.effects_frame, text=effect_name,
-                variable=effect_var, command=self._effect_check_changed)
-            check_button.pack(anchor=tk.W)
-
-            check_button.effect_var = effect_var
-            check_button.effect_name = effect_name
-            check_button.effect_config = effect_config
-            self.widgets.effect_checks[effect_name] = check_button
+        tab = self._add_editor_tab('effects', EffectsPropEditor(self.base, app_config))
+        tab.editor.events.effects_updated.bind(self._slide_updated)
 
         self.widgets.crop_button = self._create_button(
             "Crop", self._crop, tk.BOTTOM)
@@ -72,9 +56,6 @@ class SlidePropEditor(Frame):
             "Delete Slide", self._delete_slide, tk.BOTTOM)
 
     def set_slide(self, slide):
-        for check_button in self.widgets.effect_checks.values():
-            check_button.effect_var.set(0)
-
         #Hide all tabs
         for tab_name in self.editor_tabs:
             self.editor_tabs[tab_name].hide()
@@ -101,24 +82,11 @@ class SlidePropEditor(Frame):
                 tab.editor.set_slide(self._slide)
                 tab.show()
 
+        tab = self.editor_tabs['effects']
+        tab.editor.set_slide(slide)
+        tab.show()
+
         self.widgets.crop_button["state"] = align_state
-
-        for effect_name in self._slide.effects:
-            check_button = self.widgets.effect_checks.get(effect_name)
-            if check_button:
-                check_button.effect_var.set(1)
-
-    def _effect_check_changed(self):
-        if not self._slide:
-            return
-        for check_button in self.widgets.effect_checks.values():
-            effect_config = check_button.effect_config
-            checked = check_button.effect_var.get()
-            if checked:
-                self._slide.add_effect(
-                    effect_config.effect_class, effect_config.defaults)
-            else:
-                self._slide.remove_effect(check_button.effect_name)
 
     def _crop(self):
         if not self._slide:

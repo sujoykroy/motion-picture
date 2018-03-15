@@ -1,17 +1,19 @@
 """This module provides Effects."""
 from .effect import Effect
+from .scale_pan import ScalePan
+
 from .fade_in import FadeIn
 from .fade_out import FadeOut
-from .scale_pan import ScalePan
+
+_EFFECT_CLASSES = (FadeIn, FadeOut)
 
 def create_effect_from_json(data):
     """Parses json data and returns corresponding Effect."""
     if Effect.KEY_TYPE in data:
         filter_type = data[Effect.KEY_TYPE]
-        if filter_type == FadeIn.TYPE_NAME:
-            return FadeIn.create_from_json(data)
-        if filter_type == FadeOut.TYPE_NAME:
-            return FadeOut.create_from_json(data)
+        for effect_klass in _EFFECT_CLASSES:
+            if filter_type == effect_klass.TYPE_NAME:
+                return effect_klass.create_from_json(data)
     return None
 
 EFFECT_TYPES = {}

@@ -14,3 +14,7 @@ class EffectConfig:
     @property
     def effect_class(self):
         return self._effect_class
+
+    @property
+    def effect_name(self):
+        return self._effect_class.TYPE_NAME

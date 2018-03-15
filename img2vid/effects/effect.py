@@ -5,8 +5,14 @@ class Effect:
     TYPE_NAME = None
     KEY_TYPE = "type"
 
+    APPLY_TYPE_IMAGE = "image"
+    APPLY_TYPE_VIDEO = "video"
+    APPLY_TYPE_TEXT = "text"
+
     _IdSeed = 0
+
     PARAMS = {}
+    APPLY_ON = None
 
     def __init__(self):
         self._id_num = Effect._IdSeed
