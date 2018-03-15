@@ -4,6 +4,7 @@ import wand.color
 
 from ..geom import Rectangle, Point
 from ..utils import ImageUtils
+from ..effects import Effect
 from ..slides import ImageSlide, VideoSlide
 from ..analysers import TextAnalyser
 
@@ -26,11 +27,19 @@ class ImageSlideBuilder:
             self.file_image = ImageUtils.fetch_video_frame(
                 filepath=self.slide.filepath,
                 time_pos=self.slide.abs_current_pos,
-                crop=self.slide.rect, wand_image=wand_image)
+                crop=self.slide.rect, wand_image=False)
         else:
             self.file_image = ImageUtils.fetch_image(
                 filepath=self.slide.filepath,
-                crop=self.slide.rect, wand_image=wand_image)
+                crop=self.slide.rect, wand_image=False)
+
+        if self.slide.effects:
+            for effect in self.slide.effects.values():
+                if effect.APPLY_ON == Effect.APPLY_TYPE_IMAGE:
+                    self.file_image = effect.transform(self.file_image)
+
+        if wand_image:
+            self.file_image = ImageUtils.pil2wand(self.file_image)
 
     def get_min_img_height(self, screen_config, image_config):
         max_img_height = screen_config.scaled_height

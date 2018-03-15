@@ -63,6 +63,6 @@ class Effect:
         kwargs = {}
         for param in cls.PARAMS:
             key = param.name
-            kwargs[key] = data.get(key)
+            kwargs[key] = param.parse(data.get(key, param.default))
         newob = cls(**kwargs)
         return newob

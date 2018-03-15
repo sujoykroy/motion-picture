@@ -33,11 +33,7 @@ class ImageUtils:
         if crop:
             image = image.crop((crop.x1, crop.y1, crop.x2, crop.y2))
         if wand_image:
-            image_file = tempfile.SpooledTemporaryFile()
-            image.save(image_file, format="PNG")
-            image_file.seek(0)
-            image = wand.image.Image(file=image_file, format="png")
-            image_file.close()
+            image = cls.pil2wand(image)
         return image
 
     @classmethod
@@ -117,6 +113,15 @@ class ImageUtils:
         temporary_file.close()
 
         return pil_image.convert("RGBA")
+
+    @staticmethod
+    def pil2wand(pil_image):
+        image_file = tempfile.SpooledTemporaryFile()
+        pil_image.save(image_file, format="PNG")
+        image_file.seek(0)
+        wand_image = wand.image.Image(file=image_file, format="png")
+        image_file.close()
+        return wand_image
 
     @classmethod
     def reverse_orient(cls, image, exif_orient=None, renderer_orient=None):

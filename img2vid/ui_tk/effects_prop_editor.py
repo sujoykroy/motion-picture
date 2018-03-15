@@ -4,17 +4,17 @@ import tkinter.ttk as ttk
 from .frame import Frame
 
 class ParamWidget:
-    def __init__(self, master, effect_param, default):
+    def __init__(self, frame, effect_param, default):
+        self._frame = frame
         self._effect = None
         self._default = default
         self._effect_param = effect_param
         self._value_setter = None
 
+        master = frame.base
         value_widget = None
         if effect_param.choices:
-            value_widget = ttk.Combobox(master)
-            for choice in effect_param.choices:
-                value_widget.insert(tk.END, choice)
+            value_widget = ttk.Combobox(master, values=effect_param.choices)
             value_widget.bind("<<ComboboxSelected>>", self._on_combo_change)
             self._value_setter = self._update_combo_value
         else:
@@ -54,12 +54,13 @@ class ParamWidget:
     def _update_combo_value(self, value):
         self.value_widget.set(value)
 
-    def _on_combo_change(self):
+    def _on_combo_change(self, _):
         if not self._effect:
             return
         self._effect.set_param(
             self._effect_param.name,
             self._effect_param.parse(self.value_widget.get()))
+        self._trigger_change()
 
     def _update_entry_value(self, value):
         self.value_widget.var.set(value)
@@ -68,11 +69,16 @@ class ParamWidget:
         if not self._effect:
             return
         self._effect.set_param(
-            self._effect_param.name, self.value_widget.var.get())
+            self._effect_param.name,
+            self._effect_param.parse(self.value_widget.var.get()))
+        self._trigger_change()
+
+    def _trigger_change(self):
+        self._frame.events.effect_updated.fire()
 
 class EffectFrame(Frame):
     def __init__(self, master, effect_config, command):
-        super().__init__(master)
+        super().__init__(master, event_names=['effect_updated'])
         self._effect = None
         self._command = command
         self.effect_config = effect_config
@@ -88,7 +94,7 @@ class EffectFrame(Frame):
         self._param_widgets = []
         for effect_param in effect_klass.PARAMS:
             param_widget = ParamWidget(
-                self.base, effect_param,
+                self, effect_param,
                 effect_config.defaults.get(effect_param.name))
             param_widget.label.grid(row=row, column=0)
             if param_widget.value_widget:
@@ -132,6 +138,7 @@ class EffectsPropEditor(Frame):
             effect_config = app_config.effects[effect_name]
             eff_frame = EffectFrame(
                 self.base, effect_config, self._update_effects)
+            eff_frame.events.effect_updated.bind(self._fire_update)
             eff_frame.pack(fill=tk.X)
             self.widgets.effects[effect_name] = eff_frame
 
@@ -155,4 +162,7 @@ class EffectsPropEditor(Frame):
                     eff_frame.effect_config.defaults)
             else:
                 self._slide.remove_effect(eff_name)
+        self._fire_update()
+
+    def _fire_update(self):
         self.events.effects_updated.fire()
