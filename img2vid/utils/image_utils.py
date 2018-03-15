@@ -9,10 +9,11 @@ import wand.drawing
 import wand.color
 
 from ..geom import Rectangle
-from ..slides import VideoCache
-from ..analysers import ImageAnalyser, TextAnalyser
+from ..analysers import ImageAnalyser
 
-class ImageRenderer:
+from .video_cache import VideoCache
+
+class ImageUtils:
     PIXEL_PER_INCH = "pixelsperinch"
 
     EXIF_TO_RENDERER_ORIENTATION = {
@@ -24,30 +25,6 @@ class ImageRenderer:
         '7' : [PIL.Image.FLIP_LEFT_RIGHT, PIL.Image.ROTATE_90],
         '8' : PIL.Image.ROTATE_90
     }
-
-    @staticmethod
-    def apply_caption(context, caption, text_config):
-        if caption.font_family:
-            context.font_family = caption.font_family
-        else:
-            context.font = text_config.font_name
-
-        if caption.font_size:
-            context.font_size = \
-                text_config.get_font_point_to_pixel(caption.font_size)
-        else:
-            context.font_size = text_config.font_pixel_size
-        context.font_size *= text_config.scale
-
-        if caption.font_color:
-            context.fill_color = wand.color.Color(caption.font_color)
-        else:
-            context.fill_color = wand.color.Color(text_config.font_color)
-
-        if caption.font_style:
-            context.font_style = caption.font_style
-        if caption.font_weight:
-            context.font_weight = caption.font_weight
 
     @classmethod
     def fetch_video_frame(cls, filepath, time_pos, crop, wand_image=False):
@@ -79,31 +56,6 @@ class ImageRenderer:
             image = cls.reverse_orient(image, exif_orient=exif_orient)
             if crop:
                 image = image.crop((crop.x1, crop.y1, crop.x2, crop.y2))
-        return image
-
-    @classmethod
-    def caption2image(cls, caption, min_width, text_config, wand_image=False):
-        font_metric = TextAnalyser.get_font_metric(caption, text_config)
-        width = int(max(min_width, font_metric.width))
-        height = int(font_metric.height)
-        back_color = caption.back_color or text_config.back_color
-
-        canvas = wand.image.Image(
-            resolution=text_config.ppi,
-            width=width, height=height,
-            background=wand.color.Color(back_color))
-        canvas.format = "png"
-        with wand.drawing.Drawing() as context:
-            cls.apply_caption(context, caption, text_config)
-
-            context.text_alignment = "center"
-            context.text(
-                x=int(width*0.5), y=int(font_metric.top_offset), body=caption.text)
-            context(canvas)
-            if wand_image:
-                image = canvas
-            else:
-                image = cls.wand2pil(canvas)
         return image
 
     @classmethod
@@ -204,3 +156,8 @@ class ImageRenderer:
         img_buffer.dtype = numpy.uint8
         image = PIL.Image.fromarray(img_buffer)
         return image
+
+    @staticmethod
+    def get_pixel_at(image, x_pos, y_pos):
+        img_buffer = numpy.array(image, dtype=numpy.uint8)
+        return img_buffer[int(y_pos), int(x_pos), :]

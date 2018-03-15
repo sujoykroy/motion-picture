@@ -8,9 +8,10 @@ import PIL.Image
 import moviepy.editor
 
 from ..slides import TextSlide, ImageSlide, VideoSlide
-from .image_renderer import ImageRenderer
-from .slide_renderer import SlideRenderer
+from ..utils import ImageUtils
 from .. import effects as SlideEffects
+
+from .slide_renderer import SlideRenderer
 
 class EffectTimeSlice:
     def __init__(self, effect, start_time, duration):
@@ -36,23 +37,23 @@ class EffectTimeSlice:
                 image.height < app_config.video_render.height:
                 scale_x = app_config.video_render.width / image.width
                 scale_y = app_config.video_render.height / image.height
-                image = ImageRenderer.same_scale(image, 1.1*max(scale_x, scale_y))
+                image = ImageUtils.same_scale(image, 1.1*max(scale_x, scale_y))
 
             rect = self.effect.get_rect_at(
                 frac=frac,
                 bound_width=image.width,
                 bound_height=image.height,
                 aspect_ratio=app_config.video_render.aspect_ratio)
-            image = ImageRenderer.crop(image, rect)
-            image = ImageRenderer.resize(
+            image = ImageUtils.crop(image, rect)
+            image = ImageUtils.resize(
                 image,
                 app_config.video_render.width,
                 app_config.video_render.height)
         elif isinstance(self.effect, SlideEffects.FadeIn):
-            image = ImageRenderer.set_alpha(
+            image = ImageUtils.set_alpha(
                 image, self.effect.get_value_at(frac=frac))
         elif isinstance(self.effect, SlideEffects.FadeOut):
-            image = ImageRenderer.set_alpha(
+            image = ImageUtils.set_alpha(
                 image, self.effect.get_value_at(frac=frac))
         return image
 
@@ -139,7 +140,7 @@ class SlideTimeSlice:
         video_config = app_config.video_render
         if image.width != video_config.width or \
            image.height != video_config.height:
-            image = ImageRenderer.fit_full(image, video_config.width, video_config.height)
+            image = ImageUtils.fit_full(image, video_config.width, video_config.height)
 
         for tslice in self.effect_slices:
             if rel_time > tslice.end_time or \
@@ -161,7 +162,7 @@ class VideoRenderer:
         self._last_used_slices = set()
 
         config = app_config.video_render
-        self._back_image = ImageRenderer.create_blank(
+        self._back_image = ImageUtils.create_blank(
             config.width, config.height, config.back_color)
 
     @property

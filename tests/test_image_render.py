@@ -5,15 +5,13 @@ import PIL.ImageDraw
 from img2vid.geom import Point , Rectangle
 from img2vid.ui_tk.image_fitter import ImageFitter
 from img2vid.renderer.render_info import RenderInfo
-from img2vid.renderer import ImageRenderer
-
-from utils import ImageUtils
+from img2vid.utils import ImageUtils
 
 class TestImageEditor(unittest.TestCase):
     def test_matching_rect_in_edit_rect(self):
         fitter = ImageFitter()
         edit_rect = Rectangle(10, 20, 200, 300)
-        image = ImageRenderer.create_blank(500, 600, "#000000")
+        image = ImageUtils.create_blank(500, 600, "#000000")
         render_info = RenderInfo(image, edit_rect)
         fitter.render_info = render_info
         screen_config = SimpleNamespace(width=900, height=700)
@@ -41,7 +39,7 @@ class TestImageEditor(unittest.TestCase):
 
     def test_image_crop(self):
         rect = Rectangle(10, 20, 100, 200)
-        image = ImageRenderer.create_blank(500, 600, "#000000")
+        image = ImageUtils.create_blank(500, 600, "#000000")
         draw = PIL.ImageDraw.Draw(image)
         color = "#05FFFF"
         draw.rectangle([rect.x1, rect.y1, rect.x2, rect.y2], fill=color, outline=color)

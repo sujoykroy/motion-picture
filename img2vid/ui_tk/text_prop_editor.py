@@ -5,7 +5,7 @@ import tkinter.scrolledtext as tkscrolledtext
 import PIL.ImageTk
 
 from ..analysers import TextAnalyser
-from ..renderer import ImageRenderer
+
 from .frame import Frame
 from .color_button import ColorButton
 

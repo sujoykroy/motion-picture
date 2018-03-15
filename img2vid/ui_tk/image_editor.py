@@ -3,10 +3,11 @@ import tkinter as tk
 import PIL.ImageTk
 
 from ..geom import Point
-from .frame import Frame
+from ..utils import ImageUtils
 from ..slides import TextSlide, ImageSlide
-from ..renderer import ImageRenderer
 from ..renderer import ImageRenderProcess
+
+from .frame import Frame
 from .image_fitter import ImageFitter
 from .image_region import ImageRegionManager
 
@@ -143,7 +144,7 @@ class ImageEditor(Frame):
         canvas.coords(canvas.background, 0, 0, width, height)
 
         canvas.back_image_tk = PIL.ImageTk.PhotoImage(
-            image=ImageRenderer.create_blank(
+            image=ImageUtils.create_blank(
                 self._fitter.rects.screen.width,
                 self._fitter.rects.screen.height,
                 self.app_config.video_render.back_color

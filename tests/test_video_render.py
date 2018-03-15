@@ -1,12 +1,11 @@
 import unittest
 import tempfile
 
-from utils import ImageUtils
-
 from img2vid.geom import Rectangle
 from img2vid.configs import AppConfig
 from img2vid.slides import Project, TextSlide
-from img2vid.renderer import ImageRenderer, VideoRenderer
+from img2vid.utils import ImageUtils
+from img2vid.renderer import VideoRenderer
 from img2vid.effects import FadeIn, FadeOut, ScalePan
 
 class TestVideoRenderer(unittest.TestCase):
@@ -30,7 +29,7 @@ class TestVideoRenderer(unittest.TestCase):
     def create_mock_image_file(self, width, height, fil_color="#FFFFFF"):
         file_ob = tempfile.NamedTemporaryFile()
         self.temp_files.append(file_ob);
-        image = ImageRenderer.create_blank(width, height, fil_color)
+        image = ImageUtils.create_blank(width, height, fil_color)
         image.save(file_ob.name, "PNG")
         return file_ob
 

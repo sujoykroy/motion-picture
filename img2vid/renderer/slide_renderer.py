@@ -2,11 +2,13 @@ import wand.image
 import wand.drawing
 import wand.color
 
+from ..geom import Rectangle, Point
+from ..utils import ImageUtils
 from ..slides import ImageSlide, VideoSlide
 from ..analysers import TextAnalyser
+
 from .render_info import RenderInfo
-from .image_renderer import ImageRenderer
-from ..geom import Rectangle, Point
+from .caption_renderer import CaptionRenderer
 
 class ImageSlideBuilder:
     def __init__(self, slide):
@@ -21,12 +23,12 @@ class ImageSlideBuilder:
     def fetch_image(self):
         wand_image = bool(self.captions)
         if self.slide.TYPE_NAME == VideoSlide.TYPE_NAME:
-            self.file_image = ImageRenderer.fetch_video_frame(
+            self.file_image = ImageUtils.fetch_video_frame(
                 filepath=self.slide.filepath,
                 time_pos=self.slide.abs_current_pos,
                 crop=self.slide.rect, wand_image=wand_image)
         else:
-            self.file_image = ImageRenderer.fetch_image(
+            self.file_image = ImageUtils.fetch_image(
                 filepath=self.slide.filepath,
                 crop=self.slide.rect, wand_image=wand_image)
 
@@ -40,7 +42,7 @@ class ImageSlideBuilder:
         return max_img_height
 
     def fit_file_image(self, screen_config, max_img_height):
-        fitted_image = ImageRenderer.fit_inside(
+        fitted_image = ImageUtils.fit_inside(
             self.file_image, screen_config.scaled_width, max_img_height)
         self.orig_image_scale = fitted_image.width/self.file_image.width
         self.file_image = fitted_image
@@ -51,7 +53,7 @@ class ImageSlideBuilder:
         self.total_cap_height = 0
         self.cap_images.clear()
         for caption in self.captions:
-            cap_image = ImageRenderer.caption2image(
+            cap_image = CaptionRenderer.caption2image(
                 caption=caption, min_width=self.file_image.width,
                 text_config=image_config, wand_image=True)
             if caption.valign != ImageSlide.CAP_ALIGN_CENTER:
@@ -64,7 +66,6 @@ class ImageSlideBuilder:
                     self.file_image.height-self.total_cap_height)*0.5)
         self.draw_bottom = self.draw_top + self.file_image.height + self.total_cap_height
 
-
 class SlideRenderer:
     @classmethod
     def build_text_slide(cls, slide, screen_config, text_config):
@@ -73,13 +74,13 @@ class SlideRenderer:
                               background=wand.color.Color(back_color),
                               width=screen_config.scaled_width,
                               height=screen_config.scaled_height) as canvas:
-            canvas.units = ImageRenderer.PIXEL_PER_INCH
+            canvas.units = ImageUtils.PIXEL_PER_INCH
             with wand.drawing.Drawing() as context:
-                ImageRenderer.apply_caption(context, slide.caption, text_config)
+                CaptionRenderer.apply_caption(context, slide.caption, text_config)
                 context.gravity = "center"
                 context.text(x=0, y=0, body=slide.caption.text)
                 context(canvas)
-                image = ImageRenderer.wand2pil(canvas)
+                image = ImageUtils.wand2pil(canvas)
         return RenderInfo(image)
 
     @classmethod
@@ -93,7 +94,7 @@ class SlideRenderer:
         with wand.image.Image(resolution=image_config.ppi,
                               width=screen_config.scaled_width,
                               height=screen_config.scaled_height) as canvas:
-            canvas.units = ImageRenderer.PIXEL_PER_INCH
+            canvas.units = ImageUtils.PIXEL_PER_INCH
             with wand.drawing.Drawing() as context:
                 builder.fit_file_image(
                     screen_config,
@@ -128,7 +129,7 @@ class SlideRenderer:
                     cap_pos.y = int(cap_pos.y)
                     canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
                 context(canvas)
-                image = ImageRenderer.wand2pil(canvas)
+                image = ImageUtils.wand2pil(canvas)
         editable_rect = Rectangle(
             img_pos.x, img_pos.y,
             img_pos.x+builder.file_image.width, img_pos.y+builder.file_image.height)

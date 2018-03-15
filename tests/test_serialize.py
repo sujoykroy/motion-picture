@@ -4,7 +4,7 @@ from img2vid.geom import Rectangle
 from img2vid.slides import TextSlide, ImageSlide
 from img2vid.slides.caption import Caption
 from img2vid.renderer.render_info import RenderInfo
-from img2vid.renderer import ImageRenderer
+from img2vid.utils import ImageUtils
 
 class TestSerialization(unittest.TestCase):
     def test_text_slide_json(self):
@@ -30,7 +30,7 @@ class TestSerialization(unittest.TestCase):
 
     def test_render_info_json(self):
         info = RenderInfo(
-            image=ImageRenderer.create_blank(14, 23, "#000000"),
+            image=ImageUtils.create_blank(14, 23, "#000000"),
             editable_rect=Rectangle(10,20, 30, 40),
             orig_image_scale=2)
 

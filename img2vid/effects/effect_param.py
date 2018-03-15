@@ -10,7 +10,6 @@ class EffectParam:
             return float(value)
         return value
 
-
     @property
     def default_value(self):
         return self._default_value

@@ -2,7 +2,7 @@ import tkinter as tk
 import PIL.ImageTk
 
 from ..renderer import VideoThread
-from ..renderer import ImageRenderer
+from ..utils import ImageUtils
 
 from .dialog import Dialog
 from .frame import Frame
@@ -119,7 +119,7 @@ class PreviewPlayer(Frame):
 
         elapsed = self.widgets.slider.get()
         image = self._video_renderer.get_image_at(elapsed)
-        image = ImageRenderer.fit_inside(
+        image = ImageUtils.fit_inside(
             image, canvas_width, canvas_height)
 
         canvas.image_tk = PIL.ImageTk.PhotoImage(image=image)

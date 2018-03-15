@@ -3,7 +3,7 @@ import tkinter as tk
 import PIL.ImageTk
 import tkcolorpicker
 
-from ..renderer import ImageRenderer
+from ..utils import ImageUtils
 
 class ColorButton:
     def __init__(self, parent, title, width, height, command):
@@ -23,7 +23,7 @@ class ColorButton:
 
     @color.setter
     def color(self, color):
-        self._image = ImageRenderer.create_blank(self._width, self._height, color)
+        self._image = ImageUtils.create_blank(self._width, self._height, color)
         self._image_tk = PIL.ImageTk.PhotoImage(image=self._image)
         self.base["image"] = self._image_tk
         self._color = color

@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import PIL.ImageTk
 
 from ..geom import Point, Rectangle
-from ..renderer import ImageRenderer
+from ..utils import ImageUtils
 
 class ImageFitter:
     """This class provide editable area of slide image.
@@ -70,7 +70,7 @@ class ImageFitter:
         self.rects.editable.copy_from(self.render_info.editable_rect)
         self.rects.editable.same_scale(self.orig_image_scale)
 
-        image = ImageRenderer.resize(image, width, height)
+        image = ImageUtils.resize(image, width, height)
         left = int((self.canvas_size.x-width)*0.5)
         top = int((self.canvas_size.y-height)*0.5)
 
