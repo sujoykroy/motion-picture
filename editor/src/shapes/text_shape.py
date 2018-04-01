@@ -242,8 +242,6 @@ class TextShape(RectangleShape):
         super(TextShape, self).set_prop_value(prop_name, value, prop_data)
 
     def set_text(self, text):
-        if isinstance(text, str):
-            text = text.decode("utf-8")
         self.text = text
         self.set_exposure(self.exposure)
         self.readjust_sizes()

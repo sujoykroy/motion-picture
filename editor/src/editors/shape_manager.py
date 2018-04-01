@@ -785,7 +785,7 @@ class ShapeManager(object):
             return
 
         filtered_shapes = []
-        for i in xrange(len(shapes)):
+        for i in range(len(shapes)):
             shape = shapes[i]
             if shape.locked_to_shape:
                 continue
@@ -795,7 +795,7 @@ class ShapeManager(object):
 
         multi_selection_shape = MultiSelectionShape()
         self.add_shape(multi_selection_shape)
-        for i in xrange(len(filtered_shapes)):
+        for i in range(len(filtered_shapes)):
             shape = filtered_shapes[i]
             multi_selection_shape.add_shape(shape)
         multi_selection_shape.move_anchor_at_center()
@@ -1221,7 +1221,7 @@ class ShapeManager(object):
 
         self.delete_shape_editor()
 
-        for i in xrange(len(new_shapes)):
+        for i in range(len(new_shapes)):
             new_shape = new_shapes[i]
             old_shape = old_shapes[i]
             self.add_shape(new_shape)

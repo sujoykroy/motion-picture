@@ -340,6 +340,5 @@ class ShapePropBox(object):
         if self.prop_object != None:
             value = text_buffer.get_text(
                 text_buffer.get_start_iter(), text_buffer.get_end_iter(), False)
-            value = value.decode("utf-8")
             self.prop_object.set_prop_value(prop_name, value)
             self.draw_callback(text_buffer)
