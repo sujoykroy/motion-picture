@@ -768,8 +768,7 @@ class VideoFrameMaker(object):
             exclude_camera_list = []
 
         pre_matrix = self.ctx.get_matrix()
-        multi_shape.draw(self.ctx, drawing_size=self.drawing_size,
-            fixed_border=self.doc_movie.doc.fixed_border,
+        multi_shape.draw(self.ctx, drawing_size=self.drawing_size, fixed_border=True,
             no_camera=False, exclude_camera_list=exclude_camera_list,
             root_shape=multi_shape.parent_shape, pre_matrix=pre_matrix)
 
