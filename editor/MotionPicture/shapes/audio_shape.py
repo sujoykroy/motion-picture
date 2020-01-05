@@ -76,10 +76,10 @@ class AudioShape(TextShape, AVBase):
         self.AUDIO_ICON.draw(ctx)
         ctx.restore()
 
-    def draw(self, ctx, fixed_border=True, root_shape=None):
-        super(AudioShape, self).draw(ctx, fixed_border=fixed_border, root_shape=root_shape)
+    def draw(self, ctx, drawing_size=None, root_shape=None):
+        super(AudioShape, self).draw(ctx, drawing_size=drawing_size, root_shape=root_shape)
         ctx.save()
-        self.AUDIO_ICON.draw(ctx)
+        self.AUDIO_ICON.draw(ctx, drawing_size=drawing_size)
         ctx.restore()
 
     def can_draw_time_slice_for(self, prop_name):

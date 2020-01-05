@@ -33,7 +33,7 @@ class AudioGroup(AudioBlock):
         self._samples = None
         audio_message = AudioMessage()
 
-        for i in xrange(block_count):
+        for i in range(block_count):
 
             self.lock.acquire()
             if i <len(self.blocks):

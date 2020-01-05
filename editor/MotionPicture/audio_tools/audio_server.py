@@ -1,5 +1,6 @@
 import pyaudio
 from queue import Queue
+import queue
 import numpy
 import threading
 import time
@@ -23,7 +24,7 @@ class MidiThread(threading.Thread):
                 if item is None:
                     try:
                         item = self.midi_queue.get(block=False)
-                    except Queue.Empty:
+                    except queue.Empty:
                         item = None
                 if item:
                     if item[0]<=time.time():
@@ -69,8 +70,8 @@ class AudioServer(threading.Thread):
                 device_info = self.pa_manager.get_device_info_by_host_api_device_index(i, j)
                 self.output_device_index = device_info["index"]
 
-        self.audio_queue = Queue.Queue()
-        self.block_positions_queue = Queue.Queue()
+        self.audio_queue = Queue()
+        self.block_positions_queue = Queue()
         self.audio_group = AudioGroup()
         self.should_exit = False
         self.paused = False
@@ -113,7 +114,7 @@ class AudioServer(threading.Thread):
             if block_positions is None:
                 try:
                     block_positions, played_at = self.block_positions_queue.get(block=False)
-                except Queue.Empty:
+                except queue.Empty:
                     pass
             if block_positions and played_at<=time.time():
                 for block, pos in block_positions:
@@ -152,7 +153,7 @@ class AudioServer(threading.Thread):
                         (audio_message.block_positions, played_at))
 
                 self.audio_queue.task_done()
-            except Queue.Empty:
+            except queue.Empty:
                 data = self.audio_group.blank_data.copy()
         return (data, pyaudio.paContinue)
 

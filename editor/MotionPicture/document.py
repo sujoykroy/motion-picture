@@ -503,7 +503,7 @@ class DocMovie(object):
                     if u"main" in timelines:
                         time_line = u"main"
                     else:
-                        time_line = timelines.keys()[0]
+                        time_line = list(timelines.keys())[0]
             elif time_line not in timelines:
                 raise Exception("Timeline [{1}] is not found in {0}".format(
                                             src_filename, time_line))

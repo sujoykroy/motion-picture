@@ -846,6 +846,8 @@ class TimeLineEditor(Gtk.VBox):
 
         if self.time_line:
             for marker_at in sorted(self.time_line.time_markers.keys()):
+                if marker_at not in self.time_marker_boxes:
+                    continue
                 time_marker_box = self.time_marker_boxes[marker_at]
                 if marker_at<visible_time_start:
                     continue

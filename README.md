@@ -32,6 +32,10 @@ $ python example/simple.py
 
 Python 2.7.3 is used to run these codes.
 
+Run below if you find issue with installing PyAudio.
+````
+sudo apt-get install portaudio19-dev python-pyaudio python3-pyaudio
+````
 # Help
 * A demo video, made completely (except the music composition) using MotionPicture, can be viewed at https://www.youtube.com/watch?v=QK0A0dxl3vw
 

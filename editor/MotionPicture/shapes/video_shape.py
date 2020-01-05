@@ -8,6 +8,7 @@ from .av_base import AVBase
 import threading, time
 import queue
 from .. import settings as Settings
+import logging
 
 class VideoProcessThread(threading.Thread):
     def __init__(self, clip, frame_queue, time_queue):
@@ -34,12 +35,17 @@ class VideoProcessThread(threading.Thread):
                 time_pos = -1
             if time_pos>=0:
                 self.lock.acquire()
-                frame = self.clip.reader.get_frame(time_pos)
-                self.lock.release()
                 try:
-                    self.frame_queue.put(frame, block=False)
-                except queue.Full as e:
-                    pass
+                    frame = self.clip.reader.get_frame(time_pos)
+                except OSError as ex:
+                    logging.error(ex)
+                    frame = None
+                self.lock.release()
+                if frame is not None:
+                    try:
+                        self.frame_queue.put(frame, block=False)
+                    except queue.Full as e:
+                        pass
             elapsedTime = time.time() - startTime
             diffTime = self.period - elapsedTime
             if diffTime>0:

@@ -1,8 +1,8 @@
-from distutils.core import setup
+from setuptools import setup
 setup(
     name = 'MotionPicture',
-    version = '0.1',
-    package_dir = {'MotionPicture': 'src'},
+    version = '0.3',
+    package_dir = {'MotionPicture': 'MotionPicture'},
     packages = ['MotionPicture',
                 'MotionPicture.commons',
                 'MotionPicture.audio_tools',
