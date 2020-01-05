@@ -168,7 +168,7 @@ class ShapeEditor(object):
         control_1_fill_color = Color(1,1,0,1)
         control_2_fill_color = Color(1,0,0,1)
         if isinstance(shape, CurveShape) and shape.show_points:
-            for curve_index in range(len(self.shape.curves)):
+            for curve_index in xrange(len(self.shape.curves)):
                 curve = self.shape.curves[curve_index]
                 last_dest_eb = None
                 origin_eb = self.new_edit_box(OriginEditBox(curve_index), INNER)
@@ -179,7 +179,7 @@ class ShapeEditor(object):
                     self.joinable_point_edit_boxes.append(origin_eb)
 
                 first_control_1_eb = None
-                for bpi in range(len(curve.bezier_points)):
+                for bpi in xrange(len(curve.bezier_points)):
                     bezier_point = curve.bezier_points[bpi]
                     dest_eb = self.new_edit_box(DestEditBox(curve_index, bpi), INNER)
                     control_1_eb = self.new_edit_box(ControlEditBox(curve_index, bpi, 0), INNER)
@@ -484,7 +484,7 @@ class ShapeEditor(object):
                     if False and \
                         isinstance(self.shape, PolygonShape) and len(self.shape.polygons[0].points)>6:
                         span = 5
-                        for i in range(-span, span, 1):
+                        for i in xrange(-span, span, 1):
                             frac = (span-abs(i))*1./span
                             pp = percent_point.copy()
                             pp.x *= frac
@@ -627,7 +627,7 @@ class ShapeEditor(object):
         return False
 
     def align_points(self, x_dir, y_dir):
-        for i in range(1, len(self.selected_edit_boxes), 1):
+        for i in xrange(1, len(self.selected_edit_boxes), 1):
             edit_box = self.selected_edit_boxes[i]
             point = edit_box.point.copy()
             if x_dir:
