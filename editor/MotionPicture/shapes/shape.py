@@ -177,7 +177,7 @@ class Shape(object):
             shape_path = shape_path.strip()
             shape_path = shape_path.split("\\")
             shape_names = None
-            for i in xrange(len(shape_path)):
+            for i in range(len(shape_path)):
                 if shape_path[i] == '':
                     shape = shape.parent_shape
                 else:
@@ -375,7 +375,7 @@ class Shape(object):
                 value = Matrix.copy(value) if value else None
             elif value and hasattr(value, "copy"):
                 value = value.copy()
-            elif type(value) not in (int, float, str, bool, unicode) and value is not None:
+            elif type(value) not in (int, float, str, bool) and value is not None:
                 raise Exception("Don't know how to copy {0} of type {1}".format(prop_name, type(value)))
             prop_dict[prop_name] = value
         return prop_dict
@@ -417,8 +417,8 @@ class Shape(object):
 
         for prop_name, value in elm.attrib.items():
             if prop_name == "name":
-                if isinstance(value, str):
-                    value = value.decode("utf-8")
+                # if isinstance(value, str):
+                #    value = value.decode("utf-8")
                 shape_name = value
                 continue
             if prop_name in point_prop_names:
@@ -429,8 +429,8 @@ class Shape(object):
                 value = Matrix.from_text(value)
             elif prop_name in text_prop_names:
                 value = value
-                if isinstance(value, str):
-                    value = value.decode("utf-8")
+                # if isinstance(value, str):
+                #    value = value.decode("utf-8")
             elif prop_name == "visible":
                 if value == "True":
                     value = True

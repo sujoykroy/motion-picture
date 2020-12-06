@@ -393,8 +393,8 @@ class MultiShape(Shape):
         self.delete_pose_pixbuf(pose_name)
 
     def set_pose(self, pose_name):
-        if isinstance(pose_name, str):
-            pose_name = pose_name.decode("utf-8")
+        # if isinstance(pose_name, str):
+        #    pose_name = pose_name.decode("utf-8")
         if pose_name not in self.poses: return
         self.pose = pose_name
         self.set_pose_raw(self.poses[pose_name])

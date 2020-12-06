@@ -22,6 +22,9 @@ class Object3d(object):
 
         Object3d.IdSeed += 1
 
+    def __hash__(self):
+        return hash(f'Object3d-{self.id_num}')
+
     def copy_into(self, other):
         other.rotation.copy_from(self.rotation)
         other.translation.copy_from(self.translation)

@@ -9,6 +9,8 @@ from .colors import hsv_to_rgb, rgb_to_hsv
 
 def surface2array(surface):
     data = surface.get_data()
+    if not data:
+        return None
     rgb_array = 0+numpy.frombuffer(surface.get_data(), numpy.uint8)
     rgb_array.shape = (surface.get_height(), surface.get_width(), 4)
     #rgb_array = rgb_array[:,:,[2,1,0,3]]
@@ -56,7 +58,7 @@ class Camera3d(Object3d):
                 if not hasattr(item, "polygons"):
                     continue
                 polygons.extend(item.polygons)
-        self.sorted_items = sorted(polygons, self.z_depth_sort_key)
+        self.sorted_items = sorted(polygons, key=self.z_depth_sort_key)
 
         self.poly_face_params = None
         for item in self.sorted_items:
@@ -67,14 +69,8 @@ class Camera3d(Object3d):
                 self.poly_face_params = numpy.concatenate(
                         (self.poly_face_params, params), axis=0)
 
-    def z_depth_sort_key(self, o1, o2):
-        ps1 = o1.z_depths[self]
-        ps2 = o2.z_depths[self]
-        if ps1>ps2:
-            return -1
-        if ps1 == ps2:
-            return 0
-        return 1
+    def z_depth_sort_key(self, ob):
+        return ob.z_depths[self]
 
     def get_image_canvas(self, left, top, width, height, border_color=None, border_width=None, scale=.5):
         left = math.floor(left)
@@ -166,6 +162,8 @@ class Camera3d(Object3d):
             object_3d.draw(poly_ctx, self, border_color=border_color, border_width=border_width)
 
             surfacearray = surface2array(poly_surf)
+            if surfacearray is None:
+                continue
             area_cond = (surfacearray[:, :, 3]<=self.hit_alpha)
 
             xs = numpy.linspace(sleft, sright, poly_canvas_width)
@@ -218,7 +216,7 @@ class Camera3d(Object3d):
         canvas_surf_array = numpy.where(cond_multi, filled_values, canvas_surf_array)
         """
         canvas = cairo.ImageSurface.create_for_data(
-                numpy.getbuffer(canvas_surf_array), cairo.FORMAT_ARGB32, canvas_width, canvas_height)
+                canvas_surf_array, cairo.FORMAT_ARGB32, canvas_width, canvas_height)
 
         if scale != 1:
             enlarged_canvas = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
