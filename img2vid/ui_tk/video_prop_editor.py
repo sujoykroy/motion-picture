@@ -12,13 +12,13 @@ class VideoPropEditor(Frame):
         self._slide = None
         self.widgets.start_at_label = self._create_label("Start At", 5)
         self.widgets.start_at_scale = tk.Scale(
-            self.base, from_=0, to=100, resolution=1,
+            self.base, from_=0, to=100, resolution=.01,
             orient=tk.HORIZONTAL, command=self._set_start_at)
         self.widgets.start_at_scale.pack(fill=tk.X)
 
         self.widgets.end_at_label = self._create_label("End At", 5)
         self.widgets.end_at_scale = tk.Scale(
-            self.base, from_=0, to=100, resolution=1,
+            self.base, from_=0, to=100, resolution=.01,
             orient=tk.HORIZONTAL, command=self._set_end_at)
         self.widgets.end_at_scale.pack(fill=tk.X)
 

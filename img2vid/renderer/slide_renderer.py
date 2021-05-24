@@ -5,7 +5,7 @@ import wand.color
 from ..geom import Rectangle, Point
 from ..utils import ImageUtils
 from ..effects import Effect
-from ..slides import ImageSlide, VideoSlide
+from ..slides import ImageSlide, VideoSlide, TextSlide
 from ..analysers import TextAnalyser
 
 from .render_info import RenderInfo
@@ -35,9 +35,19 @@ class ImageSlideBuilder:
 
         if self.slide.effects:
             for effect in self.slide.effects.values():
-                if effect.APPLY_ON == Effect.APPLY_TYPE_IMAGE:
-                    self.file_image = effect.transform(
-                        image=self.file_image, progress=progress)
+                # print(effect.TYPE_NAME, effect.APPLY_ON & Effect.APPLY_TYPE_TEXT)
+                if self.slide.TYPE_NAME == TextSlide.TYPE_NAME and \
+                   (effect.APPLY_ON & Effect.APPLY_TYPE_TEXT) == 0:
+                    continue
+                if self.slide.TYPE_NAME == ImageSlide.TYPE_NAME and \
+                   (effect.APPLY_ON & Effect.APPLY_TYPE_IMAGE) == 0:
+                    continue
+                if self.slide.TYPE_NAME == VideoSlide.TYPE_NAME and \
+                   (effect.APPLY_ON & Effect.APPLY_TYPE_VIDEO) == 0:
+                    continue
+                self.file_image = effect.transform(
+                    image=self.file_image, progress=progress,
+                    slide=self.slide)
 
         if wand_image:
             self.file_image = ImageUtils.pil2wand(self.file_image)
@@ -91,6 +101,12 @@ class SlideRenderer:
                 context.text(x=0, y=0, body=slide.caption.text)
                 context(canvas)
                 image = ImageUtils.wand2pil(canvas)
+        for effect in slide.effects.values():
+            if effect.APPLY_ON & Effect.APPLY_TYPE_TEXT == 0:
+                continue
+            image = effect.transform(
+                image=image, progress=progress,
+                slide=slide)
         return RenderInfo(image)
 
     @classmethod

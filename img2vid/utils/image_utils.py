@@ -28,7 +28,7 @@ class ImageUtils:
 
     @classmethod
     def fetch_video_frame(cls, filepath, time_pos, crop, wand_image=False):
-        frame = VideoCache.get_video_clip(filepath).reader.get_frame(time_pos)
+        frame = VideoCache.get_video_clip(filepath).get_frame(time_pos)
         image = PIL.Image.fromarray(frame.copy()).convert("RGBA")
         if crop:
             image = image.crop((crop.x1, crop.y1, crop.x2, crop.y2))

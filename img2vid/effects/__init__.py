@@ -5,8 +5,10 @@ from .scale_pan import ScalePan
 from .fade_in import FadeIn
 from .fade_out import FadeOut
 from .rgb_filter import RgbFilter
+from .painted import Painted
+from .cool_text import CoolText
 
-_EFFECT_CLASSES = (FadeIn, FadeOut, RgbFilter)
+_EFFECT_CLASSES = (FadeIn, FadeOut, RgbFilter, Painted, CoolText)
 
 def create_effect_from_json(data):
     """Parses json data and returns corresponding Effect."""

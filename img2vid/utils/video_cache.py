@@ -1,3 +1,4 @@
+import sys
 from moviepy.editor import VideoFileClip
 
 class VideoCache:
@@ -26,5 +27,5 @@ class VideoCache:
                 del clip.audio
             del clip
         except Exception as e:
-            sys.exc_clear()
+            pass
 
