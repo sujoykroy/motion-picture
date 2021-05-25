@@ -47,18 +47,28 @@ class SlideEditor(Frame):
 
         self.widgets.add_text_slide_btn = \
             self._add_tool_button(
-                "Add Text Slide",
+                "Add Text",
                 self._ask_for_text_slide,
                 tk.LEFT)
         self.widgets.add_image_slide_btn = \
             self._add_tool_button(
-                "Add Image Slide(s)",
+                "Add Image(s)",
                 self._ask_for_image_slides,
+                tk.LEFT)
+        self.widgets.add_image_slide_btn = \
+            self._add_tool_button(
+                "Add Remote Image",
+                self._ask_for_remote_image_slide,
                 tk.LEFT)
         self.widgets.add_video_slide_btn = \
             self._add_tool_button(
-                "Add Video Slide(s)",
+                "Add Video(s)",
                 self._ask_for_video_slides,
+                tk.LEFT)
+        self.widgets.add_remote_video_slide_btn = \
+            self._add_tool_button(
+                "Add Remote Video",
+                self._ask_for_remote_video_slide,
                 tk.LEFT)
 
         self.widgets.image_editor = ImageEditor(self.base, self.app_config)
@@ -145,6 +155,21 @@ class SlideEditor(Frame):
         else:
             error_msg = "You have not selected any image to add."
             Dialog.show_error("Error", error_msg)
+
+    def _ask_for_remote_image_slide(self):
+        image_url = Dialog.ask_for_text("Image Slide", "Enter URL to the image")
+        if image_url:
+            slide = ImageSlide(filepath=image_url)
+            self._project.add_slide(slide, before=self._slide_index)
+            self.move_to_slide()
+
+
+    def _ask_for_remote_video_slide(self):
+        video_url = Dialog.ask_for_text("Video Slide", "Enter URL to the video")
+        if video_url:
+            slide = VideoSlide(filepath=video_url)
+            self._project.add_slide(slide, before=self._slide_index)
+            self.move_to_slide()
 
     def _ask_for_video_slides(self):
         if isinstance(self._slide, ImageSlide):

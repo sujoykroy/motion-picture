@@ -1,6 +1,9 @@
 """This module handle project database management"""
 import os
+import re
 import json
+
+import requests
 
 from .slide import Slide
 from .image_slide import ImageSlide
@@ -11,6 +14,7 @@ class Project:
     """This class stores slides information for a given project.
     """
     KEY_SLIDES = "slides"
+    URL_PATH_RE = re.compile(r'https?://')
 
     def __init__(self):
         self.slides = []
@@ -50,11 +54,18 @@ class Project:
 
     def load_from(self, filepath):
         """Load slides from the given filepath."""
-        self.filepath = filepath
-        _, ext = os.path.splitext(filepath)
-        if ext == ".json":
-            with open(filepath, "r") as file_ob:
-                project_data = json.load(file_ob)
+        project_data = None
+        if self.URL_PATH_RE.match(filepath):
+            resp = requests.get(filepath)
+            project_data = json.loads(resp.text)
+        else:
+            self.filepath = filepath
+            _, ext = os.path.splitext(filepath)
+            if ext == ".json":
+                with open(filepath, "r") as file_ob:
+                    project_data = json.load(file_ob)
+
+        if project_data:
             slides_data = project_data.get(self.KEY_SLIDES, [])
             for slide_data in slides_data:
                 slide = self.create_slide_from_json(slide_data)

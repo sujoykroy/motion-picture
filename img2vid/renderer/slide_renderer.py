@@ -30,7 +30,7 @@ class ImageSlideBuilder:
                 crop=self.slide.rect, wand_image=False)
         else:
             self.file_image = ImageUtils.fetch_image(
-                filepath=self.slide.filepath,
+                filepath=self.slide.local_filepath,
                 crop=self.slide.rect, wand_image=False)
 
         if self.slide.effects:

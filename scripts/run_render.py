@@ -1,10 +1,23 @@
 #!/usr/bin/env python3
+import argparse
+
 from img2vid.slides import Project
 from img2vid.configs import AppConfig
 from img2vid.renderer import VideoRenderer
 
-filepath = '/home/sujoy/img2vid_test.json'
-dest_filepath = '/home/sujoy/img2vid_test.mov'
+
+parser = argparse.ArgumentParser(description='Render video')
+parser.add_argument(
+    'source', type=str,
+    help='full path of source json file, url supported')
+parser.add_argument(
+    'dest', type=str,
+    help='full path of destination video file')
+
+args = parser.parse_args()
+
+filepath = args.source
+dest_filepath = args.dest
 
 project = Project()
 project.load_from(filepath)
