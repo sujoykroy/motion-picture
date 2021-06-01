@@ -66,11 +66,15 @@ class Project:
                     project_data = json.load(file_ob)
 
         if project_data:
-            slides_data = project_data.get(self.KEY_SLIDES, [])
-            for slide_data in slides_data:
-                slide = self.create_slide_from_json(slide_data)
-                if slide:
-                    self.add_slide(slide)
+            self.load_from_json(project_data)
+
+    def load_from_json(self, project_data):
+        """Load slides from the given json data."""
+        slides_data = project_data.get(self.KEY_SLIDES, [])
+        for slide_data in slides_data:
+            slide = self.create_slide_from_json(slide_data)
+            if slide:
+                self.add_slide(slide)
 
     def save(self, filepath=None):
         if not self.slides:
