@@ -11,6 +11,8 @@ from ..slides import TextSlide, ImageSlide, VideoSlide
 from ..utils import ImageUtils
 from .. import effects as SlideEffects
 
+from ..utils import ImageUtils
+
 from .slide_renderer import SlideRenderer
 
 class EffectTimeSlice:
@@ -151,7 +153,7 @@ class SlideTimeSlice:
                 image, rel_time-tslice.start_time, app_config)
         return image
 
-class VideoRenderer:
+class VideoRenderer1:
     RENDER_DELAY = 0.01
 
     def __init__(self, app_config):
@@ -294,4 +296,182 @@ class VideoRenderer:
 
 
         video_renderer.auto_fit()
+        return video_renderer
+
+
+class VideoRenderer():
+    RENDER_DELAY = 0.01
+
+    def __init__(self, app_config):
+        self._frame_callback = None
+        self._app_config = app_config
+
+        config = app_config.video_render
+        self._back_image = ImageUtils.create_blank(
+            config.width, config.height, config.back_color)
+
+        self._outer_clip = None
+        self._clips = []
+        self.screen_size = (800, 600)
+
+    @property
+    def last_frame_time(self):
+        return self._outer_clip.duration
+
+    @property
+    def duration(self):
+        return self.outer_clip.duration
+
+    def set_frame_callback(self, method):
+        self._frame_callback = method
+
+    def append_clip(self, clip):
+        self._clips.append(clip)
+
+    @property
+    def outer_clip(self):
+        if not self._outer_clip:
+            self._outer_clip = moviepy.editor.CompositeVideoClip(
+                self._clips,
+                size=self.screen_size
+            )
+        return self._outer_clip
+
+    def get_image_at(self, time_pos):
+        time_pos = min(time_pos, self.duration)
+        data = self.outer_clip.get_frame(time_pos)
+        try:
+            return PIL.Image.fromarray(data)
+        except Exception as ex:
+            print("data", data)
+            raise ex
+
+    def get_frame_at(self, time_pos):
+        time.sleep(self.RENDER_DELAY)
+        if self._frame_callback:
+            if not self._frame_callback():
+                raise Exception("Video rendering is terminated!")
+        image = self.get_image_at(time_pos)
+        frame = numpy.array(image, dtype=numpy.uint8)
+        frame = frame[:, :, :3]
+        return frame
+
+    def make_video(self, dest_filepath):
+        config = self._app_config.video_render
+        self.outer_clip.write_videofile(
+            dest_filepath, fps=config.fps,
+            codec=config.video_codec,
+            preset=config.ffmpeg_preset,
+            ffmpeg_params=config.ffmpeg_params,
+            bitrate=config.bit_rate)
+
+    def create_text_clip(self, slide, app_config):
+        caption = slide.caption
+        config = app_config.text
+        valign = caption.valign
+        if valign == 'top':
+            align = 'North'
+        elif valign == 'bottom':
+            align = 'South'
+        else:
+            align = 'center'
+        return moviepy.editor.TextClip(
+            txt=caption.text,
+            stroke_color=caption.font_color or caption.font_color,
+            font=caption.font_family or config.font_name,
+            fontsize=(caption.font_size  or config.font_size) * config.ppi/72,
+            method='caption',
+            align=align,
+            # size=self.screen_size,
+            bg_color=caption.back_color
+        )
+
+
+    def create_image_clip(self, slide, app_config):
+        render_config = app_config.video_render
+        image = ImageUtils.fetch_image(slide.local_filepath, crop=slide.rect)
+        image = ImageUtils.fit_full(image, render_config.scaled_width, render_config.scaled_height)
+
+        clips = []
+        clips.append(
+            moviepy.editor.ImageClip(
+                numpy.array(image, dtype=numpy.uint8)
+            )
+        )
+        for caption in slide.active_captions:
+            clip = self.create_text_clip(TextSlide(caption), app_config)
+            clips.append(clip)
+
+        if len(clips) == 1:
+            return clips[0]
+        return moviepy.editor.CompositeVideoClip(clips)
+
+    @classmethod
+    def create_from_project(cls, project, app_config):
+        video_renderer = VideoRenderer(app_config)
+
+        cropped_files = []
+        for slide in project.slides:
+            if slide.TYPE_NAME == ImageSlide.TYPE_NAME and slide.rect:
+                cropped_files.append(slide.filepath)
+
+        clips = []
+
+        video_renderer.screen_size =(
+            app_config.video_render.scaled_width,
+            app_config.video_render.scaled_height
+        )
+
+        elapsed = 0
+        for slide in project.slides:
+            seffects = dict(slide.effects)
+
+            sduration = 0
+            if slide.TYPE_NAME == TextSlide.TYPE_NAME:
+                sduration = app_config.text.duration
+            elif slide.TYPE_NAME in (ImageSlide.TYPE_NAME, VideoSlide.TYPE_NAME):
+                if slide.TYPE_NAME == VideoSlide.TYPE_NAME:
+                    sduration = slide.duration
+                else:
+                    sduration = app_config.image.duration
+                if slide.rect:
+                    random.seed()
+                    sduration = app_config.image.random_crop_duration
+                elif slide.filepath in cropped_files:
+                    sduration = app_config.image.crop_source_duration
+                if not slide.rect and not slide.has_caption:
+                    effect = SlideEffects.ScalePan.create_random(1, 6)
+                    seffects[effect.TYPE_NAME] = effect
+            if sduration == 0:
+                continue
+
+
+            if slide.TYPE_NAME == TextSlide.TYPE_NAME:
+                clip = video_renderer.create_text_clip(slide, app_config)
+            elif slide.TYPE_NAME == ImageSlide.TYPE_NAME:
+                clip = video_renderer.create_image_clip(slide, app_config)
+            else:
+                continue
+
+
+            clip = clip.set_duration(sduration)
+
+            effect = seffects.pop(SlideEffects.ScalePan.TYPE_NAME, None)
+            if effect:#ScalePan effect
+                pass
+
+            effect = seffects.pop(SlideEffects.FadeOut.TYPE_NAME, None)
+            if effect:#FadeOut effect
+                clip = clip.fx(moviepy.video.fx.all.fadeout, duration=effect.duration, final_color=0)
+
+            effect = seffects.pop(SlideEffects.FadeIn.TYPE_NAME, None)
+            if effect:#FadeIn effect
+                clip = clip.fx(moviepy.video.fx.all.fadein, duration=effect.duration)
+
+            clip = clip.set_start(max(0, elapsed))
+            # clip = clip.crossfadein(1)
+            video_renderer.append_clip(clip)
+
+            elapsed += sduration
+
         return video_renderer
