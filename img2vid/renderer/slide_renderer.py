@@ -11,6 +11,7 @@ from ..analysers import TextAnalyser
 from .render_info import RenderInfo
 from .caption_renderer import CaptionRenderer
 
+
 class ImageSlideBuilder:
     def __init__(self, slide):
         self.slide = slide
@@ -33,7 +34,7 @@ class ImageSlideBuilder:
                 filepath=self.slide.local_filepath,
                 crop=self.slide.rect, wand_image=False)
 
-        if self.slide.effects:
+        if self.slide.effects and False:
             for effect in self.slide.effects.values():
                 # print(effect.TYPE_NAME, effect.APPLY_ON & Effect.APPLY_TYPE_TEXT)
                 if self.slide.TYPE_NAME == TextSlide.TYPE_NAME and \
@@ -101,12 +102,12 @@ class SlideRenderer:
                 context.text(x=0, y=0, body=slide.caption.text)
                 context(canvas)
                 image = ImageUtils.wand2pil(canvas)
-        for effect in slide.effects.values():
-            if effect.APPLY_ON & Effect.APPLY_TYPE_TEXT == 0:
-                continue
-            image = effect.transform(
-                image=image, progress=progress,
-                slide=slide)
+        # for effect in slide.effects.values():
+        #    if effect.APPLY_ON & Effect.APPLY_TYPE_TEXT == 0:
+        #        continue
+        #    image = effect.transform(
+        #        image=image, progress=progress,
+        #        slide=slide)
         return RenderInfo(image)
 
     @classmethod

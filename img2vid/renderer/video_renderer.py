@@ -13,6 +13,7 @@ from .. import effects as SlideEffects
 
 from ..utils import ImageUtils
 
+from .text_slide_clip import TextSlideClip
 from .slide_renderer import SlideRenderer
 
 class EffectTimeSlice:
@@ -58,6 +59,7 @@ class EffectTimeSlice:
             image = ImageUtils.set_alpha(
                 image, self.effect.get_value_at(frac=frac))
         return image
+
 
 class SlideTimeSlice:
     _IdSeed = 0
@@ -299,7 +301,7 @@ class VideoRenderer1:
         return video_renderer
 
 
-class VideoRenderer():
+class VideoRenderer:
     RENDER_DELAY = 0.01
 
     def __init__(self, app_config):
@@ -366,26 +368,7 @@ class VideoRenderer():
             bitrate=config.bit_rate)
 
     def create_text_clip(self, slide, app_config):
-        caption = slide.caption
-        config = app_config.text
-        valign = caption.valign
-        if valign == 'top':
-            align = 'North'
-        elif valign == 'bottom':
-            align = 'South'
-        else:
-            align = 'center'
-        return moviepy.editor.TextClip(
-            txt=caption.text,
-            stroke_color=caption.font_color or caption.font_color,
-            font=caption.font_family or config.font_name,
-            fontsize=(caption.font_size  or config.font_size) * config.ppi/72,
-            method='caption',
-            align=align,
-            # size=self.screen_size,
-            bg_color=caption.back_color
-        )
-
+        return TextSlideClip(slide, app_config, size=self.screen_size)
 
     def create_image_clip(self, slide, app_config):
         render_config = app_config.video_render
@@ -454,7 +437,7 @@ class VideoRenderer():
                 continue
 
 
-            clip = clip.set_duration(sduration)
+            clip.duration = sduration
 
             effect = seffects.pop(SlideEffects.ScalePan.TYPE_NAME, None)
             if effect:#ScalePan effect
