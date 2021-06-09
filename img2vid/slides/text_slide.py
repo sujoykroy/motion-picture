@@ -12,6 +12,14 @@ class TextSlide(Slide):
         self._caption = caption
 
     @property
+    def vtext_frac(self):
+        return self._caption.vfrac
+
+    @vtext_frac.setter
+    def vtext_frac(self, value):
+        self._caption.vfrac = value
+
+    @property
     def caption(self):
         return self._caption
 

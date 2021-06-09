@@ -14,6 +14,7 @@ from .. import effects as SlideEffects
 from ..utils import ImageUtils
 
 from .text_slide_clip import TextSlideClip
+from .image_slide_clip import ImageSlideClip
 from .slide_renderer import SlideRenderer
 
 class EffectTimeSlice:
@@ -371,23 +372,7 @@ class VideoRenderer:
         return TextSlideClip(slide, app_config, size=self.screen_size)
 
     def create_image_clip(self, slide, app_config):
-        render_config = app_config.video_render
-        image = ImageUtils.fetch_image(slide.local_filepath, crop=slide.rect)
-        image = ImageUtils.fit_full(image, render_config.scaled_width, render_config.scaled_height)
-
-        clips = []
-        clips.append(
-            moviepy.editor.ImageClip(
-                numpy.array(image, dtype=numpy.uint8)
-            )
-        )
-        for caption in slide.active_captions:
-            clip = self.create_text_clip(TextSlide(caption), app_config)
-            clips.append(clip)
-
-        if len(clips) == 1:
-            return clips[0]
-        return moviepy.editor.CompositeVideoClip(clips)
+        return ImageSlideClip(slide, app_config, size=self.screen_size)
 
     @classmethod
     def create_from_project(cls, project, app_config):

@@ -56,6 +56,15 @@ class ImageSlide(Slide):
         self._captions[caption.valign] = caption
 
     @property
+    def vtext_frac(self):
+        return 1
+
+    @vtext_frac.setter
+    def vtext_frac(self, value):
+        for cap in self._captions.values():
+            cap.vfrac = value
+
+    @property
     def active_captions(self):
         caps = []
         for cap in self._captions.values():

@@ -8,6 +8,15 @@ class Caption:
         self._params = params
 
     @property
+    def vfrac(self):
+        # Returns "visible length" of the text
+        return self._params.get('vfrac', 1)
+
+    @vfrac.setter
+    def vfrac(self, value):
+        self._params['vfrac'] = float(value)
+
+    @property
     def text(self):
         return self._params.get('text', '')
 
@@ -15,6 +24,14 @@ class Caption:
     def text(self, value):
         value  = re.sub("[\r\n]$", "", value)
         self._params['text'] = value
+
+    @property
+    def visible_text(self):
+        text = self.text
+        text = text[0: int(len(text) * self.vfrac) + 1]
+        if text is None:
+            text = ''
+        return text
 
     @property
     def valign(self):
@@ -71,7 +88,10 @@ class Caption:
         self._params['back_color'] = value
 
     def get_json(self):
-        return dict(self._params)
+        data = dict(self._params)
+        if 'vfrac' in data:
+            del data['vfrac']
+        return data
 
     @classmethod
     def create_from_json(cls, data):

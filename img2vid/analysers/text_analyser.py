@@ -42,7 +42,7 @@ class TextAnalyser:
                 else:
                     context.font_size = text_config.font_pixel_size
                 context.font_size *= text_config.scale
-                metric = context.get_font_metrics(canvas, caption.text, multiline=True)
+                metric = context.get_font_metrics(canvas, caption.visible_text, multiline=True)
                 metric = FontMetric(metric)
                 metric.height = metric.text_height + 2*text_config.padding
                 metric.top_offset = metric.ascender + text_config.padding

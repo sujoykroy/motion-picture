@@ -9,6 +9,8 @@ class Effect:
     APPLY_TYPE_VIDEO = 3
     APPLY_TYPE_TEXT = 4
 
+    APPLY_TYPE_ALL = APPLY_TYPE_IMAGE | APPLY_TYPE_VIDEO | APPLY_TYPE_TEXT
+
     _IdSeed = 0
 
     PARAMS = []
@@ -17,6 +19,9 @@ class Effect:
     def __init__(self):
         self._id_num = Effect._IdSeed
         Effect._IdSeed += 1
+
+    def get_name(self):
+        return self.TYPE_NAME
 
     def __hash__(self):
         return hash("Effect{}".format(self._id_num))
@@ -37,8 +42,8 @@ class Effect:
                 value = param.parse(kwargs[key])
                 self.set_param(key, value)
 
-    def transform(self, **kwargs):
-        pass
+    def transform(self, image, **kwargs):
+        return image
 
     def get_json(self):
         data = {}

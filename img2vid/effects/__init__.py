@@ -7,8 +7,10 @@ from .fade_out import FadeOut
 from .rgb_filter import RgbFilter
 from .painted import Painted
 from .cool_text import CoolText
+from .param_change import NumberParamChange
 
-_EFFECT_CLASSES = (FadeIn, FadeOut, RgbFilter, Painted, CoolText)
+
+_EFFECT_CLASSES = (FadeIn, FadeOut, RgbFilter, Painted, CoolText, NumberParamChange)
 
 def create_effect_from_json(data):
     """Parses json data and returns corresponding Effect."""

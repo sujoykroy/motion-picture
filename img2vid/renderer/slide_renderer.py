@@ -75,7 +75,7 @@ class ImageSlideBuilder:
         self.cap_images.clear()
         for caption in self.captions:
             cap_image = CaptionRenderer.caption2image(
-                caption=caption, min_width=self.file_image.width,
+                caption=caption, min_width=0,
                 text_config=image_config, wand_image=True)
             if caption.valign != ImageSlide.CAP_ALIGN_CENTER:
                 self.total_cap_height += cap_image.height
@@ -97,17 +97,19 @@ class SlideRenderer:
                               height=screen_config.scaled_height) as canvas:
             canvas.units = ImageUtils.PIXEL_PER_INCH
             with wand.drawing.Drawing() as context:
-                CaptionRenderer.apply_caption(context, slide.caption, text_config)
-                context.gravity = "center"
-                context.text(x=0, y=0, body=slide.caption.text)
-                context(canvas)
+                # Place caption images
+                cap_image = CaptionRenderer.caption2image(
+                    caption=slide.caption, min_width=0,
+                    text_config=text_config, wand_image=True
+                )
+                cap_pos = Point(
+                    (screen_config.scaled_width - cap_image.width) * 0.5,
+                    (screen_config.scaled_height - cap_image.height) * 0.5
+                )
+                cap_pos.x = int(cap_pos.x)
+                cap_pos.y = int(cap_pos.y)
+                canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
                 image = ImageUtils.wand2pil(canvas)
-        # for effect in slide.effects.values():
-        #    if effect.APPLY_ON & Effect.APPLY_TYPE_TEXT == 0:
-        #        continue
-        #    image = effect.transform(
-        #        image=image, progress=progress,
-        #        slide=slide)
         return RenderInfo(image)
 
     @classmethod
@@ -125,38 +127,33 @@ class SlideRenderer:
             with wand.drawing.Drawing() as context:
                 builder.fit_file_image(
                     screen_config,
-                    builder.get_min_img_height(screen_config, image_config))
+                    screen_config.height)
                 builder.build_caption_images(image_config)
                 builder.build_draw_area(screen_config)
 
-                #Place the file image
+                # Place the file image
                 img_pos = Point(
                     int((screen_config.scaled_width-builder.file_image.width)*0.5),
                     int((screen_config.scaled_height-builder.file_image.height)*0.5))
-                if ImageSlide.CAP_ALIGN_TOP in builder.cap_images:
-                    img_pos.y = builder.cap_images[ImageSlide.CAP_ALIGN_TOP].height
-                elif ImageSlide.CAP_ALIGN_BOTTOM in builder.cap_images:
-                    img_pos.y = builder.draw_bottom - \
-                                builder.file_image.height - \
-                                builder.cap_images[ImageSlide.CAP_ALIGN_BOTTOM].height
                 img_pos.x = int(img_pos.x)
                 img_pos.y = int(img_pos.y)
                 canvas.composite(image=builder.file_image, left=img_pos.x, top=img_pos.y)
 
-                #Place caption images
+                # Place caption images
                 for cap_align, cap_image in builder.cap_images.items():
                     cap_pos = Point((screen_config.scaled_width-cap_image.width)*0.5, 0)
                     if cap_align == ImageSlide.CAP_ALIGN_CENTER:
-                        cap_pos.y = img_pos.y + (builder.file_image.height - cap_image.height)*0.5
+                        cap_pos.y = (screen_config.scaled_height - cap_image.height)  *0.5
                     elif cap_align == ImageSlide.CAP_ALIGN_TOP:
-                        cap_pos.y = builder.draw_top
+                        cap_pos.y = 0
                     elif cap_align == ImageSlide.CAP_ALIGN_BOTTOM:
-                        cap_pos.y = builder.draw_bottom - cap_image.height
+                        cap_pos.y = screen_config.scaled_height - cap_image.height
                     cap_pos.x = int(cap_pos.x)
                     cap_pos.y = int(cap_pos.y)
                     canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
                 context(canvas)
                 image = ImageUtils.wand2pil(canvas)
+
         editable_rect = Rectangle(
             img_pos.x, img_pos.y,
             img_pos.x+builder.file_image.width, img_pos.y+builder.file_image.height)
