@@ -26,4 +26,7 @@ video_renderer = VideoRenderer.create_from_project(
     project, AppConfig()
 )
 
-video_renderer.make_video(dest_filepath)
+video_renderer.make_video(
+    dest_filepath,
+    lambda progress: print('Progress: {:03d}%'.format(int(100*progress)), end='\r')
+)

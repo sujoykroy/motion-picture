@@ -6,6 +6,8 @@ import traceback
 import numpy
 import PIL.Image
 import moviepy.editor
+from proglog import ProgressBarLogger
+
 
 from ..slides import TextSlide, ImageSlide, VideoSlide
 from ..utils import ImageUtils
@@ -302,6 +304,19 @@ class VideoRenderer1:
         return video_renderer
 
 
+
+
+class VideoRenderLogger(ProgressBarLogger):
+    def __init__(self, external_callback, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._external_callback = external_callback
+
+    def bars_callback(self, *args, **kwargs):
+        if self._external_callback and \
+           self.state.get('bars') and self.state['bars']['t']:
+            t = self.state['bars']['t']
+            self._external_callback(progress=t['index']/t['total'])
+
 class VideoRenderer:
     RENDER_DELAY = 0.01
 
@@ -359,14 +374,19 @@ class VideoRenderer:
         frame = frame[:, :, :3]
         return frame
 
-    def make_video(self, dest_filepath):
+    def make_video(self, dest_filepath, callback = None):
         config = self._app_config.video_render
+        if callback:
+            render_logger = VideoRenderLogger(external_callback=callback)
+        else:
+            render_logger = 'bar'
         self.outer_clip.write_videofile(
             dest_filepath, fps=config.fps,
             codec=config.video_codec,
             preset=config.ffmpeg_preset,
             ffmpeg_params=config.ffmpeg_params,
-            bitrate=config.bit_rate)
+            bitrate=config.bit_rate,
+            logger=render_logger)
 
     def create_text_clip(self, slide, app_config):
         return TextSlideClip(slide, app_config, size=self.screen_size)
