@@ -47,7 +47,7 @@ class TextPropEditor(Frame):
 
         self.widgets.font_size_label = self._create_label("Font Size", 5)
         self.widgets.font_size_scale = tk.Scale(
-            self.base, from_=1, to=50, resolution=1,
+            self.base, from_=1, to=500, resolution=1,
             orient=tk.HORIZONTAL, command=self._set_font_size)
         self.widgets.font_size_scale.pack(expand=1, fill=tk.X)
 

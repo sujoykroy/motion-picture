@@ -22,6 +22,10 @@ class TextConfig:
         return int(self.params.get("font_size", 10))
 
     @property
+    def scaled_font_size(self):
+        return max(int(round((self.font_size * self.scale))), 1)
+
+    @property
     def font_color(self):
         return self.params.get("font_color", "#000000")
 
@@ -43,7 +47,7 @@ class TextConfig:
 
     @property
     def font_pixel_size(self):
-        return int(round(self.font_size*self.ppi/self.INCH2PIXEL))
+        return int(round(self.scaled_font_size*self.ppi/self.INCH2PIXEL))
 
     def get_font_point_to_pixel(self, point_size):
         return int(round(point_size*self.ppi/self.INCH2PIXEL))
