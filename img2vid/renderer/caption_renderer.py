@@ -31,7 +31,7 @@ class CaptionRenderer:
 
         if caption.font_size:
             font_size = \
-                text_config.get_font_point_to_pixel(caption.font_size * text_config.scale)
+                text_config.get_font_point_to_pixel(int(caption.font_size) * text_config.scale)
         else:
             font_size = text_config.font_pixel_size
 
