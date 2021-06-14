@@ -59,7 +59,6 @@ class CaptionRenderer:
         )
         args.append('pango:' + text)
         args.append(filename)
-        print(args, caption.back_color )
         subprocess.call(args)
         image = ImageUtils.fetch_image(filename, crop=None, wand_image=wand_image)
         dest_image_file.close()
