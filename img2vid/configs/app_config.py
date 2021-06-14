@@ -18,8 +18,10 @@ class AppConfig:
         section = self.get_section("general")
         ppi = int(section.get("ppi", 340))
         font_name = section.get("font-name", "Courier")
+
         font_size = section.get("font_size", "15")
-        back_color = section.get("back-color", "#000000")
+        font_color = section.get("font-color", "#000000")
+        back_color = section.get("back-color", "#FFFFFF00")
 
         section = self.get_section("editor")
         self.editor_back_color = section.get("back-color", "white")
@@ -28,7 +30,7 @@ class AppConfig:
         self.text = TextConfig(
             font_name=section.get("font-name", font_name),
             font_size=section.get("font-size", font_size),
-            font_color=section.get("font-color", "#FFFFFF"),
+            font_color=section.get("font-color", font_color),
             back_color=section.get("back-color", back_color),
             ppi=ppi,
             duration=section.get("duration", 3))
@@ -37,8 +39,8 @@ class AppConfig:
         self.image = ImageConfig(
             font_name=section.get("font-name", font_name),
             font_size=section.get("font-size", font_size),
-            font_color=section.get("font-color", "#000000"),
-            back_color=section.get("back-color", "#ffffffaa"),
+            font_color=section.get("font-color", font_color),
+            back_color=section.get("back-color", back_color),
             padding=section.get("padding", 0),
             ppi=ppi,
             min_crop_duration=section.get("min-crop-duration", 1),

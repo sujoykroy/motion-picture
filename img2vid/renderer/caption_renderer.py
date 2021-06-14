@@ -12,7 +12,7 @@ from ..utils import ImageUtils
 
 class CaptionRenderer:
     @classmethod
-    def caption2image(cls, caption, min_width, text_config, wand_image=False):
+    def caption2image(cls, caption, max_width, text_config, wand_image=False):
         vtext = caption.visible_text
         if not vtext:
             return None
@@ -22,11 +22,12 @@ class CaptionRenderer:
         args = [
             'convert'
         ]
-        back_color = caption.back_color or text_config.back_color
+        back_color = caption.back_color#  or text_config.back_color
         args.extend(['-channel', "RGBA"])
         args.extend(['-background', back_color])
         args.extend(['-gravity', "center"])
         args.extend(['-trim'])
+        args.extend(['-size', str(max_width)])
 
         if caption.font_family:
             font_family = caption.font_family
@@ -43,7 +44,6 @@ class CaptionRenderer:
             font_color = caption.font_color
         else:
             font_color = text_config.font_color
-
         text = '''
         <span
             font_family="{font_family}"
@@ -51,7 +51,7 @@ class CaptionRenderer:
             foreground="{font_color}">{text}</span>
         '''.format(
             font_family=font_family,
-            font_size=int(font_size) * 100,
+            font_size=int(font_size) * 1000,
             font_color=font_color,
             font_style=caption.font_style,
             font_weight=caption.font_weight,

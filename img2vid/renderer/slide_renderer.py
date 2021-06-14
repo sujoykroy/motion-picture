@@ -69,13 +69,13 @@ class ImageSlideBuilder:
         self.file_image = fitted_image
         del fitted_image
 
-    def build_caption_images(self, image_config):
+    def build_caption_images(self, screen_config, image_config):
         #Build caption-images and store total cap height
         self.total_cap_height = 0
         self.cap_images.clear()
         for caption in self.captions:
             cap_image = CaptionRenderer.caption2image(
-                caption=caption, min_width=0,
+                caption=caption, max_width=screen_config.scaled_width,
                 text_config=image_config, wand_image=True)
             if not cap_image:
                 continue
@@ -101,7 +101,7 @@ class SlideRenderer:
             with wand.drawing.Drawing() as context:
                 # Place caption images
                 cap_image = CaptionRenderer.caption2image(
-                    caption=slide.caption, min_width=0,
+                    caption=slide.caption, max_width=screen_config.scaled_width,
                     text_config=text_config, wand_image=True
                 )
                 if cap_image:
@@ -131,7 +131,7 @@ class SlideRenderer:
                 builder.fit_file_image(
                     screen_config,
                     screen_config.height)
-                builder.build_caption_images(image_config)
+                builder.build_caption_images(screen_config, image_config)
                 builder.build_draw_area(screen_config)
 
                 # Place the file image
