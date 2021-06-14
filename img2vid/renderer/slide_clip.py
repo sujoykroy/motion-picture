@@ -1,5 +1,3 @@
-from copy import copy
-
 import numpy
 import moviepy.editor
 
@@ -17,7 +15,7 @@ class SlideClip(moviepy.editor.VideoClip):
 
         self.make_frame = self._make_frame
 
-        self.slide = copy(slide)
+        self.slide = slide.clone()
         self.app_config = app_config
 
         self._cached_image = None
@@ -41,7 +39,8 @@ class SlideClip(moviepy.editor.VideoClip):
             self._cached_image = None
             image = effect.transform(
                 image=image, progress=progress,
-                slide=self.slide, rel_time=time_pos
+                slide=self.slide, rel_time=time_pos,
+                clip=self
             )
         return image
 

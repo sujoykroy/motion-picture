@@ -457,7 +457,7 @@ class VideoRenderer:
                 clip = clip.fx(moviepy.video.fx.all.fadein, duration=effect.duration)
 
             clip = clip.set_start(max(0, elapsed))
-            # clip = clip.crossfadein(1)
+            clip = clip.crossfadein(.5)
             video_renderer.append_clip(clip)
 
             elapsed += sduration

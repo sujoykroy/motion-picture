@@ -15,6 +15,7 @@ class Slide:
             'param_name': 'vtext_frac',
             'value_start': 0,
             'value_end': 1,
+            'scale': 1.5
         })
 
     @property
@@ -53,3 +54,6 @@ class Slide:
 
     def __eq__(self, other):
         return isinstance(other, Slide) and other.id_num == self.id_num
+
+    def clone(self):
+        return self.create_from_json(self.get_json())

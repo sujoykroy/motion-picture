@@ -20,6 +20,10 @@ class Caption:
     def text(self):
         return self._params.get('text', '')
 
+    @property
+    def text_length(self):
+        return len(self.text)
+
     @text.setter
     def text(self, value):
         value  = re.sub("[\r\n]$", "", value)
@@ -28,7 +32,7 @@ class Caption:
     @property
     def visible_text(self):
         text = self.text
-        text = text[0: int(len(text) * self.vfrac) + 1]
+        text = text[0: int(round(len(text) * self.vfrac))]
         if text is None:
             text = ''
         return text

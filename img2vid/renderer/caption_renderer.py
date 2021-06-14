@@ -13,6 +13,10 @@ from ..utils import ImageUtils
 class CaptionRenderer:
     @classmethod
     def caption2image(cls, caption, min_width, text_config, wand_image=False):
+        vtext = caption.visible_text
+        if not vtext:
+            return None
+
         dest_image_file = tempfile.NamedTemporaryFile(suffix='.png')
         filename = dest_image_file.name
         args = [
@@ -20,7 +24,7 @@ class CaptionRenderer:
         ]
         back_color = caption.back_color or text_config.back_color
         args.extend(['-channel', "RGBA"])
-        args.extend(['-background', "#00000000"])
+        args.extend(['-background', back_color])
         args.extend(['-gravity', "center"])
         args.extend(['-trim'])
 
@@ -44,7 +48,6 @@ class CaptionRenderer:
         <span
             font_family="{font_family}"
             size="{font_size}"
-            background="{back_color}"
             foreground="{font_color}">{text}</span>
         '''.format(
             font_family=font_family,
@@ -52,11 +55,11 @@ class CaptionRenderer:
             font_color=font_color,
             font_style=caption.font_style,
             font_weight=caption.font_weight,
-            back_color=back_color,
-            text=caption.visible_text
+            text=vtext
         )
         args.append('pango:' + text)
         args.append(filename)
+        print(args, caption.back_color )
         subprocess.call(args)
         image = ImageUtils.fetch_image(filename, crop=None, wand_image=wand_image)
         dest_image_file.close()

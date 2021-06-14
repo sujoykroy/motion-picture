@@ -77,6 +77,8 @@ class ImageSlideBuilder:
             cap_image = CaptionRenderer.caption2image(
                 caption=caption, min_width=0,
                 text_config=image_config, wand_image=True)
+            if not cap_image:
+                continue
             if caption.valign != ImageSlide.CAP_ALIGN_CENTER:
                 self.total_cap_height += cap_image.height
             self.cap_images[caption.valign] = cap_image
@@ -102,13 +104,14 @@ class SlideRenderer:
                     caption=slide.caption, min_width=0,
                     text_config=text_config, wand_image=True
                 )
-                cap_pos = Point(
-                    (screen_config.scaled_width - cap_image.width) * 0.5,
-                    (screen_config.scaled_height - cap_image.height) * 0.5
-                )
-                cap_pos.x = int(cap_pos.x)
-                cap_pos.y = int(cap_pos.y)
-                canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
+                if cap_image:
+                    cap_pos = Point(
+                        (screen_config.scaled_width - cap_image.width) * 0.5,
+                        (screen_config.scaled_height - cap_image.height) * 0.5
+                    )
+                    cap_pos.x = int(cap_pos.x)
+                    cap_pos.y = int(cap_pos.y)
+                    canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
                 image = ImageUtils.wand2pil(canvas)
         return RenderInfo(image)
 

@@ -56,13 +56,27 @@ class ImageSlide(Slide):
         self._captions[caption.valign] = caption
 
     @property
+    def text_length(self):
+        length = 0;
+        for cap in self._captions.values():
+            length += cap.text_length
+        return length
+
+    @property
     def vtext_frac(self):
         return 1
 
     @vtext_frac.setter
     def vtext_frac(self, value):
+        total_text_length = self.text_length
+        running_length = 0
+        vtext_length = total_text_length * value
         for cap in self._captions.values():
-            cap.vfrac = value
+            if running_length > vtext_length or not cap.text_length:
+                cap.vfrac = 0
+            else:
+                cap.vfrac = (vtext_length - running_length)/ cap.text_length
+            running_length += cap.text_length
 
     @property
     def active_captions(self):
