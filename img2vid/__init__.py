@@ -11,7 +11,7 @@ def load_image_magick():
         app.mainloop()
     return EnvironConfig.is_magick_found()
 
-def main():
+def main(**kwargs):
     logging_config = LoggingConfig(AppConfig.FILENAME)
     logging_config.apply_on_logger(logging.getLogger())
     logging.info("Application Started.")
@@ -24,6 +24,9 @@ def main():
 
     from .ui_tk.main_app import MainApp
     main_app = MainApp(title="Img2Vid", width=800, height=500)
+    filepath = kwargs.get('filepath')
+    if filepath:
+        main_app.load_project(filepath, False)
     main_app.start()
 
     logging.info("Application Closed.")
