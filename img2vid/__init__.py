@@ -23,7 +23,7 @@ def main(**kwargs):
         return
 
     from .ui_tk.main_app import MainApp
-    main_app = MainApp(title="Img2Vid", width=800, height=500)
+    main_app = MainApp(title="Img2Vid", width=800, height=600)
     filepath = kwargs.get('filepath')
     if filepath:
         main_app.load_project(filepath, False)

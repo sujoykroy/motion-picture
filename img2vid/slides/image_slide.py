@@ -20,6 +20,8 @@ class ImageSlide(Slide):
     CAP_ALIGN_TOP = "top"
     CAP_ALIGN_CENTER = "center"
     CAP_ALIGN_BOTTOM = "bottom"
+    CAP_ALIGN_LEFT = "left"
+    CAP_ALIGN_RIGHT = "right"
     CAP_ALIGNMENTS = [CAP_ALIGN_TOP, CAP_ALIGN_CENTER, CAP_ALIGN_BOTTOM]
 
     ImageCache = {}

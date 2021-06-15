@@ -8,9 +8,51 @@ import wand.color
 
 from ..analysers import TextAnalyser
 from ..utils import ImageUtils
+from ..geom.rectangle import Rectangle
+from ..geom.point import Point
+from ..slides.image_slide import ImageSlide
+from .vector_renderer import VectorRenderer
+from ..configs.vector_config import VectorConfig
 
 
 class CaptionRenderer:
+    @classmethod
+    def create_focuser_image(cls, caption, caption_image, cap_pos, wand_image=False):
+        focuser = caption.focuser
+        halign = caption.halign
+        valign = caption.valign
+        if focuser.get('type') == 'anchored_rect':
+            padding = caption.padding
+            spread = focuser.get('spread', 5)
+            focuser_shape = Rectangle(
+                cap_pos.x, cap_pos.y,
+                cap_pos.x + caption_image.width,
+                cap_pos.y + caption_image.height
+            )
+            if halign == ImageSlide.CAP_ALIGN_LEFT:
+                focuser_shape.x1 = cap_pos.x + caption_image.width + padding
+                focuser_shape.x2 = focuser_shape.x1 + spread
+            elif halign == ImageSlide.CAP_ALIGN_RIGHT:
+                focuser_shape.x2 = cap_pos.x - padding
+                focuser_shape.x1 = focuser_shape.x2 - spread
+
+            if valign == ImageSlide.CAP_ALIGN_TOP:
+                if halign ==  ImageSlide.CAP_ALIGN_CENTER:
+                    focuser_shape.y1 = cap_pos.y + caption_image.height + padding
+                    focuser_shape.y2 = focuser_shape.y1 + spread
+            else:
+                if halign ==  ImageSlide.CAP_ALIGN_CENTER:
+                    focuser_shape.y2 = cap_pos.y - padding
+                    focuser_shape.y1 = focuser_shape.y2 - spread
+
+            draw_rect = Rectangle(
+                0, 0,
+                focuser_shape.width, focuser_shape.height
+            )
+            vector_config = VectorConfig(fill_color=caption.focuser_fill_color)
+            image = VectorRenderer.create_image(draw_rect, vector_config, wand_image=wand_image)
+            return image, Point(focuser_shape.x1, focuser_shape.y1)
+
     @classmethod
     def caption2image(cls, caption, max_width, text_config, wand_image=False):
         vtext = caption.visible_text
@@ -22,7 +64,7 @@ class CaptionRenderer:
         args = [
             'convert'
         ]
-        back_color = caption.back_color#  or text_config.back_color
+        back_color = caption.back_color  or text_config.back_color
         args.extend(['-channel', "RGBA"])
         args.extend(['-background', back_color])
         args.extend(['-gravity', "center"])
@@ -62,8 +104,22 @@ class CaptionRenderer:
         subprocess.call(args)
         image = ImageUtils.fetch_image(filename, crop=None, wand_image=wand_image)
         dest_image_file.close()
-        return image
 
+        padding = caption.padding
+        canvas = ImageUtils.create_blank(
+            image.width + 2 * padding,
+            image.height + 2 * padding,
+            back_color
+        )
+        canvas = ImageUtils.pil2wand(canvas)
+        with wand.drawing.Drawing() as context:
+            canvas.composite(image=image, left=padding, top=padding)
+
+        if wand_image:
+            return canvas
+        return ImageUtils.wand2pil(canvas)
+
+'''
     @classmethod
     def caption2image_old(cls, caption, min_width, text_config, wand_image=False):
         font_metric = TextAnalyser.get_font_metric(caption, text_config)
@@ -115,3 +171,4 @@ class CaptionRenderer:
             context.font_style = caption.font_style
         if caption.font_weight:
             context.font_weight = caption.font_weight
+'''

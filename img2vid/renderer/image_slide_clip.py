@@ -11,9 +11,6 @@ from .slide_clip import SlideClip
 
 
 class ImageSlideClip(SlideClip):
-    def apply_pre_effects(self):
-        pass
-
     def get_image_at(self, time_pos):
         render_info = SlideRenderer.build_image_slide(
             self.slide,

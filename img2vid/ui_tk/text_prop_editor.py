@@ -25,6 +25,14 @@ class TextPropEditor(Frame):
         self.widgets.text.pack()
         self.widgets.text.bind("<KeyRelease>", self._text_changed)
 
+        self.widgets.halign_label = self._create_label("Horizontal Align")
+        self.widgets.halign_combo = ttk.Combobox(
+            self.base, values=['left', 'right', 'center'])
+        self.widgets.halign_combo.bind(
+            "<<ComboboxSelected>>", self._set_halign)
+        self.widgets.halign_combo.pack()
+
+
         self.widgets.font_family_label = self._create_label("Font Familiy")
         self.widgets.font_family_combo = ttk.Combobox(
             self.base, values=TextAnalyser.get_font_families())
@@ -63,12 +71,20 @@ class TextPropEditor(Frame):
         self.widgets.font_color_button.base.grid(row=0, column=1)
 
         self.widgets.back_color_label = tk.Label(
-            self.widgets.color_container, text="back Color")
+            self.widgets.color_container, text="Back Color")
         self.widgets.back_color_label.grid(row=1, column=0)
         self.widgets.back_color_button = ColorButton(
             self.widgets.color_container, "Back Color",
             100, 20, command=self._set_back_color)
         self.widgets.back_color_button.base.grid(row=1, column=1)
+
+        self.widgets.focuser_fill_color_label = tk.Label(
+            self.widgets.color_container, text="Focuser Fill Color")
+        self.widgets.focuser_fill_color_label.grid(row=2, column=0)
+        self.widgets.focuser_fill_color_button = ColorButton(
+            self.widgets.color_container, "Focuser Fill Color",
+            100, 20, command=self._set_focuser_fill_color)
+        self.widgets.focuser_fill_color_button.base.grid(row=2, column=1)
 
         self.widgets.apply_button = self._create_button(
             "Apply", self._apply_slide_change, None)
@@ -92,6 +108,9 @@ class TextPropEditor(Frame):
         self.widgets.back_color_button.color = \
             self._caption.back_color or text_config.back_color
 
+        self.widgets.focuser_fill_color_button.color = \
+            self._caption.focuser_fill_color or text_config.font_color
+
     def _text_changed(self, _event):
         if not self._caption:
             return
@@ -104,6 +123,10 @@ class TextPropEditor(Frame):
 
     def _set_font_family(self, _):
         self._caption.font_family = self.widgets.font_family_combo.get()
+        self.events.caption_updated.fire()
+
+    def _set_halign(self, _):
+        self._caption.halign = self.widgets.halign_combo.get()
         self.events.caption_updated.fire()
 
     def _set_font_style(self, _):
@@ -124,6 +147,10 @@ class TextPropEditor(Frame):
 
     def _set_back_color(self):
         self._caption.back_color = self.widgets.back_color_button.color
+        self.events.caption_updated.fire()
+
+    def _set_focuser_fill_color(self):
+        self._caption.focuser_fill_color = self.widgets.focuser_fill_color_button.color
         self.events.caption_updated.fire()
 
     def _create_label(self, text, pady=0, parent=None):

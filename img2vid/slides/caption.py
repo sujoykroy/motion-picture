@@ -38,8 +38,47 @@ class Caption:
         return text
 
     @property
+    def focuser(self):
+        return self._params.get('focuser', {
+            'type': 'anchored_rect',
+            'spread': 2
+        })
+
+    @property
+    def focuser_fill_color(self):
+        return self._params.get('focuser_fill_color', '#FFFFFF')
+
+    @focuser_fill_color.setter
+    def focuser_fill_color(self, value):
+        self._params['focuser_fill_color'] = value
+
+    @property
     def valign(self):
         return self._params.get('valign')
+
+    @property
+    def halign(self):
+        return self._params.get('halign', 'center')
+
+    @halign.setter
+    def halign(self, value):
+        self._params['halign'] = value
+
+    @property
+    def padding(self):
+        return int(self._params.get('padding', 2))
+
+    @padding.setter
+    def padding(self, value):
+        self._params['padding'] = int(value)
+
+    @property
+    def margin(self):
+        return int(self._params.get('margin', 2))
+
+    @margin.setter
+    def margin(self, value):
+        self._params['margin'] = int(value)
 
     @property
     def font_family(self):
