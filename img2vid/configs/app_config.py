@@ -6,6 +6,8 @@ from .effect_config import EffectConfig
 from .debug_config import DebugConfig
 from .video_render_config import VideoRenderConfig
 from .path_config import PathConfig
+from .vector_config import VectorConfig
+
 
 class AppConfig:
     FILENAME = "app.ini"
@@ -75,6 +77,8 @@ class AppConfig:
         self.debug = DebugConfig(
             pan_trace=(section.get("pan-trace", "False") == "True")
         )
+
+        self.vector_config = VectorConfig()
 
     def get_section(self, section_name):
         if section_name in self._parser:

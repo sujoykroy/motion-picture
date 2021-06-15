@@ -23,6 +23,9 @@ class Rectangle:
     def to_dict(self):
         return dict(x1=self.x1, x2=self.x2, y1=self.y1, y2=self.y2)
 
+    def to_array(self):
+        return [self.x1, self.y1, self.x2, self.y2]
+
     @staticmethod
     def create_from_dict(dict_rect):
         return Rectangle(

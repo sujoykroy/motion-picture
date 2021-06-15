@@ -10,7 +10,8 @@ from ..analysers import TextAnalyser
 
 from .render_info import RenderInfo
 from .caption_renderer import CaptionRenderer
-
+from .vector_renderer import VectorRenderer
+from ..configs.vector_config import VectorConfig
 
 class ImageSlideBuilder:
     def __init__(self, slide):
@@ -127,6 +128,9 @@ class SlideRenderer:
                               width=screen_config.scaled_width,
                               height=screen_config.scaled_height) as canvas:
             canvas.units = ImageUtils.PIXEL_PER_INCH
+
+            vector_config = VectorConfig()
+
             with wand.drawing.Drawing() as context:
                 builder.fit_file_image(
                     screen_config,
@@ -143,17 +147,47 @@ class SlideRenderer:
                 canvas.composite(image=builder.file_image, left=img_pos.x, top=img_pos.y)
 
                 # Place caption images
+                vec_spread = 5
+                vec_padd = 5
                 for cap_align, cap_image in builder.cap_images.items():
                     cap_pos = Point((screen_config.scaled_width-cap_image.width)*0.5, 0)
                     if cap_align == ImageSlide.CAP_ALIGN_CENTER:
                         cap_pos.y = (screen_config.scaled_height - cap_image.height)  *0.5
+                        vector_shape = Rectangle(
+                            x1=cap_pos.x,
+                            y1=cap_pos.y - vec_padd - vec_spread,
+                            x2=cap_pos.x + cap_image.width,
+                            y2=cap_pos.y - vec_padd,
+                        )
                     elif cap_align == ImageSlide.CAP_ALIGN_TOP:
                         cap_pos.y = 0
+                        vector_shape = Rectangle(
+                            x1=cap_pos.x,
+                            y1=cap_pos.y + vec_padd,
+                            x2=cap_pos.x + cap_image.width,
+                            y2=cap_pos.y + vec_padd + vec_spread
+                        )
                     elif cap_align == ImageSlide.CAP_ALIGN_BOTTOM:
                         cap_pos.y = screen_config.scaled_height - cap_image.height
+                        vector_shape = Rectangle(
+                            x1=cap_pos.x,
+                            y1=cap_pos.y - vec_padd - vec_spread,
+                            x2=cap_pos.x + cap_image.width,
+                            y2=cap_pos.y - vec_padd,
+                        )
+
                     cap_pos.x = int(cap_pos.x)
                     cap_pos.y = int(cap_pos.y)
                     canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
+
+                    vec_image = VectorRenderer.create_image(
+                        vector_shape,
+                        screen_config.scaled_width,
+                        screen_config.scaled_height,
+                        vector_config, wand_image=True
+                    )
+                    canvas.composite(image=vec_image, left=0, top=0)
+
                 context(canvas)
                 image = ImageUtils.wand2pil(canvas)
 
