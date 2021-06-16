@@ -5,9 +5,11 @@ from operator import attrgetter
 
 import requests
 
+from ..effects import NumberParamChange
 from .slide import Slide
 from ..geom import Point, Rectangle
 from .caption import Caption
+
 
 class ImageSlide(Slide):
     URL_PATH_RE = re.compile(r'https?://')
@@ -51,6 +53,14 @@ class ImageSlide(Slide):
         for valign in self.CAP_ALIGNMENTS:
             self._captions[valign] = Caption(
                 {'valign': valign, 'text': ''})
+
+
+        self.add_effect(NumberParamChange, {
+            'param_name': 'vtext_frac',
+            'value_start': 0,
+            'value_end': 1,
+            'scale': 3
+        })
 
     def get_caption(self, valign):
         return self._captions[valign]

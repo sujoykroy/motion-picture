@@ -1,5 +1,7 @@
+from ..effects import NumberParamChange
 from .slide import Slide
 from .caption import Caption
+
 
 class TextSlide(Slide):
     TYPE_NAME = "text"
@@ -10,6 +12,13 @@ class TextSlide(Slide):
         if not caption:
             caption = Caption()
         self._caption = caption
+
+        self.add_effect(NumberParamChange, {
+            'param_name': 'vtext_frac',
+            'value_start': 0,
+            'value_end': 1,
+            'scale': 3
+        })
 
     @property
     def vtext_frac(self):

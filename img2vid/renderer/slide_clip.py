@@ -18,7 +18,7 @@ class SlideClip(moviepy.editor.VideoClip):
 
         self.slide = slide.clone()
 
-
+        '''
         self.slide.add_effect(MoviePyEffect, {
             'effect_type': 'rotate',
             'effect_params': {"angle": 30, "expand": False}
@@ -29,6 +29,7 @@ class SlideClip(moviepy.editor.VideoClip):
             'value_end': 360,
             'scale': 3
         })
+        '''
 
         self.app_config = app_config
 

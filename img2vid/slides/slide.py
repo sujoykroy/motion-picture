@@ -2,7 +2,6 @@ import json
 from operator import attrgetter
 
 from ..effects import create_effect_from_json
-from ..effects import NumberParamChange
 
 class Slide:
     _IdSeed = 0
@@ -14,12 +13,6 @@ class Slide:
         self._id_num = Slide._IdSeed + 1
         self.effects = {}
         Slide._IdSeed = Slide._IdSeed + 1
-        self.add_effect(NumberParamChange, {
-            'param_name': 'vtext_frac',
-            'value_start': 0,
-            'value_end': 1,
-            'scale': 3
-        })
 
     @property
     def sorted_effects(self):
@@ -42,18 +35,26 @@ class Slide:
 
     def get_json(self):
         data = {self.KEY_TYPE:self.TYPE_NAME}
-        effects_data = []
+        effects_data = {}
         data[self.KEY_EFFECTS] = effects_data
-        for flt in self.effects.values():
-            effects_data.append(flt.get_json())
+        for flt_name, flt in self.effects.items():
+            effects_data[flt_name] = flt.get_json()
         return data
 
     def load_effects_from_json(self, data):
         if self.KEY_EFFECTS in data:
-            for effect_data in data[self.KEY_EFFECTS]:
+            effects_data = data[self.KEY_EFFECTS]
+
+            if isinstance(effects_data, list): # Backward compatibility
+                effects_data = dict(list(map(
+                    lambda flt: (create_effect_from_json(flt).get_name(), flt),
+                    effects_data
+                )))
+
+            for eff_name, effect_data in effects_data.items():
                 flt = create_effect_from_json(effect_data)
                 if flt:
-                    self.effects[flt.get_name()] = flt
+                    self.effects[eff_name] = flt
 
     @property
     def id_num(self):
