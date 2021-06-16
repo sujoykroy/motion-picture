@@ -11,10 +11,20 @@ from .slide_clip import SlideClip
 
 
 class ImageSlideClip(SlideClip):
-    def get_image_at(self, time_pos):
-        render_info = SlideRenderer.build_image_slide(
+    def get_image_at(self, time_pos, progress):
+        render_info = SlideRenderer.build_image_slide_only_image(
             self.slide,
             self.app_config.video_render,
             self.app_config.text
         )
-        return render_info.image
+
+        image = self.apply_effects(render_info.image, time_pos, progress)
+
+        image = SlideRenderer.build_image_slide_only_captions(
+            self.slide,
+            self.app_config.video_render,
+            self.app_config.text,
+            image
+        )
+
+        return image

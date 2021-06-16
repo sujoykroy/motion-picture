@@ -1,3 +1,5 @@
+import json
+
 class EffectParam:
     def __init__(self,
                  name, type_class, default, **kwargs):
@@ -15,6 +17,9 @@ class EffectParam:
             return int(value)
         elif self._type_class == 'float':
             return float(value)
+        elif self._type_class == 'json':
+            if isinstance(value, str):
+                return json.loads(value)
         return value
 
     @property

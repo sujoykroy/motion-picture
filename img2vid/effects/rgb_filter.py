@@ -11,8 +11,8 @@ class RgbFilter(Effect):
         EffectParam('channel', 'str', 'Red', choices=('Red', 'Green', 'Blue'))
     ]
 
-    def __init__(self, channel):
-        super().__init__()
+    def __init__(self, channel, **kwargs):
+        super().__init__(**kwargs)
         self.channel = channel
 
     def transform(self, image, progress, **kwargs):

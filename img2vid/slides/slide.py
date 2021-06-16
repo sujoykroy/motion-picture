@@ -1,3 +1,6 @@
+import json
+from operator import attrgetter
+
 from ..effects import create_effect_from_json
 from ..effects import NumberParamChange
 
@@ -19,12 +22,19 @@ class Slide:
         })
 
     @property
+    def sorted_effects(self):
+        return list(sorted(self.effects.values(), key=attrgetter('sort_weight')))
+
+    @property
     def crop_allowed(self):
         return False
 
-    def add_effect(self, effect_class, effect_data):
+    def add_effect(self, effect_class, effect_data, name=None):
+        effect_data['sort_weight'] = effect_data.get('sort_weight', len(self.effects))
         effect = effect_class.create_from_values(effect_data)
-        self.effects[effect.get_name()] = effect
+        if not name:
+            name = effect.get_name()
+        self.effects[name] = effect
 
     def remove_effect(self, effect_name):
         if effect_name in self.effects:
@@ -56,4 +66,5 @@ class Slide:
         return isinstance(other, Slide) and other.id_num == self.id_num
 
     def clone(self):
-        return self.create_from_json(self.get_json())
+        data = json.loads(json.dumps(self.get_json()))
+        return self.create_from_json(data)

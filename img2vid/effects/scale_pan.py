@@ -11,8 +11,8 @@ class ScalePan(Effect):
     KEY_SCALE_END = "scale_end"
     KEY_PAN_POLYGON = "pan_polygon"
 
-    def __init__(self, scale_start, scale_end, pan_polygon):
-        super().__init__()
+    def __init__(self, scale_start, scale_end, pan_polygon, **kwargs):
+        super().__init__(**kwargs)
         self.scale_start = scale_start
         self.scale_end = scale_end
         self.pan_polygon = pan_polygon

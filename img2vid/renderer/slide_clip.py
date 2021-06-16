@@ -5,6 +5,7 @@ from ..effects import Effect
 from ..utils import ImageUtils
 from .slide_renderer import SlideRenderer
 from ..slides import TextSlide, ImageSlide, VideoSlide
+from ..effects import MoviePyEffect, NumberParamChange
 
 
 class SlideClip(moviepy.editor.VideoClip):
@@ -16,12 +17,25 @@ class SlideClip(moviepy.editor.VideoClip):
         self.make_frame = self._make_frame
 
         self.slide = slide.clone()
+
+
+        self.slide.add_effect(MoviePyEffect, {
+            'effect_type': 'rotate',
+            'effect_params': {"angle": 30, "expand": False}
+        }, 'rotation_effect')
+        self.slide.add_effect(NumberParamChange, {
+            'param_name': 'effects.rotation_effect.effect_params.angle',
+            'value_start': 0,
+            'value_end': 360,
+            'scale': 3
+        })
+
         self.app_config = app_config
 
         self._cached_image = None
         self._progress = 0
 
-    def apply_effects(self, time_pos, image, progress):
+    def apply_effects(self, image, time_pos, progress):
         if not self.slide.effects:
             return image
         for effect in self.slide.effects.values():
@@ -50,15 +64,13 @@ class SlideClip(moviepy.editor.VideoClip):
 
         image = self._cached_image
         if not image:
-            image = self.get_image_at(time_pos)
+            image = self.get_image_at(time_pos, progress)
             self._cached_image = image
 
         video_config = self.app_config.video_render
         if image.width != self.size[0] or \
            image.height != self.size[1]:
             image = ImageUtils.fit_full(image, self.size[0], self.size[1])
-
-        # image = self.apply_effects(image, time_pos, progress)
 
         frame = numpy.array(image, dtype=numpy.uint8)
         frame = frame[:, :, :3]

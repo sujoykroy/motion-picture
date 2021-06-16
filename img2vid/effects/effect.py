@@ -16,8 +16,9 @@ class Effect:
     PARAMS = []
     APPLY_ON = 0
 
-    def __init__(self):
+    def __init__(self, sort_weight=0):
         self._id_num = Effect._IdSeed
+        self.sort_weight = sort_weight
         Effect._IdSeed += 1
 
     def get_name(self):
@@ -46,7 +47,7 @@ class Effect:
         return image
 
     def get_json(self):
-        data = {}
+        data = {'sort_weight': self.sort_weight}
         data[self.KEY_TYPE] = self.TYPE_NAME
         for param in self.PARAMS:
             key = param.name
@@ -64,6 +65,7 @@ class Effect:
             else:
                 value = param.default
             arg_dict[key] = value
+        arg_dict['sort_weight'] = value_data.get('sort_weight', 0)
         return cls(**arg_dict)
 
     @classmethod
@@ -72,5 +74,6 @@ class Effect:
         for param in cls.PARAMS:
             key = param.name
             kwargs[key] = param.parse(data.get(key, param.default))
+        kwargs['sort_weight'] = data.get('sort_weight', 0)
         newob = cls(**kwargs)
         return newob

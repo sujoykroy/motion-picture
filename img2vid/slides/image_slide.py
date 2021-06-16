@@ -1,6 +1,7 @@
 import re
 import os
 import tempfile
+from operator import attrgetter
 
 import requests
 
@@ -17,11 +18,11 @@ class ImageSlide(Slide):
     KEY_RECT = "rect"
     KEY_CAPTIONS = "caps"
 
-    CAP_ALIGN_TOP = "top"
-    CAP_ALIGN_CENTER = "center"
-    CAP_ALIGN_BOTTOM = "bottom"
-    CAP_ALIGN_LEFT = "left"
-    CAP_ALIGN_RIGHT = "right"
+    CAP_ALIGN_TOP = Caption.CAP_ALIGN_TOP
+    CAP_ALIGN_CENTER = Caption.CAP_ALIGN_CENTER
+    CAP_ALIGN_BOTTOM = Caption.CAP_ALIGN_BOTTOM
+    CAP_ALIGN_LEFT = Caption.CAP_ALIGN_LEFT
+    CAP_ALIGN_RIGHT = Caption.CAP_ALIGN_RIGHT
     CAP_ALIGNMENTS = [CAP_ALIGN_TOP, CAP_ALIGN_CENTER, CAP_ALIGN_BOTTOM]
 
     ImageCache = {}
@@ -73,7 +74,7 @@ class ImageSlide(Slide):
         total_text_length = self.text_length
         running_length = 0
         vtext_length = total_text_length * value
-        for cap in self._captions.values():
+        for cap in self.active_captions:
             if running_length > vtext_length or not cap.text_length:
                 cap.vfrac = 0
             else:
@@ -86,6 +87,8 @@ class ImageSlide(Slide):
         for cap in self._captions.values():
             if cap.text:
                 caps.append(cap)
+
+        caps = list(sorted(caps, key=attrgetter('pos_weight')))
         return caps
 
     @property

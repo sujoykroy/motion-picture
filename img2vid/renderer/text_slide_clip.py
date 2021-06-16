@@ -10,7 +10,7 @@ from .slide_clip import SlideClip
 
 
 class TextSlideClip(SlideClip):
-    def get_image_at(self, time_pos):
+    def get_image_at(self, time_pos, progress):
         render_info = SlideRenderer.build_text_slide(
             self.slide,
             self.app_config.video_render,

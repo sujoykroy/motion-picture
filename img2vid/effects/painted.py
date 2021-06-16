@@ -10,8 +10,8 @@ class Painted(Effect):
     APPLY_ON = Effect.APPLY_TYPE_VIDEO
     PARAMS = []
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def transform(self, image, progress, **kwargs):
         clip = mve.ImageClip(numpy.array(image))

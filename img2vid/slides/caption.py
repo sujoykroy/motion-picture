@@ -2,10 +2,31 @@ import re
 from ..configs import TextConfig
 
 class Caption:
+    CAP_ALIGN_TOP = "top"
+    CAP_ALIGN_CENTER = "center"
+    CAP_ALIGN_BOTTOM = "bottom"
+    CAP_ALIGN_LEFT = "left"
+    CAP_ALIGN_RIGHT = "right"
+
+    CAP_POS_WEIGHTS = {
+        CAP_ALIGN_TOP: 0,
+        CAP_ALIGN_CENTER: 1,
+        CAP_ALIGN_BOTTOM: 2,
+        CAP_ALIGN_LEFT: 0,
+        CAP_ALIGN_RIGHT: 1,
+    }
+
     def __init__(self, params=None):
         if params is None:
             params = {}
         self._params = params
+
+    @property
+    def pos_weight(self):
+       return (
+             self.CAP_POS_WEIGHTS[self.valign] * 3 +
+            self.CAP_POS_WEIGHTS[self.halign]
+        )
 
     @property
     def vfrac(self):

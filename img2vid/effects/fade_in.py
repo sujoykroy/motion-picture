@@ -6,8 +6,8 @@ class FadeIn(Effect):
 
     PARAMS = [EffectParam('duration', 'float', 2, unit='sec')]
 
-    def __init__(self, duration):
-        super().__init__()
+    def __init__(self, duration, **kwargs):
+        super().__init__(**kwargs)
         self.duration = duration
 
     def get_value_at(self, frac):

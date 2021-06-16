@@ -22,8 +22,11 @@ dest_filepath = args.dest
 project = Project()
 project.load_from(filepath)
 
+app_config = AppConfig()
+app_config.set_scale(.25)
+
 video_renderer = VideoRenderer.create_from_project(
-    project, AppConfig()
+    project, app_config
 )
 
 video_renderer.make_video(
