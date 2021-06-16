@@ -22,7 +22,7 @@ class CaptionRenderer:
         halign = caption.halign
         valign = caption.valign
         if focuser.get('type') == 'anchored_rect':
-            padding = caption.padding
+            padding = 4 * caption.padding
             spread = focuser.get('spread', 5)
             focuser_shape = Rectangle(
                 cap_pos.x, cap_pos.y,

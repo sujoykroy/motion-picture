@@ -46,7 +46,7 @@ class Caption:
 
     @property
     def focuser_fill_color(self):
-        return self._params.get('focuser_fill_color', '#FFFFFF')
+        return self._params.get('focuser_fill_color', '#FC3B00FF')
 
     @focuser_fill_color.setter
     def focuser_fill_color(self, value):

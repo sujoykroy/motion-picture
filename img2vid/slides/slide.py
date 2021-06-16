@@ -15,7 +15,7 @@ class Slide:
             'param_name': 'vtext_frac',
             'value_start': 0,
             'value_end': 1,
-            'scale': 1.5
+            'scale': 3
         })
 
     @property
