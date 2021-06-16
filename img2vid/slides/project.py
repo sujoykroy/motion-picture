@@ -93,7 +93,7 @@ class Project:
             for slide in self.slides:
                 slides_data.append(slide.get_json())
             with open(filepath, "w") as file_ob:
-                json.dump(project_data, file_ob)
+                json.dump(project_data, file_ob, indent=4)
 
     @staticmethod
     def create_slide_from_json(data):

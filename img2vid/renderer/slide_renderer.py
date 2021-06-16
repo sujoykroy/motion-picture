@@ -52,10 +52,24 @@ class SlideRenderer:
         return RenderInfo(image, render_info.editable_rect, render_info.orig_image_scale)
 
     @classmethod
-    def build_image_slide_only_captions(cls, slide, screen_config, image_config, canvas):
+    def build_image_slide_only_captions(cls, slide, screen_config, image_config, file_image):
+        canvas = ImageUtils.create_blank(
+            screen_config.scaled_width, screen_config.scaled_height, "#00000000"
+        )
+        canvas = ImageUtils.pil2wand(canvas)
+
         with wand.drawing.Drawing() as context:
-            canvas= ImageUtils.pil2wand(canvas)
             canvas.units = ImageUtils.PIXEL_PER_INCH
+
+            file_image = ImageUtils.pil2wand(file_image)
+
+            # Place the file image
+            img_pos = Point(
+                int((screen_config.scaled_width-file_image.width)*0.5),
+                int((screen_config.scaled_height-file_image.height)*0.5))
+            img_pos.x = int(img_pos.x)
+            img_pos.y = int(img_pos.y)
+            canvas.composite(image=file_image, left=img_pos.x, top=img_pos.y)
 
             for caption in slide.active_captions:
                 cap_image = CaptionRenderer.caption2image(
