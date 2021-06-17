@@ -4,7 +4,7 @@ import PIL.ImageTk
 
 from ..geom import Point
 from ..utils import ImageUtils
-from ..slides import TextSlide, ImageSlide
+from ..slides import TextSlide, ImageSlide, GeomSlide
 from ..renderer import ImageRenderProcess
 
 from .frame import Frame
@@ -70,6 +70,11 @@ class ImageEditor(Frame):
                 self.app_config.video_render,
                 self.app_config.text)
         elif isinstance(slide, ImageSlide):
+            self._render_process.build_slide(
+                slide,
+                self.app_config.video_render,
+                self.app_config.image)
+        elif isinstance(slide, GeomSlide):
             self._render_process.build_slide(
                 slide,
                 self.app_config.video_render,

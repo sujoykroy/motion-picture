@@ -35,6 +35,7 @@ class SlideClip(moviepy.editor.VideoClip):
 
         self._cached_image = None
         self._progress = 0
+        self.opacity = 1
 
     def apply_effects(self, image, time_pos, progress):
         if not self.slide.effects:
@@ -60,7 +61,11 @@ class SlideClip(moviepy.editor.VideoClip):
         return image
 
     def _make_frame(self, time_pos):
-        progress = time_pos/self.duration
+        # print("time_pos", time_pos, self.slide.TYPE_NAME)
+        if self.duration is None:
+            progress = 1
+        else:
+            progress = time_pos/self.duration
         self.apply_effects(None, time_pos, progress)
 
         image = self._cached_image
@@ -68,11 +73,11 @@ class SlideClip(moviepy.editor.VideoClip):
             image = self.get_image_at(time_pos, progress)
             self._cached_image = image
 
-        video_config = self.app_config.video_render
-        if image.width != self.size[0] or \
-           image.height != self.size[1]:
-            image = ImageUtils.fit_full(image, self.size[0], self.size[1])
-
         frame = numpy.array(image, dtype=numpy.uint8)
-        frame = frame[:, :, :3]
+        if self.opacity != 1:
+            frame = frame * self.opacity
+        if self.ismask:
+            frame = 1.0 * frame[:, :, 0] / 255
+        else:
+            frame = frame[:, :, :3]
         return frame

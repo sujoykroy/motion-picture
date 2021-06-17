@@ -7,11 +7,13 @@ class TextSlide(Slide):
     TYPE_NAME = "text"
     KEY_CAPTION = "cap"
 
-    def __init__(self, caption=None):
-        super().__init__()
-        if not caption:
-            caption = Caption()
-        self._caption = caption
+    CONSTRUCTOR_KEYS = Slide.CONSTRUCTOR_KEYS + [KEY_CAPTION]
+
+    def __init__(self, cap=None, **kwargs):
+        super().__init__(**kwargs)
+        if not cap:
+            cap = Caption()
+        self._caption = cap
 
         self.add_effect(NumberParamChange, {
             'param_name': 'vtext_frac',
@@ -19,6 +21,14 @@ class TextSlide(Slide):
             'value_end': 1,
             'scale': 3
         })
+
+    @property
+    def cap(self):
+        return self._caption
+
+    @property
+    def active_captions(self):
+        return [self._caption]
 
     @property
     def vtext_frac(self):
@@ -39,9 +49,12 @@ class TextSlide(Slide):
 
     @classmethod
     def create_from_json(cls, data):
-        caption = Caption.create_from_json(data.get(cls.KEY_CAPTION))
-        newob = cls(caption=caption)
-        newob.load_effects_from_json(data)
+        caption = data.pop(cls.KEY_CAPTION, None)
+        if caption:
+            caption = Caption.create_from_json(caption)
+        newob = super().create_from_json({
+            'cap':caption, **data
+        })
         return newob
 
     @classmethod

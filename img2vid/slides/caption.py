@@ -29,6 +29,10 @@ class Caption:
         )
 
     @property
+    def pos_name(self):
+       return self.valign + '_' + self.halign
+
+    @property
     def vfrac(self):
         # Returns "visible length" of the text
         return self._params.get('vfrac', 1)

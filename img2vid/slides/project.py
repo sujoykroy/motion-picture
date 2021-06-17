@@ -9,6 +9,7 @@ from .slide import Slide
 from .image_slide import ImageSlide
 from .video_slide import VideoSlide
 from .text_slide import TextSlide
+from .geom_slide import RectGeomSlide, CircleGeomSlide
 
 class Project:
     """This class stores slides information for a given project.
@@ -95,14 +96,22 @@ class Project:
             with open(filepath, "w") as file_ob:
                 json.dump(project_data, file_ob, indent=4)
 
-    @staticmethod
-    def create_slide_from_json(data):
+    @classmethod
+    def create_slide_from_json(cls, data):
+        slide = None
         if Slide.KEY_TYPE in data:
             slide_type = data[Slide.KEY_TYPE]
             if slide_type == TextSlide.TYPE_NAME:
-                return TextSlide.create_from_json(data)
-            if slide_type == VideoSlide.TYPE_NAME:
-                return VideoSlide.create_from_json(data)
-            if slide_type == ImageSlide.TYPE_NAME:
-                return ImageSlide.create_from_json(data)
-        return None
+                slide = TextSlide.create_from_json(data)
+            elif slide_type == VideoSlide.TYPE_NAME:
+                slide = VideoSlide.create_from_json(data)
+            elif slide_type == ImageSlide.TYPE_NAME:
+                slide = ImageSlide.create_from_json(data)
+            elif slide_type == RectGeomSlide.TYPE_NAME:
+                slide = RectGeomSlide.create_from_json(data)
+            elif slide_type == CircleGeomSlide.TYPE_NAME:
+                slide = CircleGeomSlide.create_from_json(data)
+            if data.get(Slide.KEY_MASK_SLIDE):
+                mask_slide = cls.create_slide_from_json(data[Slide.KEY_MASK_SLIDE])
+                slide.set_mask_slide(mask_slide)
+        return slide

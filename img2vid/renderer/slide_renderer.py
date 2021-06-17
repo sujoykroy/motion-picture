@@ -16,28 +16,33 @@ from ..configs.vector_config import VectorConfig
 
 class SlideRenderer:
     @classmethod
+    def build_geom_slide(self, slide, screen_config, back_color = None):
+        if not back_color:
+            back_color = screen_config.back_color
+        canvas = ImageUtils.create_blank(
+            screen_config.scaled_width, screen_config.scaled_height, back_color
+        )
+        image = VectorRenderer.create_image(
+            slide.get_vector_shape(
+                screen_config.scaled_width,
+                screen_config.scaled_height
+            ),
+            VectorConfig(
+                fill_color=slide.fill_color,
+                stroke_color=slide.stroke_color,
+                stroke_width=slide.stroke_width
+            ),
+            canvas=canvas
+        )
+        return RenderInfo(image)
+
+    @classmethod
     def build_text_slide(cls, slide, screen_config, text_config, progress=1):
         back_color = slide.caption.back_color or text_config.back_color
-        with wand.image.Image(resolution=text_config.ppi,
-                              background=wand.color.Color(back_color),
-                              width=screen_config.scaled_width,
-                              height=screen_config.scaled_height) as canvas:
-            canvas.units = ImageUtils.PIXEL_PER_INCH
-            with wand.drawing.Drawing() as context:
-                # Place caption images
-                cap_image = CaptionRenderer.caption2image(
-                    caption=slide.caption, max_width=screen_config.scaled_width,
-                    text_config=text_config, wand_image=True
-                )
-                if cap_image:
-                    cap_pos = Point(
-                        (screen_config.scaled_width - cap_image.width) * 0.5,
-                        (screen_config.scaled_height - cap_image.height) * 0.5
-                    )
-                    cap_pos.x = int(cap_pos.x)
-                    cap_pos.y = int(cap_pos.y)
-                    canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
-                image = ImageUtils.wand2pil(canvas)
+        back_image = ImageUtils.create_blank(
+            screen_config.scaled_width, screen_config.scaled_height, back_color
+        )
+        image = cls.build_image_slide_only_captions(slide, screen_config, text_config, back_image)
         return RenderInfo(image)
 
     @classmethod
@@ -54,22 +59,23 @@ class SlideRenderer:
     @classmethod
     def build_image_slide_only_captions(cls, slide, screen_config, image_config, file_image):
         canvas = ImageUtils.create_blank(
-            screen_config.scaled_width, screen_config.scaled_height, "#00000000"
+            screen_config.scaled_width, screen_config.scaled_height, (255, 255, 255, 0)
         )
         canvas = ImageUtils.pil2wand(canvas)
 
         with wand.drawing.Drawing() as context:
             canvas.units = ImageUtils.PIXEL_PER_INCH
 
-            file_image = ImageUtils.pil2wand(file_image)
+            if file_image:
+                file_image = ImageUtils.pil2wand(file_image)
 
-            # Place the file image
-            img_pos = Point(
-                int((screen_config.scaled_width-file_image.width)*0.5),
-                int((screen_config.scaled_height-file_image.height)*0.5))
-            img_pos.x = int(img_pos.x)
-            img_pos.y = int(img_pos.y)
-            canvas.composite(image=file_image, left=img_pos.x, top=img_pos.y)
+                # Place the file image
+                img_pos = Point(
+                    int((screen_config.scaled_width-file_image.width)*0.5),
+                    int((screen_config.scaled_height-file_image.height)*0.5))
+                img_pos.x = int(img_pos.x)
+                img_pos.y = int(img_pos.y)
+                canvas.composite(image=file_image, left=img_pos.x, top=img_pos.y)
 
             for caption in slide.active_captions:
                 cap_image = CaptionRenderer.caption2image(

@@ -30,8 +30,11 @@ class ImageSlide(Slide):
     ImageCache = {}
     TEMP_FOLDER = None
 
-    def __init__(self, filepath, rect=None):
-        super().__init__()
+    CONSTRUCTOR_KEYS = Slide.CONSTRUCTOR_KEYS + [
+        KEY_FILEPATH, KEY_RECT, KEY_CAPTIONS]
+
+    def __init__(self, filepath, rect=None, **kwargs):
+        super().__init__(**kwargs)
         self._filepath = filepath
         self._local_filepath = filepath
         if self.URL_PATH_RE.match(filepath):
@@ -48,7 +51,9 @@ class ImageSlide(Slide):
                     fp.write(req.content)
                 ImageSlide.ImageCache[filepath] = self._local_filepath
         self._rect = rect
-        self._captions = {}
+        self._captions = kwargs.get(self.KEY_CAPTIONS)
+        if self._captions is None:
+            self._captions = {}
 
         for valign in self.CAP_ALIGNMENTS:
             self._captions[valign] = Caption(
@@ -66,7 +71,7 @@ class ImageSlide(Slide):
         return self._captions[valign]
 
     def set_caption(self, caption):
-        self._captions[caption.valign] = caption
+        self._captions[caption.pos_name] = caption
 
     @property
     def text_length(self):
@@ -90,6 +95,10 @@ class ImageSlide(Slide):
             else:
                 cap.vfrac = (vtext_length - running_length)/ cap.text_length
             running_length += cap.text_length
+
+    @property
+    def caps(self):
+        return self._captions
 
     @property
     def active_captions(self):
@@ -133,7 +142,6 @@ class ImageSlide(Slide):
 
     def get_json(self):
         data = super().get_json()
-        data[self.KEY_FILEPATH] = self._filepath
         if self._rect:
             data[self.KEY_RECT] = self._rect.get_json()
         data[self.KEY_CAPTIONS] = []
@@ -144,11 +152,12 @@ class ImageSlide(Slide):
 
     @classmethod
     def create_from_json(cls, data):
-        newob = cls(filepath=data.get(cls.KEY_FILEPATH),
-                    rect=Rectangle.create_from_json(data.get(cls.KEY_RECT)))
-        captions_data = data.get(cls.KEY_CAPTIONS, [])
-        for caption_data in captions_data:
+        rect = data.pop(cls.KEY_RECT, None)
+        captions = data.pop(cls.KEY_CAPTIONS, {})
+        if rect:
+            rect = Rectangle.create_from_json(rect)
+        newob = super().create_from_json({'rect': rect, **data})
+        for caption_data in captions:
             caption = Caption.create_from_json(caption_data)
             newob.set_caption(caption)
-        newob.load_effects_from_json(data)
         return newob

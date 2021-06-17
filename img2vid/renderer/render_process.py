@@ -2,7 +2,7 @@ import multiprocessing
 import time
 import queue
 
-from ..slides import Project, VideoCache
+from ..slides import Project, VideoCache, GeomSlide
 from ..configs import VideoRenderConfig, TextConfig, ImageConfig
 from ..renderer import SlideRenderer
 from .render_info import RenderInfo
@@ -84,8 +84,9 @@ class ImageRenderProcess(multiprocessing.Process):
     def _render_slide(slide, screen_config, extra_config):
         slide = Project.create_slide_from_json(slide)
         screen_config = VideoRenderConfig.create_from_json(screen_config)
-
-        if extra_config['TYPE_NAME'] == TextConfig.TYPE_NAME:
+        if slide.TYPE_NAME.endswith(GeomSlide.TYPE_NAME):
+            return SlideRenderer.build_geom_slide(slide, screen_config)
+        elif extra_config['TYPE_NAME'] == TextConfig.TYPE_NAME:
             extra_config = TextConfig.create_from_json(extra_config)
             return SlideRenderer.build_text_slide(slide, screen_config, extra_config)
         elif extra_config['TYPE_NAME'] == ImageConfig.TYPE_NAME:

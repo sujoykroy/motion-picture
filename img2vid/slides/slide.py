@@ -8,11 +8,21 @@ class Slide:
     TYPE_NAME = None
     KEY_TYPE = "type"
     KEY_EFFECTS = "effects"
+    KEY_MASK_SLIDE = 'mask_slide'
 
-    def __init__(self):
+    CONSTRUCTOR_KEYS = []
+
+    def __init__(self, opacity=1, **kwargs):
         self._id_num = Slide._IdSeed + 1
         self.effects = {}
         Slide._IdSeed = Slide._IdSeed + 1
+        self.mask_slide = None
+        if opacity is None:
+            opacity = 1
+        self.opacity = opacity
+
+    def set_mask_slide(self, mask_slide):
+        self.mask_slide = mask_slide
 
     @property
     def sorted_effects(self):
@@ -34,11 +44,15 @@ class Slide:
             del self.effects[effect_name]
 
     def get_json(self):
-        data = {self.KEY_TYPE:self.TYPE_NAME}
+        data = {self.KEY_TYPE: self.TYPE_NAME}
+        for key in self.CONSTRUCTOR_KEYS:
+            data[key] = getattr(self, key)
         effects_data = {}
         data[self.KEY_EFFECTS] = effects_data
         for flt_name, flt in self.effects.items():
             effects_data[flt_name] = flt.get_json()
+        if self.mask_slide:
+            data[self.KEY_MASK_SLIDE] = self.mask_slide.get_json()
         return data
 
     def load_effects_from_json(self, data):
@@ -65,6 +79,15 @@ class Slide:
 
     def __eq__(self, other):
         return isinstance(other, Slide) and other.id_num == self.id_num
+
+    @classmethod
+    def create_from_json(cls, data):
+        constr_data = {}
+        for key in cls.CONSTRUCTOR_KEYS:
+            constr_data[key] = data.get(key)
+        newob = cls(**constr_data)
+        newob.load_effects_from_json(data)
+        return newob
 
     def clone(self):
         data = json.loads(json.dumps(self.get_json()))

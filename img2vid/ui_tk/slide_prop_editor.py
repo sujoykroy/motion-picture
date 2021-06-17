@@ -70,7 +70,7 @@ class SlidePropEditor(Frame):
             tab.editor.set_caption(
                 self._slide.caption, self.app_config.text)
             tab.show()
-        else:
+        elif slide.TYPE_NAME in (VideoSlide.TYPE_NAME, ImageSlide.TYPE_NAME):
             align_state = tk.NORMAL
             for cap_name in ImageSlide.CAP_ALIGNMENTS:
                 tab = self.editor_tabs[cap_name]
@@ -81,6 +81,8 @@ class SlidePropEditor(Frame):
                 tab = self.editor_tabs['video']
                 tab.editor.set_slide(self._slide)
                 tab.show()
+        else:
+            align_state = tk.DISABLED
 
         tab = self.editor_tabs['effects']
         tab.editor.set_slide(slide)

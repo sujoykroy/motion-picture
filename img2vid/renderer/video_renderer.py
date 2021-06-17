@@ -10,6 +10,7 @@ from proglog import ProgressBarLogger
 
 
 from ..slides import TextSlide, ImageSlide, VideoSlide
+from ..slides.geom_slide import GeomSlide
 from ..utils import ImageUtils
 from .. import effects as SlideEffects
 
@@ -17,6 +18,7 @@ from ..utils import ImageUtils
 
 from .text_slide_clip import TextSlideClip
 from .image_slide_clip import ImageSlideClip
+from .geom_slide_clip import GeomSlideClip
 from .slide_renderer import SlideRenderer
 
 class EffectTimeSlice:
@@ -388,11 +390,16 @@ class VideoRenderer:
             bitrate=config.bit_rate,
             logger=render_logger)
 
-    def create_text_clip(self, slide, app_config):
-        return TextSlideClip(slide, app_config, size=self.screen_size)
 
-    def create_image_clip(self, slide, app_config):
-        return ImageSlideClip(slide, app_config, size=self.screen_size)
+    def create_clip(self, slide, app_config, **kwargs):
+        clip = None
+        if slide.TYPE_NAME == TextSlide.TYPE_NAME:
+            clip = TextSlideClip(slide, app_config, size=self.screen_size, **kwargs)
+        elif slide.TYPE_NAME == ImageSlide.TYPE_NAME:
+            clip = ImageSlideClip(slide, app_config, size=self.screen_size, **kwargs)
+        elif slide.TYPE_NAME.endswith(GeomSlide.TYPE_NAME):
+            clip = GeomSlideClip(slide, app_config, size=self.screen_size, **kwargs)
+        return clip
 
     @classmethod
     def create_from_project(cls, project, app_config):
@@ -430,17 +437,15 @@ class VideoRenderer:
                 if not slide.rect and not slide.has_caption:
                     effect = SlideEffects.ScalePan.create_random(1, 6)
                     seffects[effect.TYPE_NAME] = effect
+            elif slide.TYPE_NAME.endswith(GeomSlide.TYPE_NAME):
+                sduration = app_config.image.duration
+
             if sduration == 0:
                 continue
 
-
-            if slide.TYPE_NAME == TextSlide.TYPE_NAME:
-                clip = video_renderer.create_text_clip(slide, app_config)
-            elif slide.TYPE_NAME == ImageSlide.TYPE_NAME:
-                clip = video_renderer.create_image_clip(slide, app_config)
-            else:
+            clip = video_renderer.create_clip(slide, app_config)
+            if not clip:
                 continue
-
 
             clip.duration = sduration
 
@@ -457,7 +462,17 @@ class VideoRenderer:
                 clip = clip.fx(moviepy.video.fx.all.fadein, duration=effect.duration)
 
             clip = clip.set_start(max(0, elapsed))
+
+
             clip = clip.crossfadein(.5)
+
+
+            if slide.mask_slide:
+                mask_clip = video_renderer.create_clip(slide.mask_slide, app_config,
+                    ismask=True, duration=clip.duration)
+                mask_clip = mask_clip.set_start(clip.start)
+                clip = clip.set_mask(mask_clip)
+
             video_renderer.append_clip(clip)
 
             elapsed += sduration
