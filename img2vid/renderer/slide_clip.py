@@ -17,7 +17,7 @@ class SlideClip(moviepy.editor.VideoClip):
         self.make_frame = self._make_frame
 
         self.slide = slide.clone()
-
+        self.sub_clips = []
         '''
         self.slide.add_effect(MoviePyEffect, {
             'effect_type': 'rotate',
@@ -35,7 +35,9 @@ class SlideClip(moviepy.editor.VideoClip):
 
         self._cached_image = None
         self._progress = 0
-        self.opacity = 1
+
+    def add_sub_clip(self, clip):
+        self.sub_clips.append(clip)
 
     def apply_effects(self, image, time_pos, progress):
         if not self.slide.effects:
@@ -60,8 +62,7 @@ class SlideClip(moviepy.editor.VideoClip):
             )
         return image
 
-    def _make_frame(self, time_pos):
-        # print("time_pos", time_pos, self.slide.TYPE_NAME)
+    def _make_frame_image(self, time_pos, rgba=False):
         if self.duration is None:
             progress = 1
         else:
@@ -71,11 +72,20 @@ class SlideClip(moviepy.editor.VideoClip):
         image = self._cached_image
         if not image:
             image = self.get_image_at(time_pos, progress)
-            self._cached_image = image
 
+        if self.sub_clips:
+            for sub_clip in self.sub_clips:
+                image = ImageUtils.merge_image(
+                    image, sub_clip._make_frame_image(time_pos, rgba=True)
+                )
+
+        self._cached_image = image
+        return image
+
+    def _make_frame(self, time_pos):
+        # print("time_pos", time_pos, self.slide.TYPE_NAME)
+        image = self._make_frame_image(time_pos)
         frame = numpy.array(image, dtype=numpy.uint8)
-        if self.opacity != 1:
-            frame = frame * self.opacity
         if self.ismask:
             frame = 1.0 * frame[:, :, 0] / 255
         else:

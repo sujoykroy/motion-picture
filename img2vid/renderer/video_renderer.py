@@ -462,8 +462,6 @@ class VideoRenderer:
                 clip = clip.fx(moviepy.video.fx.all.fadein, duration=effect.duration)
 
             clip = clip.set_start(max(0, elapsed))
-
-
             clip = clip.crossfadein(.5)
 
 
@@ -472,6 +470,12 @@ class VideoRenderer:
                     ismask=True, duration=clip.duration)
                 mask_clip = mask_clip.set_start(clip.start)
                 clip = clip.set_mask(mask_clip)
+
+            if slide.sub_slides:
+                for sub_slide in slide.sub_slides:
+                    sub_clip = video_renderer.create_clip(sub_slide, app_config, duration=clip.duration)
+                    sub_clip = sub_clip.set_start(clip.start)
+                    clip.add_sub_clip(sub_clip)
 
             video_renderer.append_clip(clip)
 

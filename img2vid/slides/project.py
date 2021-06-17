@@ -114,4 +114,8 @@ class Project:
             if data.get(Slide.KEY_MASK_SLIDE):
                 mask_slide = cls.create_slide_from_json(data[Slide.KEY_MASK_SLIDE])
                 slide.set_mask_slide(mask_slide)
+            if data.get(Slide.KEY_SUB_SLIDES):
+                for sub_slide in data.get(Slide.KEY_SUB_SLIDES):
+                    sub_slide = cls.create_slide_from_json(sub_slide)
+                    slide.add_sub_slide(sub_slide)
         return slide

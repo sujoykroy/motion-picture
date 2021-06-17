@@ -9,8 +9,10 @@ class Slide:
     KEY_TYPE = "type"
     KEY_EFFECTS = "effects"
     KEY_MASK_SLIDE = 'mask_slide'
+    KEY_OPACITY = 'opacity'
+    KEY_SUB_SLIDES = 'sub_slides'
 
-    CONSTRUCTOR_KEYS = []
+    CONSTRUCTOR_KEYS = [KEY_OPACITY]
 
     def __init__(self, opacity=1, **kwargs):
         self._id_num = Slide._IdSeed + 1
@@ -20,9 +22,13 @@ class Slide:
         if opacity is None:
             opacity = 1
         self.opacity = opacity
+        self.sub_slides = []
 
     def set_mask_slide(self, mask_slide):
         self.mask_slide = mask_slide
+
+    def add_sub_slide(self, sub_slide):
+        self.sub_slides.append(sub_slide)
 
     @property
     def sorted_effects(self):
@@ -53,6 +59,10 @@ class Slide:
             effects_data[flt_name] = flt.get_json()
         if self.mask_slide:
             data[self.KEY_MASK_SLIDE] = self.mask_slide.get_json()
+        if self.sub_slides:
+            data[self.KEY_SUB_SLIDES] = []
+            for sub_slide in self.sub_slides:
+                data[self.KEY_SUB_SLIDES].append(sub_slide.get_json())
         return data
 
     def load_effects_from_json(self, data):

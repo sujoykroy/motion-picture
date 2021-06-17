@@ -166,3 +166,7 @@ class ImageUtils:
     def get_pixel_at(image, x_pos, y_pos):
         img_buffer = numpy.array(image, dtype=numpy.uint8)
         return img_buffer[int(y_pos), int(x_pos), :]
+
+    @staticmethod
+    def merge_image(bg_image, top_image):
+        return PIL.Image.alpha_composite(bg_image, top_image)
