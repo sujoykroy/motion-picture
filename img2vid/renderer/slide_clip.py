@@ -116,9 +116,8 @@ class SlideClip(moviepy.editor.VideoClip):
             self.app_config.video_render.back_color
         )
 
-        image = ImageUtils.merge_image(
-            bg_image, image
-        )
+        if not self.ismask:
+            image = ImageUtils.merge_image(bg_image, image)
         frame = numpy.array(image, dtype=numpy.uint8)
         if self.ismask:
             frame = 1.0 * frame[:, :, 0] / 255
