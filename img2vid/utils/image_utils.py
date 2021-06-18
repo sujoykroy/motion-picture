@@ -185,3 +185,16 @@ class ImageUtils:
         buff = io.BytesIO()
         image.save(buff, format=format)
         return base64.b64encode(buff.getvalue()).decode("utf-8")
+
+
+    @staticmethod
+    def to_raw_format_data(image_buff, format="JPEG"):
+        if isinstance(image_buff, numpy.ndarray):
+            image_buff = numpy.ascontiguousarray(image_buff)
+            height, width = image_buff.shape[:2]
+            image = PIL.Image.frombytes(mode='RGB', size=(width, height), data=image_buff)
+        else:
+            image = image_buff
+        buff = io.BytesIO()
+        image.save(buff, format=format)
+        return buff.getvalue()
