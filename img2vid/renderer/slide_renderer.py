@@ -1,6 +1,7 @@
 import wand.image
 import wand.drawing
 import wand.color
+from PIL import ImageFilter
 
 from ..geom import Rectangle, Point
 from ..utils import ImageUtils
@@ -33,6 +34,8 @@ class SlideRenderer:
             ),
             canvas=canvas
         )
+        image = image.filter(ImageFilter.SMOOTH)
+
         return RenderInfo(image)
 
     @classmethod
@@ -41,6 +44,7 @@ class SlideRenderer:
             screen_config.scaled_width, screen_config.scaled_height, TRANSPARENT_COLOR
         )
         image = cls.build_image_slide_only_captions(slide, screen_config, text_config, back_image)
+        image = image.filter(ImageFilter.SMOOTH)
         return RenderInfo(image)
 
     @classmethod
@@ -51,7 +55,7 @@ class SlideRenderer:
         image = cls.build_image_slide_only_captions(
             slide, screen_config, image_config, render_info.image
         )
-
+        image = image.filter(ImageFilter.SMOOTH)
         return RenderInfo(image, render_info.editable_rect, render_info.orig_image_scale)
 
     @classmethod
