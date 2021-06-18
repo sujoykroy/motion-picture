@@ -98,7 +98,7 @@ class SlideClip(moviepy.editor.VideoClip):
                 if time_pos > sub_clip.end:
                     continue
                 image = ImageUtils.merge_image(
-                    image, sub_clip._make_frame_image(time_pos, rgba=True)
+                    image, sub_clip._make_frame_image(time_pos - sub_clip.start, rgba=True)
                 )
 
         if self.slide.opacity != 1:
