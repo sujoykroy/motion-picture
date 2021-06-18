@@ -15,13 +15,6 @@ class TextSlide(Slide):
             cap = Caption()
         self._caption = cap
 
-        self.add_effect(NumberParamChange, {
-            'param_name': 'vtext_frac',
-            'value_start': 0,
-            'value_end': 1,
-            'scale': 3
-        })
-
     @property
     def cap(self):
         return self._caption
