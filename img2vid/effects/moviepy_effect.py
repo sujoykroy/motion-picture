@@ -26,11 +26,11 @@ class MoviePyEffect(Effect):
     def get_name(self):
         return "{0}_{1}".format(self.TYPE_NAME, self.effect_type)
 
-    def transform(self, image, progress, rel_time, clip, **kwargs):
+    def transform(self, image, progress, clip_time_pos, clip, **kwargs):
         if not image:
             return image
         mclip = moviepy.editor.ImageClip(numpy.array(image))
         mclip.duration = clip.duration
         effect = getattr(moviepy.video.fx.all, self.effect_type)
         mclip = mclip.fx(effect, **self.effect_params)
-        return PIL.Image.fromarray(mclip.get_frame(rel_time)).convert('RGBA')
+        return PIL.Image.fromarray(mclip.get_frame(clip_time_pos)).convert('RGBA')

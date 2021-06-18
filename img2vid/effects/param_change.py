@@ -18,8 +18,7 @@ class NumberParamChange(Effect):
         EffectParam('param_name', 'str', None),
         EffectParam('value_start', 'float', None),
         EffectParam('value_end', 'float', None),
-        EffectParam('change_type', 'str', CHANGE_TYPE_LINEAR, choices=[CHANGE_TYPE_LINEAR]),
-        EffectParam('scale', 'int', 1),
+        EffectParam('change_type', 'str', CHANGE_TYPE_LINEAR, choices=[CHANGE_TYPE_LINEAR])
     ]
 
     def __init__(self, param_name, value_start, value_end, change_type, scale=1, **kwargs):
@@ -41,7 +40,8 @@ class NumberParamChange(Effect):
         value = ValueParser.find_in_paths(obj, self._param_paths[-1:])
         if value is None:
             return image
-        frac = (min(1, max(0, progress * self.scale)))
+
+        frac = progress
 
         if self.change_type == self.CHANGE_TYPE_LINEAR:
             value = self.value_start + (self.value_end - self.value_start) * frac

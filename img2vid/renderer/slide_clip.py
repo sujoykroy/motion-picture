@@ -1,4 +1,5 @@
 import numpy
+import PIL.Image
 import moviepy.editor
 
 from ..effects import Effect
@@ -49,9 +50,11 @@ class SlideClip(moviepy.editor.VideoClip):
         if not self.slide.effects:
             return image
         for effect in self.slide.effects.values():
-            if effect.delay is not None and time_pos < effect.delay:
+            eff_delay = effect.delay or 0
+            eff_duration = effect.duration or (self.duration - eff_delay)
+            if time_pos < eff_delay:
                 continue
-            if effect.duration is not None and time_pos > effect.duration:
+            if time_pos > eff_delay + eff_duration:
                 continue
 
             # print(effect.TYPE_NAME, effect.APPLY_ON & Effect.APPLY_TYPE_TEXT)
@@ -67,8 +70,12 @@ class SlideClip(moviepy.editor.VideoClip):
 
             self._cached_image = None
             image = effect.transform(
-                image=image, progress=progress,
-                slide=self.slide, rel_time=time_pos,
+                image=image,
+                slide=self.slide,
+                clip_time_pos=time_pos,
+                clip_progress=progress,
+                time_pos=time_pos-eff_delay,
+                progress=(time_pos-eff_delay)/eff_duration,
                 clip=self
             )
         return image
@@ -94,6 +101,9 @@ class SlideClip(moviepy.editor.VideoClip):
                     image, sub_clip._make_frame_image(time_pos, rgba=True)
                 )
 
+        if self.slide.opacity != 1:
+            image = ImageUtils.set_alpha(image, self.slide.opacity)
+
         self._cached_image = image
         return image
 
@@ -105,6 +115,7 @@ class SlideClip(moviepy.editor.VideoClip):
             self.app_config.video_render.scaled_height,
             self.app_config.video_render.back_color
         )
+
         image = ImageUtils.merge_image(
             bg_image, image
         )

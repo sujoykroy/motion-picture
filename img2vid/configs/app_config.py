@@ -23,7 +23,7 @@ class AppConfig:
 
         font_size = section.get("font_size", "12")
         font_color = section.get("font-color", "#000000")
-        back_color = section.get("back-color", "#FFFFFF00")
+        back_color = section.get("back-color", "#FFFFFF")
 
         section = self.get_section("editor")
         self.editor_back_color = section.get("back-color", "white")
