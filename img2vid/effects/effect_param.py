@@ -13,6 +13,8 @@ class EffectParam:
         self._options = options
 
     def parse(self, value):
+        if value is None:
+            return self._default
         if self._type_class == 'int':
             return int(value)
         elif self._type_class == 'float':

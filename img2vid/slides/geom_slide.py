@@ -14,7 +14,7 @@ class GeomSlide(Slide):
         KEY_SCALE, KEY_FILL_COLOR, KEY_STROKE_COLOR, KEY_STROKE_WIDTH]
 
     def __init__(self, scale=1, fill_color=None, stroke_color=None, stroke_width=None, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.scale = scale
         self.fill_color = fill_color or "#FFFF00"
         self.stroke_color = stroke_color or "#000000"

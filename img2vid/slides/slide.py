@@ -11,10 +11,13 @@ class Slide:
     KEY_MASK_SLIDE = 'mask_slide'
     KEY_OPACITY = 'opacity'
     KEY_SUB_SLIDES = 'sub_slides'
+    KEY_DURATION = 'duration'
+    KEY_DELAY = 'delay'
 
-    CONSTRUCTOR_KEYS = [KEY_OPACITY]
+    CONSTRUCTOR_KEYS = [KEY_OPACITY, KEY_DURATION, KEY_DELAY]
+    THROTTLE_KEYS = [KEY_OPACITY, KEY_DURATION, KEY_DELAY]
 
-    def __init__(self, opacity=1, **kwargs):
+    def __init__(self, opacity=1, duration=None, delay=None, **kwargs):
         self._id_num = Slide._IdSeed + 1
         self.effects = {}
         Slide._IdSeed = Slide._IdSeed + 1
@@ -23,6 +26,8 @@ class Slide:
             opacity = 1
         self.opacity = opacity
         self.sub_slides = []
+        self.duration = duration
+        self.delay = delay
 
     def set_mask_slide(self, mask_slide):
         self.mask_slide = mask_slide
@@ -63,6 +68,10 @@ class Slide:
             data[self.KEY_SUB_SLIDES] = []
             for sub_slide in self.sub_slides:
                 data[self.KEY_SUB_SLIDES].append(sub_slide.get_json())
+
+        for key in self.THROTTLE_KEYS:
+            if data[key] is None:
+                del data[key]
         return data
 
     def load_effects_from_json(self, data):

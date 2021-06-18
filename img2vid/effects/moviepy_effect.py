@@ -11,7 +11,7 @@ class MoviePyEffect(Effect):
 
     APPLY_ON =  Effect.APPLY_TYPE_ALL
 
-    PARAMS = [
+    PARAMS = Effect.PARAMS + [
         EffectParam('effect_type', 'str', None),
         EffectParam('effect_params', 'json', None)
     ]

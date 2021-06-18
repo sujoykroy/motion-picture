@@ -8,7 +8,6 @@ from .effect_param import EffectParam
 class Painted(Effect):
     TYPE_NAME = "painted"
     APPLY_ON = Effect.APPLY_TYPE_VIDEO
-    PARAMS = []
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

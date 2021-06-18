@@ -1,9 +1,15 @@
 """Base Effect holder"""
+from .effect_param import EffectParam
 
 class Effect:
     """This is base abstract class for Effect"""
     TYPE_NAME = None
     KEY_TYPE = "type"
+    KEY_DELAY = "delay"
+    KEY_DURATION = "duration"
+
+
+    THROTTLE_KEYS = [KEY_DURATION, KEY_DELAY]
 
     APPLY_TYPE_IMAGE = 1
     APPLY_TYPE_VIDEO = 3
@@ -13,13 +19,24 @@ class Effect:
 
     _IdSeed = 0
 
-    PARAMS = []
+    PARAMS = [
+        EffectParam(KEY_DELAY, 'float', None),
+        EffectParam(KEY_DURATION, 'float', None)
+    ]
     APPLY_ON = 0
 
-    def __init__(self, sort_weight=0):
+    def __init__(self, sort_weight=0, delay=None, duration=None):
         self._id_num = Effect._IdSeed
         self.sort_weight = sort_weight
+        self.delay = delay
+        self.duration = duration
         Effect._IdSeed += 1
+
+    def get_delay(self):
+        return self.delay or 0
+
+    def get_duration(self, default_dur):
+        return self.duration or default_dur
 
     def get_name(self):
         return self.TYPE_NAME
@@ -52,6 +69,9 @@ class Effect:
         for param in self.PARAMS:
             key = param.name
             data[key] = getattr(self, key)
+        for key in self.THROTTLE_KEYS:
+            if data[key] is None:
+                del data[key]
         return data
 
     @classmethod

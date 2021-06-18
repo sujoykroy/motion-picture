@@ -7,7 +7,7 @@ from .effect_param import EffectParam
 class RgbFilter(Effect):
     TYPE_NAME = "rgb_filter"
     APPLY_ON = Effect.APPLY_TYPE_IMAGE
-    PARAMS = [
+    PARAMS = Effect.PARAMS + [
         EffectParam('channel', 'str', 'Red', choices=('Red', 'Green', 'Blue'))
     ]
 

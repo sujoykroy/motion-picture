@@ -421,7 +421,7 @@ class VideoRenderer:
         for slide in project.slides:
             seffects = dict(slide.effects)
 
-            sduration = 0
+            sduration = slide.duration
             if slide.TYPE_NAME == TextSlide.TYPE_NAME:
                 sduration = app_config.text.duration
             elif slide.TYPE_NAME in (ImageSlide.TYPE_NAME, VideoSlide.TYPE_NAME):
@@ -440,7 +440,7 @@ class VideoRenderer:
             elif slide.TYPE_NAME.endswith(GeomSlide.TYPE_NAME):
                 sduration = app_config.image.duration
 
-            if sduration == 0:
+            if not sduration:
                 continue
 
             clip = video_renderer.create_clip(slide, app_config)
@@ -473,8 +473,11 @@ class VideoRenderer:
 
             if slide.sub_slides:
                 for sub_slide in slide.sub_slides:
-                    sub_clip = video_renderer.create_clip(sub_slide, app_config, duration=clip.duration)
-                    sub_clip = sub_clip.set_start(clip.start)
+                    sub_clip = video_renderer.create_clip(
+                        sub_slide, app_config,
+                        start=clip.start + (sub_slide.delay or 0),
+                        duration=(sub_slide.duration or (clip.duration - (sub_slide.delay or 0)))
+                    )
                     clip.add_sub_clip(sub_clip)
 
             video_renderer.append_clip(clip)

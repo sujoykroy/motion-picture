@@ -11,7 +11,6 @@ from .effect_param import EffectParam
 class CoolText(Effect):
     TYPE_NAME = "cool_text"
     APPLY_ON = Effect.APPLY_TYPE_TEXT
-    PARAMS = []
 
     def __init__(self):
         super().__init__()

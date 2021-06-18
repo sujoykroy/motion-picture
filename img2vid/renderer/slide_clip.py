@@ -9,11 +9,17 @@ from ..effects import MoviePyEffect, NumberParamChange
 
 
 class SlideClip(moviepy.editor.VideoClip):
-    def __init__(self, slide, app_config, size, duration=None, *args, **kwargs):
+    def __init__(self, slide, app_config, size,
+                       duration=None, start=None, end=None,
+                       *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.size = size
+        self.start = start
         self.duration = duration
-
+        self.end = end
+        if end is None and start is not  None and \
+           duration is not None:
+            self.end = start + duration
         self.make_frame = self._make_frame
 
         self.slide = slide.clone()
@@ -43,6 +49,11 @@ class SlideClip(moviepy.editor.VideoClip):
         if not self.slide.effects:
             return image
         for effect in self.slide.effects.values():
+            if effect.delay is not None and time_pos < effect.delay:
+                continue
+            if effect.duration is not None and time_pos > effect.duration:
+                continue
+
             # print(effect.TYPE_NAME, effect.APPLY_ON & Effect.APPLY_TYPE_TEXT)
             if self.slide.TYPE_NAME == TextSlide.TYPE_NAME and \
                (effect.APPLY_ON & Effect.APPLY_TYPE_TEXT) == 0:
@@ -75,6 +86,10 @@ class SlideClip(moviepy.editor.VideoClip):
 
         if self.sub_clips:
             for sub_clip in self.sub_clips:
+                if time_pos < sub_clip.start:
+                    continue
+                if time_pos > sub_clip.end:
+                    continue
                 image = ImageUtils.merge_image(
                     image, sub_clip._make_frame_image(time_pos, rgba=True)
                 )

@@ -14,7 +14,7 @@ class NumberParamChange(Effect):
 
     CHANGE_TYPE_LINEAR = 'linear'
 
-    PARAMS = [
+    PARAMS = Effect.PARAMS + [
         EffectParam('param_name', 'str', None),
         EffectParam('value_start', 'float', None),
         EffectParam('value_end', 'float', None),
