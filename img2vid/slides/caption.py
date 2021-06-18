@@ -157,8 +157,6 @@ class Caption:
 
     def get_json(self):
         data = dict(self._params)
-        if 'vfrac' in data:
-            del data['vfrac']
         return data
 
     @classmethod

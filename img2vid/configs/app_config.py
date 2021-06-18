@@ -21,7 +21,7 @@ class AppConfig:
         ppi = int(section.get("ppi", 340))
         font_name = section.get("font-name", "Courier")
 
-        font_size = section.get("font_size", "12")
+        font_size = section.get("font_size", "9")
         font_color = section.get("font-color", "#000000")
         back_color = section.get("back-color", "#FFFFFF")
 

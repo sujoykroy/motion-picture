@@ -108,7 +108,7 @@ class SlideClip(moviepy.editor.VideoClip):
         return image
 
     def _make_frame(self, time_pos):
-        # print("time_pos", time_pos, self.slide.TYPE_NAME)
+        # print("time_pos", time_pos, self.slide.TYPE_NAME, self.start, self.end)
         image = self._make_frame_image(time_pos)
         bg_image = ImageUtils.create_blank(
             self.app_config.video_render.scaled_width,

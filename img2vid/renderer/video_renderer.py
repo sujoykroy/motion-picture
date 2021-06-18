@@ -467,8 +467,10 @@ class VideoRenderer:
 
             if slide.mask_slide:
                 mask_clip = video_renderer.create_clip(slide.mask_slide, app_config,
-                    ismask=True, duration=clip.duration)
-                mask_clip = mask_clip.set_start(clip.start)
+                    ismask=True,
+                    start=clip.start + (slide.mask_slide.delay or 0),
+                    duration=(slide.mask_slide.duration or (clip.duration - (slide.mask_slide.delay or 0)))
+                )
                 clip = clip.set_mask(mask_clip)
 
             if slide.sub_slides:
