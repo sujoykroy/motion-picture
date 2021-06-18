@@ -84,7 +84,7 @@ class SlideClip(moviepy.editor.VideoClip):
         if self.duration is None:
             progress = 1
         else:
-            progress = time_pos/self.duration
+            progress = (time_pos - self.start)/self.duration
         self.apply_effects(None, time_pos, progress)
 
         image = self._cached_image
