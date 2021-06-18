@@ -13,8 +13,7 @@ class GeomSlideClip(SlideClip):
     def get_image_at(self, time_pos, progress):
         render_info = SlideRenderer.build_geom_slide(
             self.slide,
-            self.app_config.video_render,
-            "#000000"
+            self.app_config.video_render
         )
 
         image = self.apply_effects(render_info.image, time_pos, progress)

@@ -13,14 +13,13 @@ from .caption_renderer import CaptionRenderer
 from .vector_renderer import VectorRenderer
 from ..configs.vector_config import VectorConfig
 
+TRANSPARENT_COLOR = "#00000000"
 
 class SlideRenderer:
     @classmethod
-    def build_geom_slide(self, slide, screen_config, back_color = None):
-        if not back_color:
-            back_color = screen_config.back_color
+    def build_geom_slide(self, slide, screen_config):
         canvas = ImageUtils.create_blank(
-            screen_config.scaled_width, screen_config.scaled_height, back_color
+            screen_config.scaled_width, screen_config.scaled_height, TRANSPARENT_COLOR
         )
         image = VectorRenderer.create_image(
             slide.get_vector_shape(
@@ -38,9 +37,8 @@ class SlideRenderer:
 
     @classmethod
     def build_text_slide(cls, slide, screen_config, text_config, progress=1):
-        back_color = slide.caption.back_color or text_config.back_color
         back_image = ImageUtils.create_blank(
-            screen_config.scaled_width, screen_config.scaled_height, back_color
+            screen_config.scaled_width, screen_config.scaled_height, TRANSPARENT_COLOR
         )
         image = cls.build_image_slide_only_captions(slide, screen_config, text_config, back_image)
         return RenderInfo(image)
@@ -59,7 +57,7 @@ class SlideRenderer:
     @classmethod
     def build_image_slide_only_captions(cls, slide, screen_config, image_config, file_image):
         canvas = ImageUtils.create_blank(
-            screen_config.scaled_width, screen_config.scaled_height, (255, 255, 255, 0)
+            screen_config.scaled_width, screen_config.scaled_height, TRANSPARENT_COLOR
         )
         canvas = ImageUtils.pil2wand(canvas)
 

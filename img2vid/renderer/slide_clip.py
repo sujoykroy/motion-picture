@@ -85,6 +85,14 @@ class SlideClip(moviepy.editor.VideoClip):
     def _make_frame(self, time_pos):
         # print("time_pos", time_pos, self.slide.TYPE_NAME)
         image = self._make_frame_image(time_pos)
+        bg_image = ImageUtils.create_blank(
+            self.app_config.video_render.scaled_width,
+            self.app_config.video_render.scaled_height,
+            self.app_config.video_render.back_color
+        )
+        image = ImageUtils.merge_image(
+            bg_image, image
+        )
         frame = numpy.array(image, dtype=numpy.uint8)
         if self.ismask:
             frame = 1.0 * frame[:, :, 0] / 255
