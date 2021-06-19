@@ -395,7 +395,7 @@ class VideoRenderer:
         clip = None
         if slide.TYPE_NAME == TextSlide.TYPE_NAME:
             clip = TextSlideClip(slide, app_config, size=self.screen_size, **kwargs)
-        elif slide.TYPE_NAME == ImageSlide.TYPE_NAME:
+        elif slide.TYPE_NAME in (ImageSlide.TYPE_NAME, VideoSlide.TYPE_NAME):
             clip = ImageSlideClip(slide, app_config, size=self.screen_size, **kwargs)
         elif slide.TYPE_NAME.endswith(GeomSlide.TYPE_NAME):
             clip = GeomSlideClip(slide, app_config, size=self.screen_size, **kwargs)
@@ -426,7 +426,7 @@ class VideoRenderer:
                 sduration = app_config.text.duration
             elif slide.TYPE_NAME in (ImageSlide.TYPE_NAME, VideoSlide.TYPE_NAME):
                 if slide.TYPE_NAME == VideoSlide.TYPE_NAME:
-                    sduration = slide.duration
+                    sduration = slide.duration or sduration
                 else:
                     sduration = app_config.image.duration
                 if slide.rect:
@@ -439,6 +439,7 @@ class VideoRenderer:
                     seffects[effect.TYPE_NAME] = effect
             elif slide.TYPE_NAME.endswith(GeomSlide.TYPE_NAME):
                 sduration = app_config.image.duration
+
 
             if not sduration:
                 continue

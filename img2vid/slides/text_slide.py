@@ -6,14 +6,17 @@ from .caption import Caption
 class TextSlide(Slide):
     TYPE_NAME = "text"
     KEY_CAPTION = "cap"
+    KEY_WIDTH_FRAC = "width_frac"
 
-    CONSTRUCTOR_KEYS = Slide.CONSTRUCTOR_KEYS + [KEY_CAPTION]
+    CONSTRUCTOR_KEYS = Slide.CONSTRUCTOR_KEYS + [
+        KEY_CAPTION, KEY_WIDTH_FRAC]
 
     def __init__(self, cap=None, **kwargs):
         super().__init__(**kwargs)
         if not cap:
             cap = Caption()
         self._caption = cap
+        self.width_frac = kwargs.get(self.KEY_WIDTH_FRAC)
 
     @property
     def cap(self):

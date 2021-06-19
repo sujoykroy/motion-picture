@@ -81,7 +81,8 @@ class SlideRenderer:
 
             for caption in slide.active_captions:
                 cap_image = CaptionRenderer.caption2image(
-                    caption=caption, max_width=screen_config.scaled_width,
+                    caption=caption,
+                    max_width=int(screen_config.scaled_width * slide.cap_width_frac),
                     text_config=image_config, wand_image=True
                 )
                 if not cap_image:
@@ -133,7 +134,7 @@ class SlideRenderer:
                 filepath=slide.local_filepath,
                 crop=slide.rect, wand_image=False)
 
-        fitted_image = ImageUtils.fit_inside(
+        fitted_image = ImageUtils.fit_full(
             file_image, screen_config.scaled_width, screen_config.scaled_height)
 
         orig_image_scale = fitted_image.width/file_image.width

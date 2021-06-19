@@ -11,6 +11,12 @@ from .slide_clip import SlideClip
 
 
 class ImageSlideClip(SlideClip):
+    def _make_frame_image(self, time_pos, **kwargs):
+        if self.slide.TYPE_NAME == VideoSlide.TYPE_NAME:
+            self.slide.current_pos= time_pos
+
+        return super()._make_frame_image(time_pos, **kwargs)
+
     def get_image_at(self, time_pos, progress):
         render_info = SlideRenderer.build_image_slide_only_image(
             self.slide,

@@ -9,14 +9,28 @@ class VideoSlide(ImageSlide):
     KEY_START_AT = "start_at"
     KEY_END_AT = "end_at"
     KEY_ABS_CURR_POS = "abs_pos"
+    KEY_LOOP_MODE = "loop_mode"
 
-    def __init__(self, filepath, rect=None):
-        super().__init__(filepath, rect)
-        self._start_at = 0
-        self._end_at = -1
-        self._abs_current_pos = 0
-        self._duration = None
+    LOOP_START = "start"
+    LOOP_REVERSE = "reverse"
+
+    CONSTRUCTOR_KEYS = ImageSlide.CONSTRUCTOR_KEYS + [
+        KEY_START_AT, KEY_END_AT, KEY_ABS_CURR_POS,
+        KEY_LOOP_MODE
+    ]
+
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._start_at = kwargs.get(self.KEY_START_AT) or 0
+        self._end_at =  kwargs.get(self.KEY_END_AT) or -1
+        self._abs_current_pos =  kwargs.get(self.KEY_ABS_CURR_POS) or 0
         self._full_duration = None
+        self.loop_mode = kwargs.get(self.KEY_LOOP_MODE) or self.LOOP_START
+    
+    @property
+    def abs_pos(self):
+        return self._abs_current_pos
 
     @property
     def abs_current_pos(self):
@@ -30,9 +44,25 @@ class VideoSlide(ImageSlide):
     def current_pos(self):
         return self._abs_current_pos-self._start_at
 
+
+    @property
+    def span(self):
+        return self._end_at - self._start_at
+
     @current_pos.setter
     def current_pos(self, value):
+        span = self.span
+        if value > span:
+            if self.loop_mode == self.LOOP_START:
+                value %= span
+                print(value)
+            elif self.loop_mode == self.LOOP_REVERSE:
+                value %= span * 2
+                if value > span:
+                    value = span - (value - span)
+
         self._abs_current_pos = self._start_at + value
+
 
     @property
     def full_duration(self):
@@ -59,10 +89,6 @@ class VideoSlide(ImageSlide):
     def start_at(self, value):
         self._start_at = max(0, value)
 
-    @property
-    def duration(self):
-        return self.end_at-self.start_at
-
     def crop(self, rect):
         if self._rect:
             rect = rect.copy()
@@ -71,19 +97,4 @@ class VideoSlide(ImageSlide):
         newob.start_at = self.start_at
         newob.end_at = self.end_at
         newob.abs_current_pos = self.abs_current_pos
-        return newob
-
-    def get_json(self):
-        data = super().get_json()
-        data[self.KEY_START_AT] = self._start_at
-        data[self.KEY_END_AT] = self._end_at
-        data[self.KEY_ABS_CURR_POS] = self._abs_current_pos
-        return data
-
-    @classmethod
-    def create_from_json(cls, data):
-        newob = super().create_from_json(data)
-        newob.start_at = data.get(cls.KEY_START_AT, 0)
-        newob.end_at = data.get(cls.KEY_END_AT, -1)
-        newob.abs_current_pos = data.get(cls.KEY_ABS_CURR_POS, 0)
         return newob
