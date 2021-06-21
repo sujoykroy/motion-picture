@@ -25,11 +25,15 @@ class AppConfig:
         ppi = int(section.get("ppi", 340))
         font_name = section.get("font-name", "Courier")
 
-        font_size = section.get("font_size", "9")
-        font_color = section.get("font-color", "#000000")
-        back_color = section.get("back-color", "#FFFFFF")
-        text_back_color = section.get("text-back-color", "#FFFFFF00")
-        focuser_fill_color = section.get("focuser-fill-color", "#00FF00")
+        section = self.get_section("general")
+        ppi = int(section.get("ppi") or 340)
+        font_name = section.get("font-name") or "Courier"
+
+        font_size = section.get("font_size") or "9"
+        font_color = section.get("font-color") or "#000000"
+        back_color = section.get("back-color") or  "#FFFFFF"
+        text_back_color = section.get("text-back-color") or "#FFFFFF00"
+        focuser_fill_color = section.get("focuser-fill-color") or "#00FF00"
 
 
         section = self.get_section("editor")
