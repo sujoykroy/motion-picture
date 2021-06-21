@@ -26,6 +26,8 @@ class Slide:
             opacity = 1
         self.opacity = opacity
         self.sub_slides = []
+        if duration is not None:
+            duration = int(duration)
         self.duration = duration
         self.delay = delay
 

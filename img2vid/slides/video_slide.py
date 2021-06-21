@@ -1,3 +1,5 @@
+import re
+
 from ..geom import Point, Rectangle
 from ..utils import VideoCache
 
@@ -18,6 +20,8 @@ class VideoSlide(ImageSlide):
         KEY_START_AT, KEY_END_AT, KEY_ABS_CURR_POS,
         KEY_LOOP_MODE
     ]
+
+    VIDEO_FILEPATH_PAT = re.compile(r'\.(mov|mp4|mpg|mpeg)$')
 
 
     def __init__(self, **kwargs):
@@ -98,3 +102,7 @@ class VideoSlide(ImageSlide):
         newob.end_at = self.end_at
         newob.abs_current_pos = self.abs_current_pos
         return newob
+
+    @classmethod
+    def check_if_file_supported(cls, filepath):
+        return bool(cls.VIDEO_FILEPATH_PAT.search(filepath))

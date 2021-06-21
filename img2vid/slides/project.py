@@ -106,7 +106,9 @@ class Project:
             elif slide_type == VideoSlide.TYPE_NAME:
                 slide = VideoSlide.create_from_json(data)
             elif slide_type == ImageSlide.TYPE_NAME:
-                slide = ImageSlide.create_from_json(data)
+                slide = ImageSlide.create_from_json(json.loads(json.dumps(data)))
+                if VideoSlide.check_if_file_supported(slide.filepath):
+                    slide = VideoSlide.create_from_json(data)
             elif slide_type == RectGeomSlide.TYPE_NAME:
                 slide = RectGeomSlide.create_from_json(data)
             elif slide_type == CircleGeomSlide.TYPE_NAME:

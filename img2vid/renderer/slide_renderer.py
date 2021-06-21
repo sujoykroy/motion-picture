@@ -126,22 +126,26 @@ class SlideRenderer:
 
     @classmethod
     def build_image_slide_only_image(cls, slide, screen_config, image_config):
-        if slide.TYPE_NAME == VideoSlide.TYPE_NAME:
-            file_image = ImageUtils.fetch_video_frame(
-                filepath=slide.filepath,
-                time_pos=slide.abs_current_pos,
-                crop=slide.rect, wand_image=False)
-        else:
-            if slide.local_filepath:
-                file_image = ImageUtils.fetch_image(
-                    filepath=slide.local_filepath,
+        file_image = None
+        try:
+            if slide.TYPE_NAME == VideoSlide.TYPE_NAME:
+                file_image = ImageUtils.fetch_video_frame(
+                    filepath=slide.filepath,
+                    time_pos=slide.abs_current_pos,
                     crop=slide.rect, wand_image=False)
             else:
-                file_image = ImageUtils.create_blank(
-                    screen_config.scaled_width,
-                    screen_config.scaled_height,
-                    TRANSPARENT_COLOR
-                )
+                if slide.local_filepath:
+                    file_image = ImageUtils.fetch_image(
+                        filepath=slide.local_filepath,
+                        crop=slide.rect, wand_image=False)
+        except Exception as ex:
+            print(ex)
+        if not file_image:
+            file_image = ImageUtils.create_blank(
+                screen_config.scaled_width,
+                screen_config.scaled_height,
+                TRANSPARENT_COLOR
+            )
         fitted_image = ImageUtils.fit_full(
             file_image, screen_config.scaled_width, screen_config.scaled_height)
 
