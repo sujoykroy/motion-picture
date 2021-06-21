@@ -132,10 +132,16 @@ class SlideRenderer:
                 time_pos=slide.abs_current_pos,
                 crop=slide.rect, wand_image=False)
         else:
-            file_image = ImageUtils.fetch_image(
-                filepath=slide.local_filepath,
-                crop=slide.rect, wand_image=False)
-
+            if slide.local_filepath:
+                file_image = ImageUtils.fetch_image(
+                    filepath=slide.local_filepath,
+                    crop=slide.rect, wand_image=False)
+            else:
+                canvas = ImageUtils.create_blank(
+                    screen_config.scaled_width,
+                    screen_config.scaled_height,
+                    TRANSPARENT_COLOR
+                )
         fitted_image = ImageUtils.fit_full(
             file_image, screen_config.scaled_width, screen_config.scaled_height)
 
