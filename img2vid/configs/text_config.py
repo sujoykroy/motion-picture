@@ -34,6 +34,10 @@ class TextConfig:
         return self.params.get("back_color", "#FFFFFF00")
 
     @property
+    def focuser_fill_color(self):
+        return self.params.get("focuser_fill_color", "#FF0000")
+
+    @property
     def ppi(self):
         return int(self.params.get("ppi", 340))
 

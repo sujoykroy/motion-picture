@@ -17,7 +17,7 @@ from ..configs.vector_config import VectorConfig
 
 class CaptionRenderer:
     @classmethod
-    def create_focuser_image(cls, caption, caption_image, cap_pos, wand_image=False):
+    def create_focuser_image(cls, caption, caption_image, cap_pos, text_config, wand_image=False):
         focuser = caption.focuser
         halign = caption.halign
         valign = caption.valign
@@ -49,7 +49,8 @@ class CaptionRenderer:
                 0, 0,
                 focuser_shape.width, focuser_shape.height
             )
-            vector_config = VectorConfig(fill_color=caption.focuser_fill_color)
+            focuser_fill_color = caption.focuser_fill_color or text_config.focuser_fill_color
+            vector_config = VectorConfig(fill_color=focuser_fill_color)
             image = VectorRenderer.create_image(draw_rect, vector_config, wand_image=wand_image)
             return image, Point(focuser_shape.x1, focuser_shape.y1)
 
@@ -65,6 +66,7 @@ class CaptionRenderer:
             'convert'
         ]
         back_color = caption.back_color  or text_config.back_color
+
         args.extend(['-channel', "RGBA"])
         args.extend(['-background', back_color])
         args.extend(['-gravity', "center"])

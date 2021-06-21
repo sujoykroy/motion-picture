@@ -113,7 +113,9 @@ class SlideRenderer:
 
                 if caption.focuser:
                     foucer_image, focuser_pos = CaptionRenderer.create_focuser_image(
-                        caption, cap_image, cap_pos, wand_image=True
+                        caption, cap_image, cap_pos,
+                        text_config=image_config,
+                        wand_image=True
                     )
                     canvas.composite(image=foucer_image, left=focuser_pos.x, top=focuser_pos.y)
 

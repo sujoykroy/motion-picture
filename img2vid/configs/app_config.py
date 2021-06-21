@@ -1,3 +1,4 @@
+from typing import Dict
 from ..effects import EFFECT_TYPES
 
 from .text_config import TextConfig
@@ -12,10 +13,13 @@ from .vector_config import VectorConfig
 class AppConfig:
     FILENAME = "app.ini"
 
-    def __init__(self, filename=None):
-        if not filename:
-            filename = self.FILENAME
-        self._parser = PathConfig.create_parser(filename)
+    def __init__(self, filename=None, data:Dict=None):
+        if data:
+            self._parser = dict(data)
+        else:
+            if not filename:
+                filename = self.FILENAME
+            self._parser = PathConfig.create_parser(filename)
 
         section = self.get_section("general")
         ppi = int(section.get("ppi", 340))
@@ -24,6 +28,9 @@ class AppConfig:
         font_size = section.get("font_size", "9")
         font_color = section.get("font-color", "#000000")
         back_color = section.get("back-color", "#FFFFFF")
+        text_back_color = section.get("text-back-color", "#FFFFFF00")
+        focuser_fill_color = section.get("focuser-fill-color", "#00FF00")
+
 
         section = self.get_section("editor")
         self.editor_back_color = section.get("back-color", "white")
@@ -33,7 +40,8 @@ class AppConfig:
             font_name=section.get("font-name", font_name),
             font_size=section.get("font-size", font_size),
             font_color=section.get("font-color", font_color),
-            back_color=section.get("back-color", back_color),
+            back_color=section.get("back-color", text_back_color),
+            focuser_fill_color=section.get("focuser-fill-color", focuser_fill_color),
             ppi=ppi,
             duration=section.get("duration", 3))
 
@@ -42,8 +50,9 @@ class AppConfig:
             font_name=section.get("font-name", font_name),
             font_size=section.get("font-size", font_size),
             font_color=section.get("font-color", font_color),
-            back_color=section.get("back-color", back_color),
-            padding=section.get("padding", 0),
+            back_color=section.get("back-color", text_back_color),
+            focuser_fill_color=section.get("focuser-fill-color", focuser_fill_color),
+            padding=section.get("padding", 5),
             ppi=ppi,
             min_crop_duration=section.get("min-crop-duration", 1),
             max_crop_duration=section.get("max-crop-duration", 2),
