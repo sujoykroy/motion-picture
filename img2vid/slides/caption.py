@@ -79,7 +79,7 @@ class Caption:
 
     @property
     def valign(self):
-        return self._params.get('valign')
+        return self._params.get('valign', 'center')
 
     @property
     def halign(self):

@@ -42,6 +42,7 @@ class ImageSlide(Slide):
 
     def __init__(self, filepath, rect=None, **kwargs):
         super().__init__(**kwargs)
+        filepath = filepath or ''
         self._filepath = filepath
         self._local_filepath = filepath
         if self.URL_PATH_RE.match(filepath):
@@ -64,7 +65,7 @@ class ImageSlide(Slide):
 
         for valign in self.CAP_ALIGNMENTS:
             self._captions[valign] = Caption(
-                {'valign': valign, 'text': ''}
+                {'valign': valign, 'halign': 'center', 'text': ''}
             )
         self.cap_width_frac = kwargs.get(self.KEY_CAP_WIDTH_FRAC) or 0.9
 

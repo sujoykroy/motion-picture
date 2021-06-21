@@ -137,7 +137,7 @@ class SlideRenderer:
                     filepath=slide.local_filepath,
                     crop=slide.rect, wand_image=False)
             else:
-                canvas = ImageUtils.create_blank(
+                file_image = ImageUtils.create_blank(
                     screen_config.scaled_width,
                     screen_config.scaled_height,
                     TRANSPARENT_COLOR
