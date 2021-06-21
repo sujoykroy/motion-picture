@@ -29,6 +29,8 @@ class Slide:
         if duration is not None:
             duration = int(duration)
         self.duration = duration
+        if delay is not None:
+            delay = int(delay)
         self.delay = delay
 
     def set_mask_slide(self, mask_slide):
