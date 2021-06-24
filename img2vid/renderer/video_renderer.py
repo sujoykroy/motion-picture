@@ -463,7 +463,7 @@ class VideoRenderer:
                 clip = clip.fx(moviepy.video.fx.all.fadein, duration=effect.duration)
 
             clip = clip.set_start(max(0, elapsed))
-            clip = clip.crossfadein(.5)
+            # clip = clip.crossfadein(.5)
 
 
             if slide.mask_slide:
