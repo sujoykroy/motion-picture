@@ -9,6 +9,7 @@ import wand.color
 from ..analysers import TextAnalyser
 from ..utils import ImageUtils
 from ..geom.rectangle import Rectangle
+from ..geom.circle import Circle
 from ..geom.point import Point
 from ..slides.image_slide import ImageSlide
 from .vector_renderer import VectorRenderer
@@ -21,6 +22,11 @@ class CaptionRenderer:
         focuser = caption.focuser
         halign = caption.halign
         valign = caption.valign
+
+        if focuser.get('type'):
+            focuser_fill_color = caption.focuser_fill_color or text_config.focuser_fill_color
+            vector_config = VectorConfig(fill_color=focuser_fill_color)
+
         if focuser.get('type') == 'anchored_rect':
             padding = 4 * caption.padding
             spread = focuser.get('spread', 5)
@@ -49,9 +55,20 @@ class CaptionRenderer:
                 0, 0,
                 focuser_shape.width, focuser_shape.height
             )
-            focuser_fill_color = caption.focuser_fill_color or text_config.focuser_fill_color
-            vector_config = VectorConfig(fill_color=focuser_fill_color)
             image = VectorRenderer.create_image(draw_rect, vector_config, wand_image=wand_image)
+            return image, Point(focuser_shape.x1, focuser_shape.y1)
+        elif focuser.get('type') == 'circle':
+            padding =  2 * caption.padding
+            spread = focuser.get('spread', 5)
+
+            radius = (max(caption_image.width, caption_image.height) + 4 * padding) / 2
+            focuser_shape = Circle(
+                cap_pos.x  + caption_image.width/2,
+                cap_pos.y + caption_image.height/2,
+                radius
+            )
+            draw_circle = Circle(radius, radius, radius)
+            image = VectorRenderer.create_image(draw_circle, vector_config, wand_image=wand_image)
             return image, Point(focuser_shape.x1, focuser_shape.y1)
 
     @classmethod

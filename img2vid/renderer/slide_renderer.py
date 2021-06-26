@@ -109,7 +109,6 @@ class SlideRenderer:
 
                 cap_pos.x = int(cap_pos.x)
                 cap_pos.y = int(cap_pos.y)
-                canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
 
                 if caption.focuser:
                     foucer_image, focuser_pos = CaptionRenderer.create_focuser_image(
@@ -117,7 +116,9 @@ class SlideRenderer:
                         text_config=image_config,
                         wand_image=True
                     )
-                    canvas.composite(image=foucer_image, left=focuser_pos.x, top=focuser_pos.y)
+                    canvas.composite(image=foucer_image, left=int(focuser_pos.x), top=int(focuser_pos.y))
+
+                canvas.composite(image=cap_image, left=cap_pos.x, top=cap_pos.y)
 
             context(canvas)
             canvas = ImageUtils.wand2pil(canvas)
