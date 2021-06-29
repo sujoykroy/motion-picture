@@ -76,9 +76,13 @@ class Caption:
     @property
     def focuser(self):
         return self._params.get('focuser', {
-            'type': 'anchored_rect',
+            'type': self.focuser_type or 'anchored_rect',
             'spread': 2
         })
+
+    @property
+    def focuser_type(self):
+        return self._params.get('focuser_type')
 
     @property
     def focuser_fill_color(self):
