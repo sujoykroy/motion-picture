@@ -34,12 +34,6 @@ class ImageSlide(Slide):
     CONSTRUCTOR_KEYS = Slide.CONSTRUCTOR_KEYS + [
         KEY_FILEPATH, KEY_RECT, KEY_CAPTIONS, KEY_CAP_WIDTH_FRAC]
 
-    def __init__(self, cap=None, **kwargs):
-        super().__init__(**kwargs)
-        if not cap:
-            cap = Caption()
-        self._caption = cap
-
     def __init__(self, filepath, rect=None, **kwargs):
         super().__init__(**kwargs)
         filepath = filepath or ''
@@ -60,25 +54,33 @@ class ImageSlide(Slide):
                 ImageSlide.ImageCache[filepath] = self._local_filepath
         self._rect = rect
         self._captions = kwargs.get(self.KEY_CAPTIONS)
-        if self._captions is None:
-            self._captions = {}
 
-        for valign in self.CAP_ALIGNMENTS:
-            self._captions[valign] = Caption(
-                {'valign': valign, 'halign': 'center', 'text': ''}
-            )
+        if self._captions is None:
+            self._captions = []
+        if isinstance(self._captions, dict):
+            self._captions = self._captions.values()
+
+        # for valign in self.CAP_ALIGNMENTS:
+        #    self._captions.append(Caption(
+        #        {'valign': valign, 'halign': 'center', 'text': ''}
+        #    )
         self.cap_width_frac = kwargs.get(self.KEY_CAP_WIDTH_FRAC) or 0.9
 
     def get_caption(self, valign):
-        return self._captions[valign]
+        for cap in self._captions:
+            if cap.valign == valign:
+                return cap
+        cap = Caption(params={'valign': valign, 'text': ''})
+        self.set_caption(cap)
+        return cap
 
     def set_caption(self, caption):
-        self._captions[caption.pos_name] = caption
+        self._captions.append(caption)
 
     @property
     def text_length(self):
         length = 0;
-        for cap in self._captions.values():
+        for cap in self._captions:
             length += cap.text_length
         return length
 
@@ -103,9 +105,21 @@ class ImageSlide(Slide):
         return self._captions
 
     @property
+    def named_caps(self):
+        caps_dict = {}
+        for cap in self._captions:
+            if cap.name:
+                caps_dict[cap.name] = cap
+        return caps_dict
+
+    @property
+    def caps(self):
+        return self._captions
+
+    @property
     def active_captions(self):
         caps = []
-        for cap in self._captions.values():
+        for cap in self._captions:
             if cap.text:
                 caps.append(cap)
 
@@ -114,7 +128,7 @@ class ImageSlide(Slide):
 
     @property
     def has_caption(self):
-        for cap in self._captions.values():
+        for cap in self._captions:
             if cap.text:
                 return True
         return False
@@ -147,7 +161,7 @@ class ImageSlide(Slide):
         if self._rect:
             data[self.KEY_RECT] = self._rect.get_json()
         data[self.KEY_CAPTIONS] = []
-        for caption in self._captions.values():
+        for caption in self._captions:
             if caption.text:
                 data[self.KEY_CAPTIONS].append(caption.get_json())
         return data
@@ -158,8 +172,8 @@ class ImageSlide(Slide):
         captions = data.pop(cls.KEY_CAPTIONS, {})
         if rect:
             rect = Rectangle.create_from_json(rect)
-        newob = super().create_from_json({'rect': rect, **data})
+        caps = []
         for caption_data in captions:
-            caption = Caption.create_from_json(caption_data)
-            newob.set_caption(caption)
+            caps.append(Caption.create_from_json(caption_data))
+        newob = super().create_from_json({'rect': rect, 'caps': caps, **data})
         return newob

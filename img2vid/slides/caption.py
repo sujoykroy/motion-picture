@@ -29,8 +29,16 @@ class Caption:
         )
 
     @property
-    def pos_name(self):
-       return self.valign + '_' + self.halign
+    def name(self):
+       return self._params.get('name')
+
+    @name.setter
+    def name(self, value):
+       self._params['name'] = str(value)
+
+    # @property
+    # def pos_name(self):
+    #   return self.valign + '_' + self.halign
 
     @property
     def vfrac(self):
