@@ -1,4 +1,24 @@
 class ValueParser:
+    @staticmethod
+    def parse_int(value, default=None):
+        if value is None:
+            return default
+        try:
+            value = int(value)
+        except ValueError:
+            value = default
+        return value
+
+    @staticmethod
+    def parse_float(value, default=None):
+        if value is None:
+            return default
+        try:
+            value = float(value)
+        except ValueError:
+            value = default
+        return value
+
     @classmethod
     def find_in_paths(cls, ob, paths, default=None):
         for path_i, path in enumerate(paths):

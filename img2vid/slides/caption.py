@@ -1,4 +1,7 @@
 import re
+
+
+from ..utils.value_parser import ValueParser
 from ..configs import TextConfig
 
 class Caption:
@@ -88,6 +91,22 @@ class Caption:
     @property
     def valign(self):
         return self._params.get('valign', 'center')
+
+    @property
+    def x_offset(self):
+        return ValueParser.parse_float(self._params.get('x_offset', 0), 0)
+
+    @x_offset.setter
+    def x_offset(self, value):
+        self._params['x_offset'] =  ValueParser.parse_float(value, 0)
+
+    @property
+    def y_offset(self):
+        return ValueParser.parse_float(self._params.get('y_offset', 0), 0)
+
+    @y_offset.setter
+    def y_offset(self, value):
+        self._params['y_offset'] =  ValueParser.parse_float(value, 0)
 
     @property
     def halign(self):
