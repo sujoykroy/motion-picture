@@ -114,7 +114,7 @@ class SlideClip(moviepy.editor.VideoClip):
 
         if not self.ismask:
             image = ImageUtils.merge_image(bg_image, image)
-        frame = numpy.array(image, dtype=numpy.uint8)
+        frame = numpy.array(image)
         if self.ismask:
             frame = 1.0 * frame[:, :, 0] / 255
         else:
