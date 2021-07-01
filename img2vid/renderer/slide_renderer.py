@@ -82,7 +82,7 @@ class SlideRenderer:
             for caption in slide.active_captions:
                 cap_image = CaptionRenderer.caption2image(
                     caption=caption,
-                    max_width=int(screen_config.scaled_width * slide.cap_width_frac),
+                    max_width=int(screen_config.scaled_width * caption.area_width_frac),
                     text_config=image_config, wand_image=True
                 )
                 if not cap_image:
@@ -90,8 +90,8 @@ class SlideRenderer:
                 cap_pos = Point(0, 0)
 
                 margin = caption.margin
-                x_offset = caption.x_offset * screen_config.scaled_width
-                y_offset = caption.y_offset * screen_config.scaled_height
+                x_offset = caption.area_left_frac * screen_config.scaled_width
+                y_offset = caption.area_top_frac * screen_config.scaled_height
 
                 valign = caption.valign
                 if valign == ImageSlide.CAP_ALIGN_CENTER:

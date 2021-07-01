@@ -96,6 +96,7 @@ class Caption:
     def valign(self):
         return self._params.get('valign', 'center')
 
+    '''
     @property
     def x_offset(self):
         return ValueParser.parse_float(self._params.get('x_offset', 0), 0)
@@ -111,6 +112,39 @@ class Caption:
     @y_offset.setter
     def y_offset(self, value):
         self._params['y_offset'] =  ValueParser.parse_float(value, 0)
+    '''
+
+    @property
+    def area(self):
+        return self._params.get('area', {})
+
+    @area.setter
+    def area(self, value):
+        return self._params['area'] = value
+
+    @property
+    def area_left_frac(self):
+        return ValueParser.parse_float(self.area.get('left', 0), 0)/100
+
+    @property
+    def area_right_frac(self):
+        return ValueParser.parse_float(self.area.get('right', 0), 0)/100
+
+    @property
+    def area_top_frac(self):
+        return ValueParser.parse_float(self.area.get('top', 0), 0)
+
+    @property
+    def area_bottom_frac(self):
+        return ValueParser.parse_float(self.area.get('bottom', 0), 0)
+
+    @property
+    def area_width_frac(self):
+        return 1 - self.area_right_frac - self.area_left_frac
+
+    @property
+    def area_height_frac(self):
+        return 1 - self.area_bottom_frac - self.area_top_frac
 
     @property
     def halign(self):
