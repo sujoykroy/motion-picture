@@ -93,21 +93,24 @@ class SlideRenderer:
                 x_offset = caption.area_left_frac * screen_config.scaled_width
                 y_offset = caption.area_top_frac * screen_config.scaled_height
 
+                cap_area_width = caption.area_width_frac * screen_config.scaled_width
+                cap_area_height = caption.area_height_frac * screen_config.scaled_height
+
                 valign = caption.valign
                 if valign == ImageSlide.CAP_ALIGN_CENTER:
-                    cap_pos.y = (screen_config.scaled_height - cap_image.height - 2 * margin)  * 0.5 + y_offset
+                    cap_pos.y = (cap_area_height - cap_image.height - 2 * margin)  * 0.5 + y_offset
                 elif valign == ImageSlide.CAP_ALIGN_TOP:
                     cap_pos.y = margin + y_offset
                 elif valign == ImageSlide.CAP_ALIGN_BOTTOM:
-                    cap_pos.y = screen_config.scaled_height - cap_image.height - margin - y_offset
+                    cap_pos.y = cap_area_height - cap_image.height - margin - y_offset
 
                 halign = caption.halign
                 if halign == ImageSlide.CAP_ALIGN_LEFT:
                     cap_pos.x = margin + x_offset
                 elif halign == ImageSlide.CAP_ALIGN_RIGHT:
-                    cap_pos.x = screen_config.scaled_width - cap_image.width - margin - x_offset
+                    cap_pos.x = cap_area_width - cap_image.width - margin - x_offset
                 elif halign == ImageSlide.CAP_ALIGN_CENTER:
-                    cap_pos.x =  (screen_config.scaled_width - cap_image.width -2 * margin)  *0.5 + x_offset
+                    cap_pos.x =  (cap_area_width - cap_image.width -2 * margin)  *0.5 + x_offset
 
                 cap_pos.x = int(cap_pos.x)
                 cap_pos.y = int(cap_pos.y)

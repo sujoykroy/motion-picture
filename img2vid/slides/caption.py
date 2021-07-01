@@ -120,7 +120,7 @@ class Caption:
 
     @area.setter
     def area(self, value):
-        return self._params['area'] = value
+        self._params['area'] = value
 
     @property
     def area_left_frac(self):
@@ -128,15 +128,15 @@ class Caption:
 
     @property
     def area_right_frac(self):
-        return ValueParser.parse_float(self.area.get('right', 0), 0)/100
+        return ValueParser.parse_float(self.area.get('right', 0), 0) / 100
 
     @property
     def area_top_frac(self):
-        return ValueParser.parse_float(self.area.get('top', 0), 0)
+        return ValueParser.parse_float(self.area.get('top', 0), 0) / 100
 
     @property
     def area_bottom_frac(self):
-        return ValueParser.parse_float(self.area.get('bottom', 0), 0)
+        return ValueParser.parse_float(self.area.get('bottom', 0), 0) / 100
 
     @property
     def area_width_frac(self):
