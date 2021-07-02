@@ -20,6 +20,7 @@ class ImageSlide(Slide):
     KEY_RECT = "rect"
     KEY_CAPTIONS = "caps"
     KEY_CAP_WIDTH_FRAC = "cap_width_frac"
+    KEY_IMAGE_FIT = 'image_fit'
 
     CAP_ALIGN_TOP = Caption.CAP_ALIGN_TOP
     CAP_ALIGN_CENTER = Caption.CAP_ALIGN_CENTER
@@ -32,7 +33,10 @@ class ImageSlide(Slide):
     TEMP_FOLDER = None
 
     CONSTRUCTOR_KEYS = Slide.CONSTRUCTOR_KEYS + [
-        KEY_FILEPATH, KEY_RECT, KEY_CAPTIONS, KEY_CAP_WIDTH_FRAC]
+        KEY_FILEPATH, KEY_RECT, KEY_CAPTIONS, KEY_CAP_WIDTH_FRAC,
+        KEY_IMAGE_FIT]
+
+    THROTTLE_KEYS = Slide.THROTTLE_KEYS + [KEY_IMAGE_FIT]
 
     def __init__(self, filepath, rect=None, **kwargs):
         super().__init__(**kwargs)
@@ -65,6 +69,14 @@ class ImageSlide(Slide):
         #        {'valign': valign, 'halign': 'center', 'text': ''}
         #    )
         self.cap_width_frac = kwargs.get(self.KEY_CAP_WIDTH_FRAC) or 0.9
+
+        self.image_fit = kwargs.get(self.KEY_IMAGE_FIT)
+
+    @property
+    def fit_image_full(self):
+        if not self.image_fit:
+            return True
+        return self.image_fit == 'full'
 
     def get_caption(self, valign):
         for cap in self._captions:

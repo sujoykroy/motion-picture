@@ -152,26 +152,82 @@ class SlideRenderer:
                 screen_config.scaled_height,
                 TRANSPARENT_COLOR
             )
-        fitted_image = ImageUtils.fit_full(
-            file_image, screen_config.scaled_width, screen_config.scaled_height)
 
-        orig_image_scale = fitted_image.width/file_image.width
-        file_image= ImageUtils.pil2wand(fitted_image)
+        img_pos = Point(0, 0)
 
-        with wand.image.Image(resolution=image_config.ppi,
-                              width=screen_config.scaled_width,
-                              height=screen_config.scaled_height) as canvas:
-            canvas.units = ImageUtils.PIXEL_PER_INCH
+        if slide.area:
+            x_offset = slide.area_left_frac * screen_config.scaled_width
+            y_offset = slide.area_top_frac * screen_config.scaled_height
+
+            area_width = slide.area_width_frac * screen_config.scaled_width
+            area_height = slide.area_height_frac * screen_config.scaled_height
+            area_width = max(1, area_width)
+            area_height = max(1, area_height)
+
+            if slide.fit_image_full:
+                fitted_image = ImageUtils.fit_full(
+                    file_image, area_width, area_height)
+            else:
+                fitted_image = file_image
+
+            orig_image_scale = fitted_image.width/file_image.width
+            file_image= ImageUtils.pil2wand(fitted_image)
+
+            valign = slide.valign
+            if valign == ImageSlide.CAP_ALIGN_TOP:
+                img_pos.y = y_offset
+            elif valign == ImageSlide.CAP_ALIGN_BOTTOM:
+                img_pos.y = area_height - file_image.height - y_offset
+            else:
+                img_pos.y = (area_height - file_image.height)  * 0.5 + y_offset
+
+            halign = slide.halign
+            if halign == ImageSlide.CAP_ALIGN_LEFT:
+                img_pos.x = x_offset
+            elif halign == ImageSlide.CAP_ALIGN_RIGHT:
+                img_pos.x = area_width - file_image.width - x_offset
+            else:
+                img_pos.x =  (area_width - file_image.width) * 0.5 + x_offset
+
+            img_pos.x = int(img_pos.x)
+            img_pos.y = int(img_pos.y)
+
+            canvas = ImageUtils.create_blank(
+                screen_config.scaled_width,
+                screen_config.scaled_height,
+                "#00000000"
+            )
+            canvas = ImageUtils.pil2wand(canvas)
 
             with wand.drawing.Drawing() as context:
-                # Place the file image
-                img_pos = Point(
-                    int((screen_config.scaled_width-file_image.width)*0.5),
-                    int((screen_config.scaled_height-file_image.height)*0.5))
-                img_pos.x = int(img_pos.x)
-                img_pos.y = int(img_pos.y)
                 canvas.composite(image=file_image, left=img_pos.x, top=img_pos.y)
-                image = ImageUtils.wand2pil(canvas)
+                context(canvas)
+            image = ImageUtils.wand2pil(canvas)
+            canvas = None
+        else:
+            if slide.fit_image_full:
+                fitted_image = ImageUtils.fit_full(
+                    file_image, screen_config.scaled_width, screen_config.scaled_height)
+            else:
+                fitted_image = file_image
+
+            orig_image_scale = fitted_image.width/file_image.width
+            file_image= ImageUtils.pil2wand(fitted_image)
+
+            with wand.image.Image(resolution=image_config.ppi,
+                                  width=screen_config.scaled_width,
+                                  height=screen_config.scaled_height) as canvas:
+                canvas.units = ImageUtils.PIXEL_PER_INCH
+
+                with wand.drawing.Drawing() as context:
+                    # Place the file image
+                    img_pos = Point(
+                        int((screen_config.scaled_width-file_image.width)*0.5),
+                        int((screen_config.scaled_height-file_image.height)*0.5))
+                    img_pos.x = int(img_pos.x)
+                    img_pos.y = int(img_pos.y)
+                    canvas.composite(image=file_image, left=img_pos.x, top=img_pos.y)
+                    image = ImageUtils.wand2pil(canvas)
 
         editable_rect = Rectangle(
             img_pos.x, img_pos.y,

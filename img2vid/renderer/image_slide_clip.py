@@ -26,11 +26,12 @@ class ImageSlideClip(SlideClip):
 
         image = self.apply_effects(render_info.image, time_pos, progress)
 
-        image = SlideRenderer.build_image_slide_only_captions(
-            self.slide,
-            self.app_config.video_render,
-            self.app_config.text,
-            image
+        if self.slide.caps:
+            image = SlideRenderer.build_image_slide_only_captions(
+                self.slide,
+                self.app_config.video_render,
+                self.app_config.text,
+                image
         )
 
         return image

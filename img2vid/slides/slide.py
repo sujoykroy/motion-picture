@@ -2,6 +2,8 @@ import json
 from operator import attrgetter
 
 from ..effects import create_effect_from_json
+from ..utils.value_parser import ValueParser
+
 
 class Slide:
     _IdSeed = 0
@@ -13,9 +15,14 @@ class Slide:
     KEY_SUB_SLIDES = 'sub_slides'
     KEY_DURATION = 'duration'
     KEY_DELAY = 'delay'
+    KEY_AREA = 'area'
+    KEY_VALIGN = 'area'
+    KEY_HALIGN = 'area'
 
-    CONSTRUCTOR_KEYS = [KEY_OPACITY, KEY_DURATION, KEY_DELAY]
-    THROTTLE_KEYS = [KEY_OPACITY, KEY_DURATION, KEY_DELAY]
+    CONSTRUCTOR_KEYS = [KEY_OPACITY, KEY_DURATION, KEY_DELAY, KEY_AREA,
+        KEY_VALIGN, KEY_HALIGN]
+    THROTTLE_KEYS = [KEY_OPACITY, KEY_DURATION, KEY_DELAY, KEY_AREA,
+        KEY_VALIGN, KEY_HALIGN]
 
     def __init__(self, opacity=1, duration=None, delay=None, **kwargs):
         self._id_num = Slide._IdSeed + 1
@@ -32,6 +39,45 @@ class Slide:
         if delay is not None:
             delay = int(delay)
         self.delay = delay
+        self._area = kwargs.get('area')
+        self.valign = kwargs.get('valign')
+        self.halign = kwargs.get('halign')
+
+    @property
+    def area(self):
+        return self._area or {}
+
+    @area.setter
+    def area(self, value):
+        if value:
+            value = dict(value)
+        else:
+            value = None
+        self._area = value
+
+    @property
+    def area_left_frac(self):
+        return ValueParser.parse_float(self.area.get('left', 0), 0)/100
+
+    @property
+    def area_right_frac(self):
+        return ValueParser.parse_float(self.area.get('right', 0), 0) / 100
+
+    @property
+    def area_top_frac(self):
+        return ValueParser.parse_float(self.area.get('top', 0), 0) / 100
+
+    @property
+    def area_bottom_frac(self):
+        return ValueParser.parse_float(self.area.get('bottom', 0), 0) / 100
+
+    @property
+    def area_width_frac(self):
+        return 1 - self.area_right_frac - self.area_left_frac
+
+    @property
+    def area_height_frac(self):
+        return 1 - self.area_bottom_frac - self.area_top_frac
 
     def set_mask_slide(self, mask_slide):
         self.mask_slide = mask_slide
