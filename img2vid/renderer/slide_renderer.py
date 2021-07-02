@@ -165,7 +165,7 @@ class SlideRenderer:
             area_height = max(1, area_height)
 
             if slide.fit_image_full:
-                fitted_image = ImageUtils.fit_full(
+                fitted_image = ImageUtils.fit_inside(
                     file_image, area_width, area_height)
             else:
                 fitted_image = file_image
