@@ -94,7 +94,10 @@ class Caption:
 
     @property
     def valign(self):
-        return self._params.get('valign', 'center')
+        value = self._params.get('valign')
+        if not value:
+            return 'center'
+        return value
 
     '''
     @property
@@ -148,7 +151,10 @@ class Caption:
 
     @property
     def halign(self):
-        return self._params.get('halign', 'center')
+        value = self._params.get('halign')
+        if not value:
+            return 'center'
+        return value
 
     @halign.setter
     def halign(self, value):
