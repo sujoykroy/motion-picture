@@ -1,7 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+import sys
 
 import MotionPicture, sys, os
 
+print(MotionPicture.__file__)
 app = MotionPicture.Application()
 argv = list(sys.argv)
 

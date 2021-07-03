@@ -526,7 +526,7 @@ class PseudoBezierPoints(object):
                     step_i = -1
             else:
                 step_i = inde.step
-            return [self[i] for i in xrange(start_i, stop_i, step_i)]
+            return [self[i] for i in range(start_i, stop_i, step_i)]
         if index<0:
             index += len(self)
         if index>=len(self):
@@ -680,7 +680,7 @@ class Curve(NaturalCurve):
             ctx.line_to(self.all_points[-1][0], self.all_points[-1][1])
         else:
             ctx.move_to(self.all_points[-1][0], self.all_points[-1][1])
-        for i in xrange(len(self.all_points)-2, 1,-3):
+        for i in range(len(self.all_points)-2, 1,-3):
             c1 = self.all_points[i]
             c2 = self.all_points[i-1]
             ds = self.all_points[i-2]
@@ -782,7 +782,7 @@ class CurvePoint(object):
         curve = curves[curve_index]
         curve_points = []
         curve_points.append(CurvePoint(curve_index, -1, CurvePoint.POINT_TYPE_ORIGIN))
-        for bpi in xrange(len(curve.bezier_points)):
+        for bpi in range(len(curve.bezier_points)):
             curve_points.append(CurvePoint(curve_index, bpi, CurvePoint.POINT_TYPE_CONTROL_1))
             curve_points.append(CurvePoint(curve_index, bpi, CurvePoint.POINT_TYPE_CONTROL_2))
             curve_points.append(CurvePoint(curve_index, bpi, CurvePoint.POINT_TYPE_DEST))

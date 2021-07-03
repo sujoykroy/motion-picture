@@ -354,7 +354,7 @@ class Document(object):
             pool.close()
             result.get(timeout=60*60*24)
             clips = []
-            for i in xrange(len(sub_filenames)):
+            for i in range(len(sub_filenames)):
                 clip=movie_editor.VideoFileClip(sub_filenames[i])
                 clip = clip.subclip(0, clip_durations[i])#to eliminated extra frames at end
                 clips.append(clip)
@@ -449,7 +449,7 @@ class DocMovie(object):
     FFMPEG_PARAMS = "-quality good -qmin 10 -qmax 42"
     BIT_RATE = "640k"
     CODEC = "libvpx"
-    PRESET = "superslow"
+    PRESET = ""
 
     def __init__(self, src_filename, dest_filename,
                        time_line=None, start_time=0, end_time=None,
@@ -638,7 +638,7 @@ class DocMovie(object):
             if self.dry:
                 return
             clips = []
-            for i in xrange(len(sub_filenames)):
+            for i in range(len(sub_filenames)):
                 clip=movie_editor.VideoFileClip(sub_filenames[i])
                 clip = clip.subclip(0, clip_durations[i])#to eliminated extra frames at end
                 clips.append(clip)

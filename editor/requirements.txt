@@ -1,0 +1,5 @@
+PyGObject
+NumPy
+MoviePy
+PyAudio
+pycollada
