@@ -552,6 +552,7 @@ class PseudoBezierPoints(object):
                 indices.extend([i*3+0+1, i*3+1+1, i*3+2+1])
         else:
             indices.extend([index*3+0+1, index*3+1+1, index*3+2+1])
+        indices = list(filter(lambda ind: ind < len(self.curve.all_points) , indices))
         self.curve.all_points = numpy.delete(self.curve.all_points,indices, axis=0)
 
     def insert(self, index, bezier_point):
