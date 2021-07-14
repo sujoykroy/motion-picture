@@ -9,6 +9,7 @@ import threading, time
 import queue
 from .. import settings as Settings
 import logging
+import numpy
 
 class VideoProcessThread(threading.Thread):
     def __init__(self, clip, frame_queue, time_queue):
@@ -60,6 +61,7 @@ class VideoShape(RectangleShape, AVBase):
                                 fill_color, width, height, corner_radius)
         AVBase.__init__(self)
         self.image_pixbuf = None
+        self.image_frame = None
         self.alpha = 1.
 
         self.video_clip = None
@@ -160,6 +162,18 @@ class VideoShape(RectangleShape, AVBase):
         if not self.use_thread or self.image_process_thread is None:
             frame = self.video_clip.reader.get_frame(self.time_pos)
             self.image_pixbuf = self.get_pixbuf_from_frame(frame)
+            self.image_frame = None
+
+            height, width, channels = frame.shape
+            if channels == 4:
+                cairo_format = cairo.FORMAT_ARGB32
+                frame = frame[:,:,[2,1,0,3]].copy().astype(numpy.uint8)
+            elif channels == 3:
+                cairo_format = cairo.FORMAT_RGB24
+                frame = frame[:,:,[2,1,0]].copy().astype(numpy.uint8)
+            self.image_frame = cairo.ImageSurface.create_for_data(
+                frame, cairo_format, width, height
+            )
 
     def get_pixbuf_from_frame(self, frame):
         height, width, channels = frame.shape
@@ -181,8 +195,19 @@ class VideoShape(RectangleShape, AVBase):
                 frame = None
             if frame is not None:
                 self.image_pixbuf = self.get_pixbuf_from_frame(frame)
+                self.image_frame = None
 
-        if self.image_pixbuf:
+        if self.image_frame:
+            ctx.save()
+            ctx.scale(self.width/float(self.image_frame.get_width()),
+                      self.height/float(self.image_frame.get_height()))
+            ctx.set_source_surface(self.image_frame, 0, 0)
+            if self.alpha<1:
+                ctx.paint_with_alpha(self.alpha)
+            else:
+                ctx.paint()
+            ctx.restore()
+        elif self.image_pixbuf:
             ctx.save()
             ctx.scale(self.width/float(self.image_pixbuf.get_width()),
                       self.height/float(self.image_pixbuf.get_height()))
