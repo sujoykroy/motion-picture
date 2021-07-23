@@ -25,7 +25,7 @@ class TextShape(RectangleShape):
                     border_width, fill_color, width, height, corner_radius)
         self.x_align = x_align
         self.y_align = y_align
-        self.text = text
+        self._text = text
         self.display_text = text
         self.font = font
         self.font_color = font_color
@@ -241,8 +241,17 @@ class TextShape(RectangleShape):
                 self.set_text(text)
         super(TextShape, self).set_prop_value(prop_name, value, prop_data)
 
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        self.set_text(value)
+
     def set_text(self, text):
-        self.text = text
+        self._text = text
         self.set_exposure(self.exposure)
         self.readjust_sizes()
 
