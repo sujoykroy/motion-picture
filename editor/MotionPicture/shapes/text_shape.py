@@ -45,6 +45,7 @@ class TextShape(RectangleShape):
         prop_names.append("font")
         prop_names.append("font_color")
         prop_names.append("line_align")
+        prop_names.append("char_width")
         return prop_names
 
     def get_xml_element(self):
