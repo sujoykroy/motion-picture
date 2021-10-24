@@ -34,10 +34,10 @@ class Slide:
         self.opacity = opacity
         self.sub_slides = []
         if duration is not None:
-            duration = int(duration)
+            duration = float(duration)
         self.duration = duration
         if delay is not None:
-            delay = int(delay)
+            delay = float(delay)
         self.delay = delay
         self._area = kwargs.get('area')
         self.valign = kwargs.get('valign')

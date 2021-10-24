@@ -70,7 +70,7 @@ class ImageUtils:
     @classmethod
     def fit_full(cls, image, width, height):
         """"This will make the image fit given width and height.
-        To keep aspcet ratio, it will automactically cut of some boder zones."""
+        To keep aspect ratio, it will automactically cut of some boder zones."""
 
         max_scale = max(width/image.width, height/image.height)
         image = cls.same_scale(image, max_scale)

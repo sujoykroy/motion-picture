@@ -382,13 +382,14 @@ class VideoRenderer:
             render_logger = VideoRenderLogger(external_callback=callback)
         else:
             render_logger = 'bar'
+
         self.outer_clip.write_videofile(
             dest_filepath, fps=config.fps,
             codec=config.video_codec,
             preset=config.ffmpeg_preset,
             ffmpeg_params=config.ffmpeg_params,
             bitrate=config.bit_rate,
-            logger=render_logger)
+            logger=render_logger, threads=4)
 
 
     def create_clip(self, slide, app_config, **kwargs):
@@ -422,23 +423,25 @@ class VideoRenderer:
             seffects = dict(slide.effects)
 
             sduration = slide.duration
-            if slide.TYPE_NAME == TextSlide.TYPE_NAME:
-                sduration = app_config.text.duration
-            elif slide.TYPE_NAME in (ImageSlide.TYPE_NAME, VideoSlide.TYPE_NAME):
-                if slide.TYPE_NAME == VideoSlide.TYPE_NAME:
-                    sduration = slide.duration or sduration
-                else:
+
+            if sduration is None:
+                if slide.TYPE_NAME == TextSlide.TYPE_NAME:
+                    sduration = app_config.text.duration
+                elif slide.TYPE_NAME in (ImageSlide.TYPE_NAME, VideoSlide.TYPE_NAME):
+                    if slide.TYPE_NAME == VideoSlide.TYPE_NAME:
+                        sduration = slide.duration or sduration
+                    else:
+                        sduration = app_config.image.duration
+                    if slide.rect:
+                        random.seed()
+                        sduration = app_config.image.random_crop_duration
+                    elif slide.filepath in cropped_files:
+                        sduration = app_config.image.crop_source_duration
+                    if not slide.rect and not slide.has_caption:
+                        effect = SlideEffects.ScalePan.create_random(1, 6)
+                        seffects[effect.TYPE_NAME] = effect
+                elif slide.TYPE_NAME.endswith(GeomSlide.TYPE_NAME):
                     sduration = app_config.image.duration
-                if slide.rect:
-                    random.seed()
-                    sduration = app_config.image.random_crop_duration
-                elif slide.filepath in cropped_files:
-                    sduration = app_config.image.crop_source_duration
-                if not slide.rect and not slide.has_caption:
-                    effect = SlideEffects.ScalePan.create_random(1, 6)
-                    seffects[effect.TYPE_NAME] = effect
-            elif slide.TYPE_NAME.endswith(GeomSlide.TYPE_NAME):
-                sduration = app_config.image.duration
 
 
             if not sduration:
