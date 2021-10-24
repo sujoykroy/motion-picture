@@ -21,6 +21,10 @@ class ImageSlide(Slide):
     KEY_CAPTIONS = "caps"
     KEY_CAP_WIDTH_FRAC = "cap_width_frac"
     KEY_IMAGE_FIT = 'image_fit'
+    KEY_ANGLE = 'angle'
+    KEY_SCALE = 'scale'
+    KEY_OFFSET_X = 'offset_x'
+    KEY_OFFSET_Y = 'offset_y'
 
     CAP_ALIGN_TOP = Caption.CAP_ALIGN_TOP
     CAP_ALIGN_CENTER = Caption.CAP_ALIGN_CENTER
@@ -34,7 +38,8 @@ class ImageSlide(Slide):
 
     CONSTRUCTOR_KEYS = Slide.CONSTRUCTOR_KEYS + [
         KEY_FILEPATH, KEY_RECT, KEY_CAPTIONS, KEY_CAP_WIDTH_FRAC,
-        KEY_IMAGE_FIT]
+        KEY_IMAGE_FIT, KEY_ANGLE, KEY_SCALE,
+        KEY_OFFSET_X, KEY_OFFSET_Y]
 
     THROTTLE_KEYS = Slide.THROTTLE_KEYS + [KEY_IMAGE_FIT]
 
@@ -58,6 +63,10 @@ class ImageSlide(Slide):
                 ImageSlide.ImageCache[filepath] = self._local_filepath
         self._rect = rect
         self._captions = kwargs.get(self.KEY_CAPTIONS)
+        self.angle = float(kwargs.get(self.KEY_ANGLE) or 0)
+        self.scale = float(kwargs.get(self.KEY_SCALE) or 1)
+        self.offset_x = float(kwargs.get(self.KEY_OFFSET_X) or 0)
+        self.offset_y = float(kwargs.get(self.KEY_OFFSET_Y) or 0)
 
         if self._captions is None:
             self._captions = []

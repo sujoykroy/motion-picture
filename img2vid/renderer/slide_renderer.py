@@ -1,6 +1,7 @@
 import wand.image
 import wand.drawing
 import wand.color
+import PIL
 from PIL import ImageFilter
 
 from ..geom import Rectangle, Point
@@ -144,6 +145,18 @@ class SlideRenderer:
                     file_image = ImageUtils.fetch_image(
                         filepath=slide.local_filepath,
                         crop=slide.rect, wand_image=False)
+                    if file_image:
+                        if slide.scale != 1:
+                             file_image = file_image.resize(
+                                (
+                                    int(file_image.width*slide.scale),
+                                    int(file_image.height*slide.scale)
+                                )
+                            )
+                        if slide.angle or slide.offset_x or slide.offset_y:
+                            file_image = file_image.rotate(
+                                slide.angle, translate=(slide.offset_x, slide.offset_y)
+                            )
         except Exception as ex:
             print(ex)
         if not file_image:
