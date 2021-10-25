@@ -67,12 +67,10 @@ class AppConfig:
         video_width, video_height = section.get("resolution", "1280x720").split("x")
         self.video_render = VideoRenderConfig(
             width=int(video_width), height=int(video_height),
-            ffmpeg_params=section.get(
-                "ffmpeg-params",
-                "-quality good -qmin 10 -qmax 42").split(" "),
-            bit_rate=section.get("bit-rate", "640k"),
-            ffmpeg_preset=section.get("ffmpeg-preset", "superslow"),
-            video_codec=section.get("video-codec", "mpeg4"),
+            ffmpeg_params=section.get("ffmpeg-params"),
+            bit_rate=section.get("bit-rate"),
+            ffmpeg_preset=section.get("ffmpeg-preset", "ultrafast"),
+            video_codec=section.get("video-codec"),
             fps=int(section.get("fps", 25)),
             back_color=back_color,
             video_ext=section.get("video-ext", ".mov"),
