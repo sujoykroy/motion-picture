@@ -9,9 +9,9 @@ from .painted import Painted
 from .cool_text import CoolText
 from .param_change import NumberParamChange
 from .moviepy_effect import MoviePyEffect
+from .crop import CropEffect
 
-
-_EFFECT_CLASSES = (FadeIn, FadeOut, RgbFilter, Painted, CoolText, NumberParamChange, MoviePyEffect)
+_EFFECT_CLASSES = (FadeIn, FadeOut, RgbFilter, Painted, CoolText, NumberParamChange, MoviePyEffect, CropEffect)
 
 def create_effect_from_json(data):
     """Parses json data and returns corresponding Effect."""

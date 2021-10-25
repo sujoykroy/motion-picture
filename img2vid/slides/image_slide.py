@@ -170,6 +170,12 @@ class ImageSlide(Slide):
     def rect(self):
         return self._rect
 
+    @rect.setter
+    def rect(self, rect):
+        if not self._rect:
+            self._rect = Rectangle(0, 0, 1, 1)
+        self._rect.copy_from(rect)
+
     def crop(self, rect):
         if self._rect:
             rect = rect.copy()

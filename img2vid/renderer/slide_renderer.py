@@ -147,7 +147,7 @@ class SlideRenderer:
                         crop=slide.rect, wand_image=False)
                     if file_image:
                         if slide.scale != 1:
-                             file_image = file_image.resize(
+                            file_image = file_image.resize(
                                 (
                                     int(file_image.width*slide.scale),
                                     int(file_image.height*slide.scale)

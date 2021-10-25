@@ -26,9 +26,9 @@ class ImageSlideClip(SlideClip):
 
         image = self.apply_effects(render_info.image, time_pos, progress)
 
-        if render_info.image.width != image.width:
-            image = ImageUtils.fit_full(
-                    image, render_info.image.width, render_info.image.height)
+        # if render_info.image.width != image.width:
+        #    image = ImageUtils.fit_full(
+        #            image, render_info.image.width, render_info.image.height)
 
         if self.slide.caps:
             image = SlideRenderer.build_image_slide_only_captions(
