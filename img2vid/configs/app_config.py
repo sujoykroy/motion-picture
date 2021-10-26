@@ -64,7 +64,7 @@ class AppConfig:
             duration=section.get("duration", 5))
 
         section = self.get_section("video-render")
-        video_width, video_height = section.get("resolution", "1280x720").split("x")
+        video_width, video_height = (section.get("resolution") or "1280x720").split("x")
         self.video_render = VideoRenderConfig(
             width=int(video_width), height=int(video_height),
             ffmpeg_params=section.get("ffmpeg-params"),
