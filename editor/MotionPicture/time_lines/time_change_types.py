@@ -99,7 +99,7 @@ class PeriodicChangeType(TimeChangeType):
 
     def value_at(self, start_value, end_value, t, duration):
         value = TimeChangeType.value_at(self, start_value, end_value, t, duration)
-        self_value = self.self_value_at(t)*math.exp(-self.damp*t)
+        self_value = self.self_value_at(t)*numpy.exp(-self.damp*t)
         if isinstance(value, list):
             for i in range(len(value)):
                 value[i] += self_value
