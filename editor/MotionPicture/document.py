@@ -586,10 +586,11 @@ class DocMovie(object):
                 video_clip.write_videofile(
                     self.dest_filename,
                     fps = self.fps,
-                    codec = self.codec,
-                    preset=self.PRESET,
-                    ffmpeg_params = self.ffmpeg_params.split(" "),
-                    bitrate = self.bit_rate)
+                    #codec = self.codec,
+                    #preset=self.PRESET,
+                    #ffmpeg_params = self.ffmpeg_params.split(" "),
+                    #bitrate = self.bit_rate
+                    )
             self.unload_doc()
         else:
             segment_count = self.process_count*2
@@ -783,7 +784,13 @@ class VideoFrameMaker(object):
         pixbuf.savev(filename, "png", [], [])
 
     def write_gif(self, clip, fps=None, program= 'ImageMagick', opt="OptimizeTransparency"):
+        
         filename = self.doc_movie.dest_filename
+
+        if program == "ffmpeg":
+            clip.fps = fps
+            clip.write_gif(filename)
+
         file_root, ext = os.path.splitext(filename)
         tt = numpy.arange(0, clip.duration, 1.0/fps)
         tempfiles = []
@@ -820,15 +827,7 @@ class VideoFrameMaker(object):
                   "-fuzz", "%02d"%fuzz + "%",
                   ]+(["-colors", "%d"%colors] if colors is not None else [])+\
                   gif_params + [filename]
-
-        elif program == "ffmpeg":
-
-            cmd = [moviepy.config.get_setting("FFMPEG_BINARY"), '-y',
-                   '-f', 'image2', '-r',str(fps),
-                   '-i', filename+'_GIFTEMP%04d.png',
-                   '-r',str(fps),
-                   filename]
-
+            print(cmd)
         try:
             subprocess.call(cmd)
             print("%s is ready."%filename)
