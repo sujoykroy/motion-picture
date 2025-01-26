@@ -1,5 +1,7 @@
 PyGObject
 NumPy
 MoviePy
-PyAudio
+#PyAudio
 pycollada
+scipy
+moviepy==1.0.3

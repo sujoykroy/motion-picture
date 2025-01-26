@@ -1,6 +1,9 @@
 from .rectangle_shape import RectangleShape
 from ..commons import *
-import parser
+try:
+    import parser
+except:
+    parser = None
 import imp
 from .. import settings as Settings
 from .custom_props import CustomProps, CustomProp

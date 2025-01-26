@@ -1,4 +1,7 @@
-import pyaudio
+try:
+    import pyaudio
+except:
+    pyaudio = None
 from queue import Queue
 import queue
 import numpy
