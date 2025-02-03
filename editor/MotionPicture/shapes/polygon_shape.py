@@ -425,7 +425,7 @@ class PolygonShape(Shape, Mirror):
     @staticmethod
     def create_from_rectangle_shape(rect_shape):
         if rect_shape.corner_radius>0: return None
-        polygon_shape = PolygonShape(Point(0,0), None, None, None, None, None)
+        polygon_shape = PolygonShape(Point(0,0))
         polygon_shape.polygons.append(Polygon(
             points=[Point(0.,0.), Point(1., 0.), Point(1., 1.), Point(0., 1.)], closed=True))
         rect_shape.copy_into(polygon_shape, all_fields=True, copy_name=False)

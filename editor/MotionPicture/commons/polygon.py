@@ -117,9 +117,9 @@ class Polygon(object):
             mod_x_roots = self.get_reals(x_roots)
             mod_y_roots = self.get_reals(y_roots)
 
-            if not x_roots and mod_y_roots and x_coeff[0]==0 and abs(x_coeff[1])<5:#horizontal
+            if not len(x_roots) and len(mod_y_roots) and x_coeff[0]==0 and abs(x_coeff[1])<5:#horizontal
                 return point_index, mod_y_roots[0]
-            if not y_roots and mod_x_roots and y_coeff[0]==0 and abs(y_coeff[1])<5:#vertical
+            if not len(y_roots) and len(mod_x_roots) and y_coeff[0]==0 and abs(y_coeff[1])<5:#vertical
                 return point_index, mod_x_roots[0]
 
             for x_root in mod_x_roots:
