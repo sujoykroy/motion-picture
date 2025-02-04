@@ -22,6 +22,7 @@ from .curve_point_group_shape import CurvePointGroupShape
 from .curve_joiner_shape import CurveJoinerShape
 from .mimic_shape import MimicShape
 from .custom_props import CustomProp
+from .regular_convex_polygon_shape import RegularConvexPolygonShape
 
 def get_hierarchy_names(shape):
     names = [shape.get_name()]

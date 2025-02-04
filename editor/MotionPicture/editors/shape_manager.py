@@ -475,6 +475,8 @@ class ShapeManager(object):
             self.shape_creator = CurveShapeCreator.create_blank(point)
         elif shape_type == "polygon":
             self.shape_creator = PolygonShapeCreator(point)
+        elif shape_type == "regular_convex_polygon":
+            self.shape_creator = RegularConvexPolygonCreator(point)
         elif shape_type == "freehand":
             if self.shape_editor and isinstance(self.shape_editor.shape, CurveShape):
                 curve_shape = self.shape_editor.shape

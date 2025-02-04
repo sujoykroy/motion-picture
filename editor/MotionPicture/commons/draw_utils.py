@@ -230,3 +230,25 @@ def draw_oval(ctx, width, height, sweep_angle=360.):
     ctx.arc(0,0,.5,0, sweep_angle*math.pi/180.)
     ctx.close_path()
     ctx.restore()
+
+
+def draw_regular_convex_polygon(ctx, x, y, width, height, edges):
+    edges = int(edges)
+    ctx.new_path()
+    ctx.save()
+    ctx.translate(width*.5, height*.5)
+    radius = min(width, height) /2
+    angle = 360/edges
+    first_px = None
+    first_py = None
+    for i in range(edges):
+        px = radius * math.cos(i*angle * math.pi/180)
+        py = radius * math.sin(i*angle * math.pi/180)
+        if i == 0:
+            first_px = px
+            first_py = py
+            ctx.move_to(px, py)
+        else:
+            ctx.line_to(px, py)
+    ctx.close_path()
+    ctx.restore()

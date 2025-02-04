@@ -21,6 +21,7 @@ from .curves_form import CurvesForm
 from xml.etree.ElementTree import Element as XmlElement
 from .custom_props import *
 from .mimic_shape import MimicShape
+from .regular_convex_polygon_shape import RegularConvexPolygonShape
 
 REL_ABS_ANCHOR_AT = "rel_abs_anchor_at"
 
@@ -229,6 +230,8 @@ class MultiShape(Shape):
                 child_shape = MimicShape.create_from_xml_element(shape_element)
             elif shape_type == ImageSeqShape.TYPE_NAME:
                 child_shape = ImageSeqShape.create_from_xml_element(shape_element)
+            elif shape_type == RegularConvexPolygonShape.TYPE_NAME:
+                child_shape = RegularConvexPolygonShape.create_from_xml_element(shape_element)
             if child_shape is None: continue
             child_shape.parent_shape = shape
             shape.shapes.add(child_shape)

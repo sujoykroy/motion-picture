@@ -7,3 +7,4 @@ from .predrawn_shape_creator import PredrawnShapeCreator
 from .ring_shape_creator import RingShapeCreator
 from .text_shape_creator import TextShapeCreator
 from .camera_shape_creator import CameraShapeCreator
+from .regular_convex_polygon_creator import RegularConvexPolygonCreator

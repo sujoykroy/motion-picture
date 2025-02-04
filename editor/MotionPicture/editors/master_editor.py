@@ -138,6 +138,8 @@ class MasterEditor(Gtk.ApplicationWindow):
                     self, self.shape_prop_changed, self.insert_time_slice)
         self.curve_point_group_shape_prop_box = CurvePointGroupShapePropBox(
                     self, self.shape_prop_changed, self.insert_time_slice)
+        self.regular_convex_polygon_shape_prop_box = RegularConvexPolygonShapePropBox(
+                    self, self.shape_prop_changed, self.insert_time_slice)
 
         self.shape_form_prop_box = ShapeFormPropBox(self.reselect_selected_shape, self.insert_time_slice)
         self.shape_form_prop_box.parent_window = self
@@ -184,7 +186,8 @@ class MasterEditor(Gtk.ApplicationWindow):
             self.document_shape_prop_box,
             self.custom_shape_prop_box,
             self.curve_point_group_shape_prop_box,
-            self.interior_pose_box
+            self.interior_pose_box,
+            self.regular_convex_polygon_shape_prop_box
         )
         self.left_prop_box.pack_start(self.prop_grid, expand=True, fill=True, padding=0)
         self.paned_box_2.pack1(left_prop_box_container, resize=True, shrink=True)
@@ -477,6 +480,7 @@ class MasterEditor(Gtk.ApplicationWindow):
         self.curve_point_group_shape_prop_box.hide()
         self.interior_pose_box.hide()
         self.remove_custom_props_box()
+        self.regular_convex_polygon_shape_prop_box.hide()
 
         if shape != None:
             if shape.linked_to:
@@ -521,6 +525,10 @@ class MasterEditor(Gtk.ApplicationWindow):
             if isinstance(shape, CurvePointGroupShape):
                 self.curve_point_group_shape_prop_box.show()
                 self.curve_point_group_shape_prop_box.set_prop_object(shape)
+
+            if isinstance(shape, RegularConvexPolygonShape):
+                self.regular_convex_polygon_shape_prop_box.show()
+                self.regular_convex_polygon_shape_prop_box.set_prop_object(shape)
 
             if isinstance(shape, CustomShape):
                 self.custom_shape_prop_box.show()

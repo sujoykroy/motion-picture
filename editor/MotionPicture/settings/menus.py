@@ -98,6 +98,8 @@ m.add(path="Shapes/<New>/Oval", icon="oval",
       action_name="win.create_new_shape", action_state="oval")
 m.add(path="Shapes/<New>/Polygon", icon="polygon",
       action_name="win.create_new_shape", action_state="polygon")
+m.add(path="Shapes/<New>/Regular Convex Polygon", icon="regular_convex_polygon",
+      action_name="win.create_new_shape", action_state="regular_convex_polygon")
 m.add(path="Shapes/<New>/Curve", icon="curve",
       action_name="win.create_new_shape", action_state="curve")
 m.add(path="Shapes/<New>/Image", icon="image",
