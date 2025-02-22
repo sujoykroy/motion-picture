@@ -22,6 +22,7 @@ from xml.etree.ElementTree import Element as XmlElement
 from .custom_props import *
 from .mimic_shape import MimicShape
 from .regular_convex_polygon_shape import RegularConvexPolygonShape
+from .mirror import Mirror
 
 REL_ABS_ANCHOR_AT = "rel_abs_anchor_at"
 
@@ -68,7 +69,7 @@ class MultiShapeModule(object):
             return multi_shape
         return None
 
-class MultiShape(Shape):
+class MultiShape(Shape, Mirror):
     TYPE_NAME = "multi_shape"
     POSE_TAG_NAME = "pose"
 
@@ -77,6 +78,7 @@ class MultiShape(Shape):
         if anchor_at is None:
             anchor_at = Point(width*.5, height*.5)
         Shape.__init__(self,  anchor_at, border_color, border_width, fill_color, width, height)
+        Mirror.__init__(self)
         self.shapes = ShapeList()
         self.poses = dict()
         self.timelines = dict()
@@ -688,9 +690,35 @@ class MultiShape(Shape):
     def draw_shape(shape, ctx, drawing_size=None,
                          fixed_border=True, no_camera=True,
                          root_shape=None, exclude_camera_list=None,
-                         pre_matrix=None, show_non_renderable=False):
+                         pre_matrix=None, show_non_renderable=False, **options):
         if isinstance(shape, MultiShape):
             multi_shape = shape
+            if multi_shape.mirror != 0 and options.get('allow_mirror', True):
+                scales, rotations = multi_shape.get_scales_n_rotations()
+
+                for scale in scales:
+                    ctx.save()
+                    ctx.scale(*scale)
+                    MultiShape.draw_shape(multi_shape, ctx,
+                        drawing_size = drawing_size, fixed_border=fixed_border,
+                        no_camera=no_camera, exclude_camera_list=exclude_camera_list,
+                        root_shape=root_shape, pre_matrix=pre_matrix,
+                        show_non_renderable=show_non_renderable,
+                        allow_mirror=False,
+                        extra_scale_x=scale[0],
+                        extra_scale_y=scale[1]
+                    )
+                    ctx.restore()
+                for angle in [0] +rotations:
+                    MultiShape.draw_shape(multi_shape, ctx,
+                        drawing_size = drawing_size, fixed_border=fixed_border,
+                        no_camera=no_camera, exclude_camera_list=exclude_camera_list,
+                        root_shape=root_shape, pre_matrix=pre_matrix,
+                        show_non_renderable=show_non_renderable,
+                        allow_mirror=False, extra_angle=angle
+                    )
+                return
+
             if multi_shape.fill_color is not None:
                 ctx.save()
                 multi_shape.pre_draw(ctx, root_shape=root_shape)
@@ -714,6 +742,15 @@ class MultiShape(Shape):
                 last_shape = multi_shape.shapes.get_at_index(-1)
             else:
                 last_shape = None
+
+
+            orig_angle = multi_shape.angle
+            org_translation_x = multi_shape.translation.x
+            org_translation_y = multi_shape.translation.y
+
+            if options.get('extra_angle'):
+                multi_shape.set_angle(options['extra_angle'])
+
             for i in range(renderable_shapes_count):
                 child_shape = multi_shape.shapes.get_at_index(i)
                 if not child_shape.visible:
@@ -729,6 +766,11 @@ class MultiShape(Shape):
                             no_camera=no_camera, exclude_camera_list=exclude_camera_list,
                             root_shape=root_shape, pre_matrix=pre_matrix,
                             show_non_renderable=display_non_renderable)
+
+
+            multi_shape.angle = orig_angle
+            multi_shape.translation.x = org_translation_x
+            multi_shape.translation.y = org_translation_y
 
             if masked_surface:
                 last_shape = multi_shape.shapes.get_at_index(-1)
@@ -811,6 +853,9 @@ class MultiShape(Shape):
                     root_shape=root_shape, pre_matrix=pre_matrix,
                     show_non_renderable=False)
         else:
+            extra_options = {}
+            if options.get('parent_extras'):
+                extra_options['parent_extras'] = options.get('parent_extras')
             ctx.save()
             shape.pre_draw(ctx, root_shape=root_shape)
             shape.draw_path(ctx, for_fill=True)
