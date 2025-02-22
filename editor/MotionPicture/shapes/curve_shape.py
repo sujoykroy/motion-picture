@@ -1085,7 +1085,7 @@ class CurveShape(Shape, Mirror):
 
     @staticmethod
     def create_from_oval_shape(oval_shape):
-        curve_shape = CurveShape(Point(0,0), None, None, None, None, None)
+        curve_shape = CurveShape(Point(0,0))
         k = .5522847498*.5#magic number
         bezier_points = [
             BezierPoint(control_1=Point(.5+k, 0), control_2=Point(1., .5-k), dest=Point(1., .5)),
@@ -1101,7 +1101,7 @@ class CurveShape(Shape, Mirror):
 
     @staticmethod
     def create_from_polygon_shape(polygon_shape):
-        curve_shape = CurveShape(Point(0,0), None, None, None, None, None)
+        curve_shape = CurveShape(Point(0,0))
         for polygon in polygon_shape.polygons:
             curve = None
             for i in range(len(polygon.points)):
